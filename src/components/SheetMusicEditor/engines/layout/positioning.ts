@@ -108,24 +108,35 @@ export const getPitchForOffset = (offset: number, clef: string = 'treble'): stri
 /**
  * Calculates the visual width of a note based on its duration.
  * Spacing is proportional to the square root of quants to balance density.
- * @param duration - The duration type (e.g., 'quarter', 'eighth')
- * @param dotted - Whether the note is dotted
- * @returns The calculated width in pixels
- */
-/**
- * Calculates the visual width of a note based on its duration.
- * Spacing is proportional to the square root of quants to balance density.
+ * Includes minimum widths for short notes and dot padding.
  * @param duration - The duration type (e.g., 'quarter', 'eighth')
  * @param dotted - Whether the note is dotted
  * @returns The calculated width in pixels
  */
 export const getNoteWidth = (duration: string, dotted: boolean): number => {
   const quants = getNoteDuration(duration, dotted, undefined);
-  // Spacing proportional to sqrt(quants)
-  return NOTE_SPACING_BASE_UNIT * Math.sqrt(quants);
-};
+  const baseWidth = NOTE_SPACING_BASE_UNIT * Math.sqrt(quants);
+  
+  // Use multipliers relative to the base unit for responsiveness
+  const MIN_WIDTH_FACTORS: Record<string, number> = {
+    'sixtyfourth': 1.2,
+    'thirtysecond': 1.5,
+    'sixteenth': 1.8,
+    'eighth': 2.2,
+  };
 
-// ... (existing content)
+  const minWidth = (MIN_WIDTH_FACTORS[duration] || 0) * NOTE_SPACING_BASE_UNIT;
+  
+  // Calculate base width (greater of rhythm-based or visual minimum)
+  let width = Math.max(baseWidth, minWidth);
+  
+  // Add space for the dot if dotted (dots appear to the right of notehead)
+  if (dotted) {
+    width += NOTE_SPACING_BASE_UNIT * 0.5; // Dot width factor
+  }
+  
+  return width;
+};
 
 /**
  * Calculates layout details for a chord (group of notes at the same time).
