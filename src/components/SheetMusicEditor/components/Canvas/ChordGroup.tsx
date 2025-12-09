@@ -249,7 +249,7 @@ const ChordGroup = ({
 
             {/* Ghost Preview - shows what duration will be applied on click */}
             {/* Hide preview when dragging */}
-            {!isGhost && !isDragging && !modifierHeld && hoveredNoteId === note.id && activeDuration && (duration !== activeDuration || dotted !== activeDotted) && (
+            {!isGhost && !isDragging && !modifierHeld && hoveredNoteId === note.id && activeDuration && (
               <g style={{ pointerEvents: 'none' }}>
                 <Note 
                   quant={quant} 
