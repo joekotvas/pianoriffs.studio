@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useTheme } from '../../context/ThemeContext';
+import { BEAMING } from '../../constants';
 
 /**
  * Renders a beam connecting multiple notes.
@@ -13,8 +14,8 @@ import { useTheme } from '../../context/ThemeContext';
  */
 const Beam = ({ startX, endX, startY, endY, type, direction }) => {
     const { theme } = useTheme();
-    const beamWidth = 5;
-    const secondaryOffset = 8;
+    const beamWidth = BEAMING.THICKNESS;
+    const secondaryOffset = BEAMING.SPACING;
     
     const renderBeam = (y1, y2, key, thickness = 5) => {
         // To get vertical ends, we draw a polygon.
@@ -43,11 +44,11 @@ const Beam = ({ startX, endX, startY, endY, type, direction }) => {
     const paths = [];
     
     // Primary Beam (Outermost) - Standard Thickness
-    paths.push(renderBeam(startY, endY, 'primary', 5));
+    paths.push(renderBeam(startY, endY, 'primary', BEAMING.THICKNESS));
     
-    // Secondary Beams (Inner) - Thinner
-    const beamSpacing = 8;
-    const innerBeamThickness = 5;
+    // Secondary Beams (Inner) - Same thickness
+    const beamSpacing = BEAMING.SPACING;
+    const innerBeamThickness = BEAMING.THICKNESS;
 
     const addBeam = (index) => {
         const offset = direction === 'up' 

@@ -2,7 +2,7 @@ import { ScoreEvent, BeamGroup } from './types';
 import { getNoteDuration } from '../../utils/core';
 import { getOffsetForPitch, getNoteWidth, getPitchForOffset, calculateChordLayout, getStemOffset } from './positioning';
 import { CONFIG } from '../../config';
-import { MIDDLE_LINE_Y } from '../../constants';
+import { MIDDLE_LINE_Y, BEAMING } from '../../constants';
 
 // Removed temporary interfaces
 
@@ -116,9 +116,9 @@ const processBeamGroup = (groupEvents: any[], eventPositions: Record<string, num
     const endStemOffset = getStemOffset(endChordLayout, direction);
     
     // Apply stem offset to get actual stem X positions
-    // Extend beam by 1px on each side for better visual appearance
-    const startX = noteData[0].noteX + startStemOffset - 1;
-    const endX = noteData[noteData.length - 1].noteX + endStemOffset + 1;
+    // Extend beam by BEAMING.EXTENSION_PX on each side for better visual appearance
+    const startX = noteData[0].noteX + startStemOffset - BEAMING.EXTENSION_PX;
+    const endX = noteData[noteData.length - 1].noteX + endStemOffset + BEAMING.EXTENSION_PX;
     
     // Update noteData with stem X positions for clearance calculations
     noteData.forEach((d, i) => {
@@ -156,14 +156,12 @@ const processBeamGroup = (groupEvents: any[], eventPositions: Record<string, num
         endBeamY = endNoteY + minStemLength;
     }
     
-    // Limit beam slope to maximum 45 degrees for readability
-    // A 45-degree angle has a slope of 1 (rise/run = 1)
-    const MAX_SLOPE = 1.0;
-    let rawSlope = (endBeamY - startBeamY) / (endX - startX);
+    // Limit beam slope to maximum angle for readability
+    const rawSlope = (endBeamY - startBeamY) / (endX - startX);
     
-    if (Math.abs(rawSlope) > MAX_SLOPE) {
+    if (Math.abs(rawSlope) > BEAMING.MAX_SLOPE) {
         // Clamp the slope and recalculate beam endpoints
-        const clampedSlope = Math.sign(rawSlope) * MAX_SLOPE;
+        const clampedSlope = Math.sign(rawSlope) * BEAMING.MAX_SLOPE;
         const deltaX = endX - startX;
         const deltaY = clampedSlope * deltaX;
         

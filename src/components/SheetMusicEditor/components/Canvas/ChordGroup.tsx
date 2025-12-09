@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState, useMemo, useCallback } from 'react';
-import { NOTE_TYPES } from '../../constants';
+import { NOTE_TYPES, LAYOUT } from '../../constants';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { getOffsetForPitch, getStemOffset } from '../../engines/layout';
@@ -178,8 +178,8 @@ const ChordGroup = ({
             onMouseLeave={handleMouseLeave}
           >
             <ChordAccidental 
-              x={noteX + xShift - 16}
-              y={noteY + 6}
+              x={noteX + xShift + LAYOUT.ACCIDENTAL.OFFSET_X}
+              y={noteY + LAYOUT.ACCIDENTAL.OFFSET_Y}
               symbol={accidentalSymbol}
               color={groupColor}
             />
@@ -225,8 +225,8 @@ const ChordGroup = ({
 
             {/* Hit Area - Must be LAST to sit on top of everything */}
             <NoteHitArea 
-              x={noteX + xShift - 10}
-              y={noteY - 8}
+              x={noteX + xShift + LAYOUT.HIT_AREA.OFFSET_X}
+              y={noteY + LAYOUT.HIT_AREA.OFFSET_Y}
               cursor={!isGhost ? (modifierHeld ? 'pointer' : 'crosshair') : 'default'}
               onClick={(e) => !isGhost && e.stopPropagation()}
               onMouseDown={(e) => handleNoteMouseDown(e, note)}

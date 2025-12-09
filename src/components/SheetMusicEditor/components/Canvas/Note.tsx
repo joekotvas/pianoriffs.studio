@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { NOTE_TYPES, MIDDLE_LINE_Y } from '../../constants';
+import { NOTE_TYPES, MIDDLE_LINE_Y, LAYOUT, STEM, FLAGS } from '../../constants';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { PITCH_TO_OFFSET, getOffsetForPitch } from '../../engines/layout';
@@ -15,12 +15,12 @@ import { PITCH_TO_OFFSET, getOffsetForPitch } from '../../engines/layout';
  * @param spacing - Vertical spacing between flags (default: 6)
  * @returns Array of SVG path elements
  */
-const renderFlags = (stemX, stemTipY, type, direction, color, spacing = 7) => {
+const renderFlags = (stemX, stemTipY, type, direction, color, spacing = FLAGS.SPACING) => {
   const count = NOTE_TYPES[type]?.flag;
   if (!count) return null;
   const paths = [];
   // Move flags slightly down/up from the tip
-  const offset = 3; 
+  const offset = FLAGS.OFFSET; 
   
   const flagPath = "M 362.52561,545.59100 C 362.55523,547.70041 361.59345,549.72003 360.14610,551.22017 C 359.85055,551.58759 359.04629,552.27401 358.90096,552.17196 C 358.71377,552.04052 359.37760,551.43876 359.71032,551.11874 C 361.17865,549.59402 362.04044,547.42643 361.74674,545.30372 C 361.36799,543.36784 359.78964,541.96920 358.24068,540.89646 C 357.26129,540.22519 356.21650,539.64737 355.11860,539.19400 L 355.11860,534.50500 L 355.64087,534.50670 C 356.05925,536.43346 357.79685,537.93980 359.09566,539.29772 C 360.00232,540.26777 361.07070,541.12502 361.68096,542.33020 C 362.22847,543.32497 362.53043,544.45397 362.52561,545.59100 z";
 
@@ -30,7 +30,7 @@ const renderFlags = (stemX, stemTipY, type, direction, color, spacing = 7) => {
     
     // The flag closest to the note head (last one drawn) should be larger
     const isClosest = i === count - 1;
-    const scale = isClosest ? 1.3 : 1.2;
+    const scale = isClosest ? FLAGS.SCALE_CLOSEST : FLAGS.SCALE_OTHERS;
 
     // Transform to normalize the path (translate(-355.1186, -534.5257))
     // And then position at (stemX, y)
@@ -99,11 +99,11 @@ const Note = ({ quant, pitch, type, isSelected, quantWidth, isGhost, renderStem 
   const localMiddleLineY = baseY + (CONFIG.lineHeight * 2);
   const stemDirectionCorrected = y <= localMiddleLineY ? 'down' : 'up';
   
-  let stemHeight = 35;
-  if (type === 'thirtysecond') stemHeight = 45;
-  if (type === 'sixtyfourth') stemHeight = 55;
+  let stemHeight = STEM.LENGTHS.default;
+  if (type === 'thirtysecond') stemHeight = STEM.LENGTHS.thirtysecond;
+  if (type === 'sixtyfourth') stemHeight = STEM.LENGTHS.sixtyfourth;
 
-  const stemX = stemDirectionCorrected === 'up' ? x + 6 : x - 6;
+  const stemX = stemDirectionCorrected === 'up' ? x + LAYOUT.STEM_OFFSET_X : x - LAYOUT.STEM_OFFSET_X;
   const stemEndY = stemDirectionCorrected === 'up' ? y - stemHeight : y + stemHeight;
 
   const drawLedgerLines = () => {
@@ -114,13 +114,13 @@ const Note = ({ quant, pitch, type, isSelected, quantWidth, isGhost, renderStem 
     // Draw lines above staff
     if (relativeY < 0) {
       for (let i = -12; i >= relativeY; i -= 12) {
-        lines.push(<line key={`ledger-${i}`} x1={ledgerX - 10} y1={baseY + i} x2={ledgerX + 10} y2={baseY + i} stroke={color} strokeWidth="1.5" />);
+        lines.push(<line key={`ledger-${i}`} x1={ledgerX - LAYOUT.LEDGER_LINE_EXTENSION} y1={baseY + i} x2={ledgerX + LAYOUT.LEDGER_LINE_EXTENSION} y2={baseY + i} stroke={color} strokeWidth={LAYOUT.LINE_STROKE_WIDTH} />);
       }
     }
     // Draw lines below staff
     if (relativeY > 48) {
       for (let i = 60; i <= relativeY; i += 12) {
-        lines.push(<line key={`ledger-${i}`} x1={ledgerX - 10} y1={baseY + i} x2={ledgerX + 10} y2={baseY + i} stroke={color} strokeWidth="1.5" />);
+        lines.push(<line key={`ledger-${i}`} x1={ledgerX - LAYOUT.LEDGER_LINE_EXTENSION} y1={baseY + i} x2={ledgerX + LAYOUT.LEDGER_LINE_EXTENSION} y2={baseY + i} stroke={color} strokeWidth={LAYOUT.LINE_STROKE_WIDTH} />);
       }
     }
     return lines;
@@ -133,8 +133,8 @@ const Note = ({ quant, pitch, type, isSelected, quantWidth, isGhost, renderStem 
     if (relativeY % 12 === 0) {
         dotY -= 6; // Move up to space
     }
-    const dotX = baseX + dotShift + 12;
-    return <circle cx={dotX} cy={dotY} r={3} fill={color} />;
+    const dotX = baseX + dotShift + LAYOUT.DOT_OFFSET_X;
+    return <circle cx={dotX} cy={dotY} r={LAYOUT.DOT_RADIUS} fill={color} />;
   };
 
   return (
@@ -151,13 +151,13 @@ const Note = ({ quant, pitch, type, isSelected, quantWidth, isGhost, renderStem 
            </g>
         </g>
       ) : (
-        <ellipse cx={x} cy={y} rx={6} ry={4} fill={fill} stroke={color} strokeWidth="2" transform={`rotate(-20 ${x} ${y})`} />
+        <ellipse cx={x} cy={y} rx={LAYOUT.NOTE_RX} ry={LAYOUT.NOTE_RY} fill={fill} stroke={color} strokeWidth="2" transform={`rotate(-20 ${x} ${y})`} />
       )}
       {drawDot()}
       
       {renderStem && noteConfig.stem && (
         <>
-          <line x1={stemX} y1={y} x2={stemX} y2={stemEndY} stroke={color} strokeWidth="1.5" />
+          <line x1={stemX} y1={y} x2={stemX} y2={stemEndY} stroke={color} strokeWidth={LAYOUT.LINE_STROKE_WIDTH} />
           {renderFlags(stemX, stemEndY, type, stemDirection, color)}
         </>
       )}

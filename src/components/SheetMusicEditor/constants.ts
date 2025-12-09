@@ -109,3 +109,93 @@ export const NOTE_TYPES: Record<string, NoteType> = {
   thirtysecond: { duration: 2, label: '32nd', fill: 'black', stroke: 'black', stem: true, flag: 3, abcDuration: '/8', xmlType: '32nd' },
   sixtyfourth: { duration: 1, label: '64th', fill: 'black', stroke: 'black', stem: true, flag: 4, abcDuration: '/16', xmlType: '64th' },
 };
+
+// ========== LAYOUT CONSTANTS ==========
+// Derived from CONFIG.lineHeight for consistency and scalability
+
+const HALF_SPACE = CONFIG.lineHeight / 2;  // 6
+const SPACE = CONFIG.lineHeight;           // 12
+
+export const LAYOUT = {
+  // Core Primitives
+  LINE_STROKE_WIDTH: 1.5,
+  NOTE_RX: 6,
+  NOTE_RY: 4,
+  DOT_RADIUS: 3,
+  
+  // Derived from lineHeight
+  STEM_OFFSET_X: HALF_SPACE,           // 6
+  SECOND_INTERVAL_SHIFT: SPACE - 1,    // 11 (aesthetic adjustment)
+  DOT_OFFSET_X: SPACE,                 // 12
+  LEDGER_LINE_EXTENSION: SPACE - 2,    // 10
+  
+  // Accidentals
+  ACCIDENTAL: {
+    OFFSET_X: -16,
+    OFFSET_Y: 6,
+    FONT_SIZE: 22,
+    SPACING: HALF_SPACE + 2,  // 8
+  },
+  
+  // Hit Detection
+  HIT_AREA: {
+    WIDTH: 20,
+    HEIGHT: 16,
+    OFFSET_X: -10,
+    OFFSET_Y: -8,
+  },
+  HIT_ZONE_RADIUS: 14,
+  APPEND_ZONE_WIDTH: 2000,
+  
+  // Min widths for short notes (multipliers of NOTE_SPACING_BASE_UNIT)
+  MIN_WIDTH_FACTORS: {
+    sixtyfourth: 1.2,
+    thirtysecond: 1.5,
+    sixteenth: 1.8,
+    eighth: 2.2,
+  } as Record<string, number>,
+  
+  // Lookahead padding factor for accidentals
+  LOOKAHEAD_PADDING_FACTOR: 0.3,
+};
+
+export const STEM = {
+  LENGTHS: {
+    default: 35,
+    thirtysecond: 45,
+    sixtyfourth: 55,
+  } as Record<string, number>,
+};
+
+export const BEAMING = {
+  THICKNESS: 5,
+  SPACING: 8,
+  MAX_SLOPE: 1.0,
+  EXTENSION_PX: 1,
+};
+
+export const TUPLET = {
+  HOOK_HEIGHT: 8,
+  PADDING: 15,
+  MAX_SLOPE: 0.5,
+  NUMBER_FONT_SIZE: 11,
+  NUMBER_OFFSET_UP: -4,
+  NUMBER_OFFSET_DOWN: 12,
+  VISUAL_NOTE_RADIUS: 8,
+};
+
+export const TIE = {
+  START_GAP: 0,
+  END_GAP: 5,
+  VERTICAL_OFFSET: 8,
+  MID_THICKNESS: 4,
+  TIP_THICKNESS: 1.2,
+};
+
+export const FLAGS = {
+  SPACING: 7,
+  SCALE_CLOSEST: 1.3,
+  SCALE_OTHERS: 1.2,
+  OFFSET: 3,
+};
+

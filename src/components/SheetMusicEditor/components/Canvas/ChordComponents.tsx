@@ -1,10 +1,11 @@
 import React from 'react';
+import { LAYOUT } from '../../constants';
 
 /**
  * Renders the stem line for a chord.
  */
 export const ChordStem = ({ x, startY, endY, color }: { x: number, startY: number, endY: number, color: string }) => (
-  <line x1={x} y1={startY} x2={x} y2={endY} stroke={color} strokeWidth="1.5" />
+  <line x1={x} y1={startY} x2={x} y2={endY} stroke={color} strokeWidth={LAYOUT.LINE_STROKE_WIDTH} />
 );
 
 /**
@@ -16,7 +17,7 @@ export const ChordAccidental = ({ x, y, symbol, color }: { x: number, y: number,
     <text
       x={x}
       y={y}
-      fontSize="22"
+      fontSize={LAYOUT.ACCIDENTAL.FONT_SIZE}
       fontFamily="serif"
       fill={color}
       textAnchor="middle"
@@ -41,8 +42,8 @@ export const NoteHitArea = ({ x, y, onClick, onMouseDown, cursor }: {
   <rect
     x={x}
     y={y}
-    width={20}
-    height={16}
+    width={LAYOUT.HIT_AREA.WIDTH}
+    height={LAYOUT.HIT_AREA.HEIGHT}
     fill="white"
     fillOpacity={0.01}
     style={{ cursor }}

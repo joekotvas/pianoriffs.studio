@@ -1,4 +1,5 @@
 import React from 'react';
+import { TIE } from '../../constants';
 
 interface TieProps {
   startX: number;
@@ -12,25 +13,20 @@ const Tie: React.FC<TieProps> = ({ startX, startY, endX, endY, direction }) => {
   const dirMult = direction === 'up' ? -1 : 1;
   
   // 1. Add Gaps (Padding)
-  // Reduced start gap as requested
-  const START_GAP = 0; 
-  const END_GAP = 5;
-  
-  const sX = startX + START_GAP;
-  const eX = endX - END_GAP;
+  const sX = startX + TIE.START_GAP;
+  const eX = endX - TIE.END_GAP;
   
   // 2. Add Vertical Offset
-  const VERTICAL_OFFSET = 8; // Push away from note head
-  const sY = startY + (VERTICAL_OFFSET * dirMult);
-  const eY = endY + (VERTICAL_OFFSET * dirMult);
+  const sY = startY + (TIE.VERTICAL_OFFSET * dirMult);
+  const eY = endY + (TIE.VERTICAL_OFFSET * dirMult);
 
   const width = eX - sX;
   if (width <= 0) return null; // Too short
 
   // 3. Calculate Height and Thickness
   const height = Math.min(25, Math.max(12, width * 0.2)); 
-  const midThickness = 4; // Max thickness in the middle
-  const tipThickness = 1.2; // Thickness at the ends (blunt tips)
+  const midThickness = TIE.MID_THICKNESS;
+  const tipThickness = TIE.TIP_THICKNESS;
 
   // 4. Control Points
   // Outer Curve Control Point

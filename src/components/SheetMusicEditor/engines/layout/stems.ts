@@ -2,12 +2,10 @@
  * Constants and helpers for calculating stem geometry.
  */
 
-// --- Constants ---
-export const STEM_LENGTHS: Record<string, number> = {
-  default: 35,
-  thirtysecond: 45,
-  sixtyfourth: 55,
-};
+import { STEM } from '../../constants';
+
+// Re-export for backwards compatibility
+export const STEM_LENGTHS = STEM.LENGTHS;
 
 /**
  * Calculates stem geometry based on beam specifications or default layout.

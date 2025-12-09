@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { TUPLET } from '../../constants';
 
 interface TupletBracketProps {
   startX: number;
@@ -25,8 +26,8 @@ const TupletBracket: React.FC<TupletBracketProps> = ({
 }) => {
   const { theme } = useTheme();
 
-  const bracketHeight = 8; // Height of bracket hooks
-  const numberFontSize = 11;
+  const bracketHeight = TUPLET.HOOK_HEIGHT;
+  const numberFontSize = TUPLET.NUMBER_FONT_SIZE;
   
   // Draw bracket as a path
   //  Up:    |---|  
@@ -48,7 +49,7 @@ const TupletBracket: React.FC<TupletBracketProps> = ({
   const centerY = (startY + endY) / 2;
   
   // Position text relative to the center of the bracket line
-  const textY = direction === 'up' ? centerY - 4 : centerY + 12;
+  const textY = direction === 'up' ? centerY + TUPLET.NUMBER_OFFSET_UP : centerY + TUPLET.NUMBER_OFFSET_DOWN;
 
   return (
     <g className="tuplet-bracket">

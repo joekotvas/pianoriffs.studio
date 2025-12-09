@@ -1,25 +1,20 @@
 import { CONFIG } from '../../config';
 import { getNoteDuration } from '../../utils/core';
-import { MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH } from '../../constants';
+import { MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH, LAYOUT } from '../../constants';
 import { ScoreEvent, MeasureLayout, HitZone, Note } from './types';
 import { getNoteWidth, calculateChordLayout, getOffsetForPitch } from './positioning';
 import { getTupletGroup } from './tuplets';
 
-// --- CONSTANTS ---
+// --- CONSTANTS (from centralized LAYOUT) ---
 
 /** Hit zone radius around each note for click detection (pixels) */
-const HIT_RADIUS = 14;
+const HIT_RADIUS = LAYOUT.HIT_ZONE_RADIUS;
 
 /** Padding added before noteheads when accidentals are present */
 const ACCIDENTAL_PADDING = NOTE_SPACING_BASE_UNIT * 0.8;
 
 /** Minimum width factors for short-duration notes relative to NOTE_SPACING_BASE_UNIT */
-const MIN_WIDTH_FACTORS: Record<string, number> = {
-    'sixtyfourth': 1.2,
-    'thirtysecond': 1.5,
-    'sixteenth': 1.8,
-    'eighth': 2.2,
-};
+const MIN_WIDTH_FACTORS = LAYOUT.MIN_WIDTH_FACTORS;
 
 // --- HELPERS ---
 
@@ -247,13 +242,13 @@ export const calculateMeasureLayout = (
             // Lookahead Padding for Next Accidentals
             const nextEvent = events[index + 1];
             if (nextEvent && nextEvent.notes.some((n: Note) => n.accidental)) {
-                currentX += NOTE_SPACING_BASE_UNIT * 0.3;
+                currentX += NOTE_SPACING_BASE_UNIT * LAYOUT.LOOKAHEAD_PADDING_FACTOR;
             }
         }
     });
     
     // 4. Final Append Zone
-    addHitZone(hitZones, { startX: currentX, endX: currentX + 2000, index: events.length, type: 'APPEND' });
+    addHitZone(hitZones, { startX: currentX, endX: currentX + LAYOUT.APPEND_ZONE_WIDTH, index: events.length, type: 'APPEND' });
     
     // 5. Calculate Final Width
     const minDuration = isPickup ? 'quarter' : 'whole';

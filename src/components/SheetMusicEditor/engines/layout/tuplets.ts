@@ -2,7 +2,7 @@ import { ScoreEvent, TupletBracketGroup } from './types';
 import { getNoteDuration } from '../../utils/core';
 import { getOffsetForPitch } from './positioning';
 import { CONFIG } from '../../config';
-import { MIDDLE_LINE_Y } from '../../constants';
+import { MIDDLE_LINE_Y, TUPLET, STEM } from '../../constants';
 
 /**
  * Helper to determine the events belonging to a tuplet group starting at a given index.
@@ -72,9 +72,8 @@ export const calculateTupletBrackets = (events: ScoreEvent[], eventPositions: Re
         // If we have chordLayout, use it.
         const chordDir = event.chordLayout?.direction || 'down'; // Default down?
         
-        // Standard stem length is ~3.5 spaces = 35px? 
-        // In processBeamGroup we used 31.
-        const stemLen = 31; 
+        // Standard stem length from centralized config
+        const stemLen = STEM.LENGTHS.default; 
         
         let topY = minNoteY;
         let bottomY = maxNoteY;
@@ -136,10 +135,8 @@ export const calculateTupletBrackets = (events: ScoreEvent[], eventPositions: Re
             const maxX = Math.max(...xValues);
             
             // Increase radius slightly to ensure it visually covers the note head fully
-            const VISUAL_NOTE_RADIUS = 8;
-            
-            const startX = minX - VISUAL_NOTE_RADIUS;
-            const endX = maxX + VISUAL_NOTE_RADIUS;
+            const startX = minX - TUPLET.VISUAL_NOTE_RADIUS;
+            const endX = maxX + TUPLET.VISUAL_NOTE_RADIUS;
             
             // Calculate Y bounds (top and bottom of the group)
             const yBounds = groupEvents.map(e => getEventYBounds(e, direction));
@@ -160,16 +157,15 @@ export const calculateTupletBrackets = (events: ScoreEvent[], eventPositions: Re
             
             // Initial guess: Line between first and last limit
             // Add some padding
-            const PADDING = 15;
-            let y1 = limits[0].y + (direction === 'up' ? -PADDING : PADDING);
-            let y2 = limits[limits.length - 1].y + (direction === 'up' ? -PADDING : PADDING);
+            let y1 = limits[0].y + (direction === 'up' ? -TUPLET.PADDING : TUPLET.PADDING);
+            let y2 = limits[limits.length - 1].y + (direction === 'up' ? -TUPLET.PADDING : TUPLET.PADDING);
             
             // Calculate slope m
             let m = (y2 - y1) / (endX - startX);
             
-            // Limit slope (max 45 degrees approx)
-            if (Math.abs(m) > 0.5) { // 0.5 is moderate slope
-            m = m > 0 ? 0.5 : -0.5;
+            // Limit slope (max angle from constant)
+            if (Math.abs(m) > TUPLET.MAX_SLOPE) {
+            m = m > 0 ? TUPLET.MAX_SLOPE : -TUPLET.MAX_SLOPE;
             // Recenter
             const midX = (startX + endX) / 2;
             const midY = (y1 + y2) / 2;
@@ -191,7 +187,7 @@ export const calculateTupletBrackets = (events: ScoreEvent[], eventPositions: Re
                 // Let's define shift as positive = move AWAY (Up for up, Down for down)
                 
                 // Distance from limit to line (positive if line is below limit)
-                const dist = targetY - (limit.y - PADDING);
+                const dist = targetY - (limit.y - TUPLET.PADDING);
                 if (dist > 0) {
                     maxShift = Math.max(maxShift, dist);
                 }
@@ -200,7 +196,7 @@ export const calculateTupletBrackets = (events: ScoreEvent[], eventPositions: Re
                 // If targetY < limit.y + PADDING, we are too high.
                 // Shift needed: (limit.y + PADDING) - targetY
                 
-                const dist = (limit.y + PADDING) - targetY;
+                const dist = (limit.y + TUPLET.PADDING) - targetY;
                 if (dist > 0) {
                     maxShift = Math.max(maxShift, dist);
                 }

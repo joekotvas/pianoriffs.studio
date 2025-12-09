@@ -1,4 +1,4 @@
-import { NOTE_TYPES, MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES } from '../../constants';
+import { NOTE_TYPES, MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES, LAYOUT } from '../../constants';
 import { CONFIG } from '../../config';
 import { getNoteDuration } from '../../utils/core';
 import { Note, ChordLayout, HeaderLayout } from './types';
@@ -201,7 +201,7 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
           const yUpper = getOffsetForPitch(noteUpper.pitch, clef);
           if (Math.abs(yLower - yUpper) === 6) {
               if (!noteOffsets[noteLower.id]) { 
-                  noteOffsets[noteUpper.id] = 11;  // Upper note shifts RIGHT
+                  noteOffsets[noteUpper.id] = LAYOUT.SECOND_INTERVAL_SHIFT;  // Upper note shifts RIGHT
               }
           }
       }
@@ -213,7 +213,7 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
           const yLower = getOffsetForPitch(noteLower.pitch, clef);
           if (Math.abs(yLower - yUpper) === 6) {
               if (!noteOffsets[noteUpper.id]) { 
-                  noteOffsets[noteLower.id] = -11;  // Lower note shifts LEFT
+                  noteOffsets[noteLower.id] = -LAYOUT.SECOND_INTERVAL_SHIFT;  // Lower note shifts LEFT
               }
           }
       }
@@ -245,7 +245,7 @@ export const getStemOffset = (chordLayout: ChordLayout, direction: 'up' | 'down'
     const hasUpSecond = chordLayout.maxNoteShift > 0;
     const hasDownSecond = Object.values(chordLayout.noteOffsets).some(v => v < 0);
     
-    if (hasUpSecond) return 6;
-    if (hasDownSecond) return -6;
-    return direction === 'up' ? 6 : -6;
+    if (hasUpSecond) return LAYOUT.STEM_OFFSET_X;
+    if (hasDownSecond) return -LAYOUT.STEM_OFFSET_X;
+    return direction === 'up' ? LAYOUT.STEM_OFFSET_X : -LAYOUT.STEM_OFFSET_X;
 };
