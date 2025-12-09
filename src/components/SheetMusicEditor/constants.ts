@@ -125,7 +125,8 @@ export const LAYOUT = {
   
   // Derived from lineHeight
   STEM_OFFSET_X: HALF_SPACE,           // 6
-  SECOND_INTERVAL_SHIFT: SPACE - 1,    // 11 (aesthetic adjustment)
+  SECOND_INTERVAL_SHIFT: SPACE - 1,    // 11 (note displacement for seconds)
+  SECOND_INTERVAL_SPACE: HALF_SPACE,   // 6 (extra width for second spacing)
   DOT_OFFSET_X: SPACE,                 // 12
   LEDGER_LINE_EXTENSION: SPACE - 2,    // 10
   

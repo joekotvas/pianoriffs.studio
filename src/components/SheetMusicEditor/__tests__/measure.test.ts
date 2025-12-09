@@ -1,9 +1,9 @@
 import { 
     calculateMeasureLayout, 
     calculateMeasureWidth, 
-    calculateSystemLayout, 
     analyzePlacement 
 } from '../engines/layout/measure';
+import { calculateSystemLayout } from '../engines/layout/system';
 import { calculateChordLayout, calculateBeamingGroups } from '../engines/layout';
 import { Note, ScoreEvent } from '../engines/layout/types';
 import { CONFIG } from '../config';
