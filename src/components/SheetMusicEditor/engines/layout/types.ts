@@ -28,6 +28,7 @@ export interface ChordLayout {
   direction: 'up' | 'down';
   noteOffsets: Record<string, number>;
   maxNoteShift: number;
+  minNoteShift?: number;
   minY: number;
   maxY: number;
 }

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { NOTE_TYPES, NOTE_SPACING_BASE_UNIT } from '../../constants';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
-import { PITCH_TO_OFFSET, getOffsetForPitch } from '../../engines/layout';
+import { PITCH_TO_OFFSET, getOffsetForPitch, getStemOffset } from '../../engines/layout';
 import { needsAccidental } from '../../services/MusicService';
 import { Note, renderFlags } from './Note';
 import { getNoteDuration } from '../../utils/core';
@@ -103,7 +103,9 @@ const ChordGroup = ({
           </g>
       );
   }
-  const stemX = effectiveDirection === 'up' ? noteX + 6 : noteX - 6;
+  
+  // Use shared function for stem positioning
+  const stemX = noteX + getStemOffset(layout, effectiveDirection);
   
   let STEM_LENGTH = 35;
   if (duration === 'thirtysecond') STEM_LENGTH = 45;
@@ -196,12 +198,12 @@ const ChordGroup = ({
             }}
             style={{ cursor: !isGhost ? (modifierHeld ? 'pointer' : 'crosshair') : 'default' }}
           >
-            {/* Invisible Hit Area for easier clicking */}
+            {/* Invisible Hit Area for easier clicking - reduced height to allow chord tone insertion */}
              <rect 
-              x={noteX + xShift - 12}
-              y={noteY - 15}
-              width={24}
-              height={30}
+              x={noteX + xShift - 10}
+              y={noteY - 8}
+              width={20}
+              height={16}
               fill="white"
               fillOpacity={0.01}
             />

@@ -8,7 +8,7 @@ import { getTupletGroup } from './tuplets';
 // --- CONSTANTS ---
 
 /** Hit zone radius around each note for click detection (pixels) */
-const HIT_RADIUS = 24;
+const HIT_RADIUS = 14;
 
 /** Padding added before noteheads when accidentals are present */
 const ACCIDENTAL_PADDING = NOTE_SPACING_BASE_UNIT * 0.8;
@@ -37,7 +37,6 @@ const addHitZone = (zones: HitZone[], newZone: HitZone): void => {
     }
     zones.push(newZone);
 };
-
 /**
  * Calculates visual metrics for a single event context.
  * Consolidates width calculation, accidental spacing, and chord offsets.
@@ -49,15 +48,23 @@ const getEventMetrics = (event: ScoreEvent, clef: string) => {
     const chordLayout = calculateChordLayout(event.notes, clef);
     const hasAccidental = event.notes.some((n: Note) => n.accidental);
     const accidentalSpace = hasAccidental ? ACCIDENTAL_PADDING : 0;
-    const chordShift = Math.abs(chordLayout.maxNoteShift);
     
     // Width calculation
     const baseWidth = getNoteWidth(event.duration, event.dotted);
-    const totalWidth = accidentalSpace + baseWidth + chordShift;
+    
+    // Add some space for seconds (not the full offset, just a bit for visual clarity)
+    const offsets = Object.values(chordLayout.noteOffsets);
+    const hasSecond = offsets.some(v => v !== 0);
+    const secondSpace = hasSecond ? 6 : 0;
+    
+    // If there's a second AND accidentals, add extra space (both notes might have accidentals)
+    const secondAccidentalSpace = (hasSecond && hasAccidental) ? ACCIDENTAL_PADDING * 0.5 : 0;
+    
+    const totalWidth = accidentalSpace + baseWidth + secondSpace + secondAccidentalSpace;
 
-    // Hit zone offsets based on chord vertical spread
-    const minOffset = Math.min(0, ...Object.values(chordLayout.noteOffsets));
-    const maxOffset = Math.max(0, ...Object.values(chordLayout.noteOffsets));
+    // Hit zone offsets based on chord note offsets
+    const minOffset = offsets.length > 0 ? Math.min(0, ...offsets) : 0;
+    const maxOffset = offsets.length > 0 ? Math.max(0, ...offsets) : 0;
 
     return { chordLayout, totalWidth, accidentalSpace, minOffset, maxOffset, baseWidth };
 };
@@ -196,7 +203,11 @@ export const calculateMeasureLayout = (
             // but ensures safety if a stray tuplet part exists without a start.
             
             const metrics = getEventMetrics(event, clef);
-            const noteheadX = currentX + metrics.accidentalSpace;
+            
+            // Compensate for negative offsets (down-stem seconds) so the chord's left edge 
+            // stays at the same position regardless of stem direction
+            const negativeCompensation = Math.abs(metrics.minOffset);
+            const noteheadX = currentX + metrics.accidentalSpace + negativeCompensation;
             
             eventPositions[event.id] = noteheadX;
             
@@ -230,7 +241,7 @@ export const calculateMeasureLayout = (
                 });
             }
 
-            currentX += metrics.totalWidth;
+            currentX += metrics.totalWidth + negativeCompensation;
             currentQuant += getNoteDuration(event.duration, event.dotted, event.tuplet);
 
             // Lookahead Padding for Next Accidentals
@@ -313,14 +324,20 @@ export const calculateSystemLayout = (measures: { events: ScoreEvent[] }[]): Rec
                     }
                     
                     // B. Accidental Padding
-                    if (e.notes.some((n: Note) => n.accidental)) {
+                    const hasAccidental = e.notes.some((n: Note) => n.accidental);
+                    if (hasAccidental) {
                         maxExtraPadding = Math.max(maxExtraPadding, ACCIDENTAL_PADDING);
                     }
                     
-                    // C. Chord Displacement (Seconds)
+                    // C. Second interval spacing
                     const chordLayout = calculateChordLayout(e.notes, 'treble');
-                    if (chordLayout.maxNoteShift > 0) {
-                        maxExtraPadding = Math.max(maxExtraPadding, chordLayout.maxNoteShift + (NOTE_SPACING_BASE_UNIT * 0.3));
+                    const hasSecond = Object.values(chordLayout.noteOffsets).some(v => v !== 0);
+                    if (hasSecond) {
+                        maxExtraPadding = Math.max(maxExtraPadding, 6);
+                        // Extra space if seconds have accidentals
+                        if (hasAccidental) {
+                            maxExtraPadding = Math.max(maxExtraPadding, 6 + ACCIDENTAL_PADDING * 0.5);
+                        }
                     }
                     
                     // D. Dots

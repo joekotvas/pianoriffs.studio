@@ -1,6 +1,6 @@
 import { ScoreEvent, BeamGroup } from './types';
 import { getNoteDuration } from '../../utils/core';
-import { getOffsetForPitch, getNoteWidth, getPitchForOffset } from './positioning';
+import { getOffsetForPitch, getNoteWidth, getPitchForOffset, calculateChordLayout, getStemOffset } from './positioning';
 import { CONFIG } from '../../config';
 import { MIDDLE_LINE_Y } from '../../constants';
 
@@ -87,11 +87,17 @@ const processBeamGroup = (groupEvents: any[], eventPositions: Record<string, num
     const noteData = groupEvents.map(e => {
         const noteX = eventPositions[e.id];
         const noteYs = e.notes.map((n: any) => CONFIG.baseY + getOffsetForPitch(n.pitch, clef));
+        
+        // Check if this chord has a second interval
+        const chordLayout = calculateChordLayout(e.notes, clef);
+        const hasSecond = Object.values(chordLayout.noteOffsets).some(v => v !== 0);
+        
         return {
-            noteX,  // Store base noteX, we'll add stem offset after knowing direction
-            minY: Math.min(...noteYs),  // Highest note (lowest Y value)
-            maxY: Math.max(...noteYs),  // Lowest note (highest Y value)
-            avgY: noteYs.reduce((sum: number, y: number) => sum + y, 0) / noteYs.length
+            noteX,
+            minY: Math.min(...noteYs),
+            maxY: Math.max(...noteYs),
+            avgY: noteYs.reduce((sum: number, y: number) => sum + y, 0) / noteYs.length,
+            hasSecond
         };
     });
     
@@ -99,19 +105,23 @@ const processBeamGroup = (groupEvents: any[], eventPositions: Record<string, num
     const avgY = noteData.reduce((sum: number, d) => sum + d.avgY, 0) / noteData.length;
     const direction = avgY <= MIDDLE_LINE_Y ? 'down' : 'up';
     
-    // Calculate stem X offset based on direction (must match ChordGroup.tsx line 106)
-    // Up stems: right side of notehead (+6)
-    // Down stems: left side of notehead (-6)
-    const stemOffset = direction === 'up' ? 6 : -6;
+    // Get chord layouts for first and last events
+    const startChordLayout = calculateChordLayout(groupEvents[0].notes, clef);
+    const endChordLayout = calculateChordLayout(groupEvents[groupEvents.length - 1].notes, clef);
+    
+    // Use shared getStemOffset function for consistent stem positioning
+    const startStemOffset = getStemOffset(startChordLayout, direction);
+    const endStemOffset = getStemOffset(endChordLayout, direction);
     
     // Apply stem offset to get actual stem X positions
     // Extend beam by 1px on each side for better visual appearance
-    const startX = noteData[0].noteX + stemOffset - 1;
-    const endX = noteData[noteData.length - 1].noteX + stemOffset + 1;
+    const startX = noteData[0].noteX + startStemOffset - 1;
+    const endX = noteData[noteData.length - 1].noteX + endStemOffset + 1;
     
     // Update noteData with stem X positions for clearance calculations
-    noteData.forEach(d => {
-        (d as any).eventX = d.noteX + stemOffset;
+    noteData.forEach((d, i) => {
+        const layout = calculateChordLayout(groupEvents[i].notes, clef);
+        (d as any).eventX = d.noteX + getStemOffset(layout, direction);
     });
     
     // Find the extreme notes (the ones that determine beam position)

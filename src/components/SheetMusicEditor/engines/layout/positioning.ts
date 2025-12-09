@@ -177,34 +177,63 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
   
   const noteOffsets: Record<string, number> = {};
   
+  // Second interval displacement depends on stem direction
+  // Up-stem: noteheads on LEFT, upper note of second shifts RIGHT (+11)
+  // Down-stem: noteheads on RIGHT, lower note of second shifts LEFT (-11)
+  
   if (direction === 'up') {
       for (let i = sortedNotes.length - 1; i > 0; i--) {
-          const noteLower = sortedNotes[i]; 
-          const noteUpper = sortedNotes[i-1]; 
+          const noteLower = sortedNotes[i];   // Higher Y = lower pitch
+          const noteUpper = sortedNotes[i-1]; // Lower Y = higher pitch
           const yLower = getOffsetForPitch(noteLower.pitch, clef);
           const yUpper = getOffsetForPitch(noteUpper.pitch, clef);
           if (Math.abs(yLower - yUpper) === 6) {
               if (!noteOffsets[noteLower.id]) { 
-                  noteOffsets[noteUpper.id] = 11; 
+                  noteOffsets[noteUpper.id] = 11;  // Upper note shifts RIGHT
               }
           }
       }
   } else {
       for (let i = 0; i < sortedNotes.length - 1; i++) {
-          const noteUpper = sortedNotes[i]; 
-          const noteLower = sortedNotes[i+1]; 
+          const noteUpper = sortedNotes[i];
+          const noteLower = sortedNotes[i+1];
           const yUpper = getOffsetForPitch(noteUpper.pitch, clef);
           const yLower = getOffsetForPitch(noteLower.pitch, clef);
           if (Math.abs(yLower - yUpper) === 6) {
               if (!noteOffsets[noteUpper.id]) { 
-                  noteOffsets[noteLower.id] = -11; 
+                  noteOffsets[noteLower.id] = -11;  // Lower note shifts LEFT
               }
           }
       }
   }
 
-  const maxNoteShift = Math.max(0, ...Object.values(noteOffsets));
+  // Track both positive (right shift) and negative (left shift) offsets
+  const offsets = Object.values(noteOffsets);
+  const maxNoteShift = offsets.length > 0 ? Math.max(0, ...offsets) : 0;
+  const minNoteShift = offsets.length > 0 ? Math.min(0, ...offsets) : 0;
 
-  return { sortedNotes, direction, noteOffsets, maxNoteShift, minY, maxY };
+  return { sortedNotes, direction, noteOffsets, maxNoteShift, minNoteShift, minY, maxY };
 };
 
+/**
+ * Calculates the stem X offset for a chord based on its layout and direction.
+ * This is the single source of truth for stem positioning logic.
+ * 
+ * Rules:
+ * - Up-stem seconds (maxNoteShift > 0): stem at +6 (between notes at 0 and +11)
+ * - Down-stem seconds (any offset < 0): stem at -6 (between notes at -11 and 0)
+ * - Regular up-stem: stem on right at +6
+ * - Regular down-stem: stem on left at -6
+ * 
+ * @param chordLayout - The ChordLayout object from calculateChordLayout
+ * @param direction - The stem direction ('up' or 'down')
+ * @returns The X offset for the stem relative to noteX
+ */
+export const getStemOffset = (chordLayout: ChordLayout, direction: 'up' | 'down'): number => {
+    const hasUpSecond = chordLayout.maxNoteShift > 0;
+    const hasDownSecond = Object.values(chordLayout.noteOffsets).some(v => v < 0);
+    
+    if (hasUpSecond) return 6;
+    if (hasDownSecond) return -6;
+    return direction === 'up' ? 6 : -6;
+};
