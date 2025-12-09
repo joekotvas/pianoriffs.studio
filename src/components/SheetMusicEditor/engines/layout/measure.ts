@@ -1,6 +1,6 @@
 import { CONFIG } from '../../config';
 import { getNoteDuration } from '../../utils/core';
-import { MIDDLE_LINE_Y } from '../../constants';
+import { MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT } from '../../constants';
 import { ScoreEvent, MeasureLayout, HitZone, Note } from './types';
 import { getNoteWidth, calculateChordLayout, getOffsetForPitch } from './positioning';
 import { getTupletGroup } from './tuplets';
@@ -182,17 +182,27 @@ export const calculateMeasureLayout = (events: ScoreEvent[], totalQuants: number
                 
             } else {
                 // Regular event (not part of tuplet)
-                const width = getNoteWidth(event.duration, event.dotted);
+                const baseWidth = getNoteWidth(event.duration, event.dotted);
                 const durationQuants = getNoteDuration(event.duration, event.dotted, event.tuplet);
-
-                eventPositions[event.id] = currentX;
                 
-                // Calculate Chord Layout
+                // Calculate Chord Layout first to determine offsets
                 const chordLayout = calculateChordLayout(event.notes, clef);
+                
+                // Calculate accidental padding (space before notehead)
+                const hasAccidental = event.notes.some((n: Note) => n.accidental);
+                const accidentalPadding = hasAccidental ? (NOTE_SPACING_BASE_UNIT * 0.8) : 0;
+                
+                // Calculate total event width including accidentals and chord offsets
+                const chordExtraWidth = Math.abs(chordLayout.maxNoteShift);
+                const totalEventWidth = accidentalPadding + baseWidth + chordExtraWidth;
+                
+                // The visual event position (where the notehead starts, after accidental space)
+                const noteheadX = currentX + accidentalPadding;
+                eventPositions[event.id] = noteheadX;
                 
                 processedEvents.push({
                     ...event,
-                    x: currentX,
+                    x: noteheadX,
                     quant: currentQuant,
                     chordLayout
                 });
@@ -200,7 +210,7 @@ export const calculateMeasureLayout = (events: ScoreEvent[], totalQuants: number
                 // Zone 1: Chord Hit (On the note)
                 const minOffset = Math.min(0, ...Object.values(chordLayout.noteOffsets));
                 const HIT_RADIUS = 24; 
-                const adjustedStartX = Math.max(0, currentX - HIT_RADIUS + minOffset);
+                const adjustedStartX = Math.max(0, noteheadX - HIT_RADIUS + minOffset);
                 
                 if (hitZones.length > 0) {
                     const prevZone = hitZones[hitZones.length - 1];
@@ -208,7 +218,7 @@ export const calculateMeasureLayout = (events: ScoreEvent[], totalQuants: number
                 }
 
                 const maxOffset = Math.max(0, ...Object.values(chordLayout.noteOffsets));
-                const adjustedEndX = currentX + HIT_RADIUS + maxOffset;
+                const adjustedEndX = noteheadX + HIT_RADIUS + maxOffset;
 
                 hitZones.push({
                     startX: adjustedStartX,
@@ -219,23 +229,25 @@ export const calculateMeasureLayout = (events: ScoreEvent[], totalQuants: number
                 });
 
                 // Zone 2: Insert Hit (Space after note)
-                if (width > (HIT_RADIUS * 2 + maxOffset)) {
+                const eventEndX = currentX + totalEventWidth;
+                if (eventEndX > adjustedEndX) {
                     hitZones.push({
                         startX: adjustedEndX,
-                        endX: currentX + width,
+                        endX: eventEndX,
                         index: index + 1, 
                         type: 'INSERT'
                     });
                 }
                 
-                currentX += width;
+                // Advance cursor by total event width
+                currentX += totalEventWidth;
                 currentQuant += durationQuants;
 
-                if (['thirtysecond', 'sixtyfourth'].includes(event.duration)) {
-                    const nextEvent = events[index + 1];
-                    if (nextEvent && nextEvent.notes.some((n: Note) => n.accidental)) {
-                        currentX += 15;
-                    }
+                // Add extra padding if NEXT event has accidentals (lookahead for dense passages)
+                const nextEvent = events[index + 1];
+                if (nextEvent && nextEvent.notes.some((n: Note) => n.accidental)) {
+                    // Extra breathing room for accidentals on following note
+                    currentX += NOTE_SPACING_BASE_UNIT * 0.3;
                 }
             }
         });
@@ -329,9 +341,18 @@ export const calculateSystemLayout = (measures: any[]): Record<number, number> =
 
     // We calculate a base rhythmic width for this segment
     const segmentDuration = endQuant - startQuant;
+    
+    // Use minimum width factors for short durations
+    const MIN_WIDTH_FACTORS: Record<string, number> = {
+      'sixtyfourth': 1.2,
+      'thirtysecond': 1.5,
+      'sixteenth': 1.8,
+      'eighth': 2.2,
+    };
+    
     let segmentWidth = NOTE_SPACING_BASE_UNIT * Math.sqrt(segmentDuration);
 
-    // Now adding "Layout Padding" (accidentals, etc)
+    // Now adding "Layout Padding" (accidentals, short notes, seconds)
     // We check if ANY event starting at startQuant needs extra space.
     let maxExtraPadding = 0;
     
@@ -339,14 +360,30 @@ export const calculateSystemLayout = (measures: any[]): Record<number, number> =
         let q = 0;
         for(const e of measure.events) {
             if (q === startQuant) {
-                if (['thirtysecond', 'sixtyfourth'].includes(e.duration)) {
-                     const hasAccidental = e.notes.some((n: Note) => n.accidental);
-                     if (hasAccidental) maxExtraPadding = Math.max(maxExtraPadding, 10);
+                // Check minimum width for short durations
+                const minFactor = MIN_WIDTH_FACTORS[e.duration] || 0;
+                if (minFactor > 0) {
+                    const minWidth = minFactor * NOTE_SPACING_BASE_UNIT;
+                    if (minWidth > segmentWidth) {
+                        segmentWidth = minWidth;
+                    }
                 }
                 
+                // Add accidental padding for ALL durations (not just 32nds)
+                const hasAccidental = e.notes.some((n: Note) => n.accidental);
+                if (hasAccidental) {
+                    maxExtraPadding = Math.max(maxExtraPadding, NOTE_SPACING_BASE_UNIT * 0.8);
+                }
+                
+                // Add padding for chord note displacement (seconds)
                 const chordLayout = calculateChordLayout(e.notes, 'treble');
                 if (chordLayout.maxNoteShift > 0) {
-                    maxExtraPadding = Math.max(maxExtraPadding, chordLayout.maxNoteShift + 5);
+                    maxExtraPadding = Math.max(maxExtraPadding, chordLayout.maxNoteShift + (NOTE_SPACING_BASE_UNIT * 0.3));
+                }
+                
+                // Add dot width if dotted
+                if (e.dotted) {
+                    maxExtraPadding = Math.max(maxExtraPadding, NOTE_SPACING_BASE_UNIT * 0.5);
                 }
                 
                 break;
@@ -406,6 +443,3 @@ export const analyzePlacement = (events: ScoreEvent[], intendedQuant: number, du
       visualQuant: currentQuant
   };
 };
-
-// Use NOTE_SPACING_BASE_UNIT from config or constants if not imported
-const NOTE_SPACING_BASE_UNIT = 8; // Should match usage in positioning.ts

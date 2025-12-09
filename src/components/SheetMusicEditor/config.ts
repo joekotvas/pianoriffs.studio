@@ -133,8 +133,8 @@ export const CONFIG: Config = {
   topMargin: 20,      
   baseY: 70,          
   quantsPerMeasure: 64, 
-  measurePaddingLeft: 40,  
-  measurePaddingRight: 10, 
+  measurePaddingLeft: 36,  
+  measurePaddingRight: 0, 
   scoreMarginLeft: 60,
   headerWidth: 60,
   staffSpacing: 120,      // Spacing between staves in Grand Staff
