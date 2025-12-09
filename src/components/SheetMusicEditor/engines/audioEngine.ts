@@ -72,6 +72,32 @@ export const playTone = (pitch: string, durationType = 'quarter', dotted = false
 /**
  * Schedules the entire score for playback using TimelineService.
  */
+const scheduleTone = (ctx: AudioContext, destination: AudioNode, frequency: number, startTime: number, duration: number) => {
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    oscillator.type = 'triangle';
+    oscillator.frequency.value = frequency;
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(destination);
+    
+    oscillator.start(startTime);
+    
+    // Envelope (Piano-like Decay)
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05); // Attack
+    gainNode.gain.linearRampToValueAtTime(0.1, startTime + duration - 0.05); // Decay
+    gainNode.gain.linearRampToValueAtTime(0.001, startTime + duration); // Release
+    
+    oscillator.stop(startTime + duration + 0.1);
+    
+    return startTime + duration;
+};
+
+/**
+ * Schedules the entire score for playback using TimelineService.
+ */
 export const scheduleScorePlayback = (ctx: AudioContext, score: any, bpm: number, startMeasureIndex = 0, startQuant = 0, onComplete?: () => void, onPositionUpdate?: (m: number, q: number, d: number) => void) => {
     const masterGain = ctx.createGain();
     masterGain.connect(ctx.destination);
@@ -83,56 +109,30 @@ export const scheduleScorePlayback = (ctx: AudioContext, score: any, bpm: number
     const timeline = createTimeline(score, bpm);
     
     // 2. Find start offset time
-    // We look for the first event that matches (or exceeds) the start params
     let startTimeOffset = 0;
     
     // Filter out events before start point
-    // Logic: Find the time of the event at startMeasureIndex/startQuant
     const startEvent = timeline.find(e => e.measureIndex >= startMeasureIndex && (e.measureIndex > startMeasureIndex || e.quant >= startQuant));
     
     if (startEvent) {
         startTimeOffset = startEvent.time;
-    } else if (startMeasureIndex > 0) {
-        // If we are starting beyond existing events (empty score?), try to estimate?
-        // Or just play nothing.
-        if (timeline.length > 0) startTimeOffset = timeline[timeline.length - 1].time + 10; 
+    } else if (startMeasureIndex > 0 && timeline.length > 0) {
+        startTimeOffset = timeline[timeline.length - 1].time + 10; 
     }
 
     const filteredTimeline = timeline.filter(e => e.time >= startTimeOffset);
     let maxTime = now;
-    
+
     // 3. Schedule Tones
     filteredTimeline.forEach(event => {
         const noteStartTime = now + (event.time - startTimeOffset);
-        
-        // Schedule Audio
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        oscillator.type = 'triangle';
-        oscillator.frequency.value = event.frequency;
-        oscillator.connect(gainNode);
-        gainNode.connect(masterGain);
-        
-        oscillator.start(noteStartTime);
-        
-        // Envelope (Piano-like Decay)
-        gainNode.gain.setValueAtTime(0, noteStartTime);
-        gainNode.gain.linearRampToValueAtTime(0.3, noteStartTime + 0.05);
-        // Linear fade to lower sustain throughout the note (natural decay)
-        gainNode.gain.linearRampToValueAtTime(0.1, noteStartTime + event.duration - 0.05);
-        // Quick release at end
-        gainNode.gain.linearRampToValueAtTime(0.001, noteStartTime + event.duration);
-        
-        oscillator.stop(noteStartTime + event.duration + 0.1);
-        
-        if (noteStartTime + event.duration > maxTime) maxTime = noteStartTime + event.duration;
+        const endTime = scheduleTone(ctx, masterGain, event.frequency, noteStartTime, event.duration);
+        if (endTime > maxTime) maxTime = endTime;
     });
 
     // 4. Schedule UI Updates (Cursor) using RequestAnimationFrame for Sync
     
     // Group events by time to avoid firing multiple updates for chords
-    // But unlike before, we do NOT filter by Staff 0. We want the unified rhythmic grid.
-    // Map: Time -> TimelineEvent (representative)
     const uniqueTimePoints = new Map<number, TimelineEvent>();
     if (filteredTimeline.length > 0) {
         filteredTimeline.forEach(e => {
@@ -145,25 +145,24 @@ export const scheduleScorePlayback = (ctx: AudioContext, score: any, bpm: number
     
     let animationFrameId: number;
     let lastEventIndex = -1;
+    let isCancelled = false;
     
     // Start Animation Loop
     const loop = () => {
+        if (isCancelled) return;
         const currentTime = ctx.currentTime;
-        const elapsed = currentTime - now; // 'now' is start time of playback
-        
-        if (elapsed > totalDurationSeconds + 0.5) return; // Stop loop if done
+        const elapsed = currentTime - now; 
         
         // Find the current active event
-        // We want the event where event.time <= startOffset + elapsed
         const currentPlaybackTime = startTimeOffset + elapsed;
         
-        // Find the latest event that has started
         let currentEventIndex = -1;
+        // Optimize: search could be binary, but linear is fine for <1000 items usually
         for (let i = 0; i < sortedPoints.length; i++) {
             if (sortedPoints[i].time <= currentPlaybackTime) {
                 currentEventIndex = i;
             } else {
-                break; // Future event
+                break;
             }
         }
         
@@ -172,38 +171,29 @@ export const scheduleScorePlayback = (ctx: AudioContext, score: any, bpm: number
             const next = currentEventIndex < sortedPoints.length - 1 ? sortedPoints[currentEventIndex+1] : null;
             
             // Calculate duration to slide to next event
-            // Logic: Snap to Start (handled by CSS reset in component), then Slide to Next over duration.
-            // If there is a next rhythmic point, we slide to it.
-            // If no next point, we slide over event duration.
             const transitionDuration = next ? (next.time - curr.time) : curr.duration;
             
             if (onPositionUpdate) {
-                onPositionUpdate(curr.measureIndex, curr.quant, transitionDuration);
+                // Ensure we pass duration, but minimum useful for animation
+                onPositionUpdate(curr.measureIndex, curr.quant, Math.max(transitionDuration, 0.05));
             }
             lastEventIndex = currentEventIndex;
         }
-        
-        animationFrameId = requestAnimationFrame(loop);
+        if (currentTime < maxTime + 0.5) {
+            animationFrameId = requestAnimationFrame(loop);
+        } else {
+            if (onComplete) onComplete();
+        }
     };
     
-    const totalDurationSeconds = maxTime - now;
-
-    if (onPositionUpdate && sortedPoints.length > 0) {
-        loop();
-    }
+    animationFrameId = requestAnimationFrame(loop);
     
-    // 5. Cleanup
-    const timeoutId = setTimeout(() => {
-        if (onPositionUpdate) onPositionUpdate(null, null, 0);
-        if (onComplete) onComplete();
-        cancelAnimationFrame(animationFrameId);
-    }, totalDurationSeconds * 1000 + 200);
-
+    // Return Cleanup Function
     return () => {
-        clearTimeout(timeoutId);
+        isCancelled = true;
         cancelAnimationFrame(animationFrameId);
-        if (onPositionUpdate) onPositionUpdate(null, null, 0);
         masterGain.disconnect();
+        ctx.suspend(); 
     };
 };
 

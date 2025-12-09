@@ -22,27 +22,30 @@ export interface TimelineEvent {
  * @param bpm - Beats per minute
  * @returns Array of TimelineEvents sorted by time
  */
+/**
+ * Creates a flattened timeline of audio events from the score.
+ * Handles timing, ties, and frequency lookup.
+ * Refactored to use "Flatten-then-Merge" strategy for cleaner tie resolution.
+ * 
+ * @param score - The score object
+ * @param bpm - Beats per minute
+ * @returns Array of TimelineEvents sorted by time
+ */
 export const createTimeline = (score: any, bpm: number): TimelineEvent[] => {
     const timeline: TimelineEvent[] = [];
-    const secondsPerBeat = 60 / bpm; // Beat = Quarter Note usually?
-    // In our system, getNoteDuration returns 'quants'. 16 quants = Quarter Note.
-    // So 16 quants = 1 beat.
+    const secondsPerBeat = 60 / bpm; 
     const secondsPerQuant = secondsPerBeat / 16;
     
-    // We iterate all staves to support Grand Staff
     const staves = score.staves || [getActiveStaff(score)];
-    
-    // Calculate global time offsets for measures (Assuming synchronized measures across staves)
-    // We base timing on the first staff, assuming vertical alignment.
     if (staves.length === 0) return [];
     
+    const timeSig = score.timeSignature || '4/4';
+    const firstStaffMeasures = staves[0].measures;
+    
+    // 1. Calculate Start Times for each Measure (Global Grid)
     const measureStartTimes: number[] = [];
     let currentGlobalTime = 0;
     
-    const firstStaffMeasures = staves[0].measures;
-    const timeSig = score.timeSignature || '4/4';
-    
-    // 1. Calculate Start Times for each Measure
     firstStaffMeasures.forEach((measure: any) => {
         measureStartTimes.push(currentGlobalTime);
         
@@ -53,85 +56,104 @@ export const createTimeline = (score: any, bpm: number): TimelineEvent[] => {
         } else {
              measureQuants = TIME_SIGNATURES[timeSig as keyof typeof TIME_SIGNATURES] || 64;
         }
-        
         currentGlobalTime += (measureQuants * secondsPerQuant);
     });
 
-    // 2. Process each Staff
-    staves.forEach((staff: any, staffIndex: number) => {
-        const skippedNotes = new Set<string>(); // IDs of notes to skip (tied targets)
+    // Sub-interface for internal processing
+    interface RawNoteEvent {
+        time: number;
+        duration: number;
+        pitch: string;
+        tied: boolean;
+        measureIndex: number;
+        eventIndex: number;
+        quant: number;
+        staffIndex: number;
+    }
 
+    // 2. Process each Staff independently
+    staves.forEach((staff: any, staffIndex: number) => {
+        const rawEvents: RawNoteEvent[] = [];
+
+        // Flatten all notes in this staff
         staff.measures.forEach((measure: any, mIndex: number) => {
             if (mIndex >= measureStartTimes.length) return;
-            
             const measureStartTime = measureStartTimes[mIndex];
             let currentMeasureQuant = 0;
 
             measure.events.forEach((event: any, eIndex: number) => {
                 const eventDurQuants = getNoteDuration(event.duration, event.dotted, event.tuplet);
                 
-                // Process Notes
                 event.notes.forEach((note: any) => {
-                    if (skippedNotes.has(note.id)) return;
-
-                    // Calculate Total Duration (handling ties)
-                    let totalQuants = eventDurQuants;
-                    let currentNote = note;
-                    
-                    // Look ahead logic (simplified from audioEngine)
-                    // We need to trace the tie chain.
-                    let searchMIndex = mIndex;
-                    let searchEIndex = eIndex;
-                    let tied = currentNote.tied;
-
-                    while (tied) {
-                        // Find next event
-                        // Move to next event in measure
-                        searchEIndex++;
-                        
-                        // Check overflow
-                        if (searchEIndex >= staff.measures[searchMIndex].events.length) {
-                             searchMIndex++;
-                             searchEIndex = 0;
-                        }
-                        
-                        let foundNext = false;
-                        if (searchMIndex < staff.measures.length && searchEIndex < staff.measures[searchMIndex].events.length) {
-                            const nextEvent = staff.measures[searchMIndex].events[searchEIndex];
-                            const nextNote = nextEvent.notes.find((n: any) => n.pitch === currentNote.pitch);
-                            
-                            if (nextNote) {
-                                totalQuants += getNoteDuration(nextEvent.duration, nextEvent.dotted, nextEvent.tuplet);
-                                skippedNotes.add(nextNote.id);
-                                currentNote = nextNote; // Continue chain from this note
-                                tied = currentNote.tied; // Is the NEW note tied forward?
-                                foundNext = true;
-                            }
-                        }
-                        
-                        if (!foundNext) break; // Break chain if next note not found
-                    }
-                    
-                    // Add Event
-                    const freq = getFrequency(note.pitch);
-                    if (freq) {
-                        timeline.push({
-                            time: measureStartTime + (currentMeasureQuant * secondsPerQuant),
-                            duration: totalQuants * secondsPerQuant,
-                            frequency: freq,
-                            type: 'note',
-                            measureIndex: mIndex,
-                            eventIndex: eIndex,
-                            staffIndex: staffIndex,
-                            quant: currentMeasureQuant
-                        });
-                    }
+                    rawEvents.push({
+                        time: measureStartTime + (currentMeasureQuant * secondsPerQuant),
+                        duration: eventDurQuants * secondsPerQuant,
+                        pitch: note.pitch,
+                        tied: !!note.tied,
+                        measureIndex: mIndex,
+                        eventIndex: eIndex,
+                        quant: currentMeasureQuant,
+                        staffIndex
+                    });
                 });
-
+                
                 currentMeasureQuant += eventDurQuants;
             });
         });
+
+        // Sort by Pitch, then Time to group tie chains
+        rawEvents.sort((a, b) => {
+            if (a.pitch !== b.pitch) return a.pitch.localeCompare(b.pitch);
+            return a.time - b.time;
+        });
+
+        // Merge Ties (Linear Pass)
+        if (rawEvents.length > 0) {
+            let current = rawEvents[0];
+            
+            for (let i = 1; i < rawEvents.length; i++) {
+                const next = rawEvents[i];
+                
+                // Check connectivity
+                // Must be same pitch (guaranteed by sort usually, but check)
+                // Must be 'tied' flag on current
+                // Must be adjacent in time (within small epsilon float tolerance)
+                const isConnected = 
+                    current.tied && 
+                    next.pitch === current.pitch && 
+                    Math.abs(next.time - (current.time + current.duration)) < 0.001;
+                
+                if (isConnected) {
+                    // Merge: Extend duration
+                    current.duration += next.duration;
+                    // Inherit tie status from next (if this chain continues)
+                    current.tied = next.tied; 
+                } else {
+                    // Push finished event
+                    addEventToTimeline(current);
+                    current = next;
+                }
+            }
+            // Push final event
+            addEventToTimeline(current);
+        }
     });
+
+    function addEventToTimeline(raw: RawNoteEvent) {
+        const freq = getFrequency(raw.pitch);
+        if (freq) {
+            timeline.push({
+                time: raw.time,
+                duration: raw.duration,
+                frequency: freq,
+                type: 'note',
+                measureIndex: raw.measureIndex,
+                eventIndex: raw.eventIndex,
+                staffIndex: raw.staffIndex,
+                quant: raw.quant
+            });
+        }
+    }
 
     // Sort by time (interleave staves)
     return timeline.sort((a, b) => a.time - b.time);

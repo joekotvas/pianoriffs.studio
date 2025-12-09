@@ -130,4 +130,68 @@ describe('TimelineService', () => {
         expect(t1).toHaveLength(1);
         expect(t1[0].frequency).toBeGreaterThan(0); // G3
     });
+
+
+    test('handles cross-measure ties properly (adjacent)', () => {
+        const adjacentScore = {
+            ...mockScore,
+            timeSignature: '2/4', // Measures are 2 beats long (32 quants)
+            staves: [{
+                measures: [
+                    {
+                        id: 1,
+                        events: [
+                            // Event 1: Quarter Note (0-1s)
+                            { duration: 'quarter', dotted: false, notes: [{ id: 'n_pad', pitch: 'G4', tied: false }] },
+                            // Event 2: Quarter Note (1-2s). Ends at 2.0s. Tied.
+                            { duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4', tied: true }] }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        events: [
+                            // Event 3: Quarter Note (starts at 2.0s). Tied target.
+                            { duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'C4', tied: false }] }
+                        ]
+                    }
+                ]
+            }]
+        };
+
+        const bpm = 60;
+        const timeline = createTimeline(adjacentScore, bpm);
+        
+        // Expected Timeline:
+        // 1. G4 (0-1s)
+        // 2. C4 (1-3s) [Merged Event 2 + Event 3]
+        
+        expect(timeline).toHaveLength(2);
+        
+        const g4 = timeline.find(e => e.frequency > 300 && e.frequency < 400); // G4 ~392
+        expect(g4).toBeDefined();
+        
+        const c4 = timeline.find(e => e.frequency > 260 && e.frequency < 262); // C4 ~261.6
+        expect(c4).toBeDefined();
+        if (c4) {
+            expect(c4.time).toBeCloseTo(1.0);
+            expect(c4.duration).toBeCloseTo(2.0); // 1s (Meas 1) + 1s (Meas 2)
+            expect(c4.quant).toBe(16); // Starts at 2nd beat of Measure 1
+        }
+    });
+
+    test('populates quant correctly', () => {
+        const bpm = 60;
+        const timeline = createTimeline(mockScore, bpm);
+        
+        // mockScore is 4 quarters.
+        // Q0: 0
+        // Q1: 16 (1 beat = 16 quants)
+        // Q2: 32
+        // Q3: 48
+         
+        expect(timeline[0].quant).toBe(0);
+        expect(timeline[1].quant).toBe(16);
+        expect(timeline[2].quant).toBe(32);
+        expect(timeline[3].quant).toBe(48);
+    });
 });
