@@ -23,12 +23,14 @@ SheetMusicEditor/
 │   ├── audioEngine.ts        # Web Audio playback (to be replaced by Tone.js)
 │   ├── midiEngine.ts         # MIDI input handling
 │   └── layout/               # Layout calculation
-│       ├── index.ts          # Module exports
+│       ├── index.ts          # Module exports (barrel file)
 │       ├── types.ts          # Layout type definitions
-│       ├── positioning.ts    # Pitch-to-Y mapping
-│       ├── measure.ts        # Measure layout
+│       ├── positioning.ts    # Pitch-to-Y mapping, chord layout
+│       ├── measure.ts        # Single measure layout and hit zones
+│       ├── system.ts         # Multi-staff synchronization
 │       ├── beaming.ts        # Beam grouping and angle calculation
-│       └── tuplets.ts        # Tuplet brackets
+│       ├── tuplets.ts        # Tuplet brackets
+│       └── stems.ts          # Stem length calculations
 │
 ├── commands/                 # Command pattern for undo/redo
 │   ├── types.ts              # Command interface
@@ -68,8 +70,10 @@ SheetMusicEditor/
 │   │   ├── Staff.tsx         # Staff lines and clef
 │   │   ├── Measure.tsx       # Measure container
 │   │   ├── ChordGroup.tsx    # Note grouping with stems
+│   │   ├── ChordComponents.tsx # Extracted chord parts (stem, accidental, hit area)
 │   │   ├── Note.tsx          # Individual note rendering
 │   │   ├── Beam.tsx          # Beam rendering (angled)
+│   │   ├── Rest.tsx          # Rest symbol rendering
 │   │   ├── Tie.tsx           # Tie arc rendering
 │   │   └── TupletBracket.tsx # Tuplet bracket rendering
 │   ├── Assets/               # Visual assets (SVG icons, clefs)
@@ -167,29 +171,83 @@ Score
 
 ## Layout Engine
 
-### Beaming System (`engines/layout/beaming.ts`)
+The layout engine is organized into focused modules, each responsible for a specific aspect of score layout.
 
-The beaming engine calculates beam geometry for grouped notes:
+### Module Overview
+
+| Module | Responsibility |
+|--------|---------------|
+| `measure.ts` | Single measure layout, event positioning, hit zones |
+| `system.ts` | Multi-staff synchronization for grand staff |
+| `positioning.ts` | Pitch-to-Y mapping, chord note arrangement |
+| `beaming.ts` | Beam grouping, angle calculation |
+| `tuplets.ts` | Tuplet bracket positioning |
+| `stems.ts` | Stem length calculations |
+
+### Centralized Constants (`constants.ts`)
+
+All layout magic numbers are centralized for easy adjustment:
+
+```typescript
+export const LAYOUT = {
+  // Primitives
+  LINE_STROKE_WIDTH: 1.5,
+  NOTE_RX: 6, NOTE_RY: 4,
+  
+  // Derived from lineHeight (12px)
+  STEM_OFFSET_X: HALF_SPACE,           // 6
+  SECOND_INTERVAL_SHIFT: SPACE - 1,    // 11
+  SECOND_INTERVAL_SPACE: HALF_SPACE,   // 6
+  
+  // Hit Detection  
+  HIT_ZONE_RADIUS: 15,
+  APPEND_ZONE_WIDTH: 2000,
+  // ...
+};
+```
+
+### Measure Layout (`measure.ts`)
+
+Calculates horizontal layout for a single measure:
+
+```typescript
+calculateMeasureLayout(events, totalQuants, clef, isPickup, forcedPositions) → MeasureLayout
+```
+
+**Extracted Helpers:**
+- `createEmptyMeasureLayout()` - Empty measure with rest placeholder
+- `processRegularEvent()` - Single event positioning
+- `processTupletGroup()` - Tuplet group with unified direction
+- `createEventHitZones()` - Click/hover hit zones
+
+### System Layout (`system.ts`)
+
+Synchronizes measures across multiple staves (grand staff):
+
+```typescript
+calculateSystemLayout(measures) → Record<quant, xPosition>
+```
+
+**Extracted Helpers:**
+- `getSystemTimePoints()` - Collect unique quant positions
+- `findEventAtQuant()` - Locate event at position
+- `calculateEventPadding()` - Extra space for accidentals/seconds
+- `getSegmentWidthRequirement()` - Max width per time segment
+
+### Beaming System (`beaming.ts`)
+
+Calculates beam geometry for grouped notes:
 
 ```typescript
 calculateBeamingGroups(events, eventPositions, clef) → BeamGroup[]
 ```
 
 **Key Features:**
-- **Pitch Contour Following**: Beam angles follow melodic direction
-- **Maximum Slope Constraint**: Limited to 45° for readability
-- **Direction-Dependent Positioning**: Stem offsets match ChordGroup (+6 up, -6 down)
-- **Minimum Stem Length**: 35px enforced for all notes in group
-- **Beat Boundary Breaking**: Beams break at beat boundaries
-
-**Algorithm Flow:**
-1. Collect note Y positions and calculate average
-2. Determine stem direction (up/down) based on middle line
-3. Calculate stem X positions with direction-dependent offset
-4. Compute initial beam slope from start/end notes
-5. Clamp slope to maximum 45 degrees
-6. Validate all stems meet minimum length
-7. Apply uniform shift if needed for clearance
+- Pitch contour following for natural beam angles
+- Maximum 45° slope constraint for readability
+- Direction-dependent stem offsets (+6 up, -6 down)
+- Minimum 35px stem length enforcement
+- Beat boundary recognition
 
 ### Rendering Pipeline
 
@@ -200,8 +258,9 @@ Measure.tsx
     ├── calculateChordLayout() → note offsets
     │
     └── Render:
-        ├── ChordGroup (notes, stems)
+        ├── ChordGroup (notes, stems via ChordComponents)
         ├── Beam (angled beams connecting stems)
+        ├── Rest (rest symbols)
         └── TupletBracket (if applicable)
 ```
 
@@ -307,9 +366,17 @@ Canvas Render (Staff → Measure → ChordGroup → Note + Beam)
 - Updated import paths for new structure
 
 ### Grand Staff Synchronization
+- `system.ts` module for multi-staff alignment
 - Synchronized key signatures across staves
 - Synchronized time signatures across staves
 - Synchronized pickup measure status
+
+### Layout Engine Refactor
+- Extracted `calculateMeasureLayout` into focused helper functions
+- Created `system.ts` for multi-staff synchronization
+- Added `stems.ts` for stem length calculations
+- Added `ChordComponents.tsx` for extracted chord parts
+- Centralized magic numbers into `constants.ts` (`LAYOUT`, `STEM`, `BEAMING`, etc.)
 
 ---
 
