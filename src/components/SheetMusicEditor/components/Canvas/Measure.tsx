@@ -293,6 +293,7 @@ const Measure = ({ measureData, measureIndex, onAddNote, activeDuration, selecti
           onNoteHover={(isHovering) => setIsNoteHovered(isHovering)}
           isDragging={isDragging}
           baseY={baseY}
+          keySignature={keySignature}
         />
       ))}
 
@@ -320,6 +321,7 @@ const Measure = ({ measureData, measureIndex, onAddNote, activeDuration, selecti
                         layout={previewRender.chordLayout}
                         clef={clef}
                         baseY={baseY}
+                        keySignature={keySignature}
                     />
                  );
                })()}

@@ -4,6 +4,7 @@ import { NOTE_TYPES, NOTE_SPACING_BASE_UNIT } from '../../constants';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { PITCH_TO_OFFSET, getOffsetForPitch } from '../../engines/layout';
+import { needsAccidental } from '../../services/MusicService';
 import { Note, renderFlags } from './Note';
 import { getNoteDuration } from '../../utils/core';
 
@@ -53,7 +54,8 @@ const ChordGroup = ({
   activeDotted = false,
   onNoteHover = null,
   isDragging = false,
-  baseY = CONFIG.baseY
+  baseY = CONFIG.baseY,
+  keySignature = 'C'
 }) => {
   const { theme } = useTheme();
   const [hoveredNoteId, setHoveredNoteId] = useState(null);
@@ -215,20 +217,31 @@ const ChordGroup = ({
                 />
               </g>
             )}
-            {/* Accidental */}
-            {note.accidental && (
-                <text 
-                    x={noteX + xShift - 16} 
-                    y={noteY + 6} 
-                    fontSize="22" 
-                    fontFamily="serif" 
-                    fill={groupColor} 
-                    textAnchor="middle"
-                    style={{ userSelect: 'none' }}
-                >
-                    {note.accidental === 'sharp' ? '♯' : note.accidental === 'flat' ? '♭' : '♮'}
-                </text>
-            )}
+            {/* Accidental - calculated based on key signature */}
+            {(() => {
+                // Calculate if accidental is needed based on key
+                const accidentalInfo = needsAccidental(note.pitch, keySignature);
+                // Show accidental if: key requires it OR note has explicit override accidental
+                const showAccidental = accidentalInfo.show || note.accidental;
+                const accidentalType = note.accidental || accidentalInfo.type;
+                
+                if (showAccidental && accidentalType) {
+                    return (
+                        <text 
+                            x={noteX + xShift - 16} 
+                            y={noteY + 6} 
+                            fontSize="22" 
+                            fontFamily="serif" 
+                            fill={groupColor} 
+                            textAnchor="middle"
+                            style={{ userSelect: 'none' }}
+                        >
+                            {accidentalType === 'sharp' ? '♯' : accidentalType === 'flat' ? '♭' : '♮'}
+                        </text>
+                    );
+                }
+                return null;
+            })()}
 
             <Note 
               quant={quant} 
