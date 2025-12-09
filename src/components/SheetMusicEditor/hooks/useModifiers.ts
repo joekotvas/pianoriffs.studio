@@ -59,23 +59,69 @@ export const useModifiers = ({
   }, [selection, tools, dispatch]);
 
   const handleAccidentalToggle = useCallback((type: 'flat' | 'natural' | 'sharp' | null) => {
-    const newAccidental = tools.handleAccidentalToggle(type);
+    // Import dynamically to avoid circular deps - MusicService handles transposition
+    const { transposeBySemitones, needsAccidental, getScaleNotes, getPitchClass } = require('../services/MusicService');
     
-    if (selection.measureIndex !== null && selection.eventId && selection.noteId) {
-        // Note: UpdateNoteCommand expects accidental as string | null, but tools returns string | null.
-        dispatch(new UpdateNoteCommand(selection.measureIndex, selection.eventId, selection.noteId, { accidental: newAccidental as any }));
-        
-        // Play tone to preview change
-        const currentScore = scoreRef.current;
-        const measure = getActiveStaff(currentScore).measures[selection.measureIndex];
-        const event = measure.events.find((e: any) => e.id === selection.eventId);
-        if (event) {
-            const note = event.notes.find((n: any) => n.id === selection.noteId);
-            if (note) {
-                 playTone(note.pitch, event.duration, event.dotted, newAccidental as any, getActiveStaff(currentScore).keySignature || 'C');
-            }
-        }
+    if (selection.measureIndex === null || !selection.eventId || !selection.noteId) return;
+    
+    const currentScore = scoreRef.current;
+    const keySignature = getActiveStaff(currentScore).keySignature || 'C';
+    const measure = getActiveStaff(currentScore).measures[selection.measureIndex];
+    const event = measure?.events.find((e: any) => e.id === selection.eventId);
+    const note = event?.notes.find((n: any) => n.id === selection.noteId);
+    
+    if (!note) return;
+    
+    const currentPitch = note.pitch; // e.g., "F#4" or "F4"
+    let newPitch = currentPitch;
+    
+    // Parse current pitch: letter, accidental, octave
+    const letterMatch = currentPitch.match(/^([A-G])(#{1,2}|b{1,2})?(\d+)$/);
+    if (!letterMatch) return;
+    
+    const letter = letterMatch[1]; // e.g., "F"
+    const currentAccidental = letterMatch[2] || ''; // e.g., "#", "b", "##", "bb", or ""
+    const octave = letterMatch[3]; // e.g., "4"
+    
+    if (type === 'sharp') {
+      // Add a sharp (or cancel a flat)
+      if (currentAccidental === 'b') {
+        newPitch = `${letter}${octave}`; // Fb → F
+      } else if (currentAccidental === 'bb') {
+        newPitch = `${letter}b${octave}`; // Fbb → Fb
+      } else if (currentAccidental === '') {
+        newPitch = `${letter}#${octave}`; // F → F#
+      } else if (currentAccidental === '#') {
+        newPitch = `${letter}##${octave}`; // F# → F## (double sharp)
+      }
+    } else if (type === 'flat') {
+      // Add a flat (or cancel a sharp)
+      if (currentAccidental === '#') {
+        newPitch = `${letter}${octave}`; // F# → F
+      } else if (currentAccidental === '##') {
+        newPitch = `${letter}#${octave}`; // F## → F#
+      } else if (currentAccidental === '') {
+        newPitch = `${letter}b${octave}`; // F → Fb
+      } else if (currentAccidental === 'b') {
+        newPitch = `${letter}bb${octave}`; // Fb → Fbb (double flat)
+      }
+    } else if (type === 'natural') {
+      // Strip all accidentals, return to natural letter
+      newPitch = `${letter}${octave}`;
     }
+    
+    if (newPitch !== currentPitch) {
+      // Update the pitch, not the accidental flag
+      dispatch(new UpdateNoteCommand(selection.measureIndex, selection.eventId, selection.noteId, { pitch: newPitch }));
+      
+      // Play tone to preview change
+      if (event) {
+        playTone(newPitch, event.duration, event.dotted, null, keySignature);
+      }
+    }
+    
+    // Update toolbar state (accidental is now derived from pitch vs key, not stored)
+    tools.handleAccidentalToggle(null); // Clear toolbar accidental state
   }, [selection, tools, dispatch, scoreRef]);
 
   const handleTieToggle = useCallback(() => {

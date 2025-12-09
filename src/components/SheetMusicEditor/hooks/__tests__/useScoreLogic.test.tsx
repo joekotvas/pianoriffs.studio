@@ -92,7 +92,7 @@ describe('useScoreLogic Integration', () => {
     expect(updatedMeasure.events[0].duration).toBe('eighth');
   });
 
-  test('should toggle accidental', () => {
+  test('should toggle accidental (modifies pitch)', () => {
     const { result } = renderHook(() => useScoreLogic(initialScore));
     
     // 1. Add a note
@@ -110,13 +110,14 @@ describe('useScoreLogic Integration', () => {
         result.current.setSelection({ measureIndex: 0, eventId, noteId });
     });
 
-    // 3. Toggle Sharp
+    // 3. Toggle Sharp - should raise pitch by semitone
     act(() => {
         result.current.handleAccidentalToggle('sharp');
     });
 
-    // Verify change
+    // Verify pitch changed from C4 to C#4 (preserves letter name)
     const updatedMeasure = result.current.score.staves[0].measures[0];
-    expect(updatedMeasure.events[0].notes[0].accidental).toBe('sharp');
+    const updatedPitch = updatedMeasure.events[0].notes[0].pitch;
+    expect(updatedPitch).toBe('C#4');
   });
 });
