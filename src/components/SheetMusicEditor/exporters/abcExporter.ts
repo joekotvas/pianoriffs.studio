@@ -23,63 +23,86 @@ const getAbcPitchMap = (clef: string): Record<string, string> => {
 };
 
 export const generateABC = (score: any, bpm: number) => {
-    const activeStaff = getActiveStaff(score);
+    // Phase 2: Iterate over all staves
+    const staves = score.staves || [getActiveStaff(score)]; // Fallback for safety
     const timeSig = score.timeSignature || '4/4';
-    const clef = activeStaff.clef || 'treble';
-    const abcClef = clef === 'bass' ? 'bass' : 'treble';
-    const pitchMap = getAbcPitchMap(clef);
+    const keySig = score.keySignature || 'C';
     
-    let abc = `X:1\nT:${score.title}\nM:${timeSig}\nL:1/4\nK:C clef=${abcClef}\nQ:1/4=${bpm}\n`;
+    // Header
+    let abc = `X:1\nT:${score.title}\nM:${timeSig}\nL:1/4\nK:${keySig}\nQ:1/4=${bpm}\n`;
     
-    activeStaff.measures.forEach((measure: any, i: number) => {
-      measure.events.forEach((event: any) => {
-          // Calculate Duration
-          let durationString = '';
-          const base = NOTE_TYPES[event.duration]?.abcDuration || '';
+    // Staves definition if multiple
+    if (staves.length > 1) {
+        abc += `%%staves {${staves.map((_, i) => i + 1).join(' ')}}\n`;
+    }
+
+    staves.forEach((staff: any, staffIndex: number) => {
+        const clef = staff.clef || 'treble';
+        const abcClef = clef === 'bass' ? 'bass' : 'treble';
+        const pitchMap = getAbcPitchMap(clef);
+        const voiceId = staffIndex + 1;
+        
+        // Voice Header
+        abc += `V:${voiceId} clef=${abcClef}\n`;
+        
+        staff.measures.forEach((measure: any, i: number) => {
+            measure.events.forEach((event: any) => {
+                // Calculate Duration
+                let durationString = '';
+                const base = NOTE_TYPES[event.duration]?.abcDuration || '';
           
-          if (event.dotted) {
-              // Handle dotted durations explicitly
-              switch (event.duration) {
-                  case 'whole': durationString = '6'; break; // 4 * 1.5
-                  case 'half': durationString = '3'; break; // 2 * 1.5
-                  case 'quarter': durationString = '3/2'; break; // 1 * 1.5
-                  case 'eighth': durationString = '3/4'; break; // 0.5 * 1.5
-                  case 'sixteenth': durationString = '3/8'; break; // 0.25 * 1.5
-                  case 'thirtysecond': durationString = '3/16'; break;
-                  case 'sixtyfourth': durationString = '3/32'; break;
-                  default: durationString = base; // Fallback
-              }
-          } else {
-              durationString = base;
-          }
+                if (event.dotted) {
+                    // Handle dotted durations explicitly
+                    switch (event.duration) {
+                        case 'whole': durationString = '6'; break;
+                        case 'half': durationString = '3'; break;
+                        case 'quarter': durationString = '3/2'; break;
+                        case 'eighth': durationString = '3/4'; break;
+                        case 'sixteenth': durationString = '3/8'; break;
+                        case 'thirtysecond': durationString = '3/16'; break;
+                        case 'sixtyfourth': durationString = '3/32'; break;
+                        default: durationString = base;
+                     }
+                } else {
+                    durationString = base;
+                }
 
-          if (event.notes.length === 0) {
-              // Rest
-              abc += `z${durationString} `;
-          } else {
-              // Notes/Chords
-              const formatNote = (n: any) => {
-                  let acc = '';
-                  if (n.accidental === 'sharp') acc = '^';
-                  else if (n.accidental === 'flat') acc = '_';
-                  else if (n.accidental === 'natural') acc = '=';
-                  
-                  const pitch = pitchMap[n.pitch] || 'c';
-                  const tie = n.tied ? '-' : '';
-                  return `${acc}${pitch}${tie}`;
-              };
+                let prefix = '';
+                // Handle Tuplets
+                if (event.tuplet && event.tuplet.position === 0) {
+                     prefix += `(${event.tuplet.ratio[0]}`;
+                }
 
-              if (event.notes.length > 1) {
-                  const chordContent = event.notes.map(formatNote).join("");
-                  abc += `[${chordContent}]${durationString} `;
-              } else {
-                  const noteContent = formatNote(event.notes[0]);
-                  abc += `${noteContent}${durationString} `;
-              }
-          }
-      });
-      abc += "| ";
-      if ((i + 1) % 4 === 0) abc += "\n";
+                if (event.notes.length === 0) {
+                    // Rest
+                    abc += `${prefix}z${durationString} `;
+                } else {
+                    // Notes/Chords
+                    const formatNote = (n: any) => {
+                        let acc = '';
+                        if (n.accidental === 'sharp') acc = '^';
+                        else if (n.accidental === 'flat') acc = '_';
+                        else if (n.accidental === 'natural') acc = '=';
+                        
+                        const pitch = pitchMap[n.pitch] || 'c';
+                        const tie = n.tied ? '-' : '';
+                        return `${acc}${pitch}${tie}`;
+                    };
+
+                    if (event.notes.length > 1) {
+                        const chordContent = event.notes.map(formatNote).join("");
+                        abc += `${prefix}[${chordContent}]${durationString} `;
+                    } else {
+                        const noteContent = formatNote(event.notes[0]);
+                        abc += `${prefix}${noteContent}${durationString} `;
+                    }
+                }
+            });
+            abc += "| ";
+            if ((i + 1) % 4 === 0) abc += "\n";
+        });
+        abc += "\n"; // Newline after each voice/staff block
     });
+
     return abc;
 };
