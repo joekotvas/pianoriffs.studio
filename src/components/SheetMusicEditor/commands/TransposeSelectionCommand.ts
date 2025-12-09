@@ -1,6 +1,6 @@
 import { Command } from './types';
 import { Score, getActiveStaff } from '../types';
-import { getPitchByOffset } from '../services/PitchService';
+import { movePitchVisual } from '../services/MusicService';
 
 export class TransposeSelectionCommand implements Command {
   public readonly type = 'TRANSPOSE_SELECTION';
@@ -16,12 +16,35 @@ export class TransposeSelectionCommand implements Command {
 
     const staffIndex = this.selection.staffIndex ?? 0;
     const activeStaff = getActiveStaff(score, staffIndex);
-    const clef = activeStaff.clef || 'treble'; // Get clef from the actual staff
+    // Key-aware transposition uses the key signature, not clef
+    const keySig = activeStaff.keySignature || this.keySignature || 'C';
+    
     const newMeasures = [...activeStaff.measures];
     
     if (!newMeasures[this.selection.measureIndex]) return score;
 
     const measure = { ...newMeasures[this.selection.measureIndex] };
+    
+    // Determine transposition logic
+    // The command is called "semitones", but typically "Transpose Selection" via arrows means "Visual Steps".
+    // If semitones is small (+/- 1), it usually implies Steps (User pressed Arrow).
+    // If semitones is large (+12), it implies Shift+Arrow (Octave).
+    
+    // BUG FIX: The caller (useNavigation) was passing +12 Semitones for Shift+Up, 
+    // but the old PitchService treated it as Steps (Octave+6th).
+    // Here we need to decide if we are moving by Steps or Semitones.
+    
+    // For now, let's assume 'semitones' actually means 'steps' in the context of arrow keys.
+    // If it's +/- 12, that's 7 steps (Octave).
+    // Caller needs to send correct step count?
+    // Or we handle it here.
+    
+    let steps = this.semitones;
+    if (Math.abs(steps) === 12) {
+        steps = (steps > 0) ? 7 : -7;
+    }
+    
+    const transposeFn = (pitch: string) => movePitchVisual(pitch, steps, keySig);
     
     // Case 1: Transpose specific note
     if (this.selection.eventId && this.selection.noteId) {
@@ -34,8 +57,7 @@ export class TransposeSelectionCommand implements Command {
         if (noteIndex === -1) return score;
 
         const note = { ...event.notes[noteIndex] };
-        // Use clef from the staff, not keySignature
-        note.pitch = getPitchByOffset(note.pitch, this.semitones, clef);
+        note.pitch = transposeFn(note.pitch);
         
         const newNotes = [...event.notes];
         newNotes[noteIndex] = note;
@@ -53,7 +75,7 @@ export class TransposeSelectionCommand implements Command {
         const event = { ...measure.events[eventIndex] };
         const newNotes = event.notes.map(n => ({
             ...n,
-            pitch: getPitchByOffset(n.pitch, this.semitones, clef)
+            pitch: transposeFn(n.pitch)
         }));
         
         event.notes = newNotes;
@@ -68,7 +90,7 @@ export class TransposeSelectionCommand implements Command {
             ...e,
             notes: e.notes.map(n => ({
                 ...n,
-                pitch: getPitchByOffset(n.pitch, this.semitones, clef)
+                pitch: transposeFn(n.pitch)
             }))
         }));
         measure.events = newEvents;

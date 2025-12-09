@@ -1,5 +1,5 @@
-import { SetSingleStaffCommand } from '../SetSingleStaffCommand';
-import { Score, Staff, Measure } from '../../types';
+import { SetSingleStaffCommand } from '../commands/SetSingleStaffCommand';
+import { Score, Staff, Measure } from '../types';
 
 describe('SetSingleStaffCommand', () => {
   const createGrandStaffScore = (): Score => {

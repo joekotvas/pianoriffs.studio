@@ -1,5 +1,5 @@
-import { navigateSelection, calculateTotalQuants, calculateTransposition } from './core';
-import { calculateNewPitch } from '../services/PitchService';
+import { navigateSelection, calculateTotalQuants } from './core';
+import { movePitchVisual } from '../services/MusicService';
 import { CONFIG } from '../config';
 
 /**
@@ -131,6 +131,53 @@ export const calculateNextSelection = (
 };
 
 /**
+ * Calculates transposition for selected notes.
+ * @param {Array} measures - List of measures
+ * @param {Object} selection - Current selection
+ * @param {number} steps - Visual steps to move (positive or negative)
+ * @param {string} keySignature - Key signature root
+ * @returns {Object|null} Object containing new measures and the modified event, or null if no change
+ */
+export const calculateTransposition = (measures: any[], selection: any, steps: number, keySignature: string = 'C') => {
+    const { measureIndex, eventId, noteId } = selection;
+    if (measureIndex === null || !eventId) return null;
+
+    const newMeasures = [...measures];
+    const measure = { ...newMeasures[measureIndex] };
+    const events = [...measure.events];
+    const eventIdx = events.findIndex((e: any) => e.id === eventId);
+    
+    if (eventIdx === -1) return null;
+    
+    const event = { ...events[eventIdx] };
+    const notes = [...event.notes];
+    
+    const modifyNote = (note: any) => {
+        // Use movePitchVisual instead of calculateNewPitch
+        const newPitch = movePitchVisual(note.pitch, steps, keySignature);
+        return { ...note, pitch: newPitch };
+    };
+
+    if (noteId) {
+        const noteIdx = notes.findIndex((n: any) => n.id === noteId);
+        if (noteIdx !== -1) {
+            notes[noteIdx] = modifyNote(notes[noteIdx]);
+        }
+    } else {
+        notes.forEach((n: any, i: number) => {
+            notes[i] = modifyNote(n);
+        });
+    }
+    
+    event.notes = notes;
+    events[eventIdx] = event;
+    measure.events = events;
+    newMeasures[measureIndex] = measure;
+    
+    return { measures: newMeasures, event };
+};
+
+/**
  * Calculates transposition for selected notes or the preview note.
  * 
  * @param measures - The current measures of the score
@@ -138,7 +185,7 @@ export const calculateNextSelection = (
  * @param previewNote - The current preview note state
  * @param direction - The direction of transposition ('up', 'down')
  * @param isShift - Whether shift key is pressed (octave jump)
- * @param clef - The current clef
+ * @param keySignature - The current key signature (default 'C')
  * @returns An object containing the new measures (if changed), new previewNote (if changed), and audio feedback
  */
 export const calculateTranspositionWithPreview = (
@@ -147,11 +194,16 @@ export const calculateTranspositionWithPreview = (
     previewNote: any,
     direction: string,
     isShift: boolean,
-    clef: string = 'treble'
+    keySignature: string = 'C'
 ) => {
+    // Determine steps (Visual Movement)
+    // Up = 1, Down = -1. Shift = 7 (Octave)
+    let steps = direction === 'up' ? 1 : -1;
+    if (isShift) steps *= 7;
+
     // 1. Handle Preview Note (Ghost Note)
     if (selection.eventId === null && previewNote) {
-        const newPitch = calculateNewPitch(previewNote.pitch, direction, isShift, clef);
+        const newPitch = movePitchVisual(previewNote.pitch, steps, keySignature);
         if (newPitch !== previewNote.pitch) {
             return {
                 previewNote: { ...previewNote, pitch: newPitch },
@@ -162,7 +214,7 @@ export const calculateTranspositionWithPreview = (
     }
 
     // 2. Handle Selection Transposition
-    const result = calculateTransposition(measures, selection, direction, isShift, clef);
+    const result = calculateTransposition(measures, selection, steps, keySignature);
     
     if (result) {
         const { measures: newMeasures, event } = result;

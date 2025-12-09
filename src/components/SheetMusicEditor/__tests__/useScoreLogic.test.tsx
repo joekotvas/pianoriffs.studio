@@ -1,9 +1,9 @@
 import { renderHook, act } from '@testing-library/react';
-import { useScoreLogic } from '../useScoreLogic';
-import { createDefaultScore } from '../../types';
+import { useScoreLogic } from '../hooks/useScoreLogic';
+import { createDefaultScore } from '../types';
 
 // Mock audio engine to prevent actual playback during tests
-jest.mock('../../engines/audioEngine', () => ({
+jest.mock('../engines/audioEngine', () => ({
   playTone: jest.fn(),
 }));
 
@@ -51,7 +51,7 @@ describe('useScoreLogic Integration', () => {
     
     // 2. Select the note (addNoteToMeasure auto-selects, but let's be explicit)
     act(() => {
-        result.current.setSelection({ measureIndex: 0, eventId, noteId });
+        result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
     });
 
     // 3. Delete it
@@ -79,7 +79,7 @@ describe('useScoreLogic Integration', () => {
 
     // 2. Select it
     act(() => {
-        result.current.setSelection({ measureIndex: 0, eventId, noteId });
+        result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
     });
 
     // 3. Change duration to eighth
@@ -107,7 +107,7 @@ describe('useScoreLogic Integration', () => {
 
     // 2. Select it
     act(() => {
-        result.current.setSelection({ measureIndex: 0, eventId, noteId });
+        result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
     });
 
     // 3. Toggle Sharp - should raise pitch by semitone

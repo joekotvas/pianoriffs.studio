@@ -1,4 +1,4 @@
-import { handlePlayback } from '../handlePlayback';
+import { handlePlayback } from '../hooks/handlers/handlePlayback';
 
 describe('handlePlayback', () => {
     let mockPlayback: any;

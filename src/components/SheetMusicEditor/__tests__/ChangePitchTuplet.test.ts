@@ -1,7 +1,7 @@
-import { ChangePitchCommand } from '../ChangePitchCommand';
-import { createDefaultScore } from '../../types';
-import { ApplyTupletCommand } from '../TupletCommands';
-import { ScoreEngine } from '../../engines/ScoreEngine';
+import { ChangePitchCommand } from '../commands/ChangePitchCommand';
+import { createDefaultScore } from '../types';
+import { ApplyTupletCommand } from '../commands/TupletCommands';
+import { ScoreEngine } from '../engines/ScoreEngine';
 
 describe('ChangePitchCommand with Tuplets via Engine', () => {
     test('should preserve score structure when changing pitch of a tuplet note', () => {

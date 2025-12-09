@@ -1,4 +1,4 @@
-import { handleNavigation } from '../handleNavigation';
+import { handleNavigation } from '../hooks/handlers/handleNavigation';
 
 describe('handleNavigation', () => {
     let mockMoveSelection: any;

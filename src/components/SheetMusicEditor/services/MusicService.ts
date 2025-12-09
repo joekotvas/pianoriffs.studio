@@ -30,8 +30,7 @@ import { Note, Key, Interval, Midi, Scale } from 'tonal';
  * getFrequency("F#4"); // 369.99
  */
 export const getFrequency = (pitch: string): number => {
-  const freq = Note.freq(pitch);
-  return freq ?? 0;
+  return Note.freq(pitch) ?? 0;
 };
 
 /**
@@ -45,8 +44,7 @@ export const getFrequency = (pitch: string): number => {
  * getMidi("A4"); // 69
  */
 export const getMidi = (pitch: string): number => {
-  const midi = Note.midi(pitch);
-  return midi ?? 60;
+  return Note.midi(pitch) ?? 60;
 };
 
 /**
@@ -125,8 +123,7 @@ export const getOctave = (pitch: string): number => {
  * transpose("C4", "-P8"); // "C3"
  */
 export const transpose = (pitch: string, interval: string): string => {
-  const result = Note.transpose(pitch, interval);
-  return result ?? pitch;
+  return Note.transpose(pitch, interval) ?? pitch;
 };
 
 /**
@@ -175,8 +172,8 @@ export const getKeyInfo = (keyRoot: string) => {
  * getScaleNotes("G"); // ["G", "A", "B", "C", "D", "E", "F#"]
  */
 export const getScaleNotes = (keyRoot: string): string[] => {
-  const key = Key.majorKey(keyRoot);
-  return [...key.scale]; // Spread to create mutable copy
+  // .scale is already a string[], so we just return a defensive copy
+  return [...Key.majorKey(keyRoot).scale];
 };
 
 /**
@@ -191,12 +188,12 @@ export const getScaleNotes = (keyRoot: string): string[] => {
  * getKeyAlteration("C"); // 0
  */
 export const getKeyAlteration = (keyRoot: string): number => {
-  const key = Key.majorKey(keyRoot);
-  return key.alteration;
+  return Key.majorKey(keyRoot).alteration;
 };
 
 /**
  * Determines if a pitch needs an accidental symbol when rendered in a given key.
+ * Refactored to use safe Tonal comparison with .includes()
  * 
  * @param pitch - The pitch to check (e.g., "F#4", "F4")
  * @param keyRoot - The current key signature root
@@ -218,33 +215,29 @@ export const needsAccidental = (
   const note = Note.get(pitch);
   if (!note.pc) return { show: false, type: null };
   
-  const scaleNotes = getScaleNotes(keyRoot);
-  const pitchClass = note.pc; // e.g., "F#", "Bb", "C"
-  const letterOnly = note.letter; // e.g., "F", "B", "C"
+  const scale = Key.majorKey(keyRoot).scale;
   
-  // Find what the scale expects for this letter
-  const expectedNote = scaleNotes.find(s => s.charAt(0) === letterOnly);
-  
-  if (!expectedNote) {
-    // Letter not in scale? Shouldn't happen for standard keys
-    return { show: true, type: note.alt > 0 ? 'sharp' : note.alt < 0 ? 'flat' : null };
-  }
-  
-  // Does the pitch match what the key expects?
-  if (pitchClass === expectedNote) {
-    // Pitch matches key expectation - no accidental needed
+  // 1. Check if the exact Pitch Class exists in the scale
+  // If "F#" is in G Major, includes() is true. No accidental needed.
+  if (scale.includes(note.pc)) {
     return { show: false, type: null };
   }
+
+  // 2. If we are here, the note is NOT in the key.
+  // We must determine if it's a Sharp, Flat, or Natural.
   
-  // Pitch differs from key expectation - show accidental
-  if (note.alt > 0) {
-    return { show: true, type: 'sharp' };
-  } else if (note.alt < 0) {
-    return { show: true, type: 'flat' };
-  } else {
-    // Natural note that differs (e.g., F natural in G major)
+  // Special Case: Natural vs Scale Accidental
+  // If Key is G (has F#), and note is F Natural.
+  // 'F' is not in scale. note.alt is 0.
+  if (note.alt === 0) {
     return { show: true, type: 'natural' };
   }
+
+  // Otherwise return the type based on alteration
+  return { 
+    show: true, 
+    type: note.alt > 0 ? 'sharp' : 'flat' 
+  };
 };
 
 // ============================================================================
@@ -253,7 +246,7 @@ export const needsAccidental = (
 
 /**
  * Gets the next diatonic note in a key (scale-aware movement).
- * If the pitch is chromatic (not in the scale), transposes by a major second.
+ * If the pitch is chromatic (not in the scale), returns the chromatic neighbor.
  * 
  * @param pitch - Current pitch
  * @param keyRoot - Current key signature
@@ -275,44 +268,32 @@ export const getNextScaleDegree = (
   direction: 'up' | 'down'
 ): string => {
   const note = Note.get(pitch);
-  if (!note.pc || note.oct === undefined) return pitch;
-  
-  const scaleNotes = getScaleNotes(keyRoot);
-  const pitchClass = note.pc;
-  const octave = note.oct;
-  
-  // Check if pitch is in the scale
-  const scaleIndex = scaleNotes.findIndex(s => s === pitchClass);
-  
-  if (scaleIndex !== -1) {
-    // Pitch is diatonic - move to next scale degree
-    if (direction === 'up') {
-      const nextIndex = (scaleIndex + 1) % scaleNotes.length;
-      const nextPitchClass = scaleNotes[nextIndex];
-      // Only increment octave if the next note is lower in the chromatic scale
-      // E.g., B -> C (next octave), but F# -> G (same octave)
-      const currentMidi = getMidi(`${pitchClass}${octave}`);
-      const nextMidiSameOctave = getMidi(`${nextPitchClass}${octave}`);
-      const nextOctave = nextMidiSameOctave <= currentMidi ? octave + 1 : octave;
-      return `${nextPitchClass}${nextOctave}`;
-    } else {
-      const prevIndex = scaleIndex === 0 ? scaleNotes.length - 1 : scaleIndex - 1;
-      const prevPitchClass = scaleNotes[prevIndex];
-      // Only decrement octave if the previous note is higher in the chromatic scale
-      const currentMidi = getMidi(`${pitchClass}${octave}`);
-      const prevMidiSameOctave = getMidi(`${prevPitchClass}${octave}`);
-      const prevOctave = prevMidiSameOctave >= currentMidi ? octave - 1 : octave;
-      return `${prevPitchClass}${prevOctave}`;
-    }
-  } else {
-    // Pitch is chromatic - transpose by semitone
-    return transposeBySemitones(pitch, direction === 'up' ? 1 : -1);
+  if (note.empty || note.oct === undefined) return pitch;
+
+  const scale = Key.majorKey(keyRoot).scale; 
+  const len = scale.length;
+  const currentIndex = scale.indexOf(note.pc);
+
+  if (currentIndex === -1) {
+    // Chromatic fallback
+    const interval = direction === 'up' ? '2m' : '-2m';
+    return Note.transpose(pitch, interval);
   }
+
+  const step = direction === 'up' ? 1 : -1;
+  const newIndex = ((currentIndex + step) % len + len) % len;
+
+  let newOctave = note.oct;
+  if (direction === 'up' && newIndex < currentIndex) newOctave++;
+  if (direction === 'down' && newIndex > currentIndex) newOctave--;
+
+  return `${scale[newIndex]}${newOctave}`;
 };
 
 /**
  * Applies a key signature to a visual pitch position.
  * Used when user clicks a staff line to determine the actual pitch.
+ * Optimized to use Tonal's robust parsing.
  * 
  * @param visualPitch - The pitch based on staff position (e.g., "F4" for F line)
  * @param keyRoot - Current key signature
@@ -325,20 +306,58 @@ export const getNextScaleDegree = (
  */
 export const applyKeySignature = (visualPitch: string, keyRoot: string): string => {
   const note = Note.get(visualPitch);
-  if (!note.letter || note.oct === undefined) return visualPitch;
+  if (note.empty || note.oct === undefined) return visualPitch;
   
-  const scaleNotes = getScaleNotes(keyRoot);
-  const letter = note.letter;
-  const octave = note.oct;
+  const scale = Key.majorKey(keyRoot).scale;
   
-  // Find what the scale expects for this letter
-  const expectedNote = scaleNotes.find(s => s.charAt(0) === letter);
+  // Use Tonal's Note.get().letter for safer comparison than charAt(0)
+  const targetLetter = note.letter; 
   
-  if (expectedNote) {
-    return `${expectedNote}${octave}`;
+  // Find the pitch class in the scale that matches this letter
+  // Note: We use Note.get(n).letter to ensure we match 'F#' to 'F' safely
+  const match = scale.find(scaleNote => Note.get(scaleNote).letter === targetLetter);
+  
+  if (match) {
+    return `${match}${note.oct}`;
   }
   
   return visualPitch;
+};
+
+/**
+ * Moves a pitch by visual steps and snaps it to the Key Signature.
+ * Delegates logic to applyKeySignature for consistency.
+ * 
+ * @param pitch - Scientific pitch (e.g., "C4", "C#4")
+ * @param steps - Number of visual steps to move (positive=up, negative=down)
+ * @param keyRoot - Key signature root (e.g., "G", "Bb")
+ * @returns New pitch with correct accidental for the key
+ * 
+ * @example
+ * // In G Major (F is sharp):
+ * movePitchVisual("E4", 1, "G"); // "F#4" (E visual step up -> F, key makes it F#)
+ * movePitchVisual("E4", -1, "G"); // "D4"
+ * 
+ * // In C Major (F is natural):
+ * movePitchVisual("E4", 1, "C"); // "F4"
+ */
+export const movePitchVisual = (pitch: string, steps: number, keyRoot: string = 'C'): string => {
+  const note = Note.get(pitch);
+  if (note.empty) return pitch;
+
+  const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  const currentIdx = LETTERS.indexOf(note.letter || 'C');
+  
+  const absoluteIdx = currentIdx + steps;
+  const newLetter = LETTERS[((absoluteIdx % 7) + 7) % 7]; 
+  const octaveShift = Math.floor(absoluteIdx / 7);
+  const newOctave = (note.oct || 4) + octaveShift;
+
+  // Create the "Staff Pitch" (e.g., "F4")
+  const rawTarget = `${newLetter}${newOctave}`;
+
+  // Delegate the "Snap to Key" logic to our robust helper
+  return applyKeySignature(rawTarget, keyRoot);
 };
 
 // ============================================================================
@@ -362,6 +381,7 @@ export const getInterval = (from: string, to: string): string => {
 
 /**
  * Gets the number of semitones in an interval.
+ * Uses Tonal's direct accessor.
  * 
  * @param interval - Interval string
  * @returns Number of semitones
@@ -371,6 +391,6 @@ export const getInterval = (from: string, to: string): string => {
  * getSemitones("M3"); // 4
  */
 export const getSemitones = (interval: string): number => {
-  const parsed = Interval.get(interval);
-  return parsed.semitones ?? 0;
+  // Tonal's Interval.semitones returns the number directly or null
+  return Interval.semitones(interval) ?? 0;
 };

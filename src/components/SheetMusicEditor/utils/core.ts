@@ -1,8 +1,6 @@
-// @ts-nocheck
 import { NOTE_TYPES, TIME_SIGNATURES } from '../constants';
 import { CONFIG } from '../config';
-import { calculateNewPitch } from '../services/PitchService';
-import { getMidi } from '../services/MusicService';
+import { getMidi, movePitchVisual } from '../services/MusicService';
 
 /**
  * Calculates the duration of a note in quants.
@@ -362,40 +360,4 @@ export const navigateSelection = (measures: any[], selection: any, direction: st
  * @param {string} clef - Clef for pitch context
  * @returns {Object|null} Object containing new measures and the modified event, or null if no change
  */
-export const calculateTransposition = (measures: any[], selection: any, direction: string, isShift: boolean, clef: string = 'treble') => {
-    const { measureIndex, eventId, noteId } = selection;
-    if (measureIndex === null || !eventId) return null;
 
-    const newMeasures = [...measures];
-    const measure = { ...newMeasures[measureIndex] };
-    const events = [...measure.events];
-    const eventIdx = events.findIndex((e: any) => e.id === eventId);
-    
-    if (eventIdx === -1) return null;
-    
-    const event = { ...events[eventIdx] };
-    const notes = [...event.notes];
-    
-    const modifyNote = (note: any) => {
-        const newPitch = calculateNewPitch(note.pitch, direction, isShift, clef);
-        return { ...note, pitch: newPitch };
-    };
-
-    if (noteId) {
-        const noteIdx = notes.findIndex((n: any) => n.id === noteId);
-        if (noteIdx !== -1) {
-            notes[noteIdx] = modifyNote(notes[noteIdx]);
-        }
-    } else {
-        notes.forEach((n: any, i: number) => {
-            notes[i] = modifyNote(n);
-        });
-    }
-    
-    event.notes = notes;
-    events[eventIdx] = event;
-    measure.events = events;
-    newMeasures[measureIndex] = measure;
-    
-    return { measures: newMeasures, event };
-};

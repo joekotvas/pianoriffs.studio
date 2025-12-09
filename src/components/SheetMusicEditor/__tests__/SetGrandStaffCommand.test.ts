@@ -1,5 +1,5 @@
-import { SetGrandStaffCommand } from '../SetGrandStaffCommand';
-import { Score, Staff, Measure } from '../../types';
+import { SetGrandStaffCommand } from '../commands/SetGrandStaffCommand';
+import { Score, Staff, Measure } from '../types';
 
 describe('SetGrandStaffCommand', () => {
   const createMockScore = (clef: string = 'treble'): Score => {

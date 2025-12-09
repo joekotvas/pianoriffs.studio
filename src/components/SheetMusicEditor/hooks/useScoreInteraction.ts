@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { getPitchByOffset } from '../services/PitchService';
+import { movePitchVisual } from '../services/MusicService';
 import { CONFIG } from '../config';
 
 interface DragState {
@@ -62,7 +62,7 @@ export const useScoreInteraction = ({ scoreRef, onUpdatePitch, onSelectNote }: U
     useEffect(() => {
         if (!dragState.active) return;
     
-        const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
             if (!dragState.active) return;
     
             const deltaY = dragState.startY - e.clientY;
@@ -71,17 +71,16 @@ export const useScoreInteraction = ({ scoreRef, onUpdatePitch, onSelectNote }: U
             
             if (steps === 0) return;
     
-            // Determine clef based on staffIndex
-            // Assuming Score structure: score.staves[staffIndex].clef
-            // If scoreRef is generic, we might need safe access
+            // Get proper context from score
             const currentScore = scoreRef.current;
             const currentStaff = currentScore?.staves?.[dragState.staffIndex];
-            const clef = currentStaff?.clef || 'treble';
+            const keySignature = currentStaff?.keySignature || 'C';
     
-            const newPitch = getPitchByOffset(dragState.startPitch, steps, clef);
+            // Use MusicService for visual pitch movement (Key-Aware)
+            const newPitch = movePitchVisual(dragState.startPitch, steps, keySignature);
             
             if (newPitch !== dragState.currentPitch) {
-                // Update local state for smooth UI (if we were displaying a ghost element)
+                // Update local state for smooth UI
                 setDragState(prev => ({ ...prev, currentPitch: newPitch }));
                 
                 // Dispatch update to store
@@ -95,7 +94,7 @@ export const useScoreInteraction = ({ scoreRef, onUpdatePitch, onSelectNote }: U
             const dragDuration = Date.now() - mouseDownTime.current;
             
             if (dragDuration < CLICK_THRESHOLD) {
-                // It was a click, selection is already handled by dragStart or component onClick
+                // Click handled elsewhere
             }
             
             setDragState(prev => ({ ...prev, active: false }));
