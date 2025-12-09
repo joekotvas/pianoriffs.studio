@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { calculateHeaderLayout, getNoteWidth } from '../../engines/layout';
@@ -101,13 +101,33 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
 
   // Calculate synchronized measure layouts for Grand Staff
-  const { synchronizedLayoutData, unifiedCursorX, isGrandStaff, numStaves } = useGrandStaffLayout({
+  const { synchronizedLayoutData, unifiedCursorX, unifiedCursorWidth, isGrandStaff, numStaves } = useGrandStaffLayout({
       score,
       playbackPosition,
       activeStaff,
       keySignature,
       clef
   });
+
+  const cursorRef = useRef<SVGGElement>(null);
+
+  useEffect(() => {
+      if (cursorRef.current && unifiedCursorX !== null && unifiedCursorWidth !== undefined) {
+          // 1. Snap to Start (Instant)
+          cursorRef.current.style.transition = 'none';
+          cursorRef.current.style.transform = `translateX(${unifiedCursorX}px)`;
+          
+          // 2. Animate to End (Slide)
+          // Use requestAnimationFrame to ensure the 'none' transition applies first
+          if (playbackPosition.duration > 0) {
+              requestAnimationFrame(() => {
+                  if (!cursorRef.current) return;
+                  cursorRef.current.style.transition = `transform ${playbackPosition.duration}s linear`;
+                  cursorRef.current.style.transform = `translateX(${unifiedCursorX + unifiedCursorWidth}px)`;
+              });
+          }
+      }
+  }, [unifiedCursorX, unifiedCursorWidth, playbackPosition.duration]);
 
   const totalWidth = React.useMemo(() => {
     const { startOfMeasures } = calculateHeaderLayout(keySignature);
@@ -201,9 +221,9 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
           {isGrandStaff && unifiedCursorX !== null && (
             <g 
+              ref={cursorRef}
               style={{ 
                 transform: `translateX(${unifiedCursorX}px)`,
-                transition: `transform ${playbackPosition.duration || 0.1}s linear`,
                 pointerEvents: 'none'
               }}
             >
