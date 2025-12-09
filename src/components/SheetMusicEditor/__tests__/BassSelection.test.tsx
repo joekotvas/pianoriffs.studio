@@ -9,9 +9,11 @@ import { ScoreContext } from '../context/ScoreContext';
 
 // Mock dependencies
 jest.mock('../components/Canvas/Staff', () => {
-    const MockStaff = ({ measures, onSelectNote, staffIndex = 0 }: any) => {
+    const MockStaff = ({ measures, interaction, staffIndex = 0 }: any) => {
       // Mock STAFF behavior:
       // We render a clickable element to simulate clicking a note
+      // Staff now receives `interaction` prop containing onSelectNote
+      const onSelectNote = interaction?.onSelectNote;
       return (
         <div data-testid={`staff-${staffIndex}-container`}>
           {measures.map((m: any, i: number) => (
@@ -21,7 +23,7 @@ jest.mock('../components/Canvas/Staff', () => {
                 onClick={() => {
                     // Simulate selecting a note in this staff
                     // measureIndex=i, eventId=123, noteId=456
-                    onSelectNote(i, 123, 456); 
+                    onSelectNote?.(i, 123, 456); 
                 }}
              >
                 Click Note Staff {staffIndex}

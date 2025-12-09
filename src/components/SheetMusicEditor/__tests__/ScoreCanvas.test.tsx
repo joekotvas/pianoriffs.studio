@@ -7,14 +7,16 @@ import { ScoreContext } from '../context/ScoreContext';
 
 // Mock dependencies
 jest.mock('../components/Canvas/Staff', () => {
-  const MockStaff = ({ measures, onSelectNote, staffIndex = 0 }: any) => {
+  const MockStaff = ({ measures, interaction, staffIndex = 0 }: any) => {
+    // Staff now receives `interaction` prop containing onSelectNote
+    const onSelectNote = interaction?.onSelectNote;
     return (
       <g data-testid={`staff-${staffIndex}`}>
         {measures.map((m: any, i: number) => (
           <rect 
             key={m.id}
             data-testid={`measure-${i}-staff-${staffIndex}`}
-            onClick={() => onSelectNote(i, undefined, undefined)} // Simulate interaction with separate args
+            onClick={() => onSelectNote?.(i, undefined, undefined)} // Simulate interaction with separate args
           />
         ))}
       </g>
