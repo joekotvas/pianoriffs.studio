@@ -75,69 +75,126 @@ export const calculateBeamingGroups = (events: any[], eventPositions: Record<str
 
 /**
  * Calculates the geometry for a single beam group.
+ * Implements proper beam sloping based on pitch contour.
  */
 const processBeamGroup = (groupEvents: any[], eventPositions: Record<string, number>, clef: string): any => {
-    // 1. Determine direction (majority rule or furthest directly)
-    // 2. Calculate slope
-    
     const startEvent = groupEvents[0];
     const endEvent = groupEvents[groupEvents.length - 1];
     
-    const startX = eventPositions[startEvent.id] + 9; // Stem offset
-    const endX = eventPositions[endEvent.id] + 9;
+    const minStemLength = 35; // Standard minimum stem length in pixels
     
-    // Calculate average pitch/y
-    let sumY = 0;
-    let maxDist = -1;
-    let unifiedDirection = 'down'; // default
-    
-    groupEvents.forEach(e => {
-        // Find stem tip for this chord
-        // Simplified: use first note
-         const note = e.notes[0];
-         const y = CONFIG.baseY + getOffsetForPitch(note.pitch, clef);
-         const dist = Math.abs(y - MIDDLE_LINE_Y);
-         if (dist > maxDist) {
-             maxDist = dist;
-             unifiedDirection = y <= MIDDLE_LINE_Y ? 'down' : 'up';
-         }
+    // First pass: collect note data to determine direction
+    const noteData = groupEvents.map(e => {
+        const noteX = eventPositions[e.id];
+        const noteYs = e.notes.map((n: any) => CONFIG.baseY + getOffsetForPitch(n.pitch, clef));
+        return {
+            noteX,  // Store base noteX, we'll add stem offset after knowing direction
+            minY: Math.min(...noteYs),  // Highest note (lowest Y value)
+            maxY: Math.max(...noteYs),  // Lowest note (highest Y value)
+            avgY: noteYs.reduce((sum: number, y: number) => sum + y, 0) / noteYs.length
+        };
     });
-
-    // Determine stems lengths
-    // Stem length is usually 3.5 spaces (35px).
-    const stemLength = 35;
     
-    // Calculate Y positions for beam start/end
-    // Simple flat beam for now, or match start/end notes?
-    // Let's make it flat based on the note furthest from the beam?
-    // Or just use the start note?
+    // Determine stem direction based on average position relative to middle line
+    const avgY = noteData.reduce((sum: number, d) => sum + d.avgY, 0) / noteData.length;
+    const direction = avgY <= MIDDLE_LINE_Y ? 'down' : 'up';
     
-    // Ideally: Linear regression for slope, but let's stick to flat or simple slope.
+    // Calculate stem X offset based on direction (must match ChordGroup.tsx line 106)
+    // Up stems: right side of notehead (+6)
+    // Down stems: left side of notehead (-6)
+    const stemOffset = direction === 'up' ? 6 : -6;
     
-    const startNoteY = CONFIG.baseY + getOffsetForPitch(startEvent.notes[0].pitch, clef);
-    const endNoteY = CONFIG.baseY + getOffsetForPitch(endEvent.notes[0].pitch, clef);
+    // Apply stem offset to get actual stem X positions
+    // Extend beam by 1px on each side for better visual appearance
+    const startX = noteData[0].noteX + stemOffset - 1;
+    const endX = noteData[noteData.length - 1].noteX + stemOffset + 1;
     
-    // Direction: up (stems up, beam on top), down (stems down, beam on bottom)
-    const direction = unifiedDirection;
+    // Update noteData with stem X positions for clearance calculations
+    noteData.forEach(d => {
+        (d as any).eventX = d.noteX + stemOffset;
+    });
     
-    let startY, endY;
+    // Find the extreme notes (the ones that determine beam position)
+    let highestNoteY = Infinity;  // Lowest Y value (highest on staff)
+    let lowestNoteY = -Infinity;  // Highest Y value (lowest on staff)
+    
+    noteData.forEach(d => {
+        highestNoteY = Math.min(highestNoteY, d.minY);
+        lowestNoteY = Math.max(lowestNoteY, d.maxY);
+    });
+    
+    // Calculate beam endpoints based on direction
+    // For upward stems: beam connects above the highest (topmost) notes
+    // For downward stems: beam connects below the lowest (bottommost) notes
+    let startBeamY: number, endBeamY: number;
     
     if (direction === 'up') {
-        const beamY = Math.min(startNoteY, endNoteY) - stemLength; // Above highest note
-        startY = beamY;
-        endY = beamY;
+        // Beams above notes - use the highest note positions at start and end
+        const startNoteY = noteData[0].minY;
+        const endNoteY = noteData[noteData.length - 1].minY;
+        
+        startBeamY = startNoteY - minStemLength;
+        endBeamY = endNoteY - minStemLength;
     } else {
-        const beamY = Math.max(startNoteY, endNoteY) + stemLength; // Below lowest note
-        startY = beamY;
-        endY = beamY;
+        // Beams below notes - use the lowest note positions at start and end
+        const startNoteY = noteData[0].maxY;
+        const endNoteY = noteData[noteData.length - 1].maxY;
+        
+        startBeamY = startNoteY + minStemLength;
+        endBeamY = endNoteY + minStemLength;
+    }
+    
+    // Limit beam slope to maximum 45 degrees for readability
+    // A 45-degree angle has a slope of 1 (rise/run = 1)
+    const MAX_SLOPE = 1.0;
+    let rawSlope = (endBeamY - startBeamY) / (endX - startX);
+    
+    if (Math.abs(rawSlope) > MAX_SLOPE) {
+        // Clamp the slope and recalculate beam endpoints
+        const clampedSlope = Math.sign(rawSlope) * MAX_SLOPE;
+        const deltaX = endX - startX;
+        const deltaY = clampedSlope * deltaX;
+        
+        // Adjust endBeamY to match the clamped slope
+        endBeamY = startBeamY + deltaY;
+    }
+    
+    // Now verify that ALL notes in the group have adequate stem length
+    // Calculate beam line: y = mx + b
+    const slope = (endBeamY - startBeamY) / (endX - startX);
+    const intercept = startBeamY - slope * startX;
+    
+    // Find the maximum additional clearance needed
+    let maxAdditionalClearance = 0;
+    
+    noteData.forEach(d => {
+        const beamYAtPoint = slope * (d as any).eventX + intercept;
+        const anchorNoteY = direction === 'up' ? d.minY : d.maxY;
+        const currentStemLength = Math.abs(beamYAtPoint - anchorNoteY);
+        
+        if (currentStemLength < minStemLength) {
+            const needed = minStemLength - currentStemLength;
+            maxAdditionalClearance = Math.max(maxAdditionalClearance, needed);
+        }
+    });
+    
+    // Apply additional clearance if needed (shift beam away from notes)
+    if (maxAdditionalClearance > 0) {
+        if (direction === 'up') {
+            startBeamY -= maxAdditionalClearance;
+            endBeamY -= maxAdditionalClearance;
+        } else {
+            startBeamY += maxAdditionalClearance;
+            endBeamY += maxAdditionalClearance;
+        }
     }
 
     return {
         ids: groupEvents.map(e => e.id),
         startX,
         endX,
-        startY,
-        endY,
+        startY: startBeamY,
+        endY: endBeamY,
         direction,
         type: startEvent.duration
     };
