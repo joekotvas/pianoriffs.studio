@@ -182,6 +182,12 @@ export interface Selection {
       eventId: string | number;
       noteId: string | number;
   }>;
+  anchor?: {                       // The static "anchor" point for range selection
+      staffIndex: number;
+      measureIndex: number;
+      eventId: string | number;
+      noteId: string | number;
+  } | null;
 }
 
 /**
@@ -192,5 +198,6 @@ export const createDefaultSelection = (): Selection => ({
   measureIndex: null,
   eventId: null,
   noteId: null,
-  selectedNotes: []
+  selectedNotes: [],
+  anchor: null
 });

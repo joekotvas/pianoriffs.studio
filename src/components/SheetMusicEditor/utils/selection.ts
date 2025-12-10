@@ -1,5 +1,5 @@
 
-import { Selection, createDefaultSelection } from '../types';
+import { Selection, createDefaultSelection, Score, Staff, Measure } from '../types';
 
 /**
  * Robustly compares two IDs (string or number)
@@ -25,12 +25,10 @@ export const isNoteSelected = (selection: Selection, context: NoteContext): bool
     const { staffIndex, measureIndex, eventId, noteId } = context;
 
     // 1. Check Primary Selection (Cursor)
-    // If entire event is selected (no noteId in selection) -> All notes selected
-    // If specific note is selected -> Match noteId
     const isPrimaryEventMatch = 
         compareIds(selection.eventId, eventId) && 
         selection.measureIndex === measureIndex &&
-        (selection.staffIndex === undefined || selection.staffIndex === staffIndex); // Optional staff check for legacy?
+        (selection.staffIndex === undefined || selection.staffIndex === staffIndex);
 
     if (isPrimaryEventMatch) {
         if (!selection.noteId) return true; // Whole event selected
@@ -106,22 +104,18 @@ export const toggleNoteInSelection = (
             }
         }
         
-        // When toggling, we usually update the "primary" cursor to the clicked note
-        // even if we just untoggled it from the list? 
-        // Or should we leave the primary cursor alone if we untoggled?
-        // Standard convention: Clicked item gets focus.
-        
         return {
             staffIndex,
             measureIndex,
             eventId,
             noteId, // Set as primary cursor
-            selectedNotes: newSelectedNotes
+            selectedNotes: newSelectedNotes,
+            anchor: prevSelection.anchor // Preserve anchor if it exists
         };
 
     } else {
         // Single Selection Mode
-        // Clear list, set this as the only selected item
+        // Clear list, set this as the only selected item, clear anchor
         if (noteId) {
             newSelectedNotes = [{ staffIndex, measureIndex, eventId, noteId }];
         }
@@ -131,7 +125,65 @@ export const toggleNoteInSelection = (
             measureIndex,
             eventId,
             noteId,
-            selectedNotes: newSelectedNotes
+            selectedNotes: newSelectedNotes,
+            anchor: null // Clear anchor on single, non-shift selection
         };
     }
+};
+
+/**
+ * Flattens the score into a linear list of note contexts.
+ * Useful for range calculations.
+ */
+export const getLinearizedNotes = (score: Score): NoteContext[] => {
+    const notes: NoteContext[] = [];
+    
+    score.staves.forEach((staff, staffInd) => {
+        staff.measures.forEach((measure, measureInd) => {
+             measure.events.forEach(event => {
+                 if (event.notes && event.notes.length > 0) {
+                     event.notes.forEach(note => {
+                         notes.push({
+                             staffIndex: staffInd,
+                             measureIndex: measureInd,
+                             eventId: event.id,
+                             noteId: note.id
+                         });
+                     });
+                 }
+             });
+        });
+    });
+    
+    return notes;
+};
+
+/**
+ * Calculates the range of selected notes between the anchor and the focus note.
+ */
+export const calculateNoteRange = (
+    anchor: NoteContext, 
+    focus: NoteContext, 
+    linearNotes: NoteContext[]
+): NoteContext[] => {
+    const anchorIndex = linearNotes.findIndex(n => 
+        compareIds(n.noteId, anchor.noteId) && 
+        compareIds(n.eventId, anchor.eventId) &&
+        n.measureIndex === anchor.measureIndex &&
+        n.staffIndex === anchor.staffIndex
+    );
+
+    const focusIndex = linearNotes.findIndex(n => 
+        compareIds(n.noteId, focus.noteId) && 
+        compareIds(n.eventId, focus.eventId) &&
+        n.measureIndex === focus.measureIndex &&
+        n.staffIndex === focus.staffIndex
+    );
+    
+    if (anchorIndex === -1 || focusIndex === -1) return [];
+
+    const start = Math.min(anchorIndex, focusIndex);
+    const end = Math.max(anchorIndex, focusIndex);
+    
+    return linearNotes.slice(start, end + 1);
 };

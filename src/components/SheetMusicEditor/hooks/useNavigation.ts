@@ -1,6 +1,6 @@
 import { useCallback, RefObject } from 'react';
 import { calculateNextSelection, calculateTranspositionWithPreview } from '../utils/interaction';
-import { toggleNoteInSelection } from '../utils/selection';
+import { toggleNoteInSelection, getLinearizedNotes, calculateNoteRange } from '../utils/selection';
 import { playNote } from '../engines/toneEngine';
 import { Score, getActiveStaff, createDefaultSelection } from '../types';
 import { Command } from '../commands/types';
@@ -74,6 +74,7 @@ export const useNavigation = ({
   }, [setSelection, syncToolbarState, scoreRef]);
 
   const moveSelection = useCallback((direction: string, isShift: boolean = false) => {
+    // 1. Calculate the new "Focus" point
     const result = calculateNextSelection(
         getActiveStaff(scoreRef.current, selection.staffIndex || 0).measures,
         selection,
@@ -88,16 +89,56 @@ export const useNavigation = ({
 
     if (result) {
         if (result.selection) {
+            let newSelection = result.selection;
+
             if (isShift) {
-                // Add new target to selection (Shift-Select)
-                setSelection(prev => toggleNoteInSelection(prev, result.selection, true));
+                // ANCHOR LOGIC
+                // 1. Establish Anchor if not present (using previous selection as anchor)
+                const currentAnchor = selection.anchor || {
+                    staffIndex: selection.staffIndex,
+                    measureIndex: selection.measureIndex!,
+                    eventId: selection.eventId!,
+                    noteId: selection.noteId
+                };
+
+                // 2. Determine Focus (the NEW selection point)
+                const focus = {
+                    staffIndex: newSelection.staffIndex,
+                    measureIndex: newSelection.measureIndex!,
+                    eventId: newSelection.eventId!,
+                    noteId: newSelection.noteId
+                };
+
+                // 3. Calculate Range
+                // We need the WHOLE score to linearize it properly across measures
+                // Note: This could be optimized to not linearize on every keypress if performance is an issue,
+                // but for typical scores it's fine.
+                const linearNotes = getLinearizedNotes(scoreRef.current);
+                const range = calculateNoteRange(currentAnchor, focus, linearNotes);
+
+                // 4. Update Selection
+                // - Cursor stays at Focus (newSelection)
+                // - Anchor persists
+                // - selectedNotes = the calculated range
+                newSelection = {
+                    ...newSelection,
+                    anchor: currentAnchor,
+                    selectedNotes: range
+                };
             } else {
-                // Replace selection (Standard move)
-                setSelection(result.selection);
+                // STANDARD NAVIGATION
+                // Clear anchor and extended selection
+                newSelection = {
+                    ...newSelection,
+                    anchor: null,
+                    selectedNotes: []
+                };
             }
+
+            setSelection(newSelection);
             
-            // Sync toolbar with the new "cursor" (result.selection)
-            syncToolbarState(result.selection.measureIndex, result.selection.eventId, result.selection.noteId, result.selection.staffIndex || 0);
+            // Sync toolbar with the new "cursor"
+            syncToolbarState(newSelection.measureIndex, newSelection.eventId, newSelection.noteId, newSelection.staffIndex || 0);
         }
         
         if (result.previewNote !== undefined) {
