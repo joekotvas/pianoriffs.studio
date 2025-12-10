@@ -7,7 +7,7 @@ export const handleMutation = (
 ) => {
     const { 
         undo, redo, 
-        handleAccidentalToggle, handleTieToggle, 
+        handleAccidentalToggle, handleTieToggle, handleDotToggle,
         deleteSelected, 
         transposeSelection,
         addNoteToMeasure,
@@ -55,6 +55,13 @@ export const handleMutation = (
     if (e.key.toLowerCase() === 't') {
         e.preventDefault();
         handleTieToggle();
+        return true;
+    }
+
+    // DOT
+    if (e.key === '.') {
+        e.preventDefault();
+        handleDotToggle();
         return true;
     }
 
