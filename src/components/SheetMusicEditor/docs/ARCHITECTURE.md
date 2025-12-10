@@ -20,7 +20,7 @@ SheetMusicEditor/
 │
 ├── engines/                  # Core processing engines
 │   ├── ScoreEngine.ts        # Command dispatch and state management
-│   ├── audioEngine.ts        # Web Audio playback (to be replaced by Tone.js)
+│   ├── toneEngine.ts         # Tone.js audio playback
 │   ├── midiEngine.ts         # MIDI input handling
 │   └── layout/               # Layout calculation
 │       ├── index.ts          # Module exports (barrel file)

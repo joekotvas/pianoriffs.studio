@@ -6,7 +6,8 @@ import { getActiveStaff } from '../types';
 export interface TimelineEvent {
     time: number;       // Start time in seconds
     duration: number;   // Duration in seconds
-    frequency: number;  // Frequency in Hz
+    pitch: string;      // Pitch notation ("C4", "F#5") for Tone.js
+    frequency: number;  // Frequency in Hz (legacy/backup)
     type: 'note';       // (Future: 'rest')
     measureIndex: number;
     eventIndex: number; // Keep for legacy reference or fallback
@@ -145,6 +146,7 @@ export const createTimeline = (score: any, bpm: number): TimelineEvent[] => {
             timeline.push({
                 time: raw.time,
                 duration: raw.duration,
+                pitch: raw.pitch,
                 frequency: freq,
                 type: 'note',
                 measureIndex: raw.measureIndex,

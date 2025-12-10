@@ -31,7 +31,7 @@ import { LoadScoreCommand } from './commands/LoadScoreCommand';
 import Toolbar from './components/Toolbar/Toolbar';
 
 // Engines & Utils
-import { playTone } from './engines/audioEngine';
+import { playNote } from './engines/toneEngine';
 import { exportToXML } from './exporters/xmlExporter';
 import { exportToMIDI } from './exporters/midiExporter';
 import { exportToJSON } from './exporters/jsonExporter';

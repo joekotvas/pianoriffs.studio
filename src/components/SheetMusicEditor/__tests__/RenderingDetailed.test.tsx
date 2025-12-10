@@ -65,8 +65,8 @@ const createComplexScore = (): Score => {
 };
 
 // Mock the audio engine to avoid WebAudio errors
-jest.mock('../engines/audioEngine', () => ({
-    playTone: jest.fn(),
+jest.mock('../engines/toneEngine', () => ({
+    playNote: jest.fn(),
 }));
 
 describe('Comprehensive Rendering Test', () => {

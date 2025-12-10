@@ -1,53 +1,66 @@
-import { useState, useRef, useCallback } from 'react';
-import { initAudio, scheduleScorePlayback } from '../engines/audioEngine';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { initTone, scheduleTonePlayback, stopTonePlayback, getState, InstrumentState } from '../engines/toneEngine';
+import { createTimeline } from '../services/TimelineService';
 
 export const usePlayback = (score: any, bpm: number) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackPosition, setPlaybackPosition] = useState<{ measureIndex: number | null; quant: number | null; duration: number }>({ measureIndex: null, quant: null, duration: 0 });
   const [lastPlayStart, setLastPlayStart] = useState({ measureIndex: 0, quant: 0 });
+  const [instrumentState, setInstrumentState] = useState<InstrumentState>('initializing');
   
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const playbackRef = useRef<{ disconnect: () => void } | null>(null);
-  const playbackTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isInitialized = useRef(false);
 
-  const stopPlayback = useCallback(() => {
-    if (playbackRef.current && typeof playbackRef.current.disconnect === 'function') {
-      playbackRef.current.disconnect();
-      playbackRef.current = null;
-    }
-    if (playbackTimeout.current) {
-      clearTimeout(playbackTimeout.current);
-      playbackTimeout.current = null;
-    }
-    setIsPlaying(false);
+  // Initialize Tone.js on first user interaction
+  const ensureInit = useCallback(async () => {
+    if (isInitialized.current) return;
+    
+    await initTone((state) => {
+      setInstrumentState(state.instrumentState);
+    });
+    
+    isInitialized.current = true;
   }, []);
 
-  const playScore = useCallback((startMeasureIndex = 0, startQuant = 0) => {
-    const ctx = initAudio(audioCtxRef);
-    if (!ctx) return;
+  const stopPlayback = useCallback(() => {
+    stopTonePlayback();
+    setIsPlaying(false);
+    setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
+  }, []);
+
+  const playScore = useCallback(async (startMeasureIndex = 0, startQuant = 0) => {
+    await ensureInit();
     stopPlayback();
 
     setLastPlayStart({ measureIndex: startMeasureIndex, quant: startQuant });
-
     setIsPlaying(true);
     
-    const stopFn = scheduleScorePlayback(
-        ctx, 
-        score, 
-        bpm, 
-        startMeasureIndex, 
-        startQuant, 
-        () => {
-            setIsPlaying(false);
-            playbackRef.current = null;
-        },
-        (mIndex: number, quant: number, duration: number) => {
-            setPlaybackPosition({ measureIndex: mIndex, quant: quant, duration: duration || 0 });
-        }
+    // Generate timeline
+    const timeline = createTimeline(score, bpm);
+    
+    // Find start offset time
+    let startTimeOffset = 0;
+    const startEvent = timeline.find(e => 
+      e.measureIndex >= startMeasureIndex && 
+      (e.measureIndex > startMeasureIndex || e.quant >= startQuant)
     );
     
-    playbackRef.current = { disconnect: stopFn };
-  }, [score, bpm, stopPlayback]);
+    if (startEvent) {
+      startTimeOffset = startEvent.time;
+    }
+
+    scheduleTonePlayback(
+      timeline,
+      bpm,
+      startTimeOffset,
+      (measureIndex, quant, duration) => {
+        setPlaybackPosition({ measureIndex, quant, duration: duration || 0 });
+      },
+      () => {
+        setIsPlaying(false);
+        setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
+      }
+    );
+  }, [score, bpm, stopPlayback, ensureInit]);
 
   const handlePlayToggle = useCallback(() => {
     if (isPlaying) {
@@ -63,6 +76,7 @@ export const usePlayback = (score: any, bpm: number) => {
     playScore,
     stopPlayback,
     handlePlayToggle,
-    lastPlayStart
+    lastPlayStart,
+    instrumentState // Expose for UI (e.g., "Loading piano samples...")
   };
 };

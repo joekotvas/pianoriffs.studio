@@ -1,6 +1,6 @@
 import { useCallback, RefObject } from 'react';
 import { calculateNextSelection, calculateTranspositionWithPreview } from '../utils/interaction';
-import { playTone } from '../engines/audioEngine';
+import { playNote } from '../engines/toneEngine';
 import { Score, getActiveStaff } from '../types';
 import { Command } from '../commands/types';
 import { AddMeasureCommand } from '../commands/MeasureCommands';
@@ -60,9 +60,9 @@ export const useNavigation = ({
             const keySignature = getActiveStaff(scoreRef.current, staffIndex).keySignature || 'C';
             if (noteId) {
                 const note = event.notes.find((n: any) => n.id === noteId);
-                if (note) playTone(note.pitch, event.duration, event.dotted, note.accidental, keySignature);
+                if (note) playNote(note.pitch);
             } else {
-                event.notes.forEach((n: any) => playTone(n.pitch, event.duration, event.dotted, n.accidental, keySignature));
+                event.notes.forEach((n: any) => playNote(n.pitch));
             }
         }
     }
@@ -98,7 +98,7 @@ export const useNavigation = ({
         const audio = result.audio;
         if (audio) {
             const keySignature = getActiveStaff(scoreRef.current, selection.staffIndex || 0).keySignature || 'C';
-            audio.notes.forEach((n: any) => playTone(n.pitch, audio.duration, audio.dotted, n.accidental, keySignature));
+            audio.notes.forEach((n: any) => playNote(n.pitch));
         }
     }
   }, [selection, previewNote, activeDuration, isDotted, currentQuantsPerMeasure, scoreRef, dispatch, setSelection, setPreviewNote, syncToolbarState]);
@@ -130,7 +130,7 @@ export const useNavigation = ({
             
             if (result.audio) {
                 const keySig = activeStaff.keySignature || 'C';
-                result.audio.notes.forEach((n: any) => playTone(n.pitch, result.audio!.duration, result.audio!.dotted, n.accidental, keySig));
+                result.audio.notes.forEach((n: any) => playNote(n.pitch));
             }
         }
         return;
@@ -156,7 +156,7 @@ export const useNavigation = ({
         if (result && result.audio) {
             const audio = result.audio;
             const keySig = activeStaff.keySignature || 'C';
-            audio.notes.forEach((n: any) => playTone(n.pitch, audio.duration, audio.dotted, n.accidental, keySig));
+            audio.notes.forEach((n: any) => playNote(n.pitch));
         }
     }
   }, [selection, previewNote, scoreRef, dispatch, setPreviewNote]);

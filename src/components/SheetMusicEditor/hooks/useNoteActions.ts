@@ -1,6 +1,6 @@
 import { useCallback, RefObject } from 'react';
 import { canAddEventToMeasure } from '../utils/validation';
-import { playTone } from '../engines/audioEngine';
+import { playNote } from '../engines/toneEngine';
 import { Score, getActiveStaff } from '../types';
 import { Command } from '../commands/types';
 import { AddNoteCommand } from '../commands/NoteCommands';
@@ -182,7 +182,7 @@ export const useNoteActions = ({
         setPreviewNote(null);
     }
 
-    playTone(newNote.pitch, activeDuration, isDotted, activeAccidental, currentStaffData.keySignature || 'C');
+    playNote(newNote.pitch);
     
     if (shouldAutoAdvance && mode !== 'CHORD') {
         // Logic for advancing selection would go here or be handled by a separate effect/command

@@ -3,8 +3,8 @@ import { useScoreLogic } from '../hooks/useScoreLogic';
 import { createDefaultScore } from '../types';
 
 // Mock audio engine to prevent actual playback during tests
-jest.mock('../engines/audioEngine', () => ({
-  playTone: jest.fn(),
+jest.mock('../engines/toneEngine', () => ({
+  playNote: jest.fn(),
 }));
 
 describe('useScoreLogic Integration', () => {

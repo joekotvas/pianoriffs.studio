@@ -47,8 +47,8 @@ jest.mock('../hooks/useMIDI', () => ({
   })
 }));
 
-jest.mock('../engines/audioEngine', () => ({
-    playTone: jest.fn(),
+jest.mock('../engines/toneEngine', () => ({
+    playNote: jest.fn(),
 }));
 
 describe('ScoreEditor Smoke Test', () => {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { requestMIDIAccess, setupMIDIListeners, midiNoteToPitch } from '../engines/midiEngine';
-import { playTone } from '../engines/audioEngine';
+import { playNote } from '../engines/toneEngine';
 import { getActiveStaff } from '../types';
 
 export const useMIDI = (
@@ -50,7 +50,7 @@ export const useMIDI = (
               
               // Play tones
               const keySignature = scoreRef.current ? (getActiveStaff(scoreRef.current).keySignature || 'C') : 'C';
-              notes.forEach(n => playTone(n.pitch, activeDurationRef.current, isDottedRef.current, n.accidental as any, keySignature));
+              notes.forEach(n => playNote(n.pitch));
               
               // Add chord
               if (addChordRef.current && scoreRef.current) {

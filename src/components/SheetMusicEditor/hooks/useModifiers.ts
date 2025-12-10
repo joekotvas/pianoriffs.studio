@@ -1,7 +1,7 @@
 import { useCallback, RefObject } from 'react';
 import { canModifyEventDuration, canToggleEventDot } from '../utils/validation';
 import { getNoteDuration } from '../utils/core';
-import { playTone } from '../engines/audioEngine';
+import { playNote } from '../engines/toneEngine';
 import { Score, getActiveStaff } from '../types';
 import { Command } from '../commands/types';
 import { UpdateEventCommand } from '../commands/UpdateEventCommand';
@@ -116,7 +116,7 @@ export const useModifiers = ({
       
       // Play tone to preview change
       if (event) {
-        playTone(newPitch, event.duration, event.dotted, null, keySignature);
+        playNote(newPitch);
       }
     }
     
