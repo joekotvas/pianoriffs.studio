@@ -70,6 +70,9 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
     return () => clearInterval(interval);
   }, []);
   
+  // VexFlow experimental toggle
+  const [useVexFlow, setUseVexFlow] = useState(false);
+  
   // State for clef change confirmation dialog
 
   const scoreContainerRef = useRef<HTMLDivElement>(null);
@@ -221,6 +224,23 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
         samplerLoaded={samplerLoaded}
       />
 
+      {/* Experimental VexFlow toggle */}
+      <div className="flex items-center gap-2 mb-2">
+        <button 
+          onClick={() => setUseVexFlow(!useVexFlow)}
+          className={`px-3 py-1 text-xs rounded border transition-colors ${
+            useVexFlow 
+              ? 'bg-amber-600 border-amber-500 text-white' 
+              : 'bg-transparent border-gray-600 text-gray-400 hover:border-gray-500'
+          }`}
+        >
+          {useVexFlow ? '🎼 VexFlow ON' : '🎼 Try VexFlow'}
+        </button>
+        {useVexFlow && (
+          <span className="text-xs text-amber-400">Experimental - Editing disabled</span>
+        )}
+      </div>
+
       {showHelp && (
         <Portal>
           <ShortcutsOverlay onClose={() => setShowHelp(false)} />
@@ -270,6 +290,7 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
             onBackgroundClick={() => {
                  setSelection({ staffIndex: 0, measureIndex: null, eventId: null, noteId: null });
             }}
+            useVexFlow={useVexFlow}
         />
       </div>
 

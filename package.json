@@ -15,7 +15,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tonal": "^6.4.2",
-    "tone": "^15.1.22"
+    "tone": "^15.1.22",
+    "vexflow": "^5.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -3,7 +3,10 @@ import { NOTE_TYPES } from '../constants';
 import { getActiveStaff } from '../types';
 
 // ABC notation pitch mapping - Algorithmic
-const toAbcPitch = (pitch: string, clef: string = 'treble'): string => {
+const toAbcPitch = (pitch: string | null | undefined, clef: string = 'treble'): string => {
+  // Guard against null/undefined pitch
+  if (!pitch) return 'C'; // Fallback for missing pitch
+  
   // Extract letter and octave
   const match = pitch.match(/^([A-G])(#{1,2}|b{1,2})?(\d+)$/);
   if (!match) return 'C'; // Fallback

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { calculateHeaderLayout, getNoteWidth } from '../../engines/layout';
@@ -9,6 +9,7 @@ import { useScoreInteraction } from '../../hooks/useScoreInteraction';
 import { useAutoScroll } from '../../hooks/useAutoScroll';
 import { useGrandStaffLayout } from '../../hooks/useGrandStaffLayout';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
+import { renderWithVexFlow, testVexFlow } from '../../engines/vexflowEngine';
 
 interface ScoreCanvasProps {
   scale: number;
@@ -19,6 +20,7 @@ interface ScoreCanvasProps {
   containerRef: React.RefObject<HTMLDivElement>;
   onHoverChange: (isHovering: boolean) => void;
   onBackgroundClick?: () => void;
+  useVexFlow?: boolean; // Experimental: Use VexFlow renderer
 }
 
 /**
@@ -33,9 +35,14 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   onClefClick,
   containerRef,
   onHoverChange,
-  onBackgroundClick
+  onBackgroundClick,
+  useVexFlow = false
 }) => {
   const { theme } = useTheme();
+  
+  // VexFlow render container ref
+  const vexFlowRef = useRef<HTMLDivElement>(null);
+  const [debugHitZones, setDebugHitZones] = useState<any[]>([]);
   
   // Consume Score Context
   const {
@@ -142,12 +149,73 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
   const svgHeight = CONFIG.baseY + (numStaves - 1) * CONFIG.staffSpacing + CONFIG.lineHeight * 4 + 50;
 
+  // VexFlow rendering effect
+  useEffect(() => {
+    if (useVexFlow && vexFlowRef.current) {
+      try {
+        const result = renderWithVexFlow(vexFlowRef.current, score, { 
+          width: totalWidth, 
+          scale 
+        });
+        setDebugHitZones(result.notePositions);
+        console.log('🎼 VexFlow render complete', result);
+      } catch (e) {
+        console.error('VexFlow render error:', e);
+      }
+    }
+  }, [useVexFlow, score, totalWidth, scale]);
+
   const handleBackgroundClick = () => {
       onBackgroundClick?.();
       // Default: deselect
       setSelection({ staffIndex: 0, measureIndex: null, eventId: null, noteId: null });
       containerRef.current?.focus();
   };
+
+  // VexFlow experimental mode
+  if (useVexFlow) {
+    return (
+      <div 
+        ref={containerRef}
+        className="overflow-x-auto relative outline-none z-10 pl-12"
+        style={{ marginTop: '-30px', backgroundColor: theme.background }}
+        tabIndex={0}
+      >
+        <div 
+          className="p-2 mb-2 text-xs text-amber-400 bg-amber-950/50 rounded"
+        >
+          ⚠️ VexFlow Experimental Mode - Interactivity disabled
+        </div>
+        <div 
+          ref={vexFlowRef} 
+          style={{ minHeight: svgHeight * scale, position: 'relative' }}
+        />
+        
+        {/* Debug Hit Zones Overlay */}
+        {vexFlowRef.current && debugHitZones.map((zone, i) => (
+            <div
+                key={i}
+                style={{
+                    position: 'absolute',
+                    // Adjust X: getAbsoluteX is usually the left edge of the note column. 
+                    // Noteheads are often centered or slightly offset. 
+                    // Let's rely on width coverage.
+                    left: zone.x * scale, 
+                    // Adjust Y: zone.y is the center of the notehead. Center the box (height 10) around it.
+                    top: (zone.y - 5) * scale,
+                    width: zone.width * scale,
+                    height: 10 * scale, 
+                    border: '1px solid rgba(255, 0, 0, 0.5)',
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                    pointerEvents: 'none',
+                    zIndex: 20
+                }}
+                title={`Pitch: ${zone.pitch} X:${Math.round(zone.x)} Y:${Math.round(zone.y)}`}
+            />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div 

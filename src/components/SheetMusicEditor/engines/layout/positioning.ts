@@ -98,6 +98,21 @@ export const getOffsetForPitch = (pitch: string, clef: string = 'treble'): numbe
 };
 
 /**
+ * Calculates the pitch from a Y offset relative to CONFIG.baseY.
+ * Snaps the Y value to the nearest note position (6px grid).
+ * 
+ * @param y - Y offset in pixels
+ * @param clef - Clef context ('treble' or 'bass')
+ * @returns Pitch string (e.g., "C4") or null if out of range
+ */
+export const getPitchFromY = (y: number, clef: string = 'treble'): string | null => {
+  const mapping = getYToPitch(clef);
+  // Snap to grid (6px = half line height)
+  const snappedY = Math.round(y / 6) * 6;
+  return mapping[snappedY] || null;
+};
+
+/**
  * Gets the pitch for a Y offset in a given clef.
  */
 export const getPitchForOffset = (offset: number, clef: string = 'treble'): string | undefined => {

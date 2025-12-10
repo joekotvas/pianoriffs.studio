@@ -92,8 +92,10 @@ export const generateMusicXML = (score: any) => {
                     // NOTES / CHORDS
                     event.notes.forEach((note: any, nIndex: number) => {
                        const isChord = nIndex > 0;
-                       const step = note.pitch.charAt(0);
-                       const octave = note.pitch.slice(-1);
+                       // Guard against null pitch
+                       const pitch = note.pitch || 'C4';
+                       const step = pitch.charAt(0);
+                       const octave = pitch.slice(-1);
                        
                        let accidentalTag = '';
                        if (note.accidental) {
