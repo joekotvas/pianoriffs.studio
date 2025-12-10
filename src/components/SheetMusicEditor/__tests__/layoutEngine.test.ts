@@ -1,4 +1,4 @@
-import { calculateChordLayout, calculateMeasureLayout, calculateBeamingGroups, ScoreEvent } from '../engines/layout';
+import { calculateChordLayout, calculateMeasureLayout, calculateBeamingGroups, getPitchForOffset, getOffsetForPitch } from '../engines/layout';
 import { Note } from '../engines/layout/types'; // Note might be explicitly exported or not, check index
 import { CONFIG } from '../config';
 import { MIDDLE_LINE_Y } from '../constants';
@@ -222,3 +222,43 @@ describe('layoutEngine', () => {
         });
     });
 });
+
+    describe('Pitch Detection (getPitchForOffset)', () => {
+        test('should map exact Y offsets to correct pitch (Treble)', () => {
+            // Middle C (C4) on Treble Clef is one ledger line below staff.
+            // Check constants: C4 maps to offset 60.
+            const offsetC4 = 60;
+            const pitch = getPitchForOffset(offsetC4, 'treble');
+            expect(pitch).toBe('C4');
+
+            // F5 (Top line) -> Offset 0
+            const offsetF5 = 0;
+            const pitchF5 = getPitchForOffset(offsetF5, 'treble');
+            expect(pitchF5).toBe('F5');
+        });
+
+        test('should map exact Y offsets to correct pitch (Bass)', () => {
+            // C3 (Middle C relative to Bass) is above staff.
+            // Check constants: C3 maps to offset 30.
+            const offsetC3 = 30;
+            const pitchC3 = getPitchForOffset(offsetC3, 'bass');
+            expect(pitchC3).toBe('C3');
+
+            // A3 (Top line) -> Offset 0
+            const offsetA3 = 0;
+            const pitchA3 = getPitchForOffset(offsetA3, 'bass');
+            expect(pitchA3).toBe('A3');
+        });
+
+        test('should return undefined for invalid offsets', () => {
+            const pitch = getPitchForOffset(9999, 'treble');
+            expect(pitch).toBeUndefined();
+        });
+        
+        test('should support round-trip conversion', () => {
+             const startPitch = 'G4';
+             const offset = getOffsetForPitch(startPitch, 'treble');
+             const endPitch = getPitchForOffset(offset, 'treble');
+             expect(endPitch).toBe(startPitch);
+        });
+    });

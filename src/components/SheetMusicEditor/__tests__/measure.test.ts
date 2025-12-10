@@ -7,7 +7,7 @@ import { calculateSystemLayout } from '../engines/layout/system';
 import { calculateChordLayout, calculateBeamingGroups } from '../engines/layout';
 import { Note, ScoreEvent } from '../engines/layout/types';
 import { CONFIG } from '../config';
-import { NOTE_SPACING_BASE_UNIT } from '../constants';
+import { NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH } from '../constants';
 
 // --- TEST HELPERS ---
 
@@ -63,6 +63,14 @@ describe('measure.ts', () => {
                 
                 expect(layout.hitZones).toHaveLength(1);
                 expect(layout.hitZones[0].type).toBe('APPEND');
+            });
+
+            test('should apply centering to whole rest placeholder', () => {
+                const layout = calculateMeasureLayout([]);
+                const rest = layout.processedEvents[0];
+                const expectedX = layout.totalWidth / 2 - WHOLE_REST_WIDTH / 2;
+                
+                expect(rest.x).toBeCloseTo(expectedX, 1);
             });
         });
 
@@ -298,6 +306,17 @@ describe('measure.ts', () => {
                 for (let i = 0; i < layout.hitZones.length - 1; i++) {
                     expect(layout.hitZones[i].endX).toBeLessThanOrEqual(layout.hitZones[i + 1].startX + 1);
                 }
+            });
+
+            test('should use startX and endX properties (Regression Test)', () => {
+                const events = [createEvent('e1', 'quarter', [createNote('n1', 'C4')])];
+                const layout = calculateMeasureLayout(events);
+                
+                const zone = layout.hitZones[0];
+                expect(zone.startX).toBeDefined();
+                expect(zone.endX).toBeDefined();
+                // Ensure legacy properties are NOT present (optional, but good for strictness if types allow)
+                // TypeScript types define the shape, so runtime check confirms values exist.
             });
 
             test('should have APPEND zone as last zone', () => {
