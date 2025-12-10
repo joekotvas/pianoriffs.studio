@@ -214,7 +214,7 @@ const ChordGroup = ({
         const accidentalSymbol = getAccidentalSymbol(note, keySignature);
         const isHovered = !isGhost && !isDragging && hoveredNoteId === note.id;
         const noteSelected = isNoteSelected(selection, { 
-            staffIndex: selection.staffIndex, // ChordGroup doesn't know its own staffIndex? It receives 'layout' and 'interaction'.
+            staffIndex, // Use the actual staffIndex from layout, not selection.staffIndex
             measureIndex,
             eventId,
             noteId: note.id

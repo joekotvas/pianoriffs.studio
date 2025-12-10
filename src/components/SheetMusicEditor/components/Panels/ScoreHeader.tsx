@@ -61,7 +61,7 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
       {/* Key Signature */}
       <g
         onClick={onKeySigClick}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
         data-testid={`keysig-${keySignature}`}
       >
          <rect x={keySigStartX} y={baseY - 20} width={Math.max(20, keySigVisualWidth)} height="80" fill="transparent" />
@@ -91,7 +91,7 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
       {/* Time Signature */}
       <g 
         onClick={onTimeSigClick}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
       >
          <rect x={timeSigStartX} y={baseY} width={TIME_SIG_WIDTH} height="48" fill="transparent" />
          <text x={timeSigStartX + 15} y={baseY + (CONFIG.lineHeight * 2) - 1} fontSize="28" fontWeight="bold" fontFamily="serif" textAnchor="middle" fill={theme.text}>{timeSignature.split('/')[0]}</text>

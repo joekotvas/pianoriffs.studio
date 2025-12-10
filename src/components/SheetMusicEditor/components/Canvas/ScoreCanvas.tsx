@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
-import { calculateHeaderLayout, getNoteWidth } from '../../engines/layout';
+import { calculateHeaderLayout, getNoteWidth, getOffsetForPitch } from '../../engines/layout';
 import Staff, { calculateStaffWidth } from './Staff';
 import { getActiveStaff, createDefaultSelection } from '../../types';
 import { useScoreContext } from '../../context/ScoreContext';
 import { useScoreInteraction } from '../../hooks/useScoreInteraction';
 import { useAutoScroll } from '../../hooks/useAutoScroll';
 import { useGrandStaffLayout } from '../../hooks/useGrandStaffLayout';
+import { useDragToSelect } from '../../hooks/useDragToSelect';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
+import { LAYOUT } from '../../constants';
 
 interface ScoreCanvasProps {
   scale: number;
@@ -144,7 +146,110 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
   const svgHeight = CONFIG.baseY + (numStaves - 1) * CONFIG.staffSpacing + CONFIG.lineHeight * 4 + 50;
 
-  const handleBackgroundClick = () => {
+  // --- DRAG TO SELECT ---
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // Calculate note positions for hit detection
+  const notePositions = useMemo(() => {
+    const positions: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      staffIndex: number;
+      measureIndex: number;
+      eventId: string | number;
+      noteId: string | number;
+    }> = [];
+    
+    const { startOfMeasures } = calculateHeaderLayout(keySignature);
+    
+    score.staves.forEach((staff: any, staffIdx: number) => {
+      const staffBaseY = CONFIG.baseY + staffIdx * CONFIG.staffSpacing;
+      const staffClef = staff.clef || (staffIdx === 0 ? 'treble' : 'bass');
+      let measureX = startOfMeasures;
+      
+      staff.measures.forEach((measure: any, measureIdx: number) => {
+        // Get forced positions from synchronized layout if available
+        const forcedPositions = synchronizedLayoutData?.[measureIdx]?.forcedPositions;
+        
+        // Calculate actual layout to get event positions
+        const { calculateMeasureLayout } = require('../../engines/layout');
+        const layout = calculateMeasureLayout(measure.events, undefined, staffClef, false, forcedPositions);
+        
+        measure.events.forEach((event: any) => {
+          const eventX = measureX + (layout.eventPositions?.[event.id] || 0);
+          
+          event.notes?.forEach((note: any) => {
+            const noteY = staffBaseY + getOffsetForPitch(note.pitch, staffClef);
+            
+            positions.push({
+              x: eventX - LAYOUT.NOTE_RX, // Center of ellipse minus radius
+              y: noteY - LAYOUT.NOTE_RY,
+              width: LAYOUT.NOTE_RX * 2,
+              height: LAYOUT.NOTE_RY * 2,
+              staffIndex: staffIdx,
+              measureIndex: measureIdx,
+              eventId: event.id,
+              noteId: note.id
+            });
+          });
+        });
+        
+        measureX += layout.totalWidth || synchronizedLayoutData?.[measureIdx]?.width || 0;
+      });
+    });
+    
+    return positions;
+  }, [score.staves, synchronizedLayoutData, keySignature]);
+
+  // Drag to select hook
+  const { isDragging, justFinishedDrag, selectionRect, handleMouseDown: handleDragSelectMouseDown } = useDragToSelect({
+    svgRef,
+    notePositions,
+    onSelectionComplete: (notes, isAdditive) => {
+      if (notes.length === 0) return;
+      
+      if (isAdditive) {
+        // Add to existing selection
+        setSelection(prev => ({
+          ...prev,
+          selectedNotes: [
+            ...prev.selectedNotes,
+            ...notes.filter(n => !prev.selectedNotes.some(
+              sn => sn.noteId === n.noteId && sn.eventId === n.eventId
+            ))
+          ],
+          // Update focus to first new note
+          measureIndex: notes[0].measureIndex,
+          eventId: notes[0].eventId,
+          noteId: notes[0].noteId,
+          staffIndex: notes[0].staffIndex
+        }));
+      } else {
+        // Replace selection
+        setSelection({
+          staffIndex: notes[0].staffIndex,
+          measureIndex: notes[0].measureIndex,
+          eventId: notes[0].eventId,
+          noteId: notes[0].noteId,
+          selectedNotes: notes,
+          anchor: { 
+            staffIndex: notes[0].staffIndex, 
+            measureIndex: notes[0].measureIndex, 
+            eventId: notes[0].eventId, 
+            noteId: notes[0].noteId 
+          }
+        });
+      }
+    },
+    scale
+  });
+
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+      // Don't deselect if we were dragging or just finished dragging
+      if (isDragging || justFinishedDrag) return;
+      
       onBackgroundClick?.();
       // Default: deselect
       setSelection(createDefaultSelection());
@@ -162,7 +267,13 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
       onMouseEnter={() => onHoverChange(true)}
       onMouseLeave={() => onHoverChange(false)}
     >
-      <svg width={totalWidth * scale} height={svgHeight * scale} className="ml-0 overflow-visible">
+      <svg 
+        ref={svgRef}
+        width={totalWidth * scale} 
+        height={svgHeight * scale} 
+        className="ml-0 overflow-visible"
+        onMouseDown={handleDragSelectMouseDown}
+      >
         <g transform={`scale(${scale})`}>
           
           {score.staves?.length > 1 && (
@@ -180,18 +291,10 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
           {score.staves?.map((staff: any, staffIndex: number) => {
             const staffBaseY = CONFIG.baseY + staffIndex * CONFIG.staffSpacing;
-            const isSelectedStaff = staffIndex === (selection.staffIndex || 0);
             
-            // Construct Interaction State
+            // Construct Interaction State - pass full selection to all staves for cross-staff selection support
             const interaction = {
-                selection: isSelectedStaff ? selection : { 
-                    staffIndex, 
-                    measureIndex: null, 
-                    eventId: null, 
-                    noteId: null,
-                    selectedNotes: [], // Fix missing property
-                    anchor: null      // Fix missing property
-                },
+                selection, // Always pass the real selection - isNoteSelected checks staffIndex per-note
                 previewNote, // Global preview note (Staff filters it)
                 activeDuration,
                 isDotted,
@@ -257,6 +360,20 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
             </g>
           )}
 
+
+          {/* Drag-to-Select Rectangle */}
+          {isDragging && selectionRect && (
+            <rect
+              x={selectionRect.x}
+              y={selectionRect.y}
+              width={selectionRect.width}
+              height={selectionRect.height}
+              fill="rgba(59, 130, 246, 0.2)"
+              stroke="rgba(59, 130, 246, 0.8)"
+              strokeWidth="1"
+              style={{ pointerEvents: 'none' }}
+            />
+          )}
 
         </g>
       </svg>
