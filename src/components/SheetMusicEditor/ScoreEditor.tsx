@@ -31,7 +31,7 @@ import { LoadScoreCommand } from './commands/LoadScoreCommand';
 import Toolbar from './components/Toolbar/Toolbar';
 
 // Engines & Utils
-import { playNote } from './engines/toneEngine';
+import { playNote, InstrumentType, setInstrument, isSamplerLoaded } from './engines/toneEngine';
 import { exportToXML } from './exporters/xmlExporter';
 import { exportToMIDI } from './exporters/midiExporter';
 import { exportToJSON } from './exporters/jsonExporter';
@@ -57,6 +57,18 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [isHoveringScore, setIsHoveringScore] = useState(false);
+  
+  // Instrument selection state
+  const [selectedInstrument, setSelectedInstrument] = useState<InstrumentType>('bright');
+  const [samplerLoaded, setSamplerLoaded] = useState(false);
+  
+  // Check sampler status periodically
+  React.useEffect(() => {
+    const checkSampler = () => setSamplerLoaded(isSamplerLoaded());
+    checkSampler();
+    const interval = setInterval(checkSampler, 500);
+    return () => clearInterval(interval);
+  }, []);
   
   // State for clef change confirmation dialog
 
@@ -201,6 +213,12 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
         onToggleHelp={() => setShowHelp(true)}
         midiStatus={midiStatus}
         melodies={MELODIES}
+        selectedInstrument={selectedInstrument}
+        onInstrumentChange={(instrument) => {
+          setSelectedInstrument(instrument);
+          setInstrument(instrument);
+        }}
+        samplerLoaded={samplerLoaded}
       />
 
       {showHelp && (

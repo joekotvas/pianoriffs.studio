@@ -1,9 +1,8 @@
 /**
  * Tone.js Audio Engine
  * 
- * Replaces audioEngine.ts with Tone.js for superior timing, sound quality,
- * and simpler code. Features progressive loading: synth plays immediately,
- * piano samples load in background and take over when ready.
+ * Provides multiple instrument options with progressive loading.
+ * Users can choose between synth types and piano samples.
  */
 
 import * as Tone from 'tone';
@@ -11,23 +10,80 @@ import { TimelineEvent } from '../services/TimelineService';
 
 // --- TYPES ---
 
-export type InstrumentState = 'initializing' | 'synth' | 'loading-samples' | 'sampler';
+export type InstrumentType = 'bright' | 'mellow' | 'organ' | 'piano';
+
+export type InstrumentState = 'initializing' | 'ready' | 'loading-samples';
 
 interface ToneEngineState {
     instrumentState: InstrumentState;
+    selectedInstrument: InstrumentType;
+    samplerLoaded: boolean;
     isPlaying: boolean;
-    samplerLoadProgress: number; // 0-100
 }
+
+// --- SYNTH PRESETS ---
+
+const SYNTH_PRESETS = {
+    bright: {
+        name: 'Bright Synth',
+        create: () => new Tone.PolySynth(Tone.FMSynth, {
+            harmonicity: 3,
+            modulationIndex: 10,
+            oscillator: { type: 'sine' as const },
+            envelope: {
+                attack: 0.01,
+                decay: 0.4,
+                sustain: 0.2,
+                release: 1.5
+            },
+            modulation: { type: 'triangle' as const },
+            modulationEnvelope: {
+                attack: 0.01,
+                decay: 0.3,
+                sustain: 0.1,
+                release: 0.5
+            }
+        }),
+        volume: -10
+    },
+    mellow: {
+        name: 'Mellow Synth',
+        create: () => new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'sine' as const },
+            envelope: {
+                attack: 0.05,    // Slower attack for warmth
+                decay: 0.6,
+                sustain: 0.3,
+                release: 2.0     // Long, smooth release
+            }
+        }),
+        volume: -8
+    },
+    organ: {
+        name: 'Organ Synth',
+        create: () => new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'triangle' as const },  // Original audioEngine sound
+            envelope: {
+                attack: 0.02,
+                decay: 0.3,
+                sustain: 0.4,
+                release: 0.8
+            }
+        }),
+        volume: -6
+    }
+};
 
 // --- STATE ---
 
-let synth: Tone.PolySynth | null = null;
+let synths: Record<string, Tone.PolySynth> = {};
 let sampler: Tone.Sampler | null = null;
 let currentPart: Tone.Part | null = null;
 let state: ToneEngineState = {
     instrumentState: 'initializing',
-    isPlaying: false,
-    samplerLoadProgress: 0
+    selectedInstrument: 'bright',
+    samplerLoaded: false,
+    isPlaying: false
 };
 
 // Callbacks for state changes
@@ -35,10 +91,6 @@ let onStateChange: ((state: ToneEngineState) => void) | null = null;
 
 // --- HELPERS ---
 
-/**
- * Converts frequency to note name (e.g., 440 -> "A4").
- * Used when TimelineEvent has frequency but we need pitch for Tone.js.
- */
 const freqToNote = (frequency: number): string => {
     return Tone.Frequency(frequency).toNote();
 };
@@ -53,8 +105,6 @@ const updateState = (partial: Partial<ToneEngineState>) => {
 /**
  * Initializes Tone.js audio context and instruments.
  * Must be called from a user gesture (click/tap) due to browser autoplay policy.
- * 
- * @param onState - Optional callback for state changes (loading progress, etc.)
  */
 export const initTone = async (onState?: (state: ToneEngineState) => void): Promise<void> => {
     if (onState) onStateChange = onState;
@@ -62,134 +112,104 @@ export const initTone = async (onState?: (state: ToneEngineState) => void): Prom
     // Start audio context (requires user gesture)
     await Tone.start();
     
-    // Initialize synth immediately (no loading) - piano-like fallback
-    // Best practices for avoiding artifacts:
-    // 1. Non-zero attack prevents clicks
-    // 2. Smooth release prevents pops
-    // 3. FMSynth provides richer harmonics than basic sine
-    // 4. Volume limiting prevents clipping
-    if (!synth) {
-        synth = new Tone.PolySynth(Tone.FMSynth, {
-            harmonicity: 3,           // Ratio of modulator to carrier frequency
-            modulationIndex: 10,      // Depth of FM modulation
-            oscillator: {
-                type: 'sine'          // Clean carrier wave
-            },
-            envelope: {
-                attack: 0.01,         // Fast but not instant (prevents clicks)
-                decay: 0.4,           // Piano-like decay
-                sustain: 0.2,         // Low sustain for percussive feel
-                release: 1.5          // Long release for natural fade
-            },
-            modulation: {
-                type: 'triangle'      // Smooth modulator wave
-            },
-            modulationEnvelope: {
-                attack: 0.01,
-                decay: 0.3,
-                sustain: 0.1,
-                release: 0.5
-            }
-        }).toDestination();
-        
-        // Volume limiting to prevent clipping on chords
-        synth.volume.value = -10;
-        
-        // 24 voice polyphony as required
-        synth.maxPolyphony = 24;
-        
-        updateState({ instrumentState: 'synth' });
+    // Initialize all synth presets
+    for (const [key, preset] of Object.entries(SYNTH_PRESETS)) {
+        if (!synths[key]) {
+            const synth = preset.create().toDestination();
+            synth.volume.value = preset.volume;
+            synth.maxPolyphony = 24;
+            synths[key] = synth;
+        }
     }
+    
+    updateState({ instrumentState: 'ready' });
     
     // Begin loading piano samples in background
     loadPianoSampler();
 };
 
 /**
- * Loads piano samples in background. When complete, playback will use sampler.
+ * Loads piano samples in background.
  */
 const loadPianoSampler = () => {
-    if (sampler) {
-        console.log('🎹 Sampler already exists, skipping load');
-        return; // Already loaded or loading
-    }
+    if (sampler) return;
     
     console.log('🎹 Starting piano sample load...');
-    updateState({ instrumentState: 'loading-samples', samplerLoadProgress: 0 });
+    updateState({ instrumentState: 'loading-samples' });
     
-    // Using self-hosted Salamander Grand Piano samples
-    // Downloaded from tonejs.github.io/audio/salamander/
     const baseUrl = '/audio/piano/';
     
     sampler = new Tone.Sampler({
         urls: {
-            A0: 'A0.mp3',
-            C1: 'C1.mp3',
-            'D#1': 'Ds1.mp3',
-            'F#1': 'Fs1.mp3',
-            A1: 'A1.mp3',
-            C2: 'C2.mp3',
-            'D#2': 'Ds2.mp3',
-            'F#2': 'Fs2.mp3',
-            A2: 'A2.mp3',
-            C3: 'C3.mp3',
-            'D#3': 'Ds3.mp3',
-            'F#3': 'Fs3.mp3',
-            A3: 'A3.mp3',
-            C4: 'C4.mp3',
-            'D#4': 'Ds4.mp3',
-            'F#4': 'Fs4.mp3',
-            A4: 'A4.mp3',
-            C5: 'C5.mp3',
-            'D#5': 'Ds5.mp3',
-            'F#5': 'Fs5.mp3',
-            A5: 'A5.mp3',
-            C6: 'C6.mp3',
-            'D#6': 'Ds6.mp3',
-            'F#6': 'Fs6.mp3',
-            A6: 'A6.mp3',
-            C7: 'C7.mp3',
-            'D#7': 'Ds7.mp3',
-            'F#7': 'Fs7.mp3',
-            A7: 'A7.mp3',
-            C8: 'C8.mp3'
+            A0: 'A0.mp3', C1: 'C1.mp3', 'D#1': 'Ds1.mp3', 'F#1': 'Fs1.mp3',
+            A1: 'A1.mp3', C2: 'C2.mp3', 'D#2': 'Ds2.mp3', 'F#2': 'Fs2.mp3',
+            A2: 'A2.mp3', C3: 'C3.mp3', 'D#3': 'Ds3.mp3', 'F#3': 'Fs3.mp3',
+            A3: 'A3.mp3', C4: 'C4.mp3', 'D#4': 'Ds4.mp3', 'F#4': 'Fs4.mp3',
+            A4: 'A4.mp3', C5: 'C5.mp3', 'D#5': 'Ds5.mp3', 'F#5': 'Fs5.mp3',
+            A5: 'A5.mp3', C6: 'C6.mp3', 'D#6': 'Ds6.mp3', 'F#6': 'Fs6.mp3',
+            A6: 'A6.mp3', C7: 'C7.mp3', 'D#7': 'Ds7.mp3', 'F#7': 'Fs7.mp3',
+            A7: 'A7.mp3', C8: 'C8.mp3'
         },
         baseUrl,
         onload: () => {
-            updateState({ instrumentState: 'sampler', samplerLoadProgress: 100 });
             console.log('🎹 Piano samples loaded');
+            updateState({ samplerLoaded: true, instrumentState: 'ready' });
         },
         onerror: (error) => {
-            console.warn('Failed to load piano samples, continuing with synth:', error);
-            // Stay on synth, don't break playback
-            updateState({ instrumentState: 'synth', samplerLoadProgress: 0 });
+            console.warn('Failed to load piano samples:', error);
+            updateState({ instrumentState: 'ready' });
         }
     }).toDestination();
+};
+
+// --- INSTRUMENT SELECTION ---
+
+/**
+ * Changes the active instrument.
+ */
+export const setInstrument = (type: InstrumentType): void => {
+    updateState({ selectedInstrument: type });
+};
+
+/**
+ * Gets the currently active instrument for playback.
+ */
+const getActiveInstrument = (): Tone.PolySynth | Tone.Sampler | null => {
+    const selected = state.selectedInstrument;
+    
+    // Piano samples - use if loaded, else fallback to bright synth
+    if (selected === 'piano') {
+        if (sampler && state.samplerLoaded) {
+            return sampler;
+        }
+        // Fallback while loading
+        return synths['bright'] || null;
+    }
+    
+    // Synth presets
+    return synths[selected] || synths['bright'] || null;
+};
+
+/**
+ * Gets available instruments for UI dropdown.
+ */
+export const getInstrumentOptions = (): { id: InstrumentType; name: string; loading?: boolean }[] => {
+    return [
+        { id: 'bright', name: 'Bright Synth' },
+        { id: 'mellow', name: 'Mellow Synth' },
+        { id: 'organ', name: 'Organ Synth' },
+        { 
+            id: 'piano', 
+            name: state.samplerLoaded ? 'Piano Samples' : 'Piano (Loading...)',
+            loading: !state.samplerLoaded
+        }
+    ];
 };
 
 // --- PLAYBACK ---
 
 /**
- * Gets the currently active instrument (sampler if loaded, else synth).
- */
-const getActiveInstrument = (): Tone.PolySynth | Tone.Sampler | null => {
-    // Check if sampler is fully loaded (not just created)
-    if (sampler && (sampler as any).loaded) {
-        console.log('🎹 Using sampler (loaded:', (sampler as any).loaded, ')');
-        return sampler;
-    }
-    console.log('🎵 Using synth (sampler loaded:', sampler ? (sampler as any).loaded : 'n/a', ')');
-    return synth;
-};
-
-/**
  * Schedules the score for playback using Tone.js Transport and Part.
- * 
- * @param timeline - Array of TimelineEvents from TimelineService
- * @param bpm - Beats per minute
- * @param startTimeOffset - Time offset to start from (for resume)
- * @param onPositionUpdate - Callback for cursor sync (measureIndex, quant, duration)
- * @param onComplete - Callback when playback finishes
  */
 export const scheduleTonePlayback = (
     timeline: TimelineEvent[],
@@ -204,40 +224,30 @@ export const scheduleTonePlayback = (
         return;
     }
     
-    // Stop any existing playback
     stopTonePlayback();
-    
-    // Set tempo
     Tone.Transport.bpm.value = bpm;
     
-    // Filter timeline for start offset
     const filteredTimeline = timeline.filter(e => e.time >= startTimeOffset);
     if (filteredTimeline.length === 0) {
         onComplete?.();
         return;
     }
     
-    // Adjust times relative to start offset
     const adjustedTimeline = filteredTimeline.map(e => ({
         ...e,
         time: e.time - startTimeOffset
     }));
     
-    // Convert to Tone.Part format
     const events = adjustedTimeline.map(e => ({
         time: e.time,
-        note: e.pitch || freqToNote(e.frequency), // Use pitch if available, else convert
+        note: e.pitch || freqToNote(e.frequency),
         duration: e.duration,
         measureIndex: e.measureIndex,
         quant: e.quant
     }));
     
-    // Create Part for scheduling
     currentPart = new Tone.Part((time, event) => {
-        // Play the note
         instrument.triggerAttackRelease(event.note, event.duration, time);
-        
-        // Schedule UI update using Tone.Draw for sample-accurate sync
         Tone.Draw.schedule(() => {
             onPositionUpdate?.(event.measureIndex, event.quant, event.duration);
         }, time);
@@ -245,16 +255,14 @@ export const scheduleTonePlayback = (
     
     currentPart.start(0);
     
-    // Schedule completion callback
     const lastEvent = events[events.length - 1];
-    const endTime = lastEvent.time + lastEvent.duration + 0.1; // Small buffer
+    const endTime = lastEvent.time + lastEvent.duration + 0.1;
     
     Tone.Transport.scheduleOnce(() => {
         updateState({ isPlaying: false });
         onComplete?.();
     }, endTime);
     
-    // Start transport
     Tone.Transport.start();
     updateState({ isPlaying: true });
 };
@@ -264,7 +272,7 @@ export const scheduleTonePlayback = (
  */
 export const stopTonePlayback = (): void => {
     Tone.Transport.stop();
-    Tone.Transport.cancel(); // Clear all scheduled events
+    Tone.Transport.cancel();
     
     if (currentPart) {
         currentPart.dispose();
@@ -275,7 +283,7 @@ export const stopTonePlayback = (): void => {
 };
 
 /**
- * Sets the tempo (BPM) - can be called during playback for live adjustment.
+ * Sets the tempo (BPM) - can be called during playback.
  */
 export const setTempo = (bpm: number): void => {
     Tone.Transport.bpm.value = bpm;
@@ -283,16 +291,13 @@ export const setTempo = (bpm: number): void => {
 
 /**
  * Plays a single note (for preview/click feedback).
- * Will initialize Tone.js if not already initialized.
  */
 export const playNote = async (pitch: string, duration: string = '8n'): Promise<void> => {
-    // Ensure Tone.js is started (safe to call multiple times)
     if (state.instrumentState === 'initializing') {
         await initTone();
     }
     
     const instrument = getActiveInstrument();
-    console.log('🎵 playNote:', pitch, 'using:', state.instrumentState, 'instrument:', instrument ? 'yes' : 'no');
     if (instrument) {
         instrument.triggerAttackRelease(pitch, duration);
     }
@@ -301,5 +306,7 @@ export const playNote = async (pitch: string, duration: string = '8n'): Promise<
 // --- STATE GETTERS ---
 
 export const getInstrumentState = (): InstrumentState => state.instrumentState;
+export const getSelectedInstrument = (): InstrumentType => state.selectedInstrument;
+export const isSamplerLoaded = (): boolean => state.samplerLoaded;
 export const isPlaying = (): boolean => state.isPlaying;
 export const getState = (): ToneEngineState => ({ ...state });

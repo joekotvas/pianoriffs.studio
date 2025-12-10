@@ -15,6 +15,7 @@ import { BookOpen } from 'lucide-react';
 import { useScoreContext } from '../../context/ScoreContext';
 import { UpdateTitleCommand } from '../../commands/UpdateTitleCommand';
 import { LoadScoreCommand } from '../../commands/LoadScoreCommand';
+import { InstrumentType } from '../../engines/toneEngine';
 
 interface ToolbarProps {
   scoreTitle: string; // Keep for now as it might be passed from outside or local buffer
@@ -34,6 +35,11 @@ interface ToolbarProps {
   
   midiStatus: { connected: boolean; deviceName: string | null; error: string | null };
   melodies: Melody[];
+  
+  // Instrument selection
+  selectedInstrument: InstrumentType;
+  onInstrumentChange: (instrument: InstrumentType) => void;
+  samplerLoaded: boolean;
 }
 
 export interface ToolbarHandle {
@@ -60,7 +66,10 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
   errorMsg,
   onToggleHelp,
   midiStatus = { connected: false, deviceName: null, error: null },
-  melodies
+  melodies,
+  selectedInstrument,
+  onInstrumentChange,
+  samplerLoaded
 }, ref) => {
   const staffControlsRef = useRef<StaffControlsHandle>(null);
   const melodyLibBtnRef = useRef<HTMLButtonElement>(null);
@@ -116,6 +125,9 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
         onUndo={undo}
         canRedo={redoStack.length > 0}
         onRedo={redo}
+        selectedInstrument={selectedInstrument}
+        onInstrumentChange={onInstrumentChange}
+        samplerLoaded={samplerLoaded}
       >
         <div className="flex gap-1 relative">
           <ToolbarButton 

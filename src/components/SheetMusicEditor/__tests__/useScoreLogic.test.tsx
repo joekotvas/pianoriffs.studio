@@ -5,6 +5,9 @@ import { createDefaultScore } from '../types';
 // Mock audio engine to prevent actual playback during tests
 jest.mock('../engines/toneEngine', () => ({
   playNote: jest.fn(),
+  setInstrument: jest.fn(),
+  isSamplerLoaded: jest.fn(() => false),
+  InstrumentType: {},
 }));
 
 describe('useScoreLogic Integration', () => {

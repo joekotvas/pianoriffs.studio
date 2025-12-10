@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Info, Music2, HelpCircle, RotateCcw, RotateCw } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import ToolbarButton from './ToolbarButton';
+import InstrumentSelector from './InstrumentSelector';
+import { InstrumentType } from '../../engines/toneEngine';
 
 interface MainControlsProps {
   scoreTitle: string;
@@ -18,6 +20,9 @@ interface MainControlsProps {
   onUndo: () => void;
   canRedo: boolean;
   onRedo: () => void;
+  selectedInstrument: InstrumentType;
+  onInstrumentChange: (instrument: InstrumentType) => void;
+  samplerLoaded: boolean;
 }
 
 const MainControls: React.FC<MainControlsProps & { children?: React.ReactNode }> = ({
@@ -35,6 +40,9 @@ const MainControls: React.FC<MainControlsProps & { children?: React.ReactNode }>
   onUndo,
   canRedo,
   onRedo,
+  selectedInstrument,
+  onInstrumentChange,
+  samplerLoaded,
   children
 }) => {
   const { theme } = useTheme();
@@ -146,6 +154,13 @@ const MainControls: React.FC<MainControlsProps & { children?: React.ReactNode }>
         <Music2 size={12} />
         <span>{midiStatus.connected ? 'MIDI' : 'No MIDI'}</span>
       </div>
+
+      {/* Instrument Selector */}
+      <InstrumentSelector
+        selectedInstrument={selectedInstrument}
+        onInstrumentChange={onInstrumentChange}
+        samplerLoaded={samplerLoaded}
+      />
 
       <div className="flex-1"></div>
 
