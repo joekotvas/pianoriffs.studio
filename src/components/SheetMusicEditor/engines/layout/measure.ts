@@ -139,6 +139,22 @@ const getEventMetrics = (event: ScoreEvent, clef: string) => {
     return { chordLayout, totalWidth, accidentalSpace, minOffset, maxOffset, baseWidth };
 };
 
+
+/**
+ * Post-processes the events to apply special centering rules.
+ */
+export const applyMeasureCentering = (events: ScoreEvent[], measureWidth: number): ScoreEvent[] => {
+    if (events.length === 1 && events[0].id === 'rest-placeholder') {
+        const rest = events[0];
+        const targetVisualCenter = measureWidth / 2;
+        const x = targetVisualCenter - (WHOLE_REST_WIDTH / 2);
+
+        return [{ ...rest, x }];
+    }
+    
+    return events;
+};
+
 // --- EXTRACTED: Empty Measure Handler ---
 
 /**
@@ -160,20 +176,24 @@ const createEmptyMeasureLayout = (): MeasureLayout => {
         maxY: 0
     };
     
+    const totalWidth = Math.max(x + width, width + CONFIG.measurePaddingLeft + CONFIG.measurePaddingRight);
+
+    const processedEvents: ScoreEvent[] = [{
+        id: 'rest-placeholder',
+        duration: 'whole',
+        dotted: false,
+        notes: [],
+        isRest: true,
+        x,
+        quant: 0,
+        chordLayout: emptyChordLayout
+    }];
+    
     return {
         hitZones: [{ startX: CONFIG.measurePaddingLeft, endX: x + width, index: 0, type: 'APPEND' }],
         eventPositions: {},
-        totalWidth: Math.max(x + width, width + CONFIG.measurePaddingLeft + CONFIG.measurePaddingRight),
-        processedEvents: [{
-            id: 'rest-placeholder',
-            duration: 'whole',
-            dotted: false,
-            notes: [],
-            isRest: true,
-            x,
-            quant: 0,
-            chordLayout: emptyChordLayout
-        }]
+        totalWidth,
+        processedEvents: applyMeasureCentering(processedEvents, totalWidth)
     };
 };
 
@@ -477,17 +497,4 @@ export const analyzePlacement = (events: ScoreEvent[], intendedQuant: number) =>
     return { mode: 'APPEND', index: events.length, visualQuant: currentQuant };
 };
 
-/**
- * Post-processes the events to apply special centering rules.
- */
-export const applyMeasureCentering = (events: ScoreEvent[], measureWidth: number): ScoreEvent[] => {
-    if (events.length === 1 && events[0].id === 'rest-placeholder') {
-        const rest = events[0];
-        const targetVisualCenter = measureWidth / 2;
-        const x = targetVisualCenter - (WHOLE_REST_WIDTH / 2);
 
-        return [{ ...rest, x }];
-    }
-    
-    return events;
-};

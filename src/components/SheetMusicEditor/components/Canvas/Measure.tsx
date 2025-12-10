@@ -3,7 +3,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { CONFIG } from '../../config';
 import { NOTE_TYPES } from '../../constants';
 import { useTheme } from '../../context/ThemeContext';
-import { calculateMeasureLayout, getOffsetForPitch, calculateChordLayout, calculateBeamingGroups } from '../../engines/layout';
+import { calculateMeasureLayout, getOffsetForPitch, calculateChordLayout, calculateBeamingGroups, getPitchForOffset } from '../../engines/layout';
 import { calculateTupletBrackets } from '../../engines/layout/tuplets'; // Restore tuplets import
 import { getNoteDuration } from '../../utils/core';
 import ChordGroup from './ChordGroup';
@@ -88,17 +88,25 @@ const Measure: React.FC<MeasureProps> = ({
     const y = (e.clientY - rect.top) / scale;
     
     // Find closest hit zone
-    const hit = hitZones.find(zone => x >= zone.x && x < zone.x + zone.width);
-    
+    const hit = hitZones.find(zone => x >= zone.startX && x < zone.endX);
+
+    // Calculate Pitch from Y
+    // rect is positioned at y = baseY - 50.
+    // The visual Y relative to scale is `y` (from top of rect).
+    // The Y offset relative to baseY is `(y + (baseY - 50)) - baseY` = `y - 50`.
+    // We snap this to the nearest 6px (half line height) to match PITCH_TO_OFFSET steps.
+    const yOffset = Math.round((y - 50) / 6) * 6;
+    const pitch = getPitchForOffset(yOffset, clef) || null;
+
     setHoveredMeasure(true);
-    setCursorX(hit ? hit.x : x);
+    setCursorX(hit ? hit.startX : x);
     
     if (hit) {
-         // Pass raw event, parent calculates pitch from clientY
-         onHover?.(measureIndex, hit, null); 
+         // Pass raw event and calculated pitch
+         onHover?.(measureIndex, hit, pitch); 
     } else {
-        // Pass "gap" hit
-         onHover?.(measureIndex, { x: x, quant: 0, duration: activeDuration }, null);
+        // Pass "gap" hit and calculated pitch
+         onHover?.(measureIndex, { x: x, quant: 0, duration: activeDuration }, pitch);
     }
   };
 
