@@ -9,6 +9,7 @@ import { useModifiers } from './useModifiers';
 import { useNavigation } from './useNavigation';
 import { useTupletActions } from './useTupletActions';
 import { useSelection } from './useSelection';
+import { useEditorMode } from './useEditorMode';
 
 import { Score, createDefaultScore, migrateScore, getActiveStaff } from '../types';
 
@@ -146,7 +147,6 @@ export const useScoreLogic = (initialScore: any) => {
     select,
     previewNote,
     setPreviewNote,
-    syncToolbarState, // Deprecated
     activeDuration,
     isDotted,
     currentQuantsPerMeasure,
@@ -160,10 +160,14 @@ export const useScoreLogic = (initialScore: any) => {
     engine.dispatch.bind(engine)
   );
 
+  // --- EDITOR MODE ---
+  const { editorState } = useEditorMode({ selection, previewNote });
+
   // --- EXPORTS ---
   return {
     score,
     selection,
+    editorState, // Expose explicit mode
     setSelection,
     previewNote,
     setPreviewNote,
