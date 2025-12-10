@@ -3,7 +3,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { CONFIG } from '../../config';
 import { NOTE_TYPES } from '../../constants';
 import { useTheme } from '../../context/ThemeContext';
-import { calculateMeasureLayout, getOffsetForPitch, calculateChordLayout, calculateBeamingGroups, getPitchForOffset } from '../../engines/layout';
+import { calculateMeasureLayout, getOffsetForPitch, calculateChordLayout, calculateBeamingGroups, getPitchForOffset, applyMeasureCentering } from '../../engines/layout';
 import { calculateTupletBrackets } from '../../engines/layout/tuplets'; // Restore tuplets import
 import { getNoteDuration } from '../../utils/core';
 import ChordGroup from './ChordGroup';
@@ -58,7 +58,17 @@ const Measure: React.FC<MeasureProps> = ({
 
   const { hitZones, eventPositions, totalWidth, processedEvents } = measureLayout;
 
-  // Calculate Beams separately (not part of core layout engine yet)
+  // Use forced width if provided (Grand Staff sync), otherwise calculated width
+  const effectiveWidth = forcedWidth || totalWidth;
+
+  // Re-calculate centering if width is forced (Grand Staff alignment)
+  const centeredEvents = useMemo(() => {
+      // Only necessary if width changed and we have a rest placeholder
+      if (forcedWidth && processedEvents.length === 1 && processedEvents[0].id === 'rest-placeholder') {
+          return applyMeasureCentering(processedEvents, effectiveWidth);
+      }
+      return processedEvents;
+  }, [processedEvents, forcedWidth, effectiveWidth]);
   const beamGroups = useMemo(() => {
       // Need to import calculateBeamingGroups!
       // We will assume it is available in imports, or update imports below.
@@ -67,11 +77,11 @@ const Measure: React.FC<MeasureProps> = ({
 
   // Calculate Tuplets
   const tupletGroups = useMemo(() => {
-      return calculateTupletBrackets(processedEvents, eventPositions, clef); 
-  }, [processedEvents, eventPositions, clef]);
+      return calculateTupletBrackets(centeredEvents, eventPositions, clef); 
+  }, [centeredEvents, eventPositions, clef]);
 
   // Use forced width if provided (Grand Staff sync), otherwise calculated width
-  const effectiveWidth = forcedWidth || totalWidth;
+
 
   // --- Event Handlers ---
 
@@ -198,7 +208,7 @@ const Measure: React.FC<MeasureProps> = ({
       });
   });
   
-  const renderableEvents = processedEvents.map(ev => ({
+  const renderableEvents = centeredEvents.map(ev => ({
       ...ev,
       beamSpec: beamMap[ev.id]
   }));
