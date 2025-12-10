@@ -244,6 +244,51 @@ export const useScoreLogic = (initialScore: any) => {
     return Array.from(ties);
   }, [selection, score, editorState]);
 
+  const selectedAccidentals = useMemo(() => {
+    if (editorState !== 'SELECTION_READY') return [];
+
+    const accidentals = new Set<string>();
+    const currentScore = scoreRef.current;
+
+    // Helper to determine type from pitch
+    const getAccidentalType = (pitch: string): string => {
+        // Use very simple parsing or Tonal if imported.
+        // Since we want to avoid import in this file if possible? 
+        // Actually importing Note from tonal is fine.
+        // Assuming Note is imported or we use MusicService.
+        // Let's use basic regex for speed/dependency avoidance if simple, 
+        // OR just import Note (preferred for robustness).
+        const match = pitch.match(/^([A-G])(#{1,2}|b{1,2})?(\d+)$/);
+        if (!match) return 'natural';
+        const acc = match[2];
+        if (acc?.startsWith('#')) return 'sharp';
+        if (acc?.startsWith('b')) return 'flat';
+        return 'natural';
+    };
+
+    const addFromNote = (measureIndex: number, eventId: string | number, noteId: string | number | null, staffIndex: number) => {
+        const staff = currentScore.staves[staffIndex] || getActiveStaff(currentScore);
+        const measure = staff.measures[measureIndex];
+        const event = measure?.events.find((e: any) => e.id === eventId);
+        if (event) {
+            if (noteId) {
+                const note = event.notes.find((n: any) => n.id === noteId);
+                if (note) accidentals.add(getAccidentalType(note.pitch));
+            } else {
+                 event.notes.forEach((n: any) => accidentals.add(getAccidentalType(n.pitch)));
+            }
+        }
+    };
+
+    if (selection.selectedNotes && selection.selectedNotes.length > 0) {
+        selection.selectedNotes.forEach(n => addFromNote(n.measureIndex, n.eventId, n.noteId, n.staffIndex));
+    } else if (selection.measureIndex !== null && selection.eventId) {
+        const staffIndex = selection.staffIndex !== undefined ? selection.staffIndex : 0;
+        addFromNote(selection.measureIndex, selection.eventId, selection.noteId, staffIndex);
+    }
+    return Array.from(accidentals); // ['sharp'], ['flat', 'natural'], etc.
+  }, [selection, score, editorState]);
+
   // --- WRAPPED HANDLERS ---
   const handleDurationChangeWrapper = useCallback((newDuration: string) => {
       if (editorState === 'SELECTION_READY') {
@@ -291,6 +336,7 @@ export const useScoreLogic = (initialScore: any) => {
     selectedDurations, // Expose derived durations
     selectedDots,
     selectedTies,
+    selectedAccidentals,
     setSelection,
     previewNote,
     setPreviewNote,

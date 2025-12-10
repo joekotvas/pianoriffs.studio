@@ -88,7 +88,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       handleTimeSignatureChange, handleKeySignatureChange,
       handleClefChange,
       dispatch, applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio,
-      selectedDurations, editorState, selectedDots, selectedTies
+      selectedDurations, editorState, selectedDots, selectedTies, selectedAccidentals
   } = useScoreContext();
 
   useImperativeHandle(ref, () => ({
@@ -200,6 +200,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
         <AccidentalControls 
           activeAccidental={activeAccidental}
           onToggleAccidental={handleAccidentalToggle}
+          selectedAccidentals={selectedAccidentals}
+          editorState={editorState}
         />
 
         <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
