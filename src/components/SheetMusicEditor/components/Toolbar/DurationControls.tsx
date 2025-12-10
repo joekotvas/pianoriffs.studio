@@ -7,12 +7,16 @@ interface DurationControlsProps {
   activeDuration: string;
   onDurationChange: (duration: string) => void;
   isDurationValid: (duration: string) => boolean;
+  selectedDurations?: string[];
+  editorState?: 'SELECTION_READY' | 'ENTRY_READY' | 'IDLE';
 }
 
 const DurationControls: React.FC<DurationControlsProps> = ({
   activeDuration,
   onDurationChange,
-  isDurationValid
+  isDurationValid,
+  selectedDurations = [],
+  editorState = 'IDLE'
 }) => {
   return (
     <div className="flex gap-1">
@@ -26,14 +30,34 @@ const DurationControls: React.FC<DurationControlsProps> = ({
           thirtysecond: '2',
           sixtyfourth: '1'
         };
+
+        // Determine visual state
+        let isActive = false;
+        let isEmphasized = false;
+        let isDashed = false;
+
+        if (editorState === 'SELECTION_READY') {
+            if (selectedDurations.length === 1 && selectedDurations.includes(type)) {
+                isActive = true;
+            } else if (selectedDurations.length > 1 && selectedDurations.includes(type)) {
+                isEmphasized = true; // Outline style for mixed selection
+                isDashed = true;     // Dashed border for mixed selection
+            }
+        } else {
+            // Entry / Idle mode: show active input duration
+            isActive = activeDuration === type;
+        }
+
         return (
           <ToolbarButton
             key={type}
             onClick={() => onDurationChange(type)}
             label={NOTE_TYPES[type].label}
             title={`${NOTE_TYPES[type].label} (${shortcuts[type]})`}
-            isActive={activeDuration === type}
-            icon={<NoteIcon type={type} color={activeDuration === type ? "white" : "currentColor"} />}
+            isActive={isActive}
+            isEmphasized={isEmphasized}
+            isDashed={isDashed}
+            icon={<NoteIcon type={type} color={isActive ? "white" : "currentColor"} />}
             preventFocus={true}
             disabled={!isDurationValid(type)}
           />

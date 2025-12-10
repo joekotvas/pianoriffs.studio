@@ -12,6 +12,7 @@ import { useSelection } from './useSelection';
 import { useEditorMode } from './useEditorMode';
 
 import { Score, createDefaultScore, migrateScore, getActiveStaff } from '../types';
+import { getAppendPreviewNote } from '../utils/interaction';
 
 /**
  * Main score logic orchestrator hook.
@@ -163,11 +164,80 @@ export const useScoreLogic = (initialScore: any) => {
   // --- EDITOR MODE ---
   const { editorState } = useEditorMode({ selection, previewNote });
 
+  // --- DERIVED SELECTION PROPERTIES ---
+  const selectedDurations = useMemo(() => {
+    if (editorState !== 'SELECTION_READY') return [];
+
+    const durations = new Set<string>();
+    const currentScore = scoreRef.current;
+
+    // Helper to add duration from an event
+    const addFromEvent = (measureIndex: number, eventId: string | number, staffIndex: number) => {
+        const staff = currentScore.staves[staffIndex] || getActiveStaff(currentScore);
+        const measure = staff.measures[measureIndex];
+        const event = measure?.events.find((e: any) => e.id === eventId);
+        if (event) durations.add(event.duration);
+    };
+
+    if (selection.selectedNotes && selection.selectedNotes.length > 0) {
+        // Multi-select
+        selection.selectedNotes.forEach(n => {
+            addFromEvent(n.measureIndex, n.eventId, n.staffIndex);
+        });
+    } else if (selection.measureIndex !== null && selection.eventId) {
+        // Single select
+        const staffIndex = selection.staffIndex !== undefined ? selection.staffIndex : 0;
+        addFromEvent(selection.measureIndex, selection.eventId, staffIndex);
+    }
+
+    return Array.from(durations);
+  }, [selection, score, editorState]);
+
+  // --- WRAPPED HANDLERS ---
+  const handleDurationChangeWrapper = useCallback((newDuration: string) => {
+      if (editorState === 'SELECTION_READY') {
+          // Apply to selection
+          modifiers.handleDurationChange(newDuration, true);
+      } else {
+          // Just update tool state
+          setActiveDuration(newDuration);
+
+          // If IDLE, try to bring focus back to last known position
+          if (editorState === 'IDLE' && lastSelection && lastSelection.measureIndex !== null) {
+               const staffIndex = lastSelection.staffIndex !== undefined ? lastSelection.staffIndex : 0;
+               const staff = scoreRef.current.staves[staffIndex] || getActiveStaff(scoreRef.current);
+               const measure = staff.measures[lastSelection.measureIndex];
+               
+               if (measure) {
+                   // Restore focus using APPEND mode at the measure
+                   const newPreview = getAppendPreviewNote(
+                       measure,
+                       lastSelection.measureIndex,
+                       staffIndex,
+                       newDuration, // Use the NEW duration
+                       isDotted
+                   );
+                   setPreviewNote(newPreview);
+               }
+          } else if (editorState === 'ENTRY_READY' && previewNote) {
+              // Update existing preview note immediately?
+              // The preview note usually updates automatically via mouse hover, 
+              // but if keyboard cursor is active, we should update it.
+              setPreviewNote((prev: any) => ({
+                  ...prev,
+                  duration: newDuration
+              }));
+          }
+      }
+  }, [editorState, modifiers.handleDurationChange, setActiveDuration, lastSelection, scoreRef, isDotted, previewNote]);
+
+
   // --- EXPORTS ---
   return {
     score,
     selection,
-    editorState, // Expose explicit mode
+    editorState,
+    selectedDurations, // Expose derived durations
     setSelection,
     previewNote,
     setPreviewNote,
@@ -193,7 +263,7 @@ export const useScoreLogic = (initialScore: any) => {
     addChordToMeasure: noteActions.addChordToMeasure,
     deleteSelected: noteActions.deleteSelected,
     handleNoteSelection: navigation.handleNoteSelection,
-    handleDurationChange: modifiers.handleDurationChange,
+    handleDurationChange: handleDurationChangeWrapper, // Use wrapper
     handleDotToggle: modifiers.handleDotToggle,
     handleAccidentalToggle: modifiers.handleAccidentalToggle,
     handleTieToggle: modifiers.handleTieToggle,

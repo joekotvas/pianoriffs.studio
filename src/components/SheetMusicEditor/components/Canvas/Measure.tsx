@@ -309,13 +309,47 @@ const Measure: React.FC<MeasureProps> = ({
       })}
 
       {/* RENDER BEAMS */}
-      {beamGroups.map((beam, idx) => (
-          <Beam 
-            key={`beam-${idx}`}
-            beam={beam}
-            color={theme.score.note}
-          />
-      ))}
+      {beamGroups.map((beam, idx) => {
+          // Check if ALL notes in the beam group are selected
+          const isSelected = (() => {
+               // 1. Collect all notes participating in this beam
+               const beamNoteIds: Array<{eventId: string|number, noteId: string|number}> = [];
+               beam.ids.forEach(eventId => {
+                   const ev = events.find(e => e.id === eventId);
+                   if (ev && ev.notes) {
+                       ev.notes.forEach(n => beamNoteIds.push({ eventId: ev.id, noteId: n.id }));
+                   }
+               });
+               
+               if (beamNoteIds.length === 0) return false;
+
+               // 2. Check if every single note is in the selection
+               return beamNoteIds.every(bn => {
+                    // Check against multi-selection
+                    if (selection.selectedNotes && selection.selectedNotes.length > 0) {
+                        return selection.selectedNotes.some(sn => 
+                            sn.measureIndex === measureIndex && 
+                            sn.eventId === bn.eventId && 
+                            sn.noteId === bn.noteId
+                        );
+                    }
+                    // Check against single selection
+                    return (
+                        selection.measureIndex === measureIndex && 
+                        selection.eventId === bn.eventId && 
+                        selection.noteId === bn.noteId
+                    );
+               });
+          })();
+
+          return (
+            <Beam 
+              key={`beam-${idx}`}
+              beam={beam}
+              color={isSelected ? theme.accent : theme.score.note}
+            />
+          );
+      })}
       
       {/* RENDER TUPLETS */}
       {tupletGroups.map((tuplet, idx) => (

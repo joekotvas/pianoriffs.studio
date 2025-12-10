@@ -2,14 +2,14 @@ import { useCallback, RefObject } from 'react';
 import { canModifyEventDuration, canToggleEventDot } from '../utils/validation';
 import { getNoteDuration } from '../utils/core';
 import { playNote } from '../engines/toneEngine';
-import { Score, getActiveStaff } from '../types';
+import { Score, getActiveStaff, Selection } from '../types';
 import { Command } from '../commands/types';
 import { UpdateEventCommand } from '../commands/UpdateEventCommand';
 import { UpdateNoteCommand } from '../commands/UpdateNoteCommand';
 
 interface UseModifiersProps {
   scoreRef: RefObject<Score>;
-  selection: { measureIndex: number | null; eventId: string | number | null; noteId: string | number | null };
+  selection: Selection;
   currentQuantsPerMeasure: number;
   tools: {
     handleDurationChange: (duration: string) => void;
@@ -45,12 +45,32 @@ export const useModifiers = ({
     tools.handleDurationChange(newDuration);
 
     // If requested, try to apply to selection
-    if (applyToSelection && selection.measureIndex !== null && selection.eventId) {
-        // Use proper staff index, defaulting to 0
-        const staffIdx = selection.staffIndex !== undefined ? selection.staffIndex : 0;
-        dispatch(new UpdateEventCommand(selection.measureIndex, selection.eventId, { duration: newDuration }, staffIdx));
+    if (applyToSelection) {
+        // Collect targets: either selectedNotes list or single selection
+        const targets: Array<{ measureIndex: number, eventId: string | number, staffIndex: number }> = [];
+
+        if (selection.selectedNotes && selection.selectedNotes.length > 0) {
+            selection.selectedNotes.forEach(n => {
+                targets.push({ measureIndex: n.measureIndex, eventId: n.eventId, staffIndex: n.staffIndex });
+            });
+        } else if (selection.measureIndex !== null && selection.eventId) {
+            targets.push({ 
+                measureIndex: selection.measureIndex, 
+                eventId: selection.eventId, 
+                staffIndex: selection.staffIndex !== undefined ? selection.staffIndex : 0 
+            });
+        }
+
+        // Iterate and apply if valid
+        targets.forEach(target => {
+            const staff = scoreRef.current.staves[target.staffIndex] || getActiveStaff(scoreRef.current);
+            const measure = staff.measures[target.measureIndex];
+            if (measure && canModifyEventDuration(measure.events, target.eventId, newDuration, currentQuantsPerMeasure)) {
+                dispatch(new UpdateEventCommand(target.measureIndex, target.eventId, { duration: newDuration }, target.staffIndex));
+            }
+        });
     }
-  }, [selection, tools, dispatch]);
+  }, [selection, tools, dispatch, scoreRef, currentQuantsPerMeasure]);
 
   const handleDotToggle = useCallback(() => {
     const newDotted = tools.handleDotToggle();

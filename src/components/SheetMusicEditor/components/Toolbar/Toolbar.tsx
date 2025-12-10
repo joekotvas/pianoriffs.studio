@@ -87,7 +87,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       addMeasure, removeMeasure, togglePickup,
       handleTimeSignatureChange, handleKeySignatureChange,
       handleClefChange,
-      dispatch, applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio
+      dispatch, applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio,
+      selectedDurations, editorState
   } = useScoreContext();
 
   useImperativeHandle(ref, () => ({
@@ -175,6 +176,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           activeDuration={activeDuration}
           onDurationChange={handleDurationChange}
           isDurationValid={checkDurationValidity}
+          selectedDurations={selectedDurations} // Derived from selection
+          editorState={editorState}             // 'SELECTION_READY' | 'ENTRY_READY' | 'IDLE'
         />
 
         <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>

@@ -13,6 +13,7 @@ interface ToolbarButtonProps {
   ref?: React.Ref<HTMLButtonElement>;
   preventFocus?: boolean;
   isEmphasized?: boolean;
+  isDashed?: boolean;
 }
 
 const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(({
@@ -25,11 +26,13 @@ const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(({
   disabled = false,
   title,
   preventFocus = false,
-  isEmphasized = false
+  isEmphasized = false,
+  isDashed = false
 }, ref) => {
   const { theme } = useTheme();
   const baseStyles = "flex items-center justify-center rounded border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed h-9";
   const sizeStyles = showLabel ? "min-w-9 px-3" : "w-9";
+  const borderStyle = isDashed ? "border-dashed" : "border-solid";
   const [isHovered, setIsHovered] = React.useState(false);
 
   return (
@@ -47,6 +50,7 @@ const ToolbarButton = React.forwardRef<HTMLButtonElement, ToolbarButtonProps>(({
       className={`
         ${baseStyles}
         ${sizeStyles}
+        ${borderStyle}
         ${className}
       `}
       style={{
