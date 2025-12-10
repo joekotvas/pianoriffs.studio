@@ -62,22 +62,25 @@ export const initTone = async (onState?: (state: ToneEngineState) => void): Prom
     // Start audio context (requires user gesture)
     await Tone.start();
     
-    // Initialize synth immediately (no loading)
+    // Initialize synth immediately (no loading) - clean piano-like tone
     if (!synth) {
         synth = new Tone.PolySynth(Tone.Synth, {
             envelope: {
-                attack: 0.02,
-                decay: 0.3,
-                sustain: 0.4,
-                release: 0.8
+                attack: 0.005,
+                decay: 0.5,
+                sustain: 0.1,
+                release: 1.2
             },
             oscillator: {
-                type: 'triangle8' // Warmer than pure triangle
+                type: 'sine' // Clean, simple sine wave
             }
         }).toDestination();
         
+        // Reduce volume to prevent clipping
+        synth.volume.value = -6;
+        
         // Limit polyphony to prevent audio glitches
-        synth.maxPolyphony = 16;
+        synth.maxPolyphony = 24;
         
         updateState({ instrumentState: 'synth' });
     }
@@ -90,13 +93,17 @@ export const initTone = async (onState?: (state: ToneEngineState) => void): Prom
  * Loads piano samples in background. When complete, playback will use sampler.
  */
 const loadPianoSampler = () => {
-    if (sampler) return; // Already loaded or loading
+    if (sampler) {
+        console.log('🎹 Sampler already exists, skipping load');
+        return; // Already loaded or loading
+    }
     
+    console.log('🎹 Starting piano sample load...');
     updateState({ instrumentState: 'loading-samples', samplerLoadProgress: 0 });
     
-    // Using free piano samples from Tone.js examples
-    // These are high-quality Salamander Grand Piano samples
-    const baseUrl = 'https://tonejs.github.io/audio/salamander/';
+    // Using self-hosted Salamander Grand Piano samples
+    // Downloaded from tonejs.github.io/audio/salamander/
+    const baseUrl = '/audio/piano/';
     
     sampler = new Tone.Sampler({
         urls: {
@@ -150,9 +157,12 @@ const loadPianoSampler = () => {
  * Gets the currently active instrument (sampler if loaded, else synth).
  */
 const getActiveInstrument = (): Tone.PolySynth | Tone.Sampler | null => {
-    if (state.instrumentState === 'sampler' && sampler) {
+    // Check if sampler is fully loaded (not just created)
+    if (sampler && (sampler as any).loaded) {
+        console.log('🎹 Using sampler (loaded:', (sampler as any).loaded, ')');
         return sampler;
     }
+    console.log('🎵 Using synth (sampler loaded:', sampler ? (sampler as any).loaded : 'n/a', ')');
     return synth;
 };
 
@@ -257,9 +267,16 @@ export const setTempo = (bpm: number): void => {
 
 /**
  * Plays a single note (for preview/click feedback).
+ * Will initialize Tone.js if not already initialized.
  */
-export const playNote = (pitch: string, duration: string = '8n'): void => {
+export const playNote = async (pitch: string, duration: string = '8n'): Promise<void> => {
+    // Ensure Tone.js is started (safe to call multiple times)
+    if (state.instrumentState === 'initializing') {
+        await initTone();
+    }
+    
     const instrument = getActiveInstrument();
+    console.log('🎵 playNote:', pitch, 'using:', state.instrumentState, 'instrument:', instrument ? 'yes' : 'no');
     if (instrument) {
         instrument.triggerAttackRelease(pitch, duration);
     }
