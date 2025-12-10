@@ -12,7 +12,8 @@ import { BEAMING } from '../../constants';
  * @param type - Duration type (determines number of beams)
  * @param direction - Stem direction (affects secondary beam offset)
  */
-const Beam = ({ startX, endX, startY, endY, type, direction }) => {
+const Beam = ({ beam, color }) => {
+    const { startX, endX, startY, endY, type, direction } = beam;
     const { theme } = useTheme();
     const beamWidth = BEAMING.THICKNESS;
     const secondaryOffset = BEAMING.SPACING;
@@ -38,7 +39,7 @@ const Beam = ({ startX, endX, startY, endY, type, direction }) => {
             `${startX},${y1 + halfWidth}`
         ].join(' ');
 
-        return <polygon key={key} points={points} fill={theme.score.note} />;
+        return <polygon key={key} points={points} fill={color || theme.score.note} />;
     };
     
     const paths = [];

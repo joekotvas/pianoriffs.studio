@@ -83,7 +83,9 @@ const processBeamGroup = (groupEvents: any[], eventPositions: Record<string, num
     const startEvent = groupEvents[0];
     const endEvent = groupEvents[groupEvents.length - 1];
     
-    const minStemLength = STEM_LENGTHS.default; // Standard minimum stem length from centralized config
+    // Determine minimum stem length based on the note type with the most beams in the group
+    // 32nd notes need longer stems to accommodate 3 beams, 64th for 4 beams
+    const minStemLength = STEM_LENGTHS[startEvent.duration] || STEM_LENGTHS.default;
     
     // First pass: collect note data to determine direction
     const noteData = groupEvents.map(e => {
