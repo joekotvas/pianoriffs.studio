@@ -73,9 +73,8 @@ export const useScoreLogic = (initialScore: any) => {
       const { measureIndex, eventId, noteId, staffIndex } = selection;
       
       if (measureIndex === null || !eventId) {
-          // No selection - reset accidental and tie only
-          setActiveAccidental(null);
-          setActiveTie(false);
+          // No selection - DO NOT reset accidental/tie.
+          // This allows "sticky" tools for note entry (User Request).
           return;
       }
 
