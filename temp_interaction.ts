@@ -15,42 +15,6 @@ import { CONFIG } from '../config';
  * @param currentQuantsPerMeasure - The number of quants per measure
  * @returns An object containing the new selection, new previewNote, and optional audio feedback
  */
-
-/**
- * Helper to generate the preview note state for appending to a measure.
- */
-export const getAppendPreviewNote = (
-    measure: any, 
-    measureIndex: number, 
-    staffIndex: number, 
-    activeDuration: string, 
-    isDotted: boolean, 
-    pitch?: string
-) => {
-    const totalQuants = calculateTotalQuants(measure.events || []);
-    // Default pitch logic: try to use last event's pitch, or fallback
-    let defaultPitch = pitch;
-    if (!defaultPitch) {
-        if (measure.events.length > 0) {
-            defaultPitch = measure.events[measure.events.length - 1].notes[0].pitch;
-        } else {
-             defaultPitch = 'C4'; // Validation fallback, caller should ideally provide better default based on clef
-        }
-    }
-
-    return {
-        measureIndex,
-        staffIndex,
-        quant: totalQuants,
-        visualQuant: totalQuants,
-        pitch: defaultPitch,
-        duration: activeDuration,
-        dotted: isDotted,
-        mode: 'APPEND',
-        index: measure.events.length
-    };
-};
-
 export const calculateNextSelection = (
     measures: any[],
     selection: any,
@@ -124,7 +88,17 @@ export const calculateNextSelection = (
                 // Move to ghost note in current measure
                 return {
                     selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-                    previewNote: getAppendPreviewNote(currentMeasure, selection.measureIndex, staffIndex, activeDuration, isDotted, pitch),
+                    previewNote: {
+                        measureIndex: selection.measureIndex,
+                        staffIndex,
+                        quant: totalQuants,
+                        visualQuant: totalQuants,
+                        pitch: pitch,
+                        duration: activeDuration,
+                        dotted: isDotted,
+                        mode: 'APPEND',
+                        index: currentMeasure.events.length
+                    },
                     audio: null
                 };
             } else {
@@ -257,112 +231,3 @@ export const calculateTranspositionWithPreview = (
     return null;
 };
 
-/**
- * Calculates the cross-staff selection based on quant alignment.
- * Finds the closest event in the target staff that overlaps with the current selection's absolute quant.
- * 
- * @param score - The complete score object
- * @param selection - The current selection state
- * @param direction - 'up' or 'down'
- * @returns {Object|null} New selection object or null if invalid move
- */
-export const calculateCrossStaffSelection = (
-    score: any, 
-    selection: any, 
-    direction: string,
-    activeDuration: string = 'quarter',
-    isDotted: boolean = false
-) => {
-    const { staffIndex, measureIndex, eventId } = selection;
-    if (staffIndex === undefined || measureIndex === null || !eventId) return null;
-
-    const currentStaff = score.staves[staffIndex];
-    if (!currentStaff) return null;
-
-    // Determine target staff
-    const targetStaffIndex = direction === 'up' ? staffIndex - 1 : staffIndex + 1;
-    if (targetStaffIndex < 0 || targetStaffIndex >= score.staves.length) return null;
-
-    const targetStaff = score.staves[targetStaffIndex];
-    
-    // Get current event to determine Start Quant Offset within the measure
-    const currentMeasure = currentStaff.measures[measureIndex];
-    if (!currentMeasure) return null;
-
-    let currentQuantStart = 0;
-    const currentEvent = currentMeasure.events.find((e: any) => {
-        if (e.id === eventId) return true;
-        currentQuantStart += getNoteDuration(e.duration, e.dotted, e.tuplet);
-        return false;
-    });
-
-    if (!currentEvent) return null;
-
-    // Now look at target staff, same measure index assuming sync
-    const targetMeasure = targetStaff.measures[measureIndex];
-    
-    if (!targetMeasure) return null;
-
-    // Find event in target measure that contains currentQuantStart
-    let targetEvent = null;
-    let targetQuant = 0;
-    
-    for (const e of targetMeasure.events) {
-        const duration = getNoteDuration(e.duration, e.dotted, e.tuplet);
-        const start = targetQuant;
-        const end = targetQuant + duration;
-        
-        // Check overlap: if currentQuantStart falls within [start, end)
-        if (currentQuantStart >= start && currentQuantStart < end) {
-            targetEvent = e;
-            break;
-        }
-        targetQuant += duration;
-    }
-
-    if (targetEvent) {
-         const noteId = targetEvent.notes.length > 0 ? targetEvent.notes[0].id : null;
-         
-         return {
-             selection: {
-                staffIndex: targetStaffIndex,
-                measureIndex,
-                eventId: targetEvent.id,
-                noteId,
-                selectedNotes: [], // Clear multi-select
-                anchor: null // Clear anchor
-             },
-             previewNote: null
-         };
-    } else {
-        // No event found at this time (Gap or Empty Measure)
-        // Fallback to "Append Position" using consistent logic
-        
-        // Determine Pitch: Default to a "middle" note for the staff clef.
-        const clef = targetStaff.clef || 'treble';
-        let defaultPitch = 'C4';
-        if (clef === 'bass') defaultPitch = 'C3';
-        if (clef === 'alto') defaultPitch = 'C4';
-
-        const previewNote = getAppendPreviewNote(
-            targetMeasure,
-            measureIndex,
-            targetStaffIndex,
-            activeDuration,
-            isDotted,
-            defaultPitch
-        );
-
-        return {
-            selection: {
-                staffIndex: targetStaffIndex,
-                measureIndex,
-                eventId: null,
-                noteId: null,
-                selectedNotes: [],
-                anchor: null
-            },
-            previewNote
-        };
-    }
-};

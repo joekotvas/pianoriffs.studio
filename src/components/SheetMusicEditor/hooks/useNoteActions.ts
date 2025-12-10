@@ -9,6 +9,7 @@ import { AddMeasureCommand } from '../commands/MeasureCommands';
 import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
 import { DeleteEventCommand } from '../commands/DeleteEventCommand';
 import { ChangePitchCommand } from '../commands/ChangePitchCommand';
+import { getAppendPreviewNote } from '../utils/interaction';
 
 interface UseNoteActionsProps {
   scoreRef: RefObject<Score>;
@@ -131,6 +132,9 @@ export const useNoteActions = ({
     if (placementOverride) {
         mode = placementOverride.mode;
         insertIndex = placementOverride.index;
+    } else if (newNote.mode) {
+        mode = newNote.mode;
+        insertIndex = newNote.index;
     }
     
     // Check capacity
@@ -185,9 +189,45 @@ export const useNoteActions = ({
 
     playNote(newNote.pitch);
     
-    if (shouldAutoAdvance && mode !== 'CHORD') {
-        // Logic for advancing selection would go here or be handled by a separate effect/command
-        // For now, we rely on the user to move cursor or the UI to update selection based on new event
+    if (shouldAutoAdvance && mode === 'APPEND') {
+        // Prepare simulated measure to calculate next position
+        const simulatedEvents = [...targetMeasure.events];
+        // In APPEND mode, we just push
+        simulatedEvents.push({ 
+            id: 'sim-event',
+            duration: activeDuration, 
+            dotted: isDotted, 
+            notes: [{ id: 9999, pitch: newNote.pitch, duration: activeDuration, dotted: isDotted, tied: false }] // Mock full note object
+        });
+        
+        const simulatedMeasure = { ...targetMeasure, events: simulatedEvents };
+
+        const nextPreview = getAppendPreviewNote(
+            simulatedMeasure,
+            measureIndex,
+            currentStaffIndex,
+            activeDuration,
+            isDotted,
+            newNote.pitch 
+        );
+
+        if (nextPreview.quant >= currentQuantsPerMeasure) {
+             // Move to next measure if full
+             setPreviewNote({
+                 measureIndex: measureIndex + 1,
+                 staffIndex: currentStaffIndex,
+                 quant: 0,
+                 visualQuant: 0,
+                 pitch: newNote.pitch,
+                 duration: activeDuration,
+                 dotted: isDotted,
+                 mode: 'APPEND',
+                 index: 0
+             });
+        } else {
+             setPreviewNote(nextPreview);
+        }
+        return;
     }
     
     setPreviewNote(null);

@@ -1,6 +1,6 @@
 import React, { useCallback, RefObject } from 'react';
 import { Selection, Score, getActiveStaff, createDefaultSelection } from '../types';
-import { calculateNextSelection, calculateTranspositionWithPreview } from '../utils/interaction';
+import { calculateNextSelection, calculateTranspositionWithPreview, calculateCrossStaffSelection } from '../utils/interaction';
 import { toggleNoteInSelection, getLinearizedNotes, calculateNoteRange } from '../utils/selection';
 import { playNote } from '../engines/toneEngine';
 import { Command } from '../commands/types';
@@ -219,6 +219,37 @@ export const useNavigation = ({
     const numStaves = scoreRef.current.staves?.length || 1;
     if (numStaves <= 1) return; // Can't switch if only one staff
     
+    // Try smart cross-staff selection first
+    // Try smart cross-staff selection first
+    if (selection.eventId) {
+        const result = calculateCrossStaffSelection(scoreRef.current, selection, direction, activeDuration, isDotted);
+        if (result && result.selection) {
+            setSelection(result.selection);
+            syncToolbarState(result.selection.measureIndex, result.selection.eventId, result.selection.noteId, result.selection.staffIndex);
+            
+            // Set Preview Note (Cursor) logic
+            if (result.previewNote) {
+                setPreviewNote(result.previewNote);
+            } else {
+                setPreviewNote(null);
+            }
+            
+            // Audio Feedback (Only if we selected an actual event)
+            if (result.selection.eventId && result.selection.measureIndex !== null) {
+                const staff = getActiveStaff(scoreRef.current, result.selection.staffIndex);
+                const measure = staff.measures[result.selection.measureIndex];
+                if (measure) {
+                    const event = measure.events.find((e: any) => e.id === result.selection.eventId);
+                    if (event) {
+                        event.notes.forEach((n: any) => playNote(n.pitch));
+                    }
+                }
+            }
+            return;
+        }
+    }
+
+    // Fallback: Just switch staff index
     const currentStaffIndex = selection.staffIndex || 0;
     let newStaffIndex = currentStaffIndex;
     
@@ -229,7 +260,6 @@ export const useNavigation = ({
     }
     
     if (newStaffIndex !== currentStaffIndex) {
-      // Clear specific selection when switching staff, keep measure context
       setSelection({
         ...createDefaultSelection(),
         staffIndex: newStaffIndex,
