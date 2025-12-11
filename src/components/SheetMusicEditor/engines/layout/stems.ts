@@ -37,7 +37,9 @@ export const calculateStemGeometry = ({ beamSpec, stemX, direction, minY, maxY, 
   // Standard Stem Logic
   const length = STEM_LENGTHS[duration] || STEM_LENGTHS.default;
   if (direction === 'up') {
+    // Up-stem: starts at note (maxY), extends upward
     return { startY: maxY, endY: minY - length };
   }
+  // Down-stem: starts at note (minY), extends downward
   return { startY: minY, endY: maxY + length };
 };

@@ -1,4 +1,4 @@
-import { NOTE_TYPES, MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES, LAYOUT } from '../../constants';
+import { NOTE_TYPES, MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES, LAYOUT, STEM } from '../../constants';
 import { CONFIG } from '../../config';
 import { getNoteDuration } from '../../utils/core';
 import { Note, ChordLayout, HeaderLayout } from './types';
@@ -245,7 +245,7 @@ export const getStemOffset = (chordLayout: ChordLayout, direction: 'up' | 'down'
     const hasUpSecond = chordLayout.maxNoteShift > 0;
     const hasDownSecond = Object.values(chordLayout.noteOffsets).some(v => v < 0);
     
-    if (hasUpSecond) return LAYOUT.STEM_OFFSET_X;
-    if (hasDownSecond) return -LAYOUT.STEM_OFFSET_X;
-    return direction === 'up' ? LAYOUT.STEM_OFFSET_X : -LAYOUT.STEM_OFFSET_X;
+    if (hasUpSecond) return STEM.OFFSET_X;
+    if (hasDownSecond) return -STEM.OFFSET_X;
+    return direction === 'up' ? STEM.OFFSET_X : -STEM.OFFSET_X;
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '../../constants';
 import { useTheme } from '../../context/ThemeContext';
 import DropdownOverlay from './DropdownOverlay';
+import { ACCIDENTALS, BRAVURA_FONT } from '../../constants/SMuFL';
 
 interface KeySignatureOverlayProps {
   current: string;
@@ -96,12 +97,12 @@ const KeySignatureOverlay: React.FC<KeySignatureOverlayProps> = ({
                             <text 
                               key={i} 
                               x={x} 
-                              y={y + 6} // Adjust for text baseline
-                              fontSize={type === 'flat' ? "18" : "20"}
-                              fontFamily="serif"
+                              y={y}
+                              fontSize="32"
+                              fontFamily={BRAVURA_FONT}
                               fill={theme.text}
                             >
-                              {type === 'sharp' ? '♯' : '♭'}
+                              {type === 'sharp' ? ACCIDENTALS.sharp : ACCIDENTALS.flat}
                             </text>
                           );
                       })}

@@ -1,20 +1,47 @@
 import React from 'react';
-import { CLEF_TYPES } from '../../constants';
-import { useTheme } from '../../context/ThemeContext';
+import { CLEFS, BRAVURA_FONT } from '../../constants/SMuFL';
 
 interface ClefIconProps extends React.SVGProps<SVGSVGElement> {
   clef: string;
 }
 
+/**
+ * ClefIcon renders clef symbols using Bravura font glyphs.
+ * Designed for use in toolbars and overlays.
+ */
 const ClefIcon: React.FC<ClefIconProps> = ({ clef, ...props }) => {
-  const { theme } = useTheme();
-  
-  // Default to 60x60 coordinate system as used in ClefOverlay
-  // Consumers can scale this down by passing width/height props
+  // Default to 60x60 coordinate system
   const viewBox = props.viewBox || "0 0 60 60";
   
   const key = clef || 'treble';
-  const data = CLEF_TYPES[key] || CLEF_TYPES['treble'];
+  
+  // Get the appropriate Bravura glyph
+  const getClefGlyph = () => {
+    switch (key) {
+      case 'treble': return CLEFS.gClef;
+      case 'bass': return CLEFS.fClef;
+      case 'alto': 
+      case 'tenor': return CLEFS.cClef;
+      default: return CLEFS.gClef;
+    }
+  };
+  
+  // Font size and positioning vary by clef type
+  const getClefConfig = () => {
+    switch (key) {
+      case 'treble':
+        return { fontSize: 55, x: 30, y: 42 };
+      case 'bass':
+        return { fontSize: 45, x: 28, y: 28 };
+      case 'alto':
+      case 'tenor':
+        return { fontSize: 40, x: 30, y: 30 };
+      default:
+        return { fontSize: 55, x: 30, y: 42 };
+    }
+  };
+
+  const config = getClefConfig();
 
   return (
     <svg viewBox={viewBox} fill="none" {...props}>
@@ -27,32 +54,35 @@ const ClefIcon: React.FC<ClefIconProps> = ({ clef, ...props }) => {
           {[0, 1, 2].map(i => (
               <line key={`t-${i}`} x1="8" y1={12 + (i * 6)} x2="55" y2={12 + (i * 6)} stroke="currentColor" strokeWidth="1" opacity="0.4" />
           ))}
-          <path 
-              d={CLEF_TYPES.treble.path} 
-              transform="scale(0.19) translate(30, 20)" 
-              fill="currentColor"
-          />
+          <text
+            x={22}
+            y={26}
+            fontFamily={BRAVURA_FONT}
+            fontSize={28}
+            fill="currentColor"
+            textAnchor="middle"
+          >
+            {CLEFS.gClef}
+          </text>
 
           {/* Bottom Staff (Bass) */}
           {[0, 1, 2].map(i => (
               <line key={`b-${i}`} x1="8" y1={38 + (i * 6)} x2="55" y2={38 + (i * 6)} stroke="currentColor" strokeWidth="1" opacity="0.4" />
           ))}
-          <path 
-              d={CLEF_TYPES.bass.path} 
-              transform="scale(0.03) translate(150, 950)" 
-              fill="currentColor"
-          />
+          <text
+            x={22}
+            y={46}
+            fontFamily={BRAVURA_FONT}
+            fontSize={22}
+            fill="currentColor"
+            textAnchor="middle"
+          >
+            {CLEFS.fClef}
+          </text>
         </>
       ) : (
         <>
-          {/* Standard Staff Lines (faint) - Optional for icon, but kept for consistency if desired. 
-              Actually, for a small toolbar icon, lines might be too much noise. 
-              Let's make lines optional or context dependent? 
-              For now, let's keep them as they provide context for the clef position. 
-              But wait, the toolbar icon was just the clef path before.
-              The Overlay had lines.
-              Let's include lines but maybe use opacity to keep them subtle.
-          */}
+          {/* Staff lines for context */}
           {[0, 1, 2, 3, 4].map(i => (
               <line 
                 key={i} 
@@ -66,17 +96,17 @@ const ClefIcon: React.FC<ClefIconProps> = ({ clef, ...props }) => {
               />
           ))}
           
-          <path 
-              d={data.path} 
-              transform={
-                key === 'treble' 
-                  ? "scale(0.35) translate(30, 20)" 
-                  : key === 'bass'
-                    ? "scale(0.065) translate(60, -120)"
-                    : `scale(${data.scale || 0.5}) translate(10, 10)`
-              } 
-              fill="currentColor"
-          />
+          {/* Clef rendered with Bravura font */}
+          <text
+            x={config.x}
+            y={config.y}
+            fontFamily={BRAVURA_FONT}
+            fontSize={config.fontSize}
+            fill="currentColor"
+            textAnchor="middle"
+          >
+            {getClefGlyph()}
+          </text>
         </>
       )}
     </svg>
@@ -84,3 +114,4 @@ const ClefIcon: React.FC<ClefIconProps> = ({ clef, ...props }) => {
 };
 
 export default ClefIcon;
+

@@ -1,10 +1,9 @@
-
 // @ts-nocheck
 import React from 'react';
-import { NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH } from '../../constants';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
-import { getNoteDuration } from '../../utils/core';
+import { REST_GLYPHS, BRAVURA_FONT, getFontSize, DOTS } from '../../constants/SMuFL';
+import { LAYOUT } from '../../constants';
 
 interface RestProps {
   duration: string;
@@ -16,62 +15,95 @@ interface RestProps {
 }
 
 /**
- * Renders a rest symbol.
- * Handles precise positioning (accepting an override 'x' or calculating based on quant).
+ * Y-offset for each rest type, relative to baseY (top of staff).
+ * In standard notation:
+ * - Whole rest hangs from the 4th line (line index 1, at baseY + lineHeight)
+ * - Half rest sits on the 3rd line (line index 2, at baseY + 2*lineHeight)
+ * - Quarter/Eighth/Sixteenth rests are centered vertically on the staff
+ */
+const getRestY = (duration: string, baseY: number): number => {
+  const lineHeight = CONFIG.lineHeight;
+  const staffMiddle = baseY + lineHeight * 2; // Middle line (3rd line)
+  
+  switch (duration) {
+    case 'whole':
+      // Whole rest hangs from line 2 (the 4th line from bottom)
+      return baseY + lineHeight;
+    case 'half':
+      // Half rest sits on line 3 (the middle line)
+      return baseY + lineHeight * 2;
+    default:
+      // Quarter, eighth, sixteenth, etc. are centered on the staff
+      return staffMiddle;
+  }
+};
+
+/**
+ * Renders a rest symbol using Bravura font glyphs.
  * @param {Object} props
- * @param {string} props.duration - Duration of the rest
+ * @param {string} props.duration - Duration of the rest (whole, half, quarter, eighth, etc.)
  * @param {boolean} props.dotted - Whether the rest is dotted
- * @param {number} props.x - Explicit X position override
- * @param {number} props.quant - Quant position (used if x not provided)
- * @param {number} props.quantWidth - Width per quant
- * @param {number} props.baseY - Y-offset for the staff
+ * @param {number} props.x - X position for the rest
+ * @param {number} props.baseY - Y-offset for the staff (top line)
  */
 export const Rest = ({
   duration,
   dotted = false,
   x = 0,
-  quant = 0,
   baseY = CONFIG.baseY
 }: RestProps) => {
   const { theme } = useTheme();
-
-  // Determine final rendering characteristics
-  // Render Whole Rest (Hanging from 2nd line)
-  const restY = baseY + CONFIG.lineHeight;
-  const restHeight = CONFIG.lineHeight / 2;
-  const restWidth = WHOLE_REST_WIDTH;
-
-  // Calculate Center
-  let finalX = 0;
   
-  // Base X position (normally start of quant, but can be overridden)
-  // We rely on 'x' passed from the layout engine.
-  const baseX = x > 0 ? x : CONFIG.measurePaddingLeft;
-  
-  // Check if we have a direct override.
-  // When x prop is > 0, we treat it as the precise LEFT edge position.
-  if (x > 0) {
-       finalX = x;
-  } else {
-       // Default fallback logic for normal flow (if not explicitly centered by measure)
-       // Note: This path should rarely be taken in the new layout engine
-       const quants = getNoteDuration(duration, dotted, undefined);
-       const noteWidth = NOTE_SPACING_BASE_UNIT * Math.sqrt(quants);
-       const centerOffset = (CONFIG.measurePaddingLeft - CONFIG.measurePaddingRight) / 2;
-       const centerX = baseX + (noteWidth / 2) - centerOffset;
-       
-       finalX = centerX - (restWidth / 2);
+  // Get the appropriate glyph for this rest duration
+  const glyph = REST_GLYPHS[duration];
+  if (!glyph) {
+    // Fallback: render nothing if unknown duration
+    console.warn(`Unknown rest duration: ${duration}`);
+    return null;
   }
   
+  // Position rest at x (passed from layout engine) or at measure padding
+  const finalX = x > 0 ? x : CONFIG.measurePaddingLeft;
+  const restY = getRestY(duration, baseY);
+  
+  // Font size based on staff space (SMuFL: 1 staff space = 0.25em)
+  const fontSize = getFontSize(CONFIG.lineHeight);
+  
+  // Dot positioning for dotted rests
+  const renderDot = () => {
+    if (!dotted) return null;
+    // Position dot to the right of the rest, in a space
+    const dotX = finalX + fontSize * 0.4; // Roughly half a glyph width to the right
+    const dotY = restY - CONFIG.lineHeight / 2; // Move up to a space for visibility
+    return (
+      <text
+        x={dotX}
+        y={dotY}
+        fontFamily={BRAVURA_FONT}
+        fontSize={fontSize}
+        textAnchor="start"
+        fill={theme.score.note}
+        style={{ userSelect: 'none' }}
+      >
+        {DOTS.augmentationDot}
+      </text>
+    );
+  };
+  
   return (
-      <g className="rest-placeholder">
-          <rect 
-              x={finalX} 
-              y={restY} 
-              width={restWidth} 
-              height={restHeight} 
-              fill={theme.score.note} 
-          />
-      </g>
+    <g className="rest-group">
+      <text
+        x={finalX}
+        y={restY}
+        fontFamily={BRAVURA_FONT}
+        fontSize={fontSize}
+        textAnchor="middle"
+        fill={theme.score.note}
+        style={{ userSelect: 'none' }}
+      >
+        {glyph}
+      </text>
+      {renderDot()}
+    </g>
   );
 };

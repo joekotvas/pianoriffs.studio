@@ -9,14 +9,15 @@ import { needsAccidental } from '../../services/MusicService';
 import { Note, renderFlags } from './Note';
 import { ChordStem, ChordAccidental, NoteHitArea } from './ChordComponents';
 import { isNoteSelected, areAllNotesSelected } from '../../utils/selection';
+import { ACCIDENTALS } from '../../constants/SMuFL';
 
 // --- Helper Functions (Pure Logic) ---
 
 /**
- * Determines accidental symbol to render for a given note.
+ * Determines accidental glyph to render for a given note.
  * @param {Object} note - The note object
  * @param {string} keySignature - The key signature of the measure
- * @returns {string|null} The accidental symbol (♯, ♭, ♮) or null if none needed
+ * @returns {string|null} The Bravura accidental glyph or null if none needed
  */
 const getAccidentalSymbol = (note, keySignature) => {
   const info = needsAccidental(note.pitch, keySignature);
@@ -28,7 +29,12 @@ const getAccidentalSymbol = (note, keySignature) => {
 
   if (!show || !type) return null;
   
-  const map = { sharp: '♯', flat: '♭', natural: '♮' };
+  // Return Bravura font glyphs for professional typography
+  const map = { 
+    sharp: ACCIDENTALS.sharp, 
+    flat: ACCIDENTALS.flat, 
+    natural: ACCIDENTALS.natural 
+  };
   return map[type] || null;
 };
 

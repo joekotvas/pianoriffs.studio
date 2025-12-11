@@ -1,8 +1,9 @@
 import React from 'react';
-import { TREBLE_CLEF_PATH, CLEF_TYPES, KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '../../constants';
+import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '../../constants';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { calculateHeaderLayout, HEADER_CONSTANTS } from '../../engines/layout';
+import { ACCIDENTALS, CLEFS, TIME_SIG_DIGITS, BRAVURA_FONT, getFontSize } from '../../constants/SMuFL';
 
 interface ScoreHeaderProps {
   clef: string;
@@ -47,15 +48,16 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
         data-testid={`clef-${clef}`}
       >
         <rect x="-5" y={baseY - 25} width={CLEF_WIDTH} height="100" fill="transparent" />
-        {clef === 'treble' ? (
-          <g transform={`translate(-8, ${baseY - 20}) scale(0.6)`}>
-            <path d={TREBLE_CLEF_PATH} fill={theme.score.fill} />
-          </g>
-        ) : (
-          <g transform={`translate(6, ${baseY - 3}) scale(${CLEF_TYPES.bass.scale})`}>
-            <path d={CLEF_TYPES.bass.path} fill={theme.score.fill} transform="translate(-150, -270)" />
-          </g>
-        )}
+        <text
+          x={12}
+          y={clef === 'treble' ? baseY + CONFIG.lineHeight * 3 : baseY + CONFIG.lineHeight}
+          fontFamily={BRAVURA_FONT}
+          fontSize={getFontSize(CONFIG.lineHeight)}
+          fill={theme.score.fill}
+          textAnchor="start"
+        >
+          {clef === 'treble' ? CLEFS.gClef : CLEFS.fClef}
+        </text>
       </g>
       
       {/* Key Signature */}
@@ -77,12 +79,12 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
               <text 
                 key={i} 
                 x={x} 
-                y={y + 6} // Adjust for text baseline
-                fontSize={type === 'flat' ? "20" : "24"}
-                fontFamily="serif"
+                y={y}
+                fontSize={getFontSize(CONFIG.lineHeight)}
+                fontFamily={BRAVURA_FONT}
                 fill={theme.score.fill}
               >
-                {type === 'sharp' ? '♯' : '♭'}
+                {type === 'sharp' ? ACCIDENTALS.sharp : ACCIDENTALS.flat}
               </text>
             );
          })}
@@ -94,8 +96,8 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
         style={{ cursor: 'pointer', userSelect: 'none' }}
       >
          <rect x={timeSigStartX} y={baseY} width={TIME_SIG_WIDTH} height="48" fill="transparent" />
-         <text x={timeSigStartX + 15} y={baseY + (CONFIG.lineHeight * 2) - 1} fontSize="28" fontWeight="bold" fontFamily="serif" textAnchor="middle" fill={theme.text}>{timeSignature.split('/')[0]}</text>
-         <text x={timeSigStartX + 15} y={baseY + (CONFIG.lineHeight * 4) - 1} fontSize="28" fontWeight="bold" fontFamily="serif" textAnchor="middle" fill={theme.text}>{timeSignature.split('/')[1]}</text>
+         <text x={timeSigStartX + 15} y={baseY + CONFIG.lineHeight} fontSize={getFontSize(CONFIG.lineHeight)} fontFamily={BRAVURA_FONT} textAnchor="middle" fill={theme.text}>{TIME_SIG_DIGITS[timeSignature.split('/')[0] as keyof typeof TIME_SIG_DIGITS]}</text>
+         <text x={timeSigStartX + 15} y={baseY + (CONFIG.lineHeight * 3)} fontSize={getFontSize(CONFIG.lineHeight)} fontFamily={BRAVURA_FONT} textAnchor="middle" fill={theme.text}>{TIME_SIG_DIGITS[timeSignature.split('/')[1] as keyof typeof TIME_SIG_DIGITS]}</text>
       </g>
     </g>
   );

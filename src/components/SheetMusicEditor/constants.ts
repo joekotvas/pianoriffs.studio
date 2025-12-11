@@ -67,7 +67,7 @@ export const KEY_SIGNATURE_OFFSETS: KeySignatureOffsets = {
 
 export const NOTE_SPACING_BASE_UNIT = 16;
 export const WHOLE_REST_WIDTH = 12;
-export const DEFAULT_SCALE = 0.9;
+export const DEFAULT_SCALE = 1;
 
 export const MIDDLE_LINE_Y = CONFIG.baseY + 24;
 
@@ -125,7 +125,6 @@ export const LAYOUT = {
   DOT_RADIUS: 3,
   
   // Derived from lineHeight
-  STEM_OFFSET_X: HALF_SPACE,           // 6
   SECOND_INTERVAL_SHIFT: SPACE - 1,    // 11 (note displacement for seconds)
   SECOND_INTERVAL_SPACE: HALF_SPACE,   // 6 (extra width for second spacing)
   DOT_OFFSET_X: SPACE,                 // 12
@@ -167,6 +166,7 @@ export const STEM = {
     thirtysecond: 45,
     sixtyfourth: 55,
   } as Record<string, number>,
+  OFFSET_X: HALF_SPACE + .22,  // 7 - Horizontal offset for Bravura notehead width
 };
 
 export const BEAMING = {

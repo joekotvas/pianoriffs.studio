@@ -1,5 +1,7 @@
 import React from 'react';
 import { LAYOUT } from '../../constants';
+import { CONFIG } from '../../config';
+import { BRAVURA_FONT, getFontSize } from '../../constants/SMuFL';
 
 /**
  * Renders the stem line for a chord.
@@ -9,16 +11,21 @@ export const ChordStem = ({ x, startY, endY, color }: { x: number, startY: numbe
 );
 
 /**
- * Renders an accidental symbol.
+ * Renders an accidental symbol using Bravura font glyphs.
+ * @param symbol - The Bravura glyph for the accidental (from ACCIDENTALS constants)
  */
 export const ChordAccidental = ({ x, y, symbol, color }: { x: number, y: number, symbol: string | null, color: string }) => {
   if (!symbol) return null;
+  
+  // Use SMuFL font sizing for consistent typography with noteheads
+  const fontSize = getFontSize(CONFIG.lineHeight);
+  
   return (
     <text
       x={x}
       y={y}
-      fontSize={LAYOUT.ACCIDENTAL.FONT_SIZE}
-      fontFamily="serif"
+      fontSize={fontSize}
+      fontFamily={BRAVURA_FONT}
       fill={color}
       textAnchor="middle"
       style={{ userSelect: 'none' }}
