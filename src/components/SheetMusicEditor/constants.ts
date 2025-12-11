@@ -111,6 +111,24 @@ export const NOTE_TYPES: Record<string, NoteType> = {
   sixtyfourth: { duration: 1, label: '64th', fill: 'black', stroke: 'black', stem: true, flag: 4, abcDuration: '/16', xmlType: '64th' },
 };
 
+// ========== REST TYPES ==========
+// Mirrors NOTE_TYPES pattern for consistency
+
+export interface RestType {
+  viewBox: string;
+  scale: number;
+  offsetY: number;  // Vertical offset from staff center (positive = down)
+}
+
+export const REST_TYPES: Record<string, RestType> = {
+  whole:        { viewBox: '100 250 400 200', scale: 0.08, offsetY: -30 },  // Hangs from line 2
+  half:         { viewBox: '100 380 400 200', scale: 0.08, offsetY: -18 },  // Sits on line 3
+  quarter:      { viewBox: '100 500 200 400', scale: 0.06, offsetY: -12 },  // Centered on staff
+  eighth:       { viewBox: '150 250 200 650', scale: 0.05, offsetY: -6 },   // Centered on staff
+  sixteenth:    { viewBox: '150 150 200 750', scale: 0.05, offsetY: -6 },   // Centered on staff
+  thirtysecond: { viewBox: '150 50 200 850', scale: 0.045, offsetY: -6 },   // Centered on staff
+};
+
 // ========== LAYOUT CONSTANTS ==========
 // Derived from CONFIG.lineHeight for consistency and scalability
 

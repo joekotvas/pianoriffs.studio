@@ -7,6 +7,7 @@ import ModifierControls from './ModifierControls';
 import AccidentalControls from './AccidentalControls';
 import MeasureControls from './MeasureControls';
 import TupletControls from './TupletControls';
+import RestControls from './RestControls';
 import MelodyLibrary from './MelodyLibrary';
 import ToolbarButton from './ToolbarButton';
 import { Melody, getActiveStaff } from '../../types';
@@ -88,7 +89,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       handleTimeSignatureChange, handleKeySignatureChange,
       handleClefChange,
       dispatch, applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio,
-      selectedDurations, editorState, selectedDots, selectedTies, selectedAccidentals
+      selectedDurations, editorState, selectedDots, selectedTies, selectedAccidentals,
+      isRestMode, handleRestModeToggle
   } = useScoreContext();
 
   useImperativeHandle(ref, () => ({
@@ -178,6 +180,14 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           isDurationValid={checkDurationValidity}
           selectedDurations={selectedDurations} // Derived from selection
           editorState={editorState}             // 'SELECTION_READY' | 'ENTRY_READY' | 'IDLE'
+        />
+
+        <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
+
+        {/* Rest Buttons */}
+        <RestControls 
+          activeRestDuration={isRestMode ? activeDuration : null}
+          onRestSelect={(duration) => handleRestModeToggle(duration)}
         />
 
         <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>

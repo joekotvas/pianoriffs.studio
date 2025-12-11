@@ -5,6 +5,7 @@ export const useEditorTools = () => {
   const [isDotted, setIsDotted] = useState(false);
   const [activeAccidental, setActiveAccidental] = useState<'flat' | 'natural' | 'sharp' | null>(null); // null, 'sharp', 'flat', 'natural'
   const [activeTie, setActiveTie] = useState(false);
+  const [isRestMode, setIsRestMode] = useState(false);
   
   // User Preferences (Sticky state)
   const [userSelectedDuration, setUserSelectedDuration] = useState('quarter');
@@ -13,6 +14,8 @@ export const useEditorTools = () => {
   const handleDurationChange = (newDuration: string) => {
       setActiveDuration(newDuration);
       setUserSelectedDuration(newDuration);
+      // Selecting a note duration exits rest mode
+      setIsRestMode(false);
   };
 
   const handleDotToggle = () => {
@@ -34,6 +37,18 @@ export const useEditorTools = () => {
       return newState;
   };
 
+  const handleRestModeToggle = (duration?: string) => {
+      if (duration) {
+          // Clicking a rest button sets the duration AND enters rest mode
+          setActiveDuration(duration);
+          setUserSelectedDuration(duration);
+          setIsRestMode(true);
+      } else {
+          // Toggle rest mode
+          setIsRestMode(!isRestMode);
+      }
+  };
+
   return {
       activeDuration,
       setActiveDuration,
@@ -43,11 +58,14 @@ export const useEditorTools = () => {
       setActiveAccidental,
       activeTie,
       setActiveTie,
+      isRestMode,
+      setIsRestMode,
       userSelectedDuration,
       userSelectedDotted,
       handleDurationChange,
       handleDotToggle,
       handleAccidentalToggle,
-      handleTieToggle
+      handleTieToggle,
+      handleRestModeToggle
   };
 };

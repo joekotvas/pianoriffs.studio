@@ -120,6 +120,27 @@ const createEventHitZones = (
  * @returns Object containing chordLayout, totalWidth, accidentalSpace, offsets, and baseWidth
  */
 const getEventMetrics = (event: ScoreEvent, clef: string) => {
+    // Handle rest events (no notes, no accidentals, no chord layout)
+    if (event.isRest || !event.notes || event.notes.length === 0) {
+        const baseWidth = getNoteWidth(event.duration, event.dotted);
+        return {
+            chordLayout: {
+                sortedNotes: [],
+                direction: 'up' as const,
+                noteOffsets: {},
+                maxNoteShift: 0,
+                minNoteShift: 0,
+                minY: 0,
+                maxY: 0
+            },
+            totalWidth: baseWidth,
+            accidentalSpace: 0,
+            minOffset: 0,
+            maxOffset: 0,
+            baseWidth
+        };
+    }
+
     const chordLayout = calculateChordLayout(event.notes, clef);
     const hasAccidental = event.notes.some((n: Note) => n.accidental);
     const accidentalSpace = hasAccidental ? ACCIDENTAL_PADDING : 0;

@@ -11,6 +11,7 @@ import { AddMeasureCommand } from '../commands/MeasureCommands';
 import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
 import { DeleteEventCommand } from '../commands/DeleteEventCommand';
 import { ChangePitchCommand } from '../commands/ChangePitchCommand';
+import { AddRestCommand } from '../commands/AddRestCommand';
 import { getAppendPreviewNote } from '../utils/interaction';
 
 interface UseNoteActionsProps {
@@ -25,6 +26,7 @@ interface UseNoteActionsProps {
   activeTie: boolean;
   currentQuantsPerMeasure: number;
   dispatch: (command: Command) => void;
+  isRestMode?: boolean;
   // deprecated but currently passed by useScoreLogic before refactor is complete
   syncToolbarState?: any; 
 }
@@ -51,7 +53,8 @@ export const useNoteActions = ({
   activeAccidental,
   activeTie,
   currentQuantsPerMeasure,
-  dispatch
+  dispatch,
+  isRestMode = false
 }: UseNoteActionsProps): UseNoteActionsReturn => {
 
   const handleMeasureHover = useCallback((measureIndex: number | null, hit: any, rawPitch: string, staffIndex: number = 0) => {
@@ -187,6 +190,21 @@ export const useNoteActions = ({
     } else {
         // Create new event
         const eventId = Date.now().toString();
+        
+        // Check if we're in rest mode
+        if (isRestMode) {
+            // Dispatch AddRestCommand (no pitch needed)
+            dispatch(new AddRestCommand(
+                measureIndex, 
+                activeDuration, 
+                isDotted, 
+                mode === 'INSERT' ? insertIndex : undefined,
+                currentStaffIndex
+            ));
+            setPreviewNote(null);
+            return;
+        }
+        
         const noteToAdd = {
             id: Date.now() + 1,
             pitch: newNote.pitch,

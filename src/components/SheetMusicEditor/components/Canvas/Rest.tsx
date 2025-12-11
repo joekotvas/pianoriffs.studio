@@ -1,77 +1,56 @@
-
 // @ts-nocheck
 import React from 'react';
-import { NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH } from '../../constants';
+import { REST_TYPES, LAYOUT } from '../../constants';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
-import { getNoteDuration } from '../../utils/core';
+import { REST_GLYPHS } from '../Assets/RestGlyphs';
 
 interface RestProps {
   duration: string;
   dotted?: boolean;
   x?: number;
-  quant?: number;
   baseY?: number;
-  noteX?: number; // Pre-calculated x-position if available
 }
 
 /**
- * Renders a rest symbol.
- * Handles precise positioning (accepting an override 'x' or calculating based on quant).
- * @param {Object} props
- * @param {string} props.duration - Duration of the rest
- * @param {boolean} props.dotted - Whether the rest is dotted
- * @param {number} props.x - Explicit X position override
- * @param {number} props.quant - Quant position (used if x not provided)
- * @param {number} props.quantWidth - Width per quant
- * @param {number} props.baseY - Y-offset for the staff
+ * Renders a rest symbol using SVG path glyphs.
+ * Positioning follows standard engraving rules:
+ * - Whole rest: Hangs from line 2
+ * - Half rest: Sits on line 3
+ * - Quarter and shorter: Vertically centered on staff
  */
 export const Rest = ({
   duration,
   dotted = false,
   x = 0,
-  quant = 0,
   baseY = CONFIG.baseY
 }: RestProps) => {
   const { theme } = useTheme();
 
-  // Determine final rendering characteristics
-  // Render Whole Rest (Hanging from 2nd line)
-  const restY = baseY + CONFIG.lineHeight;
-  const restHeight = CONFIG.lineHeight / 2;
-  const restWidth = WHOLE_REST_WIDTH;
+  // Get configuration for this rest duration
+  const config = REST_TYPES[duration] || REST_TYPES.quarter;
+  const pathData = REST_GLYPHS[duration] || REST_GLYPHS.quarter;
 
-  // Calculate Center
-  let finalX = 0;
-  
-  // Base X position (normally start of quant, but can be overridden)
-  // We rely on 'x' passed from the layout engine.
-  const baseX = x > 0 ? x : CONFIG.measurePaddingLeft;
-  
-  // Check if we have a direct override.
-  // When x prop is > 0, we treat it as the precise LEFT edge position.
-  if (x > 0) {
-       finalX = x;
-  } else {
-       // Default fallback logic for normal flow (if not explicitly centered by measure)
-       // Note: This path should rarely be taken in the new layout engine
-       const quants = getNoteDuration(duration, dotted, undefined);
-       const noteWidth = NOTE_SPACING_BASE_UNIT * Math.sqrt(quants);
-       const centerOffset = (CONFIG.measurePaddingLeft - CONFIG.measurePaddingRight) / 2;
-       const centerX = baseX + (noteWidth / 2) - centerOffset;
-       
-       finalX = centerX - (restWidth / 2);
-  }
-  
+  // Calculate vertical position
+  // offsetY is relative to staff center (line 3)
+  const staffCenterY = baseY + (CONFIG.lineHeight * 2); // Line 3
+  const y = staffCenterY + config.offsetY;
+
+  // Render dot if dotted
+  const renderDot = () => {
+    if (!dotted) return null;
+    // Position dot to the right of the rest
+    const dotX = x + 15;
+    const dotY = staffCenterY - 6; // In a space
+    return <circle cx={dotX} cy={dotY} r={LAYOUT.DOT_RADIUS} fill={theme.score.note} />;
+  };
+
   return (
-      <g className="rest-placeholder">
-          <rect 
-              x={finalX} 
-              y={restY} 
-              width={restWidth} 
-              height={restHeight} 
-              fill={theme.score.note} 
-          />
+    <g className="rest-group">
+      <g transform={`translate(${x}, ${y}) scale(${config.scale})`}>
+        <path d={pathData} fill={theme.score.note} />
       </g>
+      {renderDot()}
+    </g>
   );
 };

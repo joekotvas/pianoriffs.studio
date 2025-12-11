@@ -13,6 +13,7 @@ import { useEditorMode } from './useEditorMode';
 
 import { Score, createDefaultScore, migrateScore, getActiveStaff } from '../types';
 import { getAppendPreviewNote } from '../utils/interaction';
+import { AddRestCommand } from '../commands/AddRestCommand';
 
 /**
  * Main score logic orchestrator hook.
@@ -45,6 +46,7 @@ export const useScoreLogic = (initialScore: any) => {
       isDotted, setIsDotted, 
       activeAccidental, setActiveAccidental, 
       activeTie, setActiveTie,
+      isRestMode, handleRestModeToggle
   } = tools;
 
   // --- SELECTION & PREVIEW STATE ---
@@ -126,7 +128,8 @@ export const useScoreLogic = (initialScore: any) => {
     activeAccidental,
     activeTie,
     currentQuantsPerMeasure,
-    dispatch: engine.dispatch.bind(engine)
+    dispatch: engine.dispatch.bind(engine),
+    isRestMode
   });
 
   // Modifiers: duration, dots, accidentals, ties
@@ -326,6 +329,36 @@ export const useScoreLogic = (initialScore: any) => {
       }
   }, [editorState, modifiers.handleDurationChange, setActiveDuration, lastSelection, scoreRef, isDotted, previewNote]);
 
+  // --- ADD REST HANDLER ---
+  const addRest = useCallback((duration: string, dotted: boolean = false) => {
+    // Get the current selection or last measure to determine where to add
+    const currentScore = scoreRef.current;
+    const staffIndex = selection.staffIndex || 0;
+    const staff = getActiveStaff(currentScore, staffIndex);
+    
+    // Default to appending to last measure if no selection
+    let measureIndex = staff.measures.length - 1;
+    let insertIndex: number | undefined;
+    
+    // If we have a preview note position, use that
+    if (previewNote && previewNote.measureIndex !== undefined) {
+      measureIndex = previewNote.measureIndex;
+      insertIndex = previewNote.index;
+    } else if (selection.measureIndex !== null) {
+      measureIndex = selection.measureIndex;
+      // Find insert position after selected event
+      if (selection.eventId) {
+        const measure = staff.measures[measureIndex];
+        const eventIdx = measure?.events.findIndex((e: any) => e.id === selection.eventId);
+        if (eventIdx !== undefined && eventIdx >= 0) {
+          insertIndex = eventIdx + 1;
+        }
+      }
+    }
+    
+    engine.dispatch(new AddRestCommand(measureIndex, duration, dotted, insertIndex, staffIndex));
+  }, [selection, previewNote, engine]);
+
 
   // --- EXPORTS ---
   return {
@@ -377,6 +410,9 @@ export const useScoreLogic = (initialScore: any) => {
     activeTupletRatio: tupletActions.getActiveTupletRatio(),
     transposeSelection: navigation.transposeSelection,
     moveSelection: navigation.moveSelection,
-    switchStaff: navigation.switchStaff
+    switchStaff: navigation.switchStaff,
+    addRest,
+    isRestMode,
+    handleRestModeToggle
   };
 };
