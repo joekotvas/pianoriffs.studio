@@ -67,7 +67,7 @@ export const KEY_SIGNATURE_OFFSETS: KeySignatureOffsets = {
 
 export const NOTE_SPACING_BASE_UNIT = 16;
 export const WHOLE_REST_WIDTH = 12;
-export const DEFAULT_SCALE = 0.8;
+export const DEFAULT_SCALE = 0.9;
 
 export const MIDDLE_LINE_Y = CONFIG.baseY + 24;
 

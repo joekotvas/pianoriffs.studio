@@ -51,6 +51,7 @@ const Measure: React.FC<MeasureProps> = ({
   const [hoveredPitch, setHoveredPitch] = useState<string | null>(null);
   const [cursorX, setCursorX] = useState<number | null>(null);
   const [isNoteHovered, setIsNoteHovered] = useState(false);
+  const [cursorStyle, setCursorStyle] = useState<string>('crosshair');
 
   // --- Layout Calculation ---
   const measureLayout = useMemo(() => {
@@ -174,9 +175,15 @@ const Measure: React.FC<MeasureProps> = ({
     if (hit) {
          // Pass raw event and calculated pitch
          onHover?.(measureIndex, hit, pitch); 
+         if (hit.type === 'EVENT') {
+             setCursorStyle('default');
+         } else {
+             setCursorStyle('crosshair');
+         }
     } else {
         // Pass "gap" hit and calculated pitch
          onHover?.(measureIndex, { x: x, quant: 0, duration: activeDuration }, pitch);
+         setCursorStyle('crosshair');
     }
   };
 
@@ -185,6 +192,7 @@ const Measure: React.FC<MeasureProps> = ({
     setHoveredPitch(null);
     setCursorX(null);
     onHover?.(null, null, null);
+    setCursorStyle('crosshair');
   };
 
   const handleMeasureClick = (e: React.MouseEvent) => {
@@ -308,7 +316,7 @@ const Measure: React.FC<MeasureProps> = ({
         width={effectiveWidth} 
         height={CONFIG.lineHeight * 12} 
         fill="transparent" 
-        style={{ cursor: 'crosshair' }} 
+        style={{ cursor: cursorStyle }} 
         onClick={handleMeasureClick}
         onMouseMove={handleMeasureMouseMove}
         onMouseLeave={handleMeasureMouseLeave}
