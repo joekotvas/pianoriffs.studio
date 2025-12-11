@@ -1,4 +1,5 @@
 import { CONFIG } from './config';
+import { Key } from 'tonal';
 
 
 export const TIME_SIGNATURES: Record<string, number> = {
@@ -15,23 +16,50 @@ export interface KeySignature {
   accidentals: string[];
 }
 
-export const KEY_SIGNATURES: Record<string, KeySignature> = {
-  'C': { label: 'C Major', type: 'sharp', count: 0, accidentals: [] },
-  'G': { label: 'G Major', type: 'sharp', count: 1, accidentals: ['F'] },
-  'D': { label: 'D Major', type: 'sharp', count: 2, accidentals: ['F', 'C'] },
-  'A': { label: 'A Major', type: 'sharp', count: 3, accidentals: ['F', 'C', 'G'] },
-  'E': { label: 'E Major', type: 'sharp', count: 4, accidentals: ['F', 'C', 'G', 'D'] },
-  'B': { label: 'B Major', type: 'sharp', count: 5, accidentals: ['F', 'C', 'G', 'D', 'A'] },
-  'F#': { label: 'F# Major', type: 'sharp', count: 6, accidentals: ['F', 'C', 'G', 'D', 'A', 'E'] },
-  'C#': { label: 'C# Major', type: 'sharp', count: 7, accidentals: ['F', 'C', 'G', 'D', 'A', 'E', 'B'] },
-  'F': { label: 'F Major', type: 'flat', count: 1, accidentals: ['B'] },
-  'Bb': { label: 'Bb Major', type: 'flat', count: 2, accidentals: ['B', 'E'] },
-  'Eb': { label: 'Eb Major', type: 'flat', count: 3, accidentals: ['B', 'E', 'A'] },
-  'Ab': { label: 'Ab Major', type: 'flat', count: 4, accidentals: ['B', 'E', 'A', 'D'] },
-  'Db': { label: 'Db Major', type: 'flat', count: 5, accidentals: ['B', 'E', 'A', 'D', 'G'] },
-  'Gb': { label: 'Gb Major', type: 'flat', count: 6, accidentals: ['B', 'E', 'A', 'D', 'G', 'C'] },
-  'Cb': { label: 'Cb Major', type: 'flat', count: 7, accidentals: ['B', 'E', 'A', 'D', 'G', 'C', 'F'] }
-};
+// 1. The Constants (The only hardcoded theory - notation convention for display order)
+const SHARPS = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
+const FLATS  = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
+
+// 2. The Inputs (Major keys only; we derive minors from these)
+const MAJOR_ROOTS = [
+  'C',
+  'G', 'D', 'A', 'E', 'B', 'F#', 'C#',  // Sharp Keys
+  'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb' // Flat Keys
+];
+
+export const KEY_SIGNATURES: Record<string, KeySignature> = {};
+
+// 3. The Generator Loop
+MAJOR_ROOTS.forEach(root => {
+  // Get data from Tonal
+  const keyInfo = Key.majorKey(root);
+  const count = Math.abs(keyInfo.alteration);
+  const type: 'sharp' | 'flat' = keyInfo.alteration < 0 ? 'flat' : 'sharp';
+  
+  // Grab the correct slice of accidentals
+  const accidentals = type === 'flat' 
+    ? FLATS.slice(0, count) 
+    : SHARPS.slice(0, count);
+
+  // --- Add MAJOR Key ---
+  KEY_SIGNATURES[root] = {
+    label: `${root} Major`,
+    type,
+    count,
+    accidentals
+  };
+
+  // --- Add MINOR Key (Relative) ---
+  // Tonal gives us the relative minor root (e.g., 'C' -> 'A')
+  const minorRoot = keyInfo.minorRelative; 
+  
+  KEY_SIGNATURES[minorRoot] = {
+    label: `${minorRoot} Minor`,
+    type,
+    count,
+    accidentals 
+  };
+});
 
 // Offsets for drawing key signature accidentals (relative to base Y)
 // These follow standard notation rules for placement
