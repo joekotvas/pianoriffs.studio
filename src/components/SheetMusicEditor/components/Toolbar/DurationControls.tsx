@@ -1,7 +1,9 @@
 import React from 'react';
 import { NOTE_TYPES } from '../../constants';
 import NoteIcon from '../Assets/NoteIcon';
+import RestIcon from '../Assets/RestIcon';
 import ToolbarButton from './ToolbarButton';
+import { InputMode } from './InputModeToggle';
 
 interface DurationControlsProps {
   activeDuration: string;
@@ -9,14 +11,23 @@ interface DurationControlsProps {
   isDurationValid: (duration: string) => boolean;
   selectedDurations?: string[];
   editorState?: 'SELECTION_READY' | 'ENTRY_READY' | 'IDLE';
+  /** Current input mode - shows rest icons when 'REST' */
+  inputMode?: InputMode;
 }
 
+/**
+ * Duration selection controls for the toolbar.
+ * 
+ * Displays note or rest icons based on inputMode.
+ * Handles visual states for selection (active, emphasized, dashed).
+ */
 const DurationControls: React.FC<DurationControlsProps> = ({
   activeDuration,
   onDurationChange,
   isDurationValid,
   selectedDurations = [],
-  editorState = 'IDLE'
+  editorState = 'IDLE',
+  inputMode = 'NOTE'
 }) => {
   return (
     <div className="flex gap-1">
@@ -48,6 +59,9 @@ const DurationControls: React.FC<DurationControlsProps> = ({
             isActive = activeDuration === type;
         }
 
+        // Choose icon based on input mode
+        const IconComponent = inputMode === 'REST' ? RestIcon : NoteIcon;
+
         return (
           <ToolbarButton
             key={type}
@@ -57,7 +71,7 @@ const DurationControls: React.FC<DurationControlsProps> = ({
             isActive={isActive}
             isEmphasized={isEmphasized}
             isDashed={isDashed}
-            icon={<NoteIcon type={type} color={isActive ? "white" : "currentColor"} />}
+            icon={<IconComponent type={type} color={isActive ? "white" : "currentColor"} />}
             preventFocus={true}
             disabled={!isDurationValid(type)}
           />

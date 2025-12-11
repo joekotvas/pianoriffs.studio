@@ -45,6 +45,7 @@ export const useScoreLogic = (initialScore: any) => {
       isDotted, setIsDotted, 
       activeAccidental, setActiveAccidental, 
       activeTie, setActiveTie,
+      inputMode, setInputMode, toggleInputMode,
   } = tools;
 
   // --- SELECTION & PREVIEW STATE ---
@@ -97,8 +98,16 @@ export const useScoreLogic = (initialScore: any) => {
               setActiveAccidental(null);
               setActiveTie(false);
           }
+          
+          // Sync inputMode based on selection composition
+          // Single event: match its type
+          if (event.isRest) {
+              setInputMode('REST');
+          } else {
+              setInputMode('NOTE');
+          }
       }
-  }, [selection, score, setActiveAccidental, setActiveTie]);
+  }, [selection, score, setActiveAccidental, setActiveTie, setInputMode]);
 
   // Deprecated shim
   const syncToolbarState = useCallback(() => {}, []); 
@@ -350,6 +359,9 @@ export const useScoreLogic = (initialScore: any) => {
     setIsDotted,
     activeAccidental,
     activeTie,
+    inputMode,
+    setInputMode,
+    toggleInputMode,
     handleTimeSignatureChange: measureActions.handleTimeSignatureChange,
     handleKeySignatureChange: measureActions.handleKeySignatureChange,
     addMeasure: measureActions.addMeasure,

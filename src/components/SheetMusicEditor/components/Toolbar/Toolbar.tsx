@@ -9,6 +9,7 @@ import MeasureControls from './MeasureControls';
 import TupletControls from './TupletControls';
 import MelodyLibrary from './MelodyLibrary';
 import ToolbarButton from './ToolbarButton';
+import InputModeToggle from './InputModeToggle';
 import { Melody, getActiveStaff } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
 import { BookOpen } from 'lucide-react';
@@ -88,7 +89,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       handleTimeSignatureChange, handleKeySignatureChange,
       handleClefChange,
       dispatch, applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio,
-      selectedDurations, editorState, selectedDots, selectedTies, selectedAccidentals
+      selectedDurations, editorState, selectedDots, selectedTies, selectedAccidentals,
+      inputMode, setInputMode
   } = useScoreContext();
 
   useImperativeHandle(ref, () => ({
@@ -171,13 +173,20 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
 
         <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
 
+        {/* Input Mode Toggle (Note/Rest) */}
+        <InputModeToggle 
+          mode={inputMode} 
+          onChange={setInputMode} 
+        />
+
         {/* Duration Buttons */}
         <DurationControls 
           activeDuration={activeDuration}
           onDurationChange={handleDurationChange}
           isDurationValid={checkDurationValidity}
-          selectedDurations={selectedDurations} // Derived from selection
-          editorState={editorState}             // 'SELECTION_READY' | 'ENTRY_READY' | 'IDLE'
+          selectedDurations={selectedDurations}
+          editorState={editorState}
+          inputMode={inputMode}
         />
 
         <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>

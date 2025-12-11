@@ -1,10 +1,26 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
+/**
+ * Input mode for entry - determines whether canvas clicks create notes or rests.
+ */
+export type InputMode = 'NOTE' | 'REST';
+
+/**
+ * Hook for managing editor tool state.
+ * 
+ * Includes: duration, dot, accidental, tie, and input mode.
+ */
 export const useEditorTools = () => {
   const [activeDuration, setActiveDuration] = useState('quarter');
   const [isDotted, setIsDotted] = useState(false);
-  const [activeAccidental, setActiveAccidental] = useState<'flat' | 'natural' | 'sharp' | null>(null); // null, 'sharp', 'flat', 'natural'
+  const [activeAccidental, setActiveAccidental] = useState<'flat' | 'natural' | 'sharp' | null>(null);
   const [activeTie, setActiveTie] = useState(false);
+  
+  /**
+   * Current input mode - 'NOTE' for note entry, 'REST' for rest entry.
+   * Syncs automatically with selection composition.
+   */
+  const [inputMode, setInputMode] = useState<InputMode>('NOTE');
   
   // User Preferences (Sticky state)
   const [userSelectedDuration, setUserSelectedDuration] = useState('quarter');
@@ -34,6 +50,13 @@ export const useEditorTools = () => {
       return newState;
   };
 
+  /**
+   * Toggles between NOTE and REST input modes.
+   */
+  const toggleInputMode = useCallback(() => {
+      setInputMode(prev => prev === 'NOTE' ? 'REST' : 'NOTE');
+  }, []);
+
   return {
       activeDuration,
       setActiveDuration,
@@ -48,6 +71,10 @@ export const useEditorTools = () => {
       handleDurationChange,
       handleDotToggle,
       handleAccidentalToggle,
-      handleTieToggle
+      handleTieToggle,
+      // New: Input mode
+      inputMode,
+      setInputMode,
+      toggleInputMode
   };
 };

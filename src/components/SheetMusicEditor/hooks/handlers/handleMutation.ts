@@ -1,3 +1,5 @@
+import { ToggleRestCommand } from '../../commands/ToggleRestCommand';
+
 /**
  * Handles mutation keyboard shortcuts (Enter, Delete, Accidentals, Ties, Transposition, Undo/Redo).
  */
@@ -12,7 +14,12 @@ export const handleMutation = (
         transposeSelection,
         addNoteToMeasure,
         previewNote,
-        handleDurationChange
+        handleDurationChange,
+        // R key / Rest toggle
+        toggleInputMode,
+        selection,
+        dispatch,
+        editorState
     } = logic;
 
     // DURATION SHORTCUTS
@@ -31,6 +38,23 @@ export const handleMutation = (
         e.preventDefault();
         const applyToSelection = e.metaKey || e.ctrlKey;
         handleDurationChange(durationMap[e.key], applyToSelection);
+        return true;
+    }
+
+    // REST TOGGLE (R key)
+    // - Always toggles inputMode
+    // - When selection exists, also converts notes↔rests
+    if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        
+        // Always toggle the input mode
+        toggleInputMode();
+        
+        // If we have a selection, also convert the events
+        if (editorState === 'SELECTION_READY' && selection?.selectedNotes?.length > 0) {
+            dispatch(new ToggleRestCommand(selection));
+        }
+        
         return true;
     }
 

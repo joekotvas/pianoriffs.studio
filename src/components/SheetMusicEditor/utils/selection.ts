@@ -125,7 +125,7 @@ export const toggleNoteInSelection = (
     }
 
     // We default the new focus to the note we just clicked...
-    let newFocus = { staffIndex, measureIndex, eventId, noteId };
+    let newFocus: NoteContext = { staffIndex, measureIndex, eventId, noteId };
 
     // ...Unless we just toggled that note OFF. Then we focus the last item in the list.
     if (existingIndex >= 0) {

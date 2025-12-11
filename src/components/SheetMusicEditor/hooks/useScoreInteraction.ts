@@ -132,7 +132,7 @@ export const useScoreInteraction = ({ scoreRef, selection, onUpdatePitch, onSele
                 if (selection.selectedNotes && selection.selectedNotes.length > 1) {
                     // Multi-select: find note in selection for its context
                     const noteInfo = selection.selectedNotes.find((n: any) => String(n.noteId) === noteIdStr);
-                    if (noteInfo) {
+                    if (noteInfo && noteInfo.noteId !== null) {
                         onUpdatePitch(noteInfo.measureIndex, noteInfo.eventId, noteInfo.noteId, newP);
                     } else if (dragState.measureIndex !== null && dragState.eventId) {
                         // Fallback: note is in same event as drag target
