@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { RiffScore } from "@/components/SheetMusicEditor";
-import { ThemeProvider, useTheme } from "@/components/SheetMusicEditor/context/ThemeContext";
-import ConfigMenu from "@/components/SheetMusicEditor/components/Panels/ConfigMenu";
+import { RiffScore } from "@riffscore/RiffScore";
+import { ThemeProvider, useTheme } from "@riffscore/context/ThemeContext";
+import ConfigMenu from "@riffscore/components/Panels/ConfigMenu";
 
 // Copy to clipboard button component
 function CopyButton({ text }: { text: string }) {
@@ -155,7 +155,7 @@ function ExamplesContent() {
           RiffScore is <span className="font-semibold">Open Source</span>. 
           Developed by <a href="https://jokma.com/" className="underline hover:opacity-80 transition-opacity">Joe Kotvas</a>. 
           <span className="mx-2">•</span>
-          <a href="https://github.com/joekotvas/pianoriffs.studio" className="underline hover:opacity-80 transition-opacity">View on GitHub</a>
+          <a href="https://github.com/joekotvas/riffscore" className="underline hover:opacity-80 transition-opacity">View on GitHub</a>
         </p>
       </footer>
     </div>

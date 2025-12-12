@@ -1,24 +1,41 @@
 {
-  "name": "pianoriffs.studio",
+  "name": "riffscore",
   "version": "0.1.0",
-  "private": true,
+  "description": "An intuitive, embeddable sheet music editor for React",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "test": "jest"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "jest",
+    "demo:dev": "cd demo && npm run dev",
+    "demo:build": "cd demo && npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
     "lucide-react": "^0.555.0",
-    "next": "16.0.7",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
     "tonal": "^6.4.2",
     "tone": "^15.1.22"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -26,13 +43,25 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.7",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
-    "tailwindcss": "^4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
+    "tsup": "^8.0.0",
     "typescript": "^5"
+  },
+  "keywords": [
+    "sheet-music",
+    "music-notation",
+    "react",
+    "editor",
+    "component"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
   }
 }
