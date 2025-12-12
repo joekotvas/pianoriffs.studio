@@ -37,11 +37,19 @@ export class AddRestCommand implements Command {
     return updateMeasure(score, this.staffIndex, this.measureIndex, (measure) => {
       const newEvents = [...measure.events];
       
+      const eventId = this.eventId || Date.now().toString();
+      // Create a "rest note" - a pitchless note entry that integrates with selection
+      const restNoteId = `${eventId}-rest`;
+      
       const newEvent: ScoreEvent = {
-        id: this.eventId || Date.now().toString(),
+        id: eventId,
         duration: this.duration,
         dotted: this.isDotted,
-        notes: [],
+        notes: [{
+          id: restNoteId,
+          pitch: null,  // Rests have no pitch
+          isRest: true
+        }],
         isRest: true
       };
 

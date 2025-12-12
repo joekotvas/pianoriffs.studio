@@ -22,7 +22,7 @@ interface NotePosition {
     staffIndex: number;
     measureIndex: number;
     eventId: string | number;
-    noteId: string | number;
+    noteId: string | number | null;  // null for rests
 }
 
 interface UseDragToSelectProps {

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useState } from 'react';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { REST_GLYPHS, BRAVURA_FONT, getFontSize, DOTS } from '../../constants/SMuFL';
@@ -41,7 +41,7 @@ const getRestY = (duration: string, baseY: number): number => {
 
 /**
  * Renders a rest symbol using Bravura font glyphs.
- * Supports selection highlighting and click interaction.
+ * Supports selection highlighting, hover effect, and click interaction.
  */
 export const Rest: React.FC<RestProps> = ({
   duration,
@@ -54,6 +54,7 @@ export const Rest: React.FC<RestProps> = ({
   eventId
 }) => {
   const { theme } = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
   
   const glyph = REST_GLYPHS[duration];
   if (!glyph) {
@@ -61,7 +62,9 @@ export const Rest: React.FC<RestProps> = ({
     return null;
   }
   
-  const color = isGhost ? theme.accent : (isSelected ? theme.accent : theme.score.note);
+  // Color: accent for ghost/selected/hovered, normal otherwise
+  const showHighlight = isGhost || isSelected || (isHovered && onClick);
+  const color = showHighlight ? theme.accent : theme.score.note;
   const finalX = x > 0 ? x : CONFIG.measurePaddingLeft;
   const restY = getRestY(duration, baseY);
   const fontSize = getFontSize(CONFIG.lineHeight);
@@ -98,7 +101,7 @@ export const Rest: React.FC<RestProps> = ({
       data-testid={eventId ? `rest-${eventId}` : undefined}
       style={{ opacity: isGhost ? 0.5 : 1 }}
     >
-      {/* Invisible hit area for click detection */}
+      {/* Invisible hit area for click detection and hover */}
       {onClick && (
         <rect
           x={finalX - hitAreaWidth / 2}
@@ -109,6 +112,8 @@ export const Rest: React.FC<RestProps> = ({
           fillOpacity={0.01}
           style={{ cursor: 'pointer' }}
           onClick={onClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         />
       )}
       

@@ -64,7 +64,8 @@ export const toggleNoteInSelection = (
 ): Selection => {
     const { staffIndex, measureIndex, eventId, noteId } = context;
 
-    if (!eventId || !noteId) {
+    // Only eventId is required - noteId can be null for rests
+    if (!eventId) {
         return { ...createDefaultSelection(), staffIndex };
     }
 
@@ -87,7 +88,8 @@ export const toggleNoteInSelection = (
 
     // "Promote" existing primary selection to list if it wasn't there yet
     // (This handles the transition from Single -> Multi)
-    if (prevSelection.noteId && prevSelection.eventId && prevSelection.measureIndex != null) {
+    // Note: noteId can be null for rests, so check eventId and measureIndex only
+    if (prevSelection.eventId && prevSelection.measureIndex != null) {
         const isPrevInList = newSelectedNotes.some(n => 
             compareIds(n.noteId, prevSelection.noteId) && 
             compareIds(n.eventId, prevSelection.eventId)
@@ -98,7 +100,7 @@ export const toggleNoteInSelection = (
                 staffIndex: prevSelection.staffIndex ?? 0,
                 measureIndex: prevSelection.measureIndex,
                 eventId: prevSelection.eventId,
-                noteId: prevSelection.noteId
+                noteId: prevSelection.noteId  // Can be null for rests
             });
         }
     }

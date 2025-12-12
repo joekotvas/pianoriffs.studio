@@ -159,7 +159,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
       staffIndex: number;
       measureIndex: number;
       eventId: string | number;
-      noteId: string | number;
+      noteId: string | number | null;  // null for rests
     }> = [];
     
     const { startOfMeasures } = calculateHeaderLayout(keySignature);
@@ -180,20 +180,40 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
         measure.events.forEach((event: any) => {
           const eventX = measureX + (layout.eventPositions?.[event.id] || 0);
           
-          event.notes?.forEach((note: any) => {
-            const noteY = staffBaseY + getOffsetForPitch(note.pitch, staffClef);
+          // Handle rest events (no notes array or isRest flag)
+          if (event.isRest || !event.notes || event.notes.length === 0) {
+            // Skip placeholder rests for empty measures
+            if (event.id === 'rest-placeholder') return;
             
+            // Add rest hit area - centered on event, spanning full staff height
+            const staffHeight = CONFIG.lineHeight * 4;
             positions.push({
-              x: eventX - LAYOUT.NOTE_RX, // Center of ellipse minus radius
-              y: noteY - LAYOUT.NOTE_RY,
-              width: LAYOUT.NOTE_RX * 2,
-              height: LAYOUT.NOTE_RY * 2,
+              x: eventX - 15,  // Center with ~30px width
+              y: staffBaseY,
+              width: 30,
+              height: staffHeight,
               staffIndex: staffIdx,
               measureIndex: measureIdx,
               eventId: event.id,
-              noteId: note.id
+              noteId: null  // Rests have no noteId
             });
-          });
+          } else {
+            // Handle notes
+            event.notes?.forEach((note: any) => {
+              const noteY = staffBaseY + getOffsetForPitch(note.pitch, staffClef);
+              
+              positions.push({
+                x: eventX - LAYOUT.NOTE_RX, // Center of ellipse minus radius
+                y: noteY - LAYOUT.NOTE_RY,
+                width: LAYOUT.NOTE_RX * 2,
+                height: LAYOUT.NOTE_RY * 2,
+                staffIndex: staffIdx,
+                measureIndex: measureIdx,
+                eventId: event.id,
+                noteId: note.id
+              });
+            });
+          }
         });
         
         measureX += layout.totalWidth || synchronizedLayoutData?.[measureIdx]?.width || 0;
