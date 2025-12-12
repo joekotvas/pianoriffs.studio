@@ -1,8 +1,40 @@
 "use client";
 
+import { useState } from "react";
 import { RiffScore } from "@/components/SheetMusicEditor";
 import { ThemeProvider, useTheme } from "@/components/SheetMusicEditor/context/ThemeContext";
 import ConfigMenu from "@/components/SheetMusicEditor/components/Panels/ConfigMenu";
+
+// Copy to clipboard button component
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const { theme } = useTheme();
+  
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+  
+  return (
+    <button
+      onClick={handleCopy}
+      className="px-3 py-1 text-xs rounded transition-all hover:opacity-80"
+      style={{ 
+        backgroundColor: copied ? theme.accent : theme.buttonBackground,
+        color: copied ? '#fff' : theme.secondaryText,
+        border: `1px solid ${theme.border}`
+      }}
+      title="Copy to clipboard"
+    >
+      {copied ? '✓ Copied!' : 'Copy'}
+    </button>
+  );
+}
 
 const examples = [
   {
@@ -87,25 +119,33 @@ function ExamplesContent() {
       </header>
 
       <main className="max-w-6xl mx-auto space-y-16 pb-24">
-        {examples.map((example, index) => (
-          <section key={index} className="space-y-4">
-            <div className="border-l-4 pl-4" style={{ borderColor: theme.accent }}>
-              <h2 className="text-2xl font-semibold" style={{ color: theme.text }}>
-                {example.title}
-              </h2>
-              <p style={{ color: theme.secondaryText }}>
-                {example.description}
-              </p>
-              <code 
-                className="text-xs block mt-2 p-2 rounded overflow-x-auto"
-                style={{ backgroundColor: theme.panelBackground, color: theme.secondaryText }}
-              >
-                {`<RiffScore config={${JSON.stringify(example.config, null, 2)}} />`}
-              </code>
-            </div>
-            <RiffScore config={example.config} />
-          </section>
-        ))}
+        {examples.map((example, index) => {
+          const codeSnippet = `<RiffScore config={${JSON.stringify(example.config, null, 2)}} />`;
+          return (
+            <section key={index} className="space-y-4">
+              <div className="border-l-4 pl-4" style={{ borderColor: theme.accent }}>
+                <h2 className="text-2xl font-semibold" style={{ color: theme.text }}>
+                  {example.title}
+                </h2>
+                <p style={{ color: theme.secondaryText }}>
+                  {example.description}
+                </p>
+                <div className="mt-2 relative">
+                  <div className="flex items-start gap-2">
+                    <pre
+                      className="text-xs flex-1 p-3 rounded overflow-x-auto font-mono"
+                      style={{ backgroundColor: theme.panelBackground, color: theme.secondaryText }}
+                    >
+                      <code>{codeSnippet}</code>
+                    </pre>
+                    <CopyButton text={codeSnippet} />
+                  </div>
+                </div>
+              </div>
+              <RiffScore config={example.config} />
+            </section>
+          );
+        })}
       </main>
 
       <footer 
