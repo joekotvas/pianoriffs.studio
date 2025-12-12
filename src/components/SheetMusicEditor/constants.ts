@@ -1,28 +1,42 @@
+/**
+ * Constants for Sheet Music Editor
+ * 
+ * This file contains:
+ * - Music theory constants (note types, time/key signatures)
+ * - Derived layout constants (from CONFIG)
+ * - Rendering settings (beaming, stems, tuplets, ties)
+ */
+
 import { CONFIG } from './config';
 import { Key } from 'tonal';
 
-// Core spacing constant (derived from CONFIG.lineHeight for scalability)
-const SPACE = CONFIG.lineHeight;  // 12px - distance between staff lines
+// =============================================================================
+// DERIVED LAYOUT VALUES (from CONFIG.lineHeight)
+// =============================================================================
+
+const SPACE = CONFIG.lineHeight;      // 12px - distance between staff lines
+const HALF_SPACE = 0.5 * SPACE;       // 6px
 
 // Staff positions (Y offset from baseY/top line of staff)
-// Lines are numbered 1-5 from bottom to top (standard notation)
-// Spaces are numbered 1-4 from bottom to top
 const STAFF_POSITION = {
-  aboveStaff: -0.5 * SPACE,      // Ledger space above
-  line5: 0,                       // Top line
-  space4: 0.5 * SPACE,           // Space between lines 4 & 5
-  line4: 1 * SPACE,              // 4th line from bottom
-  space3: 1.5 * SPACE,           // Space between lines 3 & 4
-  line3: 2 * SPACE,              // Middle line (3rd from bottom)
-  space2: 2.5 * SPACE,           // Space between lines 2 & 3
-  line2: 3 * SPACE,              // 2nd line from bottom
-  space1: 3.5 * SPACE,           // Space between lines 1 & 2
-  line1: 4 * SPACE,              // Bottom line
-  belowStaff: 4.5 * SPACE,       // Ledger space below
+  aboveStaff: -0.5 * SPACE,
+  line5: 0,
+  space4: 0.5 * SPACE,
+  line4: 1 * SPACE,
+  space3: 1.5 * SPACE,
+  line3: 2 * SPACE,
+  space2: 2.5 * SPACE,
+  line2: 3 * SPACE,
+  space1: 3.5 * SPACE,
+  line1: 4 * SPACE,
+  belowStaff: 4.5 * SPACE,
 };
 
-// For backward compatibility
-const HALF_SPACE = 0.5 * SPACE;
+export const MIDDLE_LINE_Y = CONFIG.baseY + 24;
+
+// =============================================================================
+// TIME SIGNATURES
+// =============================================================================
 
 export const TIME_SIGNATURES: Record<string, number> = {
   '4/4': 64,
@@ -31,6 +45,10 @@ export const TIME_SIGNATURES: Record<string, number> = {
   '6/8': 48
 };
 
+// =============================================================================
+// KEY SIGNATURES (Generated from Tonal)
+// =============================================================================
+
 export interface KeySignature {
   label: string;
   type: 'sharp' | 'flat';
@@ -38,11 +56,9 @@ export interface KeySignature {
   accidentals: string[];
 }
 
-// 1. The Constants (The only hardcoded theory - notation convention for display order)
 const SHARPS = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
 const FLATS  = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
 
-// 2. The Inputs (Major keys only; we derive minors from these)
 const MAJOR_ROOTS = [
   'C',
   'G', 'D', 'A', 'E', 'B', 'F#', 'C#',  // Sharp Keys
@@ -51,119 +67,87 @@ const MAJOR_ROOTS = [
 
 export const KEY_SIGNATURES: Record<string, KeySignature> = {};
 
-// 3. The Generator Loop
 MAJOR_ROOTS.forEach(root => {
-  // Get data from Tonal
   const keyInfo = Key.majorKey(root);
   const count = Math.abs(keyInfo.alteration);
   const type: 'sharp' | 'flat' = keyInfo.alteration < 0 ? 'flat' : 'sharp';
-  
-  // Grab the correct slice of accidentals
   const accidentals = type === 'flat' 
     ? FLATS.slice(0, count) 
     : SHARPS.slice(0, count);
 
-  // --- Add MAJOR Key ---
-  KEY_SIGNATURES[root] = {
-    label: `${root} Major`,
-    type,
-    count,
-    accidentals
-  };
-
-  // --- Add MINOR Key (Relative) ---
-  // Tonal gives us the relative minor root (e.g., 'C' -> 'A')
-  const minorRoot = keyInfo.minorRelative; 
-  
-  KEY_SIGNATURES[minorRoot] = {
-    label: `${minorRoot} Minor`,
-    type,
-    count,
-    accidentals 
+  KEY_SIGNATURES[root] = { label: `${root} Major`, type, count, accidentals };
+  KEY_SIGNATURES[keyInfo.minorRelative] = { 
+    label: `${keyInfo.minorRelative} Minor`, type, count, accidentals 
   };
 });
 
-// Offsets for drawing key signature accidentals (relative to base Y)
-// These follow standard notation rules for placement
+// Key signature accidental positions on staff
 export interface KeySignatureOffsets {
-  treble: {
-    sharp: Record<string, number>;
-    flat: Record<string, number>;
-  };
-  bass: {
-    sharp: Record<string, number>;
-    flat: Record<string, number>;
-  };
+  treble: { sharp: Record<string, number>; flat: Record<string, number>; };
+  bass: { sharp: Record<string, number>; flat: Record<string, number>; };
 }
 
-// Key signature accidental positions using semantic staff positions
 export const KEY_SIGNATURE_OFFSETS: KeySignatureOffsets = {
   treble: {
     sharp: {
-      'F': STAFF_POSITION.line5,       // F# on top line
-      'C': STAFF_POSITION.space3,      // C# in space between lines 3 & 4
-      'G': STAFF_POSITION.aboveStaff,  // G# above staff
-      'D': STAFF_POSITION.line4,       // D# on 4th line
-      'A': STAFF_POSITION.space2,      // A# in space between lines 2 & 3
-      'E': STAFF_POSITION.space4,      // E# in space between lines 4 & 5
-      'B': STAFF_POSITION.line3        // B# on middle line
+      'F': STAFF_POSITION.line5,
+      'C': STAFF_POSITION.space3,
+      'G': STAFF_POSITION.aboveStaff,
+      'D': STAFF_POSITION.line4,
+      'A': STAFF_POSITION.space2,
+      'E': STAFF_POSITION.space4,
+      'B': STAFF_POSITION.line3
     },
     flat: {
-      'B': STAFF_POSITION.line3,       // Bb on middle line
-      'E': STAFF_POSITION.space4,      // Eb in space between lines 4 & 5
-      'A': STAFF_POSITION.space2,      // Ab in space between lines 2 & 3
-      'D': STAFF_POSITION.line4,       // Db on 4th line
-      'G': STAFF_POSITION.line2,       // Gb on 2nd line
-      'C': STAFF_POSITION.space3,      // Cb in space between lines 3 & 4
-      'F': STAFF_POSITION.space1       // Fb in space between lines 1 & 2
+      'B': STAFF_POSITION.line3,
+      'E': STAFF_POSITION.space4,
+      'A': STAFF_POSITION.space2,
+      'D': STAFF_POSITION.line4,
+      'G': STAFF_POSITION.line2,
+      'C': STAFF_POSITION.space3,
+      'F': STAFF_POSITION.space1
     }
   },
   bass: {
     sharp: {
-      'F': STAFF_POSITION.line4,       // F# on 4th line
-      'C': STAFF_POSITION.space2,      // C# in space between lines 2 & 3
-      'G': STAFF_POSITION.space4,      // G# in space between lines 4 & 5
-      'D': STAFF_POSITION.line3,       // D# on middle line
-      'A': STAFF_POSITION.line5,       // A# on top line
-      'E': STAFF_POSITION.space3,      // E# in space between lines 3 & 4
-      'B': STAFF_POSITION.aboveStaff   // B# above staff
+      'F': STAFF_POSITION.line4,
+      'C': STAFF_POSITION.space2,
+      'G': STAFF_POSITION.space4,
+      'D': STAFF_POSITION.line3,
+      'A': STAFF_POSITION.line5,
+      'E': STAFF_POSITION.space3,
+      'B': STAFF_POSITION.aboveStaff
     },
     flat: {
-      'B': STAFF_POSITION.line2,       // Bb on 2nd line
-      'E': STAFF_POSITION.space3,      // Eb in space between lines 3 & 4
-      'A': STAFF_POSITION.space1,      // Ab in space between lines 1 & 2
-      'D': STAFF_POSITION.line3,       // Db on middle line
-      'G': STAFF_POSITION.line1,       // Gb on bottom line
-      'C': STAFF_POSITION.space2,      // Cb in space between lines 2 & 3
-      'F': STAFF_POSITION.belowStaff   // Fb below staff
+      'B': STAFF_POSITION.line2,
+      'E': STAFF_POSITION.space3,
+      'A': STAFF_POSITION.space1,
+      'D': STAFF_POSITION.line3,
+      'G': STAFF_POSITION.line1,
+      'C': STAFF_POSITION.space2,
+      'F': STAFF_POSITION.belowStaff
     }
   }
 };
 
-export const NOTE_SPACING_BASE_UNIT = 16;
-export const WHOLE_REST_WIDTH = 12;
-export const DEFAULT_SCALE = 1;
-
-export const MIDDLE_LINE_Y = CONFIG.baseY + 24;
-
-export const TREBLE_CLEF_PATH = "m51.688 5.25c-5.427-0.1409-11.774 12.818-11.563 24.375 0.049 3.52 1.16 10.659 2.781 19.625-10.223 10.581-22.094 21.44-22.094 35.688-0.163 13.057 7.817 29.692 26.75 29.532 2.906-0.02 5.521-0.38 7.844-1 1.731 9.49 2.882 16.98 2.875 20.44 0.061 13.64-17.86 14.99-18.719 7.15 3.777-0.13 6.782-3.13 6.782-6.84 0-3.79-3.138-6.88-7.032-6.88-2.141 0-4.049 0.94-5.343 2.41-0.03 0.03-0.065 0.06-0.094 0.09-0.292 0.31-0.538 0.68-0.781 1.1-0.798 1.35-1.316 3.29-1.344 6.06 0 11.42 28.875 18.77 28.875-3.75 0.045-3.03-1.258-10.72-3.156-20.41 20.603-7.45 15.427-38.04-3.531-38.184-1.47 0.015-2.887 0.186-4.25 0.532-1.08-5.197-2.122-10.241-3.032-14.876 7.199-7.071 13.485-16.224 13.344-33.093 0.022-12.114-4.014-21.828-8.312-21.969zm1.281 11.719c2.456-0.237 4.406 2.043 4.406 7.062 0.199 8.62-5.84 16.148-13.031 23.719-0.688-4.147-1.139-7.507-1.188-9.5 0.204-13.466 5.719-20.886 9.813-21.281zm-7.719 44.687c0.877 4.515 1.824 9.272 2.781 14.063-12.548 4.464-18.57 21.954-0.781 29.781-10.843-9.231-5.506-20.158 2.312-22.062 1.966 9.816 3.886 19.502 5.438 27.872-2.107 0.74-4.566 1.17-7.438 1.19-7.181 0-21.531-4.57-21.531-21.875 0-14.494 10.047-20.384 19.219-28.969zm6.094 21.469c0.313-0.019 0.652-0.011 0.968 0 13.063 0 17.99 20.745 4.688 27.375-1.655-8.32-3.662-17.86-5.656-27.375z";
-
-export const BASS_CLEF_PATH = "m190.85 451.25c11.661 14.719 32.323 24.491 55.844 24.491 36.401 0 65.889-23.372 65.889-52.214s-29.488-52.214-65.889-52.214c-20.314 4.1522-28.593 9.0007-33.143-2.9091 17.976-54.327 46.918-66.709 96.546-66.709 65.914 0 96.969 59.897 96.969 142.97-18.225 190.63-205.95 286.75-246.57 316.19 5.6938 13.103 5.3954 12.631 5.3954 12.009 189.78-86.203 330.69-204.43 330.69-320.74 0-92.419-58.579-175.59-187.72-172.8-77.575 0-170.32 86.203-118 171.93zm328.1-89.88c0 17.852 14.471 32.323 32.323 32.323s32.323-14.471 32.323-32.323-14.471-32.323-32.323-32.323-32.323 14.471-32.323 32.323zm0 136.75c0 17.852 14.471 32.323 32.323 32.323s32.323-14.471 32.323-32.323-14.471-32.323-32.323-32.323-32.323 14.471-32.323 32.323z";
+// =============================================================================
+// CLEF TYPES
+// =============================================================================
 
 export interface ClefType {
   label: string;
-  path?: string;
-  viewBox?: string;
-  scale?: number;
-  offsetY?: number;
   isGrand?: boolean;
 }
 
 export const CLEF_TYPES: Record<string, ClefType> = {
-  treble: { label: 'Treble', path: TREBLE_CLEF_PATH, viewBox: '0 0 70 160', scale: 0.55, offsetY: -15 },
-  bass: { label: 'Bass', path: BASS_CLEF_PATH, viewBox: '150 270 400 520', scale: 0.09, offsetY: 2 },
+  treble: { label: 'Treble' },
+  bass: { label: 'Bass' },
   grand: { label: 'Grand', isGrand: true }
 };
+
+// =============================================================================
+// NOTE TYPES
+// =============================================================================
 
 export interface NoteType {
   duration: number;
@@ -186,8 +170,13 @@ export const NOTE_TYPES: Record<string, NoteType> = {
   sixtyfourth: { duration: 1, label: '64th', fill: 'black', stroke: 'black', stem: true, flag: 4, abcDuration: '/16', xmlType: '64th' },
 };
 
-// ========== LAYOUT CONSTANTS ==========
-// Derived from CONFIG.lineHeight for consistency and scalability
+// =============================================================================
+// LAYOUT CONSTANTS
+// =============================================================================
+
+export const NOTE_SPACING_BASE_UNIT = 16;
+export const WHOLE_REST_WIDTH = 12;
+export const DEFAULT_SCALE = 1;
 
 export const LAYOUT = {
   // Core Primitives
@@ -197,17 +186,17 @@ export const LAYOUT = {
   DOT_RADIUS: 3,
   
   // Derived from lineHeight
-  SECOND_INTERVAL_SHIFT: SPACE - 1,    // 11 (note displacement for seconds)
-  SECOND_INTERVAL_SPACE: HALF_SPACE,   // 6 (extra width for second spacing)
-  DOT_OFFSET_X: SPACE,                 // 12
-  LEDGER_LINE_EXTENSION: SPACE - 2,    // 10
+  SECOND_INTERVAL_SHIFT: SPACE - 1,
+  SECOND_INTERVAL_SPACE: HALF_SPACE,
+  DOT_OFFSET_X: SPACE,
+  LEDGER_LINE_EXTENSION: SPACE - 2,
   
   // Accidentals
   ACCIDENTAL: {
     OFFSET_X: -16,
-    OFFSET_Y: 0,  // No offset needed for Bravura glyphs (origin at staff line)
+    OFFSET_Y: 0,
     FONT_SIZE: 22,  // Legacy, now using getFontSize() from SMuFL
-    SPACING: HALF_SPACE + 2,  // 8
+    SPACING: HALF_SPACE + 2,
   },
   
   // Hit Detection
@@ -215,12 +204,12 @@ export const LAYOUT = {
     WIDTH: 20,
     HEIGHT: 12,
     OFFSET_X: -10,
-    OFFSET_Y: -6 ,
+    OFFSET_Y: -6,
   },
   HIT_ZONE_RADIUS: 14,
   APPEND_ZONE_WIDTH: 2000,
   
-  // Min widths for short notes (multipliers of NOTE_SPACING_BASE_UNIT)
+  // Min widths for short notes
   MIN_WIDTH_FACTORS: {
     sixtyfourth: 1.2,
     thirtysecond: 1.5,
@@ -228,9 +217,12 @@ export const LAYOUT = {
     eighth: 2.2,
   } as Record<string, number>,
   
-  // Lookahead padding factor for accidentals
   LOOKAHEAD_PADDING_FACTOR: 0.3,
 };
+
+// =============================================================================
+// STEM RENDERING
+// =============================================================================
 
 export const STEM = {
   LENGTHS: {
@@ -243,15 +235,23 @@ export const STEM = {
     thirtysecond: 48,
     sixtyfourth: 56,
   } as Record<string, number>,
-  OFFSET_X: HALF_SPACE + .25,  // 6.25 - Horizontal offset for Bravura notehead width
+  OFFSET_X: HALF_SPACE + 0.25,
 };
+
+// =============================================================================
+// BEAMING
+// =============================================================================
 
 export const BEAMING = {
   THICKNESS: 5,
   SPACING: 8,
   MAX_SLOPE: 1.0,
-  EXTENSION_PX: .625,
+  EXTENSION_PX: 0.625,
 };
+
+// =============================================================================
+// TUPLET BRACKETS
+// =============================================================================
 
 export const TUPLET = {
   HOOK_HEIGHT: 8,
@@ -263,6 +263,10 @@ export const TUPLET = {
   VISUAL_NOTE_RADIUS: 8,
 };
 
+// =============================================================================
+// TIE RENDERING
+// =============================================================================
+
 export const TIE = {
   START_GAP: 0,
   END_GAP: 5,
@@ -271,10 +275,13 @@ export const TIE = {
   TIP_THICKNESS: 1.2,
 };
 
-export const FLAGS = {
+// =============================================================================
+// FLAG RENDERING (not SMuFL glyphs - see constants/SMuFL.ts for those)
+// =============================================================================
+
+export const FLAG_RENDERING = {
   SPACING: 7,
   SCALE_CLOSEST: 1.3,
   SCALE_OTHERS: 1.2,
   OFFSET: 3,
 };
-
