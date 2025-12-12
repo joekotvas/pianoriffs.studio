@@ -1,109 +1,31 @@
 // @ts-nocheck
 import React, { useState, useMemo, useCallback } from 'react';
-import { NOTE_TYPES, LAYOUT } from '../../constants';
+import { NOTE_TYPES } from '../../constants';
 import { useTheme } from '../../context/ThemeContext';
-import { getOffsetForPitch, getStemOffset } from '../../engines/layout';
+import { getStemOffset } from '../../engines/layout';
 import { calculateStemGeometry } from '../../engines/layout/stems';
-import { needsAccidental } from '../../services/MusicService';
+import { getAccidentalGlyph } from '../../services/MusicService';
 import { isNoteSelected, areAllNotesSelected } from '../../utils/selection';
-import { ACCIDENTALS } from '../../constants/SMuFL';
 
 // Visual Components
-import { Note, renderFlags } from './Note';
-import { ChordStem, ChordAccidental, NoteHitArea } from './ChordComponents';
+import Note from './Note';
+import Stem from './Stem';
+import Flags from './Flags';
 
-// --- Helper: Accidental Logic ---
+// =============================================================================
+// CHORD GROUP COMPONENT
+// =============================================================================
 
-const getAccidentalGlyph = (note, keySignature, overrideSymbol) => {
-  // 1. Check for manual override from context (e.g., user forcing an accidental)
-  if (overrideSymbol !== undefined) {
-    // If explicitly null/undefined in override map, it might mean "force hide", 
-    // but usually override maps contain the symbol string or null.
-    // Based on original logic: if key exists, use value.
-    return overrideSymbol;
-  }
-
-  // 2. Fallback to Music Theory (Standard Notation)
-  const info = needsAccidental(note.pitch, keySignature);
-  if (!info.show || !info.type) return null;
-
-  const map = {
-    sharp: ACCIDENTALS.sharp,
-    flat: ACCIDENTALS.flat,
-    natural: ACCIDENTALS.natural,
-  };
-  return map[info.type] || null;
-};
-
-// --- Sub-Component: Single Note Renderer ---
-// Handles the positioning and interaction of one specific note head in the stack
-const ChordNote = React.memo(({
-  note,
-  baseX,
-  baseY,
-  clef,
-  xShift,
-  maxNoteShift,
-  quant,
-  duration,
-  dotted,
-  isGhost,
-  color,
-  isSelected,
-  accidentalGlyph,
-  handlers // { onMouseDown, onDoubleClick, onMouseEnter, onMouseLeave }
-}) => {
-  const noteY = baseY + getOffsetForPitch(note.pitch, clef);
-
-  return (
-    <g
-      className={!isGhost ? "note-group-container" : ""}
-      onMouseEnter={() => handlers.onMouseEnter(note.id)}
-      onMouseLeave={handlers.onMouseLeave}
-    >
-      {/* 1. Accidental */}
-      <ChordAccidental
-        x={baseX + xShift + LAYOUT.ACCIDENTAL.OFFSET_X}
-        y={noteY + LAYOUT.ACCIDENTAL.OFFSET_Y}
-        symbol={accidentalGlyph}
-        color={color}
-      />
-
-      {/* 2. Note Head (Non-Interactive Visual) */}
-      <g style={{ pointerEvents: 'none' }}>
-        <Note
-          quant={quant}
-          pitch={note.pitch}
-          type={duration}
-          dotted={dotted}
-          isSelected={isSelected}
-          quantWidth={0}
-          renderStem={false}
-          xOffset={xShift}
-          dotShift={maxNoteShift}
-          isGhost={isGhost}
-          x={baseX}
-          clef={clef}
-          baseY={baseY}
-        />
-      </g>
-
-      {/* 3. Hit Area (Interactive Layer) */}
-      <NoteHitArea
-        x={baseX + xShift + LAYOUT.HIT_AREA.OFFSET_X}
-        y={noteY + LAYOUT.HIT_AREA.OFFSET_Y}
-        cursor={!isGhost ? 'pointer' : 'default'}
-        onClick={(e) => !isGhost && e.stopPropagation()}
-        onMouseDown={(e) => handlers.onMouseDown(e, note)}
-        onDoubleClick={(e) => handlers.onDoubleClick(e, note)}
-        data-testid={`note-${note.id}`}
-      />
-    </g>
-  );
-});
-
-// --- Main Component ---
-
+/**
+ * Renders a chord (group of notes) with shared stem and flags.
+ * 
+ * Hierarchy:
+ * ChordGroup
+ * ├── Stem (shared vertical line)
+ * ├── Flags (if unbeamed 8th/16th/etc)
+ * └── Note[] (one per pitch)
+ *     ├── NoteHead, Accidental, Dot, LedgerLines, HitArea
+ */
 const ChordGroup = ({
   // Data
   notes,
@@ -126,7 +48,7 @@ const ChordGroup = ({
   // Contexts
   layout,
   interaction,
-  onNoteHover = null, // Local callback
+  onNoteHover = null,
 }) => {
   const { theme } = useTheme();
   const { baseY, clef, keySignature, staffIndex } = layout;
@@ -154,7 +76,7 @@ const ChordGroup = ({
   const isWholeChordSelected = !isGhost && areAllNotesSelected(selection, staffIndex, measureIndex, eventId, notes);
   const isAnyNoteHovered = !isGhost && !isDragging && hoveredNoteId !== null;
   
-  // Determine Color: Ghost -> Accent; Selected/Hovered -> Accent; Default -> Note Color
+  // Color: Ghost/Selected/Hovered -> Accent; Default -> Note Color
   const groupColor = (isGhost || isWholeChordSelected || isAnyNoteHovered) 
     ? theme.accent 
     : theme.score.note;
@@ -167,9 +89,7 @@ const ChordGroup = ({
       : sortedNotes.filter(n => n.pitch === filterNote);
   }, [sortedNotes, filterNote]);
 
-
   // --- 3. Interaction Handlers ---
-  
   const handlers = useMemo(() => ({
     onMouseEnter: (id) => {
       if (isGhost) return;
@@ -180,7 +100,6 @@ const ChordGroup = ({
       setHoveredNoteId(null);
       onNoteHover?.(false);
     },
-    // Click on specific Note Head
     onMouseDown: (e, note) => {
       if (isGhost || !onDragStart) return;
       e.stopPropagation();
@@ -199,7 +118,6 @@ const ChordGroup = ({
         staffIndex
       });
     },
-    // Double Click (Drill down selection)
     onDoubleClick: (e, note) => {
       if (isGhost || !onSelectNote) return;
       e.stopPropagation();
@@ -207,7 +125,7 @@ const ChordGroup = ({
     }
   }), [isGhost, onDragStart, onSelectNote, onNoteHover, measureIndex, eventId, staffIndex]);
 
-  // Click on the Chord Stem/Group Background
+  // Click on the Chord (stem area)
   const handleGroupClick = useCallback((e) => {
     if (isGhost || !onDragStart) return;
     e.stopPropagation();
@@ -225,11 +143,9 @@ const ChordGroup = ({
     });
   }, [isGhost, onDragStart, measureIndex, eventId, staffIndex, notes]);
 
-
-  // --- 4. Render ---
-  
-  const showFlags = renderStem && !beamSpec && ['eighth', 'sixteenth', 'thirtysecond', 'sixtyfourth'].includes(duration);
+  // --- 4. Render Decisions ---
   const showStem = renderStem && NOTE_TYPES[duration]?.stem;
+  const showFlags = renderStem && !beamSpec && ['eighth', 'sixteenth', 'thirtysecond', 'sixtyfourth'].includes(duration);
 
   return (
     <g
@@ -241,18 +157,26 @@ const ChordGroup = ({
       onMouseLeave={() => onNoteHover?.(false)}
       onClick={handleGroupClick}
     >
-      {/* LAYER 1: Stem & Flags */}
+      {/* LAYER 1: Stem */}
       {showStem && (
-        <ChordStem x={stemX} startY={stemStartY} endY={stemEndY} color={groupColor} />
+        <Stem x={stemX} startY={stemStartY} endY={stemEndY} color={groupColor} />
       )}
+      
+      {/* LAYER 2: Flags (unbeamed notes only) */}
       {showFlags && (
-        <g>{renderFlags(stemX, stemEndY, duration, effectiveDirection, groupColor)}</g>
+        <Flags 
+          stemX={stemX} 
+          stemTipY={stemEndY} 
+          duration={duration} 
+          direction={effectiveDirection} 
+          color={groupColor} 
+        />
       )}
 
-      {/* LAYER 2: Note Heads */}
+      {/* LAYER 3: Notes */}
       {notesToRender.map((note) => {
         const accidentalGlyph = getAccidentalGlyph(
-          note, 
+          note.pitch, 
           keySignature, 
           accidentalOverrides?.[note.id]
         );
@@ -265,21 +189,20 @@ const ChordGroup = ({
         });
 
         return (
-          <ChordNote
+          <Note
             key={note.id}
             note={note}
-            baseX={x}
+            duration={duration}
+            dotted={dotted}
+            x={x}
             baseY={baseY}
             clef={clef}
             xShift={noteOffsets[note.id] || 0}
-            maxNoteShift={maxNoteShift}
-            quant={quant}
-            duration={duration}
-            dotted={dotted}
-            isGhost={isGhost}
-            color={groupColor}
+            dotShift={maxNoteShift}
             isSelected={isSelected || isAnyNoteHovered}
+            isGhost={isGhost}
             accidentalGlyph={accidentalGlyph}
+            color={groupColor}
             handlers={handlers}
           />
         );

@@ -394,3 +394,53 @@ export const getSemitones = (interval: string): number => {
   // Tonal's Interval.semitones returns the number directly or null
   return Interval.semitones(interval) ?? 0;
 };
+
+// ============================================================================
+// ACCIDENTAL GLYPH RENDERING
+// ============================================================================
+
+/**
+ * Bravura SMuFL accidental glyphs.
+ * Defined here to avoid circular dependency with constants/SMuFL.
+ */
+const ACCIDENTAL_GLYPHS = {
+  sharp: '\uE262',   // U+E262 accidentalSharp
+  flat: '\uE260',    // U+E260 accidentalFlat
+  natural: '\uE261', // U+E261 accidentalNatural
+};
+
+/**
+ * Determines the Bravura glyph to render for a note's accidental.
+ * Handles manual overrides (from measure context) and falls back to key signature logic.
+ * 
+ * @param pitch - The pitch to check (e.g., "F#4")
+ * @param keySignature - Current key signature (e.g., "G", "F")
+ * @param overrideSymbol - Optional override from accidental context (string glyph, null to hide, undefined to use default)
+ * @returns Bravura glyph string, or null if no accidental should be shown
+ * 
+ * @example
+ * // With override
+ * getAccidentalGlyph("F4", "G", "♯"); // "♯" (forced sharp)
+ * getAccidentalGlyph("F4", "G", null); // null (forced hide)
+ * 
+ * // Without override (standard notation)
+ * getAccidentalGlyph("F#4", "G", undefined); // null (F# is diatonic in G)
+ * getAccidentalGlyph("F#4", "C", undefined); // "\uE262" (needs sharp in C)
+ */
+export const getAccidentalGlyph = (
+  pitch: string,
+  keySignature: string,
+  overrideSymbol?: string | null
+): string | null => {
+  // 1. Check for manual override from context
+  if (overrideSymbol !== undefined) {
+    return overrideSymbol;
+  }
+
+  // 2. Fallback to standard notation logic
+  const info = needsAccidental(pitch, keySignature);
+  if (!info.show || !info.type) return null;
+
+  return ACCIDENTAL_GLYPHS[info.type] || null;
+};
+
