@@ -15,6 +15,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { BookOpen } from 'lucide-react';
 import { useScoreContext } from '../../context/ScoreContext';
 import { UpdateTitleCommand } from '../../commands/UpdateTitleCommand';
+import { ToggleRestCommand } from '../../commands/ToggleRestCommand';
+
 import { LoadScoreCommand } from '../../commands/LoadScoreCommand';
 import { InstrumentType } from '../../engines/toneEngine';
 
@@ -79,7 +81,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
 
   // Consume Score Context
   const {
-      score,
+      score, selection, // Added selection
       activeDuration, handleDurationChange, checkDurationValidity,
       isDotted, handleDotToggle, checkDotValidity,
       activeAccidental, handleAccidentalToggle,
@@ -90,8 +92,20 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       handleClefChange,
       dispatch, applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio,
       selectedDurations, editorState, selectedDots, selectedTies, selectedAccidentals,
-      inputMode, setInputMode
+      inputMode, setInputMode, toggleInputMode // Added toggleInputMode
   } = useScoreContext();
+
+  // Handler for Input Mode Toggle (Matches 'R' key behavior)
+  const handleInputModeClick = () => {
+      // Logic mirrors handleMutation.ts 'R' key handler
+      const hasSelection = selection?.selectedNotes && selection.selectedNotes.length > 0;
+      
+      if (hasSelection) {
+          dispatch(new ToggleRestCommand(selection, score));
+      } else {
+          toggleInputMode();
+      }
+  };
 
   useImperativeHandle(ref, () => ({
     openTimeSigMenu: () => staffControlsRef.current?.openTimeSigMenu(),
@@ -176,7 +190,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
         {/* Input Mode Toggle (Note/Rest) */}
         <InputModeToggle 
           mode={inputMode} 
-          onChange={setInputMode} 
+          onToggle={handleInputModeClick} 
         />
 
         {/* Duration Buttons */}

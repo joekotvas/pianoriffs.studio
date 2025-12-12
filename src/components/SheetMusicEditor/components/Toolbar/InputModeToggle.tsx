@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import NoteIcon from '../Assets/NoteIcon';
-import RestIcon from '../Assets/RestIcon';
+import { RESTS, NOTEHEADS, BRAVURA_FONT } from '../../constants/SMuFL';
 
 /**
  * Input mode for the toolbar - determines whether clicks/keyboard
@@ -12,53 +12,129 @@ export type InputMode = 'NOTE' | 'REST';
 interface InputModeToggleProps {
   /** Current input mode */
   mode: InputMode;
-  /** Callback when mode changes */
-  onChange: (mode: InputMode) => void;
+  /** Callback when mode is toggled */
+  onToggle: () => void;
 }
 
 /**
- * Segmented control for Note/Rest input mode.
- * 
- * Visual indicator syncs with toolbar state.
- * Clicking manually overrides selection-based auto-sync.
- * 
- * @param props.mode - Current input mode
- * @param props.onChange - Mode change handler
+ * Composite icon showing multiple rests to represent "Rest Mode".
+ * Used when current mode is "NOTE" (shows what clicking will switch to).
  */
-const InputModeToggle: React.FC<InputModeToggleProps> = ({ mode, onChange }) => {
+const RestGroupIcon = ({ color }: { color: string }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      {/* Eighth Rest */}
+      <text 
+        x={6} 
+        y={14} 
+        fontFamily={BRAVURA_FONT} 
+        fontSize={16} 
+        fill={color} 
+        textAnchor="middle"
+        style={{ userSelect: 'none' }}
+      >
+        {RESTS.eighth}
+      </text>
+      
+      {/* Quarter Rest (Center, larger) */}
+      <text 
+        x={12} 
+        y={15} 
+        fontFamily={BRAVURA_FONT} 
+        fontSize={20} 
+        fill={color} 
+        textAnchor="middle"
+        style={{ userSelect: 'none' }}
+      >
+        {RESTS.quarter}
+      </text>
+      
+       {/* Sixteenth Rest */}
+       <text 
+        x={18} 
+        y={16} 
+        fontFamily={BRAVURA_FONT} 
+        fontSize={14} 
+        fill={color} 
+        textAnchor="middle"
+        style={{ userSelect: 'none' }}
+      >
+        {RESTS.sixteenth}
+      </text>
+  </svg>
+);
+
+/**
+ * Composite icon showing multiple notes to represent "Note Mode".
+ * Used when current mode is "REST" (shows what clicking will switch to).
+ */
+const NoteGroupIcon = ({ color }: { color: string }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      {/* Eighth Note (Black notehead) */}
+      <text 
+        x={6} 
+        y={14} 
+        fontFamily={BRAVURA_FONT} 
+        fontSize={16} 
+        fill={color} 
+        textAnchor="middle"
+        style={{ userSelect: 'none' }}
+      >
+        {NOTEHEADS.black}
+      </text>
+      {/* Stem for Eighth */}
+      <line x1={8.5} y1={14} x2={8.5} y2={6} stroke={color} strokeWidth={1} />
+      
+      {/* Quarter Note (Center, larger) */}
+      <text 
+        x={12} 
+        y={15} 
+        fontFamily={BRAVURA_FONT} 
+        fontSize={20} 
+        fill={color} 
+        textAnchor="middle"
+        style={{ userSelect: 'none' }}
+      >
+        {NOTEHEADS.black}
+      </text>
+      <line x1={15} y1={15} x2={15} y2={5} stroke={color} strokeWidth={1.5} />
+      
+       {/* Half Note (White notehead) */}
+       <text 
+        x={18} 
+        y={14} 
+        fontFamily={BRAVURA_FONT} 
+        fontSize={16} 
+        fill={color} 
+        textAnchor="middle"
+        style={{ userSelect: 'none' }}
+      >
+        {NOTEHEADS.half}
+      </text>
+      <line x1={20.5} y1={14} x2={20.5} y2={6} stroke={color} strokeWidth={1} />
+  </svg>
+);
+
+const InputModeToggle: React.FC<InputModeToggleProps> = ({ mode, onToggle }) => {
   const { theme } = useTheme();
   
-  const baseButtonStyles = "flex items-center justify-center w-9 h-9 transition-colors cursor-pointer";
+  const isActive = mode === 'REST';
   
+  const handleClick = () => {
+    onToggle();
+  };
+
   return (
-    <div 
-      className="flex rounded-md overflow-hidden border"
-      style={{ borderColor: theme.border }}
+    <button
+      // ...
+      onClick={handleClick}
+      title={isActive ? "Switch to Note Mode (R)" : "Switch to Rest Mode (R)"}
+      onMouseDown={(e) => e.preventDefault()} // Prevent focus
     >
-      <button
-        className={baseButtonStyles}
-        style={{
-          backgroundColor: mode === 'NOTE' ? theme.accent : theme.buttonBackground,
-        }}
-        onClick={() => onChange('NOTE')}
-        title="Note entry mode (R to toggle)"
-        onMouseDown={(e) => e.preventDefault()} // Prevent focus
-      >
-        <NoteIcon type="quarter" color={mode === 'NOTE' ? 'white' : theme.text} />
-      </button>
-      <button
-        className={baseButtonStyles}
-        style={{
-          backgroundColor: mode === 'REST' ? theme.accent : theme.buttonBackground,
-          borderLeft: `1px solid ${theme.border}`
-        }}
-        onClick={() => onChange('REST')}
-        title="Rest entry mode (R to toggle)"
-        onMouseDown={(e) => e.preventDefault()} // Prevent focus
-      >
-        <RestIcon type="quarter" color={mode === 'REST' ? 'white' : theme.text} />
-      </button>
-    </div>
+      {isActive 
+        ? <NoteGroupIcon color="white" /> 
+        : <RestGroupIcon color={theme.text} />
+      }
+    </button>
   );
 };
 
