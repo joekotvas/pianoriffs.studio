@@ -4,25 +4,21 @@
  * Generates staff structures from templates for RiffScore initialization.
  */
 
-import { Staff, Measure, ScoreEvent, StaffTemplate } from '../types';
+import { Staff, Measure, StaffTemplate } from '../types';
 
 let idCounter = 0;
 const generateId = (prefix: string): string => `${prefix}-${++idCounter}`;
 
 /**
- * Creates an empty measure with a whole rest
+ * Creates an empty measure (no events).
+ * The layout engine will generate a centered, non-interactive placeholder rest for display.
+ * 
+ * NOTE: Empty measures have `events: []`. The layout engine's createEmptyMeasureLayout
+ * handles rendering a centered whole rest placeholder that doesn't block input.
  */
 export const createEmptyMeasure = (): Measure => ({
   id: generateId('m'),
-  events: [
-    {
-      id: generateId('e'),
-      duration: 'whole',
-      dotted: false,
-      isRest: true,
-      notes: [],
-    } as ScoreEvent,
-  ],
+  events: [],
 });
 
 /**

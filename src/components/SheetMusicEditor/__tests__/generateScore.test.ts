@@ -56,15 +56,13 @@ describe('generateScore', () => {
   });
 
   describe('createEmptyMeasure', () => {
-    it('creates a measure with a whole rest', () => {
+    it('creates an empty measure with no events', () => {
       const measure = createEmptyMeasure();
       
       expect(measure.id).toBeDefined();
-      expect(measure.events).toHaveLength(1);
-      expect(measure.events[0].isRest).toBe(true);
-      expect(measure.events[0].duration).toBe('whole');
-      expect(measure.events[0].dotted).toBe(false);
-      expect(measure.events[0].notes).toEqual([]);
+      // Empty measures have events: []. The layout engine creates a 
+      // centered, non-interactive placeholder rest for display.
+      expect(measure.events).toEqual([]);
     });
   });
 });
