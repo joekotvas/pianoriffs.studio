@@ -65,7 +65,7 @@ See the [Configuration Guide](./docs/CONFIGURATION.md) for all available options
 *   **Configurable**: Full control over UI, interactions, and score content.
 *   **SMuFL Compliance**: Beautiful engraving using the [Bravura](https://github.com/steinbergmedia/bravura) font.
 *   **Interactive**: Full editing capabilities right in the browser.
-*   **Audio Engine**: Playback via [Tone.js](https://tonejs.github.io/).
+*   **Music Engine**: Powered by [Tonal.js](https://github.com/tonaljs/tonal) for music theory logic and [Tone.js](https://tonejs.github.io/) for accurate browser-based playback.
 
 ---
 
