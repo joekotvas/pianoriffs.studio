@@ -300,19 +300,25 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     handleDragStart(args);
   }, [handleDragStart]);
   
-  // Cache per-staff onHover handlers to prevent recreation
+  // Ref to track latest handler to avoid stale closures in the cached wrappers
+  const handleMeasureHoverRef = useRef(handleMeasureHover);
+  useEffect(() => {
+    handleMeasureHoverRef.current = handleMeasureHover;
+  }, [handleMeasureHover]);
+  
+  // Cache per-staff onHover handlers to prevent recreation (stable identity for memoized children)
   const hoverHandlersRef = useRef<Map<number, (measureIndex: number | null, hit: any, pitch: string | null) => void>>(new Map());
   
   const getHoverHandler = useCallback((staffIndex: number) => {
     if (!hoverHandlersRef.current.has(staffIndex)) {
       hoverHandlersRef.current.set(staffIndex, (measureIndex: number | null, hit: any, pitch: string | null) => {
         if (!dragState.active) {
-          handleMeasureHover(measureIndex, hit, pitch || '', staffIndex);
+          handleMeasureHoverRef.current(measureIndex, hit, pitch || '', staffIndex);
         }
       });
     }
     return hoverHandlersRef.current.get(staffIndex)!;
-  }, [handleMeasureHover, dragState.active]);
+  }, [dragState.active]);
 
 
   return (
