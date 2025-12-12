@@ -1,0 +1,8 @@
+[build]
+  base = "demo"
+  command = "cd .. && npm install && cd demo && npm install && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
