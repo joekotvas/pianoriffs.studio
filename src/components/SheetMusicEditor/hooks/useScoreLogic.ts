@@ -13,6 +13,7 @@ import { useEditorMode } from './useEditorMode';
 
 import { Score, createDefaultScore, migrateScore, getActiveStaff } from '../types';
 import { getAppendPreviewNote } from '../utils/interaction';
+import { calculateFocusSelection } from '../utils/focusScore';
 
 /**
  * Main score logic orchestrator hook.
@@ -340,6 +341,12 @@ export const useScoreLogic = (initialScore: any) => {
       }
   }, [editorState, modifiers.handleDurationChange, setActiveDuration, lastSelection, scoreRef, isDotted, previewNote]);
 
+  // --- FOCUS SCORE ---
+  const focusScore = useCallback(() => {
+    const newSelection = calculateFocusSelection(score, selection);
+    setSelection(newSelection);
+  }, [score, selection, setSelection]);
+
 
   // --- EXPORTS ---
   return {
@@ -394,6 +401,7 @@ export const useScoreLogic = (initialScore: any) => {
     activeTupletRatio: tupletActions.getActiveTupletRatio(),
     transposeSelection: navigation.transposeSelection,
     moveSelection: navigation.moveSelection,
-    switchStaff: navigation.switchStaff
+    switchStaff: navigation.switchStaff,
+    focusScore
   };
 };

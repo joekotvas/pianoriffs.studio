@@ -133,6 +133,12 @@ export const calculateNextSelection = (
             // We are at the last event, try to move to ghost note
             const totalQuants = calculateTotalQuants(currentMeasure.events);
             const currentEvent = currentMeasure.events[eventIdx];
+            
+            // Guard against undefined event (can happen if selection is stale)
+            if (!currentEvent) {
+                return null;
+            }
+            
             // Get pitch: from note if available, else default based on clef
             const defaultPitch = clef === 'bass' ? 'D3' : 'B4';
             const pitch = (!currentEvent.isRest && currentEvent.notes?.length > 0) 
