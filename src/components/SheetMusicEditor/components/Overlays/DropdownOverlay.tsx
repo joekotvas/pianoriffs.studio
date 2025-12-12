@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import Portal from '../Portal';
 
 interface DropdownOverlayProps {
@@ -24,71 +25,15 @@ const DropdownOverlay: React.FC<DropdownOverlayProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
-  useEffect(() => {
-    // Focus first button on mount (with slight delay to ensure rendering)
-    const timer = setTimeout(() => {
-      const buttons = ref.current?.querySelectorAll('button');
-      if (buttons && buttons.length > 0) {
-        (buttons[0] as HTMLElement).focus();
-      }
-    }, 10);
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle if focus is inside our container
-      if (!ref.current?.contains(document.activeElement)) return;
-
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        onClose();
-        return;
-      }
-
-      const focusableElements = ref.current?.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      if (!focusableElements || focusableElements.length === 0) return;
-
-      const firstElement = focusableElements[0];
-      const activeElement = document.activeElement as HTMLElement;
-      const index = Array.from(focusableElements).indexOf(activeElement);
-
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (e.shiftKey) {
-          const prevIndex = (index - 1 + focusableElements.length) % focusableElements.length;
-          focusableElements[prevIndex].focus();
-        } else {
-          const nextIndex = (index + 1) % focusableElements.length;
-          focusableElements[nextIndex].focus();
-        }
-      } else if (['ArrowDown', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        e.stopPropagation();
-        const nextIndex = (index + 1) % focusableElements.length;
-        focusableElements[nextIndex].focus();
-      } else if (['ArrowUp', 'ArrowLeft'].includes(e.key)) {
-        e.preventDefault();
-        e.stopPropagation();
-        const prevIndex = (index - 1 + focusableElements.length) % focusableElements.length;
-        focusableElements[prevIndex].focus();
-      }
-    };
-
-    // Use Capture Phase to intercept events before they bubble or are handled by defaults
-    document.addEventListener('keydown', handleKeyDown, true);
-    
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('keydown', handleKeyDown, true);
-      
-      // Return focus to trigger on close
-      if (triggerRef?.current) {
-        triggerRef.current.focus();
-      }
-    };
-  }, [onClose, triggerRef]);
+  // Use unified focus trap hook
+  useFocusTrap({
+    containerRef: ref,
+    isActive: true,
+    onEscape: onClose,
+    returnFocusRef: triggerRef,
+    autoFocus: true,
+    enableArrowKeys: true
+  });
 
   return (
     <Portal>

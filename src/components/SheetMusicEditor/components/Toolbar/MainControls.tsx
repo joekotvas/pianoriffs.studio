@@ -3,7 +3,9 @@ import { Play, Pause, Info, Music2, HelpCircle, RotateCcw, RotateCw } from 'luci
 import { useTheme } from '../../context/ThemeContext';
 import ToolbarButton from './ToolbarButton';
 import InstrumentSelector from './InstrumentSelector';
+import FileMenu from './FileMenu';
 import { InstrumentType } from '../../engines/toneEngine';
+import { Score } from '../../types';
 
 interface MainControlsProps {
   scoreTitle: string;
@@ -23,6 +25,7 @@ interface MainControlsProps {
   selectedInstrument: InstrumentType;
   onInstrumentChange: (instrument: InstrumentType) => void;
   samplerLoaded: boolean;
+  score: Score;
 }
 
 const MainControls: React.FC<MainControlsProps & { children?: React.ReactNode }> = ({
@@ -43,6 +46,7 @@ const MainControls: React.FC<MainControlsProps & { children?: React.ReactNode }>
   selectedInstrument,
   onInstrumentChange,
   samplerLoaded,
+  score,
   children
 }) => {
   const { theme } = useTheme();
@@ -86,6 +90,11 @@ const MainControls: React.FC<MainControlsProps & { children?: React.ReactNode }>
 
   return (
     <div className="flex items-center gap-4">
+
+      {/* File Menu */}
+      <FileMenu score={score} bpm={bpm} />
+
+      <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
 
       {/* Undo / Redo */}
       <div className="flex gap-1">

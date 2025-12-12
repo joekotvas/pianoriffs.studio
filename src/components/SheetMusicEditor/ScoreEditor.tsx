@@ -246,6 +246,27 @@ const ScoreEditorContent = ({
             setInstrument(instrument);
           }}
           samplerLoaded={samplerLoaded}
+          onEscape={() => {
+            // Focus the score container
+            scoreContainerRef.current?.focus();
+            
+            // If no selection, place cursor at end of score
+            if (!selection.eventId) {
+              const activeStaff = score.staves[selection.staffIndex || 0];
+              const lastMeasureIndex = activeStaff.measures.length - 1;
+              const lastMeasure = activeStaff.measures[lastMeasureIndex];
+              const lastEvent = lastMeasure.events[lastMeasure.events.length - 1];
+              if (lastEvent) {
+                setSelection({
+                  staffIndex: selection.staffIndex || 0,
+                  measureIndex: lastMeasureIndex,
+                  eventId: lastEvent.id,
+                  noteId: lastEvent.notes?.[0]?.id || null,
+                  selectedNotes: []
+                });
+              }
+            }
+          }}
         />
       )}
 

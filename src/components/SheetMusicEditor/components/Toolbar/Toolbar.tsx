@@ -1,4 +1,4 @@
-import React, { useRef, useImperativeHandle, forwardRef, useState } from 'react';
+import React, { useRef, useImperativeHandle, forwardRef, useState, useCallback } from 'react';
 import MainControls from './MainControls';
 import StaffControls, { StaffControlsHandle } from './StaffControls';
 
@@ -16,6 +16,7 @@ import { BookOpen } from 'lucide-react';
 import { useScoreContext } from '../../context/ScoreContext';
 import { UpdateTitleCommand } from '../../commands/UpdateTitleCommand';
 import { ToggleRestCommand } from '../../commands/ToggleRestCommand';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 import { LoadScoreCommand } from '../../commands/LoadScoreCommand';
 import { InstrumentType } from '../../engines/toneEngine';
@@ -43,6 +44,9 @@ interface ToolbarProps {
   selectedInstrument: InstrumentType;
   onInstrumentChange: (instrument: InstrumentType) => void;
   samplerLoaded: boolean;
+  
+  // Focus return
+  onEscape?: () => void;
 }
 
 export interface ToolbarHandle {
@@ -72,11 +76,14 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
   melodies,
   selectedInstrument,
   onInstrumentChange,
-  samplerLoaded
+  samplerLoaded,
+  onEscape
 }, ref) => {
   const staffControlsRef = useRef<StaffControlsHandle>(null);
   const melodyLibBtnRef = useRef<HTMLButtonElement>(null);
+  const toolbarContainerRef = useRef<HTMLDivElement>(null);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [isToolbarFocused, setIsToolbarFocused] = useState(false);
   const { theme } = useTheme();
 
   // Consume Score Context
@@ -119,12 +126,35 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       setShowLibrary(false);
   };
 
+  // Track if any menu is open (dropdown menus handle their own focus trap)
+  const isAnyMenuOpen = showLibrary || (staffControlsRef.current?.isMenuOpen() ?? false);
+  
+  // Focus trap for toolbar navigation - only active when toolbar has focus and no menus are open
+  useFocusTrap({
+    containerRef: toolbarContainerRef,
+    isActive: isToolbarFocused && !isAnyMenuOpen,
+    onEscape: () => {
+      setIsToolbarFocused(false);
+      onEscape?.();
+    },
+    autoFocus: false, // Don't auto-focus first element
+    enableArrowKeys: false // Use Tab only for toolbar navigation
+  });
+
   const activeStaff = getActiveStaff(score);
 
   return (
     <div 
+      ref={toolbarContainerRef}
       className="flex flex-col gap-2 mb-4 border-b pb-2"
       style={{ borderColor: theme.border }}
+      onFocus={() => setIsToolbarFocused(true)}
+      onBlur={(e) => {
+        // Only deactivate if focus leaves the toolbar entirely
+        if (!toolbarContainerRef.current?.contains(e.relatedTarget as Node)) {
+          setIsToolbarFocused(false);
+        }
+      }}
     >
       {/* Row 1: Play, Undo/Redo, BPM, MIDI, Melody Library, Help */}
       <MainControls 
@@ -145,6 +175,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
         selectedInstrument={selectedInstrument}
         onInstrumentChange={onInstrumentChange}
         samplerLoaded={samplerLoaded}
+        score={score}
       >
         <div className="flex gap-1 relative">
           <ToolbarButton 
