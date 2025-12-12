@@ -159,7 +159,8 @@ export const useScoreLogic = (initialScore: any) => {
     activeDuration,
     isDotted,
     currentQuantsPerMeasure,
-    dispatch: engine.dispatch.bind(engine)
+    dispatch: engine.dispatch.bind(engine),
+    inputMode
   });
 
   // Tuplet Actions: apply/remove tuplets

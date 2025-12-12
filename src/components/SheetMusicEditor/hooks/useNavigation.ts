@@ -18,6 +18,7 @@ interface UseNavigationProps {
   isDotted: boolean;
   currentQuantsPerMeasure: number;
   dispatch: (command: Command) => void;
+  inputMode: 'NOTE' | 'REST';
 }
 
 interface UseNavigationReturn {
@@ -38,7 +39,8 @@ export const useNavigation = ({
   activeDuration,
   isDotted,
   currentQuantsPerMeasure,
-  dispatch
+  dispatch,
+  inputMode
 }: UseNavigationProps): UseNavigationReturn => {
 
   // --- Internal Helpers ---
@@ -83,7 +85,8 @@ export const useNavigation = ({
         isDotted,
         currentQuantsPerMeasure,
         activeStaff.clef,
-        activeSel.staffIndex || 0
+        activeSel.staffIndex || 0,
+        inputMode
     );
 
     if (!navResult) return;
@@ -156,7 +159,7 @@ export const useNavigation = ({
     if (navResult.audio) {
         playAudioFeedback(navResult.audio.notes);
     }
-  }, [selection, previewNote, activeDuration, isDotted, currentQuantsPerMeasure, scoreRef, dispatch, select, setPreviewNote, playAudioFeedback]);
+  }, [selection, previewNote, activeDuration, isDotted, currentQuantsPerMeasure, scoreRef, dispatch, select, setPreviewNote, playAudioFeedback, inputMode]);
 
 
   const transposeSelection = useCallback((direction: string, isShift: boolean) => {

@@ -1,4 +1,5 @@
 import { useCallback, RefObject } from 'react';
+import { getAppendPreviewNote } from '../utils/interaction';
 import { canAddEventToMeasure } from '../utils/validation';
 import { playNote } from '../engines/toneEngine';
 import { applyKeySignature } from '../services/MusicService';
@@ -12,7 +13,7 @@ import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
 import { DeleteEventCommand } from '../commands/DeleteEventCommand';
 import { ChangePitchCommand } from '../commands/ChangePitchCommand';
 import { AddRestCommand } from '../commands/AddRestCommand';
-import { getAppendPreviewNote } from '../utils/interaction';
+
 import { InputMode } from './useEditorTools';
 
 interface UseNoteActionsProps {
@@ -291,7 +292,8 @@ export const useNoteActions = ({
             currentStaffIndex,
             activeDuration,
             isDotted,
-            newNote.pitch 
+            newNote.pitch,
+            inputMode === 'REST' 
         );
 
         if (nextPreview.quant >= currentQuantsPerMeasure) {

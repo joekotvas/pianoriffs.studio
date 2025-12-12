@@ -25,7 +25,8 @@ export const getAppendPreviewNote = (
     staffIndex: number, 
     activeDuration: string, 
     isDotted: boolean, 
-    pitch?: string
+    pitch?: string,
+    isRest: boolean = false
 ) => {
     const totalQuants = calculateTotalQuants(measure.events || []);
     // Default pitch logic: try to use last event's pitch, or fallback
@@ -53,7 +54,8 @@ export const getAppendPreviewNote = (
         duration: activeDuration,
         dotted: isDotted,
         mode: 'APPEND',
-        index: measure.events.length
+        index: measure.events.length,
+        isRest
     };
 };
 
@@ -66,7 +68,9 @@ export const calculateNextSelection = (
     isDotted: boolean,
     currentQuantsPerMeasure: number = CONFIG.quantsPerMeasure,
     clef: string = 'treble',
-    staffIndex: number = 0
+
+    staffIndex: number = 0,
+    inputMode: 'NOTE' | 'REST' = 'NOTE'
 ) => {
     // 1. Handle Navigation from Preview Note (Ghost Note)
     if (selection.eventId === null && previewNote && direction === 'left') {
@@ -139,7 +143,7 @@ export const calculateNextSelection = (
                 // Move to ghost note in current measure
                 return {
                     selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-                    previewNote: getAppendPreviewNote(currentMeasure, selection.measureIndex, staffIndex, activeDuration, isDotted, pitch),
+                    previewNote: getAppendPreviewNote(currentMeasure, selection.measureIndex, staffIndex, activeDuration, isDotted, pitch, inputMode === 'REST'),
                     audio: null
                 };
             } else {
@@ -159,7 +163,8 @@ export const calculateNextSelection = (
                          duration: activeDuration,
                          dotted: isDotted,
                          mode: 'APPEND',
-                         index: 0
+                         index: 0,
+                         isRest: inputMode === 'REST'
                      },
                      shouldCreateMeasure,
                      audio: null
