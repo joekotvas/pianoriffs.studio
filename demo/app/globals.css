@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../src";
 
 /* Bravura Music Font - SMuFL compliant */
 @font-face {
