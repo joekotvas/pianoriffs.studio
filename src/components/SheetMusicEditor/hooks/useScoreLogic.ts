@@ -281,9 +281,13 @@ export const useScoreLogic = (initialScore: any) => {
         if (event) {
             if (noteId) {
                 const note = event.notes.find((n: any) => n.id === noteId);
-                if (note) accidentals.add(getAccidentalType(note.pitch));
+                // Skip rest notes (null pitch)
+                if (note && note.pitch !== null) accidentals.add(getAccidentalType(note.pitch));
             } else {
-                 event.notes.forEach((n: any) => accidentals.add(getAccidentalType(n.pitch)));
+                 event.notes.forEach((n: any) => {
+                     // Skip rest notes (null pitch)
+                     if (n.pitch !== null) accidentals.add(getAccidentalType(n.pitch));
+                 });
             }
         }
     };

@@ -1,8 +1,9 @@
 export interface Note {
-  pitch: string;
+  pitch: string | null;  // null for rest notes
   tied?: boolean;
   id: string | number;
   accidental?: string | null;
+  isRest?: boolean;      // True for rest notes
 }
 
 export interface ScoreEvent {

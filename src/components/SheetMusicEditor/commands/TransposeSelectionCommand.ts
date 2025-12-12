@@ -158,10 +158,14 @@ export class TransposeSelectionCommand implements Command {
                  notesInEvent.forEach(nTarget => {
                      const noteIndex = newEvent.notes.findIndex((note: any) => idsMatch(note.id, nTarget.noteId));
                      if (noteIndex !== -1) {
-                         newEvent.notes[noteIndex] = {
-                             ...newEvent.notes[noteIndex],
-                             pitch: transposeFn(newEvent.notes[noteIndex].pitch)
-                         };
+                         const currentPitch = newEvent.notes[noteIndex].pitch;
+                         // Skip rest notes (null pitch)
+                         if (currentPitch !== null) {
+                             newEvent.notes[noteIndex] = {
+                                 ...newEvent.notes[noteIndex],
+                                 pitch: transposeFn(currentPitch)
+                             };
+                         }
                      }
                  });
             });
@@ -181,7 +185,10 @@ export class TransposeSelectionCommand implements Command {
         if (noteIndex === -1) return score;
 
         const note = { ...event.notes[noteIndex] };
-        note.pitch = transposeFn(note.pitch);
+        // Skip rest notes (null pitch)
+        if (note.pitch !== null) {
+            note.pitch = transposeFn(note.pitch);
+        }
         
         const newNotes = [...event.notes];
         newNotes[noteIndex] = note;
@@ -199,7 +206,8 @@ export class TransposeSelectionCommand implements Command {
         const event = { ...measure.events[eventIndex] };
         const newNotes = event.notes.map(n => ({
             ...n,
-            pitch: transposeFn(n.pitch)
+            // Skip rest notes (null pitch)
+            pitch: n.pitch !== null ? transposeFn(n.pitch) : null
         }));
         
         event.notes = newNotes;
@@ -214,7 +222,8 @@ export class TransposeSelectionCommand implements Command {
             ...e,
             notes: e.notes.map(n => ({
                 ...n,
-                pitch: transposeFn(n.pitch)
+                // Skip rest notes (null pitch)
+                pitch: n.pitch !== null ? transposeFn(n.pitch) : null
             }))
         }));
         measure.events = newEvents;

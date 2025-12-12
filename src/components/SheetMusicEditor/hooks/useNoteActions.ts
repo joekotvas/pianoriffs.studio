@@ -230,6 +230,7 @@ export const useNoteActions = ({
     } else if (inputMode === 'REST') {
         // Create new rest event
         const eventId = Date.now().toString();
+        const restNoteId = `${eventId}-rest`;  // Match the ID pattern from AddRestCommand
         
         dispatch(new AddRestCommand(
             measureIndex, 
@@ -240,8 +241,8 @@ export const useNoteActions = ({
             currentStaffIndex
         ));
 
-        // Select rest at event level (no noteId)
-        select(measureIndex, eventId, null, currentStaffIndex);
+        // Select the rest note (rests now have a selectable noteId)
+        select(measureIndex, eventId, restNoteId, currentStaffIndex);
         setPreviewNote(null);
     } else {
         // Create new note event

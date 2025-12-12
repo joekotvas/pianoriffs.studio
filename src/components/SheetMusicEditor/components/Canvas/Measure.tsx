@@ -72,6 +72,9 @@ const Measure: React.FC<MeasureProps> = ({
     sortedEvents.forEach(event => {
         if (!event.notes) return;
         event.notes.forEach((note: any) => {
+             // Skip rest notes (null pitch)
+             if (note.pitch === null) return;
+             
              const effective = getEffectiveAccidental(note.pitch, keySignature);
              const keyAccidental = getKeyAccidental(note.pitch.charAt(0), keySignature);
              const diatonicPitch = getDiatonicPitch(note.pitch);
@@ -370,20 +373,33 @@ const Measure: React.FC<MeasureProps> = ({
             // Placeholder rests (for empty measures) should be non-interactive
             const isPlaceholder = event.id === 'rest-placeholder';
             
-            // Check if this rest is selected
-            const isRestSelected = 
+            // Get the rest note ID for selection checks
+            const restNoteId = event.notes?.[0]?.id ?? null;
+            
+            // Check if this rest is selected (check both primary selection and multi-selection list)
+            const isPrimarySelected = 
                 interaction.selection.measureIndex === measureIndex &&
                 interaction.selection.eventId === event.id &&
                 layout.staffIndex === interaction.selection.staffIndex;
             
+            const isInMultiSelection = interaction.selection.selectedNotes?.some(sn =>
+                sn.measureIndex === measureIndex &&
+                String(sn.eventId) === String(event.id) &&
+                sn.staffIndex === layout.staffIndex &&
+                (sn.noteId === restNoteId || (sn.noteId == null && restNoteId == null))
+            ) ?? false;
+            
+            const isRestSelected = isPrimarySelected || isInMultiSelection;
+            
             // Handle rest click for selection (only for real rests, not placeholders)
             const handleRestClick = isPlaceholder ? undefined : (e: React.MouseEvent) => {
                 e.stopPropagation();
-                // Select rest at event level (no noteId for rests)
+                // Get the rest note ID (rests now have a single pitchless note entry)
+                const restNoteId = event.notes?.[0]?.id ?? null;
                 interaction.onSelectNote(
                     measureIndex, 
                     event.id, 
-                    null,  // noteId is null for rests
+                    restNoteId,  // Use the rest note ID for proper selection
                     layout.staffIndex,
                     e.metaKey || e.ctrlKey  // isMulti
                 );

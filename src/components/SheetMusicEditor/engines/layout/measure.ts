@@ -270,6 +270,8 @@ const getTupletUnifiedDirection = (
 
     tupletGroup.forEach(te => {
         te.notes.forEach((n: Note) => {
+            // Skip rest notes (null pitch)
+            if (n.pitch === null) return;
             const y = CONFIG.baseY + getOffsetForPitch(n.pitch, clef);
             const dist = Math.abs(y - MIDDLE_LINE_Y);
             if (dist > maxDist) {

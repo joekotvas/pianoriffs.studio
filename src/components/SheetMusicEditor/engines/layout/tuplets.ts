@@ -61,8 +61,14 @@ export const calculateTupletBrackets = (events: ScoreEvent[], eventPositions: Re
     
     // Helper to get Y bounds of an event (top and bottom of everything: notes, stems)
     const getEventYBounds = (event: ScoreEvent, dir: 'up' | 'down') => {
-        // 1. Noteheads
-        const noteYs = event.notes.map(n => CONFIG.baseY + getOffsetForPitch(n.pitch, clef));
+        // 1. Noteheads - filter out rest notes (null pitch)
+        const realNotes = event.notes.filter(n => n.pitch !== null);
+        if (realNotes.length === 0) {
+            // Rest event - use staff middle line as default
+            const middleY = CONFIG.baseY + CONFIG.lineHeight * 2;
+            return { topY: middleY, bottomY: middleY };
+        }
+        const noteYs = realNotes.map(n => CONFIG.baseY + getOffsetForPitch(n.pitch!, clef));
         const minNoteY = Math.min(...noteYs);
         const maxNoteY = Math.max(...noteYs);
         

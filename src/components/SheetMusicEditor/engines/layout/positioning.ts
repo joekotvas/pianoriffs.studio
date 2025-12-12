@@ -148,7 +148,10 @@ export const getNoteWidth = (duration: string, dotted: boolean): number => {
  * @returns Object containing sortedNotes, direction, noteOffsets, maxNoteShift, minY, maxY
  */
 export const calculateChordLayout = (notes: Note[], clef: string = 'treble', forcedDirection?: 'up' | 'down'): ChordLayout => {
-  if (!notes || notes.length === 0) {
+  // Filter out rest notes (null pitch) since they don't have visual positions
+  const realNotes = notes.filter(n => n.pitch !== null);
+  
+  if (!realNotes || realNotes.length === 0) {
     return {
       sortedNotes: [],
       direction: forcedDirection || 'up',
@@ -160,9 +163,9 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
     };
   }
 
-  const sortedNotes = [...notes].sort((a, b) => {
-      const yA = getOffsetForPitch(a.pitch, clef);
-      const yB = getOffsetForPitch(b.pitch, clef);
+  const sortedNotes = [...realNotes].sort((a, b) => {
+      const yA = getOffsetForPitch(a.pitch!, clef);
+      const yB = getOffsetForPitch(b.pitch!, clef);
       return yA - yB; 
   });
 
@@ -172,7 +175,7 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
   let maxY = -Infinity; 
 
   sortedNotes.forEach(n => {
-     const y = CONFIG.baseY + getOffsetForPitch(n.pitch, clef);
+     const y = CONFIG.baseY + getOffsetForPitch(n.pitch!, clef);
      const dist = Math.abs(y - MIDDLE_LINE_Y);
      if (dist > maxDist) {
        maxDist = dist;
@@ -182,7 +185,7 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
      if (y > maxY) maxY = y;
   });
 
-  const furthestY = CONFIG.baseY + getOffsetForPitch(furthestNote.pitch, clef);
+  const furthestY = CONFIG.baseY + getOffsetForPitch(furthestNote.pitch!, clef);
   
   // Use forced direction if provided, otherwise calculate based on furthest note
   const direction = forcedDirection || (furthestY <= MIDDLE_LINE_Y ? 'down' : 'up');
@@ -197,8 +200,8 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
       for (let i = sortedNotes.length - 1; i > 0; i--) {
           const noteLower = sortedNotes[i];   // Higher Y = lower pitch
           const noteUpper = sortedNotes[i-1]; // Lower Y = higher pitch
-          const yLower = getOffsetForPitch(noteLower.pitch, clef);
-          const yUpper = getOffsetForPitch(noteUpper.pitch, clef);
+          const yLower = getOffsetForPitch(noteLower.pitch!, clef);
+          const yUpper = getOffsetForPitch(noteUpper.pitch!, clef);
           if (Math.abs(yLower - yUpper) === 6) {
               if (!noteOffsets[noteLower.id]) { 
                   noteOffsets[noteUpper.id] = LAYOUT.SECOND_INTERVAL_SHIFT;  // Upper note shifts RIGHT
@@ -209,8 +212,8 @@ export const calculateChordLayout = (notes: Note[], clef: string = 'treble', for
       for (let i = 0; i < sortedNotes.length - 1; i++) {
           const noteUpper = sortedNotes[i];
           const noteLower = sortedNotes[i+1];
-          const yUpper = getOffsetForPitch(noteUpper.pitch, clef);
-          const yLower = getOffsetForPitch(noteLower.pitch, clef);
+          const yUpper = getOffsetForPitch(noteUpper.pitch!, clef);
+          const yLower = getOffsetForPitch(noteLower.pitch!, clef);
           if (Math.abs(yLower - yUpper) === 6) {
               if (!noteOffsets[noteUpper.id]) { 
                   noteOffsets[noteLower.id] = -LAYOUT.SECOND_INTERVAL_SHIFT;  // Lower note shifts LEFT

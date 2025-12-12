@@ -9,9 +9,10 @@
 
 export interface Note {
   id: string | number;
-  pitch: string;          // e.g., 'C4', 'D#5', 'Bb3'
+  pitch: string | null;     // e.g., 'C4', 'D#5', 'Bb3', or null for rests
   accidental?: 'sharp' | 'flat' | 'natural' | null;
-  tied?: boolean;         // Tied to next note
+  tied?: boolean;           // Tied to next note
+  isRest?: boolean;         // True for rest notes (pitchless)
 }
 
 // ========== EVENT ==========

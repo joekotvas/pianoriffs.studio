@@ -198,12 +198,12 @@ export const useModifiers = ({
         const event = staff.measures[t.measureIndex]?.events.find((e: any) => e.id === t.eventId);
         // Explicitly cast or check if it matches ScoreNote interface roughly
         return event?.notes.find((n: any) => n.id === t.noteId);
-    }).filter((n): n is ScoreNote => !!n);
+    }).filter((n): n is ScoreNote => !!n && n.pitch !== null);  // Filter out rests
 
     if (noteObjects.length === 0) return;
 
     const allMatch = noteObjects.every(n => {
-        const note = TonalNote.get(n.pitch);
+        const note = TonalNote.get(n.pitch!);
         if (type === 'sharp') return note.acc === '#';
         if (type === 'flat') return note.acc === 'b';
         if (type === 'natural') return !note.acc;
@@ -225,7 +225,8 @@ export const useModifiers = ({
         const event = measure?.events.find((e: any) => e.id === target.eventId);
         const note = event?.notes.find((n: any) => n.id === target.noteId);
 
-        if (note) {
+        // Skip rest notes (null pitch)
+        if (note && note.pitch !== null) {
             const newPitch = calculateNewPitch(note.pitch, targetType);
             if (newPitch && newPitch !== note.pitch) {
                 dispatch(new UpdateNoteCommand(target.measureIndex, target.eventId, target.noteId, { pitch: newPitch }, target.staffIndex));
@@ -241,7 +242,8 @@ export const useModifiers = ({
          const measure = staff.measures[selection.measureIndex];
          const event = measure?.events.find((e: any) => e.id === selection.eventId);
          const note = event?.notes.find((n: any) => n.id === selection.noteId);
-         if (note) {
+         // Skip rest notes (null pitch)
+         if (note && note.pitch !== null) {
              const newPitch = calculateNewPitch(note.pitch, targetType);
              if (newPitch) playNote(newPitch);
          }

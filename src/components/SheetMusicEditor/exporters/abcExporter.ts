@@ -84,7 +84,7 @@ export const generateABC = (score: any, bpm: number) => {
                      prefix += `(${event.tuplet.ratio[0]}`;
                 }
 
-                if (event.notes.length === 0) {
+                if (event.notes.length === 0 || event.isRest || (event.notes.length === 1 && event.notes[0].pitch === null)) {
                     // Rest
                     abc += `${prefix}z${durationString} `;
                 } else {

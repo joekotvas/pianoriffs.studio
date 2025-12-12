@@ -79,7 +79,7 @@ export const generateMusicXML = (score: any) => {
 
                 const xmlType = NOTE_TYPES[event.duration].xmlType;
 
-                if (event.notes.length === 0) {
+                if (event.notes.length === 0 || event.isRest || (event.notes.length === 1 && event.notes[0].pitch === null)) {
                     // REST
                     xml += `
     <note>

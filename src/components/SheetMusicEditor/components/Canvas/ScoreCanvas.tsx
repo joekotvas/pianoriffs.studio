@@ -180,10 +180,13 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
         measure.events.forEach((event: any) => {
           const eventX = measureX + (layout.eventPositions?.[event.id] || 0);
           
-          // Handle rest events (no notes array or isRest flag)
-          if (event.isRest || !event.notes || event.notes.length === 0) {
+          // Handle rest events (isRest flag set)
+          if (event.isRest) {
             // Skip placeholder rests for empty measures
             if (event.id === 'rest-placeholder') return;
+            
+            // Get the rest note ID (rests now have a single note entry)
+            const restNoteId = event.notes?.[0]?.id ?? null;
             
             // Add rest hit area - centered on event, spanning full staff height
             const staffHeight = CONFIG.lineHeight * 4;
@@ -195,7 +198,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
               staffIndex: staffIdx,
               measureIndex: measureIdx,
               eventId: event.id,
-              noteId: null  // Rests have no noteId
+              noteId: restNoteId  // Use the rest note ID for selection
             });
           } else {
             // Handle notes
