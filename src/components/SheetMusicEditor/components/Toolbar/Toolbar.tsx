@@ -101,7 +101,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       const hasSelection = selection?.selectedNotes && selection.selectedNotes.length > 0;
       
       if (hasSelection) {
-          dispatch(new ToggleRestCommand(selection, score));
+          dispatch(new ToggleRestCommand(selection));
       } else {
           toggleInputMode();
       }
