@@ -7,6 +7,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { getOffsetForPitch, calculateChordLayout, getPitchForOffset } from '../../engines/layout';
 import { getNoteDuration, isRestEvent, getFirstNoteId } from '../../utils/core';
 import ChordGroup from './ChordGroup';
+import GhostPreview from './GhostPreview';
 import { Rest } from './Rest';
 import Beam from './Beam';
 import TupletBracket from './TupletBracket';
@@ -14,6 +15,8 @@ import { MeasureProps } from '../../componentTypes';
 import { getEffectiveAccidental, getKeyAccidental, getDiatonicPitch } from '../../utils/accidentalContext';
 import { useAccidentalContext } from '../../hooks/useAccidentalContext';
 import { useMeasureLayout } from '../../hooks/useMeasureLayout';
+import { useMeasureInteraction } from '../../hooks/useMeasureInteraction';
+import { usePreviewRender } from '../../hooks/usePreviewRender';
 
 /**
  * Renders a single measure of the score.
@@ -49,11 +52,8 @@ const Measure: React.FC<MeasureProps> = ({
     onHover 
   } = interaction;
 
-  const [hoveredMeasure, setHoveredMeasure] = useState(false);
   const [hoveredPitch, setHoveredPitch] = useState<string | null>(null);
   const [cursorX, setCursorX] = useState<number | null>(null);
-  const [isNoteHovered, setIsNoteHovered] = useState(false);
-  const [cursorStyle, setCursorStyle] = useState<string>('crosshair');
 
   // --- Layout Calculation (Extracted to Hook) ---
   const {
@@ -69,169 +69,40 @@ const Measure: React.FC<MeasureProps> = ({
   // --- Accidental Context Calculation (Extracted to Hook) ---
   const accidentalOverrides = useAccidentalContext(events, keySignature);
 
+  // --- Mouse Interaction (Extracted to Hook) ---
+  const {
+    handleMeasureMouseMove,
+    handleMeasureMouseLeave,
+    handleMeasureClick,
+    cursorStyle,
+    isNoteHovered,
+    setIsNoteHovered,
+    hoveredMeasure
+  } = useMeasureInteraction({
+    hitZones,
+    clef,
+    scale,
+    measureIndex,
+    isLast,
+    activeDuration,
+    previewNote,
+    selection,
+    onHover,
+    onAddNote
+  });
 
-  // --- Event Handlers ---
-
-  const handleMeasureMouseMove = (e: React.MouseEvent) => {
-    if (isNoteHovered) {
-        setHoveredPitch(null);
-        setCursorX(null);
-        onHover?.(null, null, null); 
-        return;
-    }
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
-    
-    // Find closest hit zone
-    const hit = hitZones.find(zone => x >= zone.startX && x < zone.endX);
-
-    // Calculate Pitch from Y
-    // rect is positioned at y = baseY - 50.
-    // The visual Y relative to scale is `y` (from top of rect).
-    // The Y offset relative to baseY is `(y + (baseY - 50)) - baseY` = `y - 50`.
-    // We snap this to the nearest 6px (half line height) to match PITCH_TO_OFFSET steps.
-    console.log("y before clamping", y);
-    let yOffset = Math.round((y - 50) / 6) * 6;
-    
-    // Clamp yOffset to valid pitch range to eliminate dead zones
-    // Treble: -48 (G6) to 102 (C3), Bass: -48 (B4) to 102 (E1)
-    const MIN_OFFSET = -48;
-    const MAX_OFFSET = 102;
-    console.log("yOffset before clamping", yOffset);
-    yOffset = Math.max(MIN_OFFSET, Math.min(MAX_OFFSET, yOffset));
-    console.log("yOffset after clamping", yOffset);
-    const pitch = getPitchForOffset(yOffset, clef) || null;
-
-    setHoveredMeasure(true);
-    setCursorX(hit ? hit.startX : x);
-    
-    if (hit) {
-         // Pass raw event and calculated pitch
-         onHover?.(measureIndex, hit, pitch); 
-         if (hit.type === 'EVENT') {
-             setCursorStyle('default');
-         } else {
-             setCursorStyle('crosshair');
-         }
-    } else {
-        // Pass "gap" hit and calculated pitch
-         onHover?.(measureIndex, { x: x, quant: 0, duration: activeDuration }, pitch);
-         setCursorStyle('crosshair');
-    }
-  };
-
-  const handleMeasureMouseLeave = () => {
-    setHoveredMeasure(false);
-    setHoveredPitch(null);
-    setCursorX(null);
-    onHover?.(null, null, null);
-    setCursorStyle('crosshair');
-  };
-
-  const handleMeasureClick = (e: React.MouseEvent) => {
-    if (isNoteHovered) return;
-    
-    // If there's an active selection, don't add notes - let click bubble up to deselect
-    if (selection.selectedNotes && selection.selectedNotes.length > 0) {
-      return; // Don't stop propagation - let container handle deselection
-    }
-    
-    e.stopPropagation();
-
-    if (hoveredMeasure && onAddNote) {
-       // We'll trust the parent's `previewNote` state which serves as the "buffer" for the new note
-       // If previewNote exists and is on this measure OR is an overflow for the next measure, commit it.
-       const isOverflow = isLast && previewNote.measureIndex === measureIndex + 1;
-       
-       if (previewNote && (previewNote.measureIndex === measureIndex || isOverflow)) {
-           onAddNote(measureIndex, previewNote, true);
-       }
-    }
-  };
-  
-  // PREVIEW LOGIC
-  // Cache for rest previews to prevent recalculation on pitch changes
-  const restPreviewCacheRef = useRef<{ key: string; result: any } | null>(null);
-  
-  const previewRender = useMemo(() => {
-    if (!previewNote) return null;
-    
-    // Hide preview when there are selected notes (user is in "edit selection" mode)
-    if (selection.selectedNotes && selection.selectedNotes.length > 0) return null;
-    
-    // Allow rendering if it's for this measure OR if it's for the next measure (overflow) and we are the last measure
-    const isOverflowPreview = isLast && previewNote.measureIndex === measureIndex + 1;
-    if (previewNote.measureIndex !== measureIndex && !isOverflowPreview) {
-        return null;
-    }
-    
-    // For rests, use cached result if key fields haven't changed (ignore pitch)
-    if (previewNote.isRest) {
-      const cacheKey = `${previewNote.measureIndex}-${previewNote.index}-${previewNote.mode}-${previewNote.duration}-${previewNote.dotted}`;
-      if (restPreviewCacheRef.current && restPreviewCacheRef.current.key === cacheKey) {
-        return restPreviewCacheRef.current.result;
-      }
-    }
-    
-    const visualTempNote = { 
-        ...previewNote, 
-        quant: 0, // Not used for positioning anymore
-        id: 'preview' 
-    };
-
-    let combinedNotes = [visualTempNote];
-    let xPos = 0;
-    
-    if (isOverflowPreview) {
-         const lastInsertZone = hitZones.find(z => z.type === 'INSERT' && z.index === events.length);
-         if (lastInsertZone) {
-             xPos = lastInsertZone.startX + (lastInsertZone.endX - lastInsertZone.startX) / 2;
-         } else {
-             xPos = totalWidth - CONFIG.measurePaddingRight;
-         }
-    } else if (previewNote.mode === 'CHORD') {
-        const existingEvent = events[previewNote.index];
-        if(existingEvent) {
-             xPos = eventPositions[existingEvent.id];
-             combinedNotes = [...existingEvent.notes, visualTempNote];
-        }
-    } else if (previewNote.mode === 'INSERT') {
-        const insertZone = hitZones.find(z => z.type === 'INSERT' && z.index === previewNote.index);
-        if (insertZone) {
-            xPos = insertZone.startX + (insertZone.endX - insertZone.startX) / 2;
-        } else {
-            if (previewNote.index < events.length) {
-                 xPos = eventPositions[events[previewNote.index].id] - 20;
-            } else {
-                 xPos = totalWidth - CONFIG.measurePaddingRight;
-            }
-        }
-    } else {
-        // APPEND
-        const appendZone = hitZones.find(z => z.type === 'APPEND');
-        xPos = appendZone ? appendZone.startX : 0;
-    }
-    
-    const chordLayout = calculateChordLayout(combinedNotes, clef);
-
-    const result = {
-        chordNotes: combinedNotes,
-        quant: 0,
-        x: xPos,
-        chordLayout
-    };
-    
-    // Cache rest preview result
-    if (previewNote.isRest) {
-      const cacheKey = `${previewNote.measureIndex}-${previewNote.index}-${previewNote.mode}-${previewNote.duration}-${previewNote.dotted}`;
-      restPreviewCacheRef.current = { key: cacheKey, result };
-    }
-
-    return result;
-
-  }, [previewNote, events, measureIndex, layout, hitZones, eventPositions, totalWidth, clef, isLast, selection.selectedNotes]);
+  // --- Preview Rendering (Extracted to Hook) ---
+  const previewRender = usePreviewRender({
+    previewNote,
+    events,
+    measureIndex,
+    isLast,
+    clef,
+    hitZones,
+    eventPositions,
+    totalWidth,
+    selectedNotes: selection.selectedNotes
+  });
 
   // Map renderable events
   const beamMap = {};
@@ -425,58 +296,21 @@ const Measure: React.FC<MeasureProps> = ({
           />
       ))}
       
-
-
       {/* Bar Line */}
       {renderBarLine()}
 
       {/* PREVIEW GHOST */}
-      {previewRender && !isNoteHovered && (
-          <g style={{ pointerEvents: 'none' }}>
-               {(() => {
-                 const { chordNotes, quant, x } = previewRender;
-                 
-                 // Render rest preview when in REST mode
-                 if (previewNote?.isRest) {
-                   return (
-                     <Rest
-                       duration={previewNote.duration}
-                       dotted={previewNote.dotted}
-                       x={x}
-                       baseY={baseY}
-                       isGhost={true}
-                     />
-                   );
-                 }
-                 
-                 // Normal note preview
-                 const shouldDrawStem = NOTE_TYPES[previewNote.duration].stem && previewNote.mode !== 'CHORD';
-
-                 return (
-                    <ChordGroup
-                        // Data
-                        notes={chordNotes}
-                        quant={quant}
-                        duration={previewNote.duration}
-                        dotted={previewNote.dotted}
-                        eventId="preview"
-                        x={x}
-                        chordLayout={previewRender.chordLayout}
-                        isGhost={true}
-                        
-                         // Contexts (Pass through)
-                        layout={layout}
-                        interaction={interaction}
-
-                        // Local Options
-                        measureIndex={measureIndex}
-                        opacity={0.5}
-                        renderStem={shouldDrawStem}
-                        filterNote={(note) => note.id === 'preview'}
-                    />
-                 );
-               })()}
-          </g>
+      {previewRender && !isNoteHovered && previewNote && (
+        <g style={{ pointerEvents: 'none' }}>
+          <GhostPreview
+            previewRender={previewRender}
+            previewNote={previewNote}
+            baseY={baseY}
+            layout={layout}
+            interaction={interaction}
+            measureIndex={measureIndex}
+          />
+        </g>
       )}
     </g>
   );
