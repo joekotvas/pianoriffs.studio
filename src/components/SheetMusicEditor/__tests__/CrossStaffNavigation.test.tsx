@@ -89,17 +89,22 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         const syncToolbarState = jest.fn();
         const dispatch = jest.fn();
 
+        const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
+            selection = { ...selection, staffIndex: staffIndex ?? selection.staffIndex, measureIndex: measureIndex ?? selection.measureIndex, eventId, noteId };
+        });
+
         const { result } = renderHook(() => useNavigation({
             scoreRef,
             selection,
             setSelection,
+            select,
             previewNote: null,
             setPreviewNote,
-            syncToolbarState,
             activeDuration: 'quarter',
             isDotted: false,
             currentQuantsPerMeasure: 96,
-            dispatch
+            dispatch,
+            inputMode: 'NOTE'
         }));
 
         // Use switchStaff('down') which corresponds to Alt+Down
@@ -107,8 +112,8 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
             result.current.switchStaff('down');
         });
 
-        // Expectation: Staff 1
-        expect(setSelection).toHaveBeenCalled();
+        // Expectation: Staff 1 (select is called instead of setSelection now)
+        expect(select).toHaveBeenCalled();
         expect(selection.staffIndex).toBe(1);
         // Expect to select the first half note (e2-0) because it contains quant 24
         expect(selection.eventId).toBe('e2-0');
@@ -141,17 +146,22 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         const syncToolbarState = jest.fn();
         const dispatch = jest.fn();
 
+        const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
+            selection = { ...selection, staffIndex: staffIndex ?? selection.staffIndex, measureIndex: measureIndex ?? selection.measureIndex, eventId, noteId };
+        });
+
         const { result } = renderHook(() => useNavigation({
             scoreRef,
             selection,
             setSelection,
+            select,
             previewNote: null,
             setPreviewNote,
-            syncToolbarState,
             activeDuration: 'quarter',
             isDotted: false,
             currentQuantsPerMeasure: 96,
-            dispatch
+            dispatch,
+            inputMode: 'NOTE'
         }));
 
         act(() => {
@@ -189,17 +199,22 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         const syncToolbarState = jest.fn();
         const dispatch = jest.fn();
 
+        const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
+            selection = { ...selection, staffIndex: staffIndex ?? selection.staffIndex, measureIndex: measureIndex ?? selection.measureIndex, eventId, noteId };
+        });
+
         const { result } = renderHook(() => useNavigation({
             scoreRef,
             selection,
             setSelection,
+            select,
             previewNote: null,
             setPreviewNote,
-            syncToolbarState,
             activeDuration: 'quarter',
             isDotted: false,
             currentQuantsPerMeasure: 96,
-            dispatch
+            dispatch,
+            inputMode: 'NOTE'
         }));
 
         act(() => {
@@ -277,17 +292,22 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         const syncToolbarState = jest.fn();
         const dispatch = jest.fn();
 
+        const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
+            selection = { ...selection, staffIndex: staffIndex ?? selection.staffIndex, measureIndex: measureIndex ?? selection.measureIndex, eventId, noteId };
+        });
+
         const { result } = renderHook(() => useNavigation({
             scoreRef,
             selection,
             setSelection,
+            select,
             previewNote: null,
             setPreviewNote,
-            syncToolbarState,
             activeDuration: 'quarter',
             isDotted: false,
             currentQuantsPerMeasure: 96,
-            dispatch
+            dispatch,
+            inputMode: 'NOTE'
         }));
 
         act(() => {

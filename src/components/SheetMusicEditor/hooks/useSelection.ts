@@ -15,7 +15,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
   // --- Helpers ---
   
   const playAudioFeedback = useCallback((notes: any[]) => {
-      notes.forEach(n => playNote(n.pitch));
+      notes.filter(n => n.pitch !== null).forEach(n => playNote(n.pitch));
   }, []);
 
   // --- Actions ---

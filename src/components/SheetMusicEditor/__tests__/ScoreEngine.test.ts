@@ -1,5 +1,5 @@
 import { ScoreEngine } from '../engines/ScoreEngine';
-import { AddNoteCommand } from '../commands/NoteCommands';
+import { AddEventCommand } from '../commands/AddEventCommand';
 import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
 import { ChangePitchCommand } from '../commands/ChangePitchCommand';
 import { AddMeasureCommand, DeleteMeasureCommand } from '../commands/MeasureCommands';
@@ -12,10 +12,10 @@ describe('ScoreEngine', () => {
     expect(state.staves[0].measures.length).toBeGreaterThan(0);
   });
 
-  it('should dispatch AddNoteCommand and update state', () => {
+  it('should dispatch AddEventCommand and update state', () => {
     const engine = new ScoreEngine();
     const note: Note = { id: 'test-note', pitch: 'C4' };
-    const command = new AddNoteCommand(0, note, 'quarter', false);
+    const command = new AddEventCommand(0, false, note, 'quarter', false);
 
     engine.dispatch(command);
 
@@ -25,10 +25,10 @@ describe('ScoreEngine', () => {
     expect(measure.events[0].notes[0].pitch).toBe('C4');
   });
 
-  it('should undo AddNoteCommand', () => {
+  it('should undo AddEventCommand', () => {
     const engine = new ScoreEngine();
     const note: Note = { id: 'test-note', pitch: 'C4' };
-    const command = new AddNoteCommand(0, note, 'quarter', false);
+    const command = new AddEventCommand(0, false, note, 'quarter', false);
 
     engine.dispatch(command);
     expect(engine.getState().staves[0].measures[0].events.length).toBe(1);
@@ -41,7 +41,7 @@ describe('ScoreEngine', () => {
     const engine = new ScoreEngine();
     const note: Note = { id: 'test-note', pitch: 'C4' };
     // First add a note
-    const addCommand = new AddNoteCommand(0, note, 'quarter', false);
+    const addCommand = new AddEventCommand(0, false, note, 'quarter', false);
     engine.dispatch(addCommand);
     
     // Get the event ID created (in a real app we'd get this from the state or command result)
@@ -59,7 +59,7 @@ describe('ScoreEngine', () => {
   it('should dispatch ChangePitchCommand and update state', () => {
     const engine = new ScoreEngine();
     const note: Note = { id: 'test-note', pitch: 'C4' };
-    const addCommand = new AddNoteCommand(0, note, 'quarter', false);
+    const addCommand = new AddEventCommand(0, false, note, 'quarter', false);
     engine.dispatch(addCommand);
 
     const stateAfterAdd = engine.getState();

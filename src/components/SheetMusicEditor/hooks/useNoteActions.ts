@@ -6,13 +6,12 @@ import { applyKeySignature } from '../services/MusicService';
 import { Note } from 'tonal';
 import { Score, getActiveStaff, createDefaultSelection, Selection } from '../types';
 import { Command } from '../commands/types';
-import { AddNoteCommand } from '../commands/NoteCommands';
+import { AddEventCommand } from '../commands/AddEventCommand';
 import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
 import { AddMeasureCommand } from '../commands/MeasureCommands';
 import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
 import { DeleteEventCommand } from '../commands/DeleteEventCommand';
 import { ChangePitchCommand } from '../commands/ChangePitchCommand';
-import { AddRestCommand } from '../commands/AddRestCommand';
 
 import { InputMode } from './useEditorTools';
 
@@ -228,45 +227,35 @@ export const useNoteActions = ({
         // Update selection to the new note
         select(measureIndex, targetEventId, noteToAdd.id, currentStaffIndex);
         setPreviewNote(null);
-    } else if (inputMode === 'REST') {
-        // Create new rest event
-        const eventId = Date.now().toString();
-        const restNoteId = `${eventId}-rest`;  // Match the ID pattern from AddRestCommand
-        
-        dispatch(new AddRestCommand(
-            measureIndex, 
-            activeDuration, 
-            isDotted, 
-            mode === 'INSERT' ? insertIndex : undefined,
-            eventId,
-            currentStaffIndex
-        ));
-
-        // Select the rest note history only (mimicking note behavior) to allow auto-advance
-        select(measureIndex, eventId, restNoteId, currentStaffIndex, { onlyHistory: true });
-        setPreviewNote(null);
     } else {
-        // Create new note event
+        // NEW EVENT (note or rest) - unified path
         const eventId = Date.now().toString();
-        const noteToAdd = {
+        const isRest = inputMode === 'REST';
+        
+        // Build note payload (null for rests)
+        const notePayload = isRest ? null : {
             id: Date.now() + 1,
             pitch: newNote.pitch,
             accidental: activeAccidental,
             tied: activeTie
         };
         
-        dispatch(new AddNoteCommand(
-            measureIndex, 
-            noteToAdd, 
-            activeDuration, 
-            isDotted, 
+        // Determine the noteId for selection tracking
+        const noteId = isRest ? `${eventId}-rest` : notePayload!.id;
+        
+        dispatch(new AddEventCommand(
+            measureIndex,
+            isRest,
+            notePayload,
+            activeDuration,
+            isDotted,
             mode === 'INSERT' ? insertIndex : undefined,
             eventId,
             currentStaffIndex
         ));
 
-        // Update selection history (so navigation resumes from here) but do NOT visually select
-        select(measureIndex, eventId, noteToAdd.id, currentStaffIndex, { onlyHistory: true });
+        // Update selection history only (mimics consistent behavior for both)
+        select(measureIndex, eventId, noteId, currentStaffIndex, { onlyHistory: true });
         setPreviewNote(null);
     }
 
@@ -362,8 +351,9 @@ export const useNoteActions = ({
         tied: false
     };
     
-    dispatch(new AddNoteCommand(
+    dispatch(new AddEventCommand(
         measureIndex, 
+        false,  // isRest = false for chord notes
         noteToAdd, 
         duration, 
         dotted,

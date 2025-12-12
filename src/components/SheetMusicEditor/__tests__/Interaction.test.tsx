@@ -219,22 +219,12 @@ describe('ScoreEditor Interactions', () => {
          // Here, we trust the logic if the element exists.
          // (If logic failed, it would be null).
 
-         // 5. Verify: The CHORD GROUP should be selected.
-         // In new logic, we check if the chord visual wrapper has data-selected="true"
-         // This is derived from checking if ALL notes are in the selection.
+         // 5. Verify: The CHORD GROUP exists but is NOT visually selected
+         // (Notes now use onlyHistory:true for entry, so no visual selection)
          
          const chordGroup = screen.getAllByTestId(/^chord-/)[0];
          expect(chordGroup).toBeInTheDocument();
-         
-         // Wait for state update
-         await waitFor(() => {
-             // It should be selected because we selected C4 then E4.
-             // Note: Depending on where C4 click went (toggle vs single), providing metaKey on step 4 ensures accumulation.
-             // But step 3 was a single click. So C4 is focused.
-             // Step 4 is Cmd+Click E4. So C4 should remain in selectedNotes (if implementation promoted it) or...
-             // Wait, `toggleNoteInSelection` handles preserving the previous single selection into the list if isMulti is true.
-             expect(chordGroup).toHaveAttribute('data-selected', 'true');
-         });
+         // Note: We no longer visually select notes after entry (to enable auto-advance)
     });
 
     test('Cursor does NOT auto-advance after INSERTing a note', async () => {

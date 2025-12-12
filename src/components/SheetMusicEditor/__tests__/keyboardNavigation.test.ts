@@ -1,7 +1,7 @@
 import { handleNavigation } from '../hooks/handlers/handleNavigation';
 import { createDefaultScore, getActiveStaff } from '../types';
 import { SetGrandStaffCommand } from '../commands/SetGrandStaffCommand';
-import { AddNoteCommand } from '../commands/NoteCommands';
+import { AddEventCommand } from '../commands/AddEventCommand';
 import { ScoreEngine } from '../engines/ScoreEngine';
 
 /**
@@ -30,8 +30,8 @@ describe('Keyboard Navigation Integration', () => {
       const engine = new ScoreEngine(createDefaultScore());
       
       // Add notes
-      engine.dispatch(new AddNoteCommand(0, { pitch: 'C5', id: 'note-1' }, 'quarter', false, undefined, undefined, 0));
-      engine.dispatch(new AddNoteCommand(0, { pitch: 'D5', id: 'note-2' }, 'quarter', false, undefined, undefined, 0));
+      engine.dispatch(new AddEventCommand(0, false, { pitch: 'C5', id: 'note-1' }, 'quarter', false, undefined, undefined, 0));
+      engine.dispatch(new AddEventCommand(0, false, { pitch: 'D5', id: 'note-2' }, 'quarter', false, undefined, undefined, 0));
       
       const score = engine.getState();
       const measures = getActiveStaff(score, 0).measures;
@@ -60,7 +60,7 @@ describe('Keyboard Navigation Integration', () => {
       
       expect(handled).toBe(true);
       expect(event.preventDefault).toHaveBeenCalled();
-      expect(moveSelection).toHaveBeenCalledWith('right');
+      expect(moveSelection).toHaveBeenCalledWith('right', false);
     });
 
     it('should navigate left on ArrowLeft key press', () => {
@@ -71,7 +71,7 @@ describe('Keyboard Navigation Integration', () => {
       
       expect(handled).toBe(true);
       expect(event.preventDefault).toHaveBeenCalled();
-      expect(moveSelection).toHaveBeenCalledWith('left');
+      expect(moveSelection).toHaveBeenCalledWith('left', false);
     });
   });
 
@@ -81,8 +81,8 @@ describe('Keyboard Navigation Integration', () => {
       engine.dispatch(new SetGrandStaffCommand());
       
       // Add notes to bass clef (staffIndex 1)
-      engine.dispatch(new AddNoteCommand(0, { pitch: 'C3', id: 'bass-1' }, 'quarter', false, undefined, undefined, 1));
-      engine.dispatch(new AddNoteCommand(0, { pitch: 'D3', id: 'bass-2' }, 'quarter', false, undefined, undefined, 1));
+      engine.dispatch(new AddEventCommand(0, false, { pitch: 'C3', id: 'bass-1' }, 'quarter', false, undefined, undefined, 1));
+      engine.dispatch(new AddEventCommand(0, false, { pitch: 'D3', id: 'bass-2' }, 'quarter', false, undefined, undefined, 1));
       
       const score = engine.getState();
       const bassMeasures = getActiveStaff(score, 1).measures;
@@ -98,7 +98,7 @@ describe('Keyboard Navigation Integration', () => {
       const handled = handleNavigation(event, moveSelection);
       
       expect(handled).toBe(true);
-      expect(moveSelection).toHaveBeenCalledWith('right');
+      expect(moveSelection).toHaveBeenCalledWith('right', false);
     });
 
     it('should call moveSelection on ArrowLeft key press on bass clef', () => {
@@ -108,7 +108,7 @@ describe('Keyboard Navigation Integration', () => {
       const handled = handleNavigation(event, moveSelection);
       
       expect(handled).toBe(true);
-      expect(moveSelection).toHaveBeenCalledWith('left');
+      expect(moveSelection).toHaveBeenCalledWith('left', false);
     });
   });
 
@@ -177,7 +177,7 @@ describe('Keyboard Navigation Integration', () => {
       const handled = handleNavigation(event, moveSelection);
       
       expect(handled).toBe(true);
-      expect(moveSelection).toHaveBeenCalledWith('up');
+      expect(moveSelection).toHaveBeenCalledWith('up', false);
     });
   });
 });

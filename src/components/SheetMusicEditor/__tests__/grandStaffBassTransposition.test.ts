@@ -1,7 +1,7 @@
 import { TransposeSelectionCommand } from '../commands/TransposeSelectionCommand';
 import { createDefaultScore, getActiveStaff } from '../types';
 import { SetGrandStaffCommand } from '../commands/SetGrandStaffCommand';
-import { AddNoteCommand } from '../commands/NoteCommands';
+import { AddEventCommand } from '../commands/AddEventCommand';
 import { ScoreEngine } from '../engines/ScoreEngine';
 
 describe('Grand Staff Bass Clef Transposition', () => {
@@ -16,9 +16,10 @@ describe('Grand Staff Bass Clef Transposition', () => {
 
   it('should transpose notes on bass clef (staffIndex=1) when using TransposeSelectionCommand', () => {
     // Add a note to bass clef (staff index 1)
-    // AddNoteCommand signature: (measureIndex, note, duration, isDotted, index?, eventId?, staffIndex?)
-    engine.dispatch(new AddNoteCommand(
+    // AddEventCommand signature: (measureIndex, isRest, note, duration, isDotted, index?, eventId?, staffIndex?)
+    engine.dispatch(new AddEventCommand(
       0, // measureIndex
+      false, // isRest
       { pitch: 'E3', id: 'test-note-bass' }, // note
       'quarter', // duration
       false, // isDotted
@@ -55,13 +56,13 @@ describe('Grand Staff Bass Clef Transposition', () => {
 
   it('should not affect treble clef when transposing bass clef notes', () => {
     // Add note to treble (staffIndex 0)
-    engine.dispatch(new AddNoteCommand(
-      0, { pitch: 'C5', id: 'treble-note' }, 'quarter', false, undefined, undefined, 0
+    engine.dispatch(new AddEventCommand(
+      0, false, { pitch: 'C5', id: 'treble-note' }, 'quarter', false, undefined, undefined, 0
     ));
 
     // Add note to bass (staffIndex 1)
-    engine.dispatch(new AddNoteCommand(
-      0, { pitch: 'C3', id: 'bass-note' }, 'quarter', false, undefined, undefined, 1
+    engine.dispatch(new AddEventCommand(
+      0, false, { pitch: 'C3', id: 'bass-note' }, 'quarter', false, undefined, undefined, 1
     ));
 
     let score = engine.getState();
@@ -93,8 +94,8 @@ describe('Grand Staff Bass Clef Transposition', () => {
 
   it('should correctly undo transposition on bass clef', () => {
     // Add note to bass
-    engine.dispatch(new AddNoteCommand(
-      0, { pitch: 'G3', id: 'bass-undo-note' }, 'quarter', false, undefined, undefined, 1
+    engine.dispatch(new AddEventCommand(
+      0, false, { pitch: 'G3', id: 'bass-undo-note' }, 'quarter', false, undefined, undefined, 1
     ));
 
     let score = engine.getState();

@@ -19,7 +19,7 @@ describe('handleNavigation', () => {
         const result = handleNavigation(mockEvent, mockMoveSelection);
         
         expect(result).toBe(true);
-        expect(mockMoveSelection).toHaveBeenCalledWith('left');
+        expect(mockMoveSelection).toHaveBeenCalledWith('left', undefined);
         expect(mockEvent.preventDefault).toHaveBeenCalled();
     });
 
@@ -28,7 +28,7 @@ describe('handleNavigation', () => {
         const result = handleNavigation(mockEvent, mockMoveSelection);
         
         expect(result).toBe(true);
-        expect(mockMoveSelection).toHaveBeenCalledWith('right');
+        expect(mockMoveSelection).toHaveBeenCalledWith('right', undefined);
     });
 
     test('should ignore ArrowUp/Down without Meta/Ctrl', () => {
@@ -45,7 +45,7 @@ describe('handleNavigation', () => {
         const result = handleNavigation(mockEvent, mockMoveSelection);
         
         expect(result).toBe(true);
-        expect(mockMoveSelection).toHaveBeenCalledWith('up');
+        expect(mockMoveSelection).toHaveBeenCalledWith('up', undefined);
     });
 
     test('should ignore non-arrow keys', () => {
