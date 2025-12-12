@@ -202,3 +202,71 @@ export const createDefaultSelection = (): Selection => ({
   selectedNotes: [],
   anchor: null
 });
+
+// ========== RIFFSCORE CONFIG ==========
+
+/**
+ * Utility type for allowing partial nested objects
+ */
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+/**
+ * Staff template options for score generation
+ */
+export type StaffTemplate = 'grand' | 'treble' | 'bass';
+
+/**
+ * Configuration interface for RiffScore component.
+ * Supports two modes:
+ * - Generator Mode: Pass `staff` + `measureCount` to create blank scores
+ * - Render Mode: Pass `staves` array to load existing compositions
+ */
+export interface RiffScoreConfig {
+  ui: {
+    showToolbar: boolean;
+    scale: number;
+  };
+  interaction: {
+    isEnabled: boolean;      // Master switch for all interactions
+    enableKeyboard: boolean;
+    enablePlayback: boolean;
+  };
+  score: {
+    title: string;
+    bpm: number;
+    timeSignature: string;
+    keySignature: string;
+    
+    // Generator Mode Options
+    staff?: StaffTemplate;
+    measureCount?: number;
+    
+    // Explicit Content (Overrides Generator Options)
+    staves?: Staff[];
+  };
+}
+
+/**
+ * Default RiffScore configuration
+ */
+export const DEFAULT_RIFF_CONFIG: RiffScoreConfig = {
+  ui: {
+    showToolbar: true,
+    scale: 1,
+  },
+  interaction: {
+    isEnabled: true,
+    enableKeyboard: true,
+    enablePlayback: true,
+  },
+  score: {
+    title: 'Untitled',
+    bpm: 120,
+    timeSignature: '4/4',
+    keySignature: 'C',
+    staff: 'grand',
+    measureCount: 2,
+  },
+};

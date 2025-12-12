@@ -2,9 +2,13 @@
 "use client";
 import React from 'react';
 import ScoreEditor from './ScoreEditor';
+import { RiffScore } from './RiffScore';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ConfigMenu from './components/Panels/ConfigMenu';
 
+// Named exports
+export { RiffScore };
+export { ScoreEditor };
 const AppContent = () => {
   const { theme, zoom } = useTheme();
   

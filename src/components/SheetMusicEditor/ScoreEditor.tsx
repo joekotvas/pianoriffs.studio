@@ -41,13 +41,30 @@ import Portal from './components/Portal'; // This was missed in the provided sni
 import { getActiveStaff } from './types';
 import { MELODIES } from './data/melodies'; // This was missed in the provided snippet, but is used later. Re-adding it.
 
+interface ScoreEditorContentProps {
+  scale?: number;
+  label?: string;
+  showToolbar?: boolean;
+  enableKeyboard?: boolean;
+  enablePlayback?: boolean;
+}
+
 /**
  * Main Sheet Music Editor Component.
  * Manages the state of the musical score, user interactions, playback, and history.
  * @param scale - Zoom scale factor for the editor
  * @param label - Optional label for the editor instance
+ * @param showToolbar - Whether to show the toolbar (default: true)
+ * @param enableKeyboard - Whether keyboard shortcuts are enabled (default: true)
+ * @param enablePlayback - Whether playback controls are available (default: true)
  */
-const ScoreEditorContent = ({ scale = 1, label }) => {
+const ScoreEditorContent = ({ 
+  scale = 1, 
+  label,
+  showToolbar = true,
+  enableKeyboard = true,
+  enablePlayback = true,
+}: ScoreEditorContentProps) => {
   const [bpm, setBpm] = useState(120);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const titleInputRef = useRef(null);
@@ -160,7 +177,7 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
   // --- DRAG LOGIC ---
   // Moved to ScoreCanvas internal logic
 
-  // Keyboard Shortcuts Hook
+  // Keyboard Shortcuts Hook - only active if keyboard is enabled
   useKeyboardShortcuts(
       scoreLogic,
       playback,
@@ -168,7 +185,8 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
           isEditingTitle, 
           isHoveringScore, 
           scoreContainerRef,
-          isAnyMenuOpen: () => (toolbarRef.current?.isMenuOpen() ?? false) || showHelp
+          isAnyMenuOpen: () => (toolbarRef.current?.isMenuOpen() ?? false) || showHelp,
+          isDisabled: !enableKeyboard,
       },
       { handleTitleCommit }
   );
@@ -206,28 +224,30 @@ const ScoreEditorContent = ({ scale = 1, label }) => {
           scrollbar-color: ${theme.border} transparent;
         }
       `}</style>
-      <Toolbar 
-        ref={toolbarRef}
-        scoreTitle={score.title}
-        label={label}
-        isEditingTitle={isEditingTitle}
-        onEditingChange={setIsEditingTitle}
-        onTitleChange={(newTitle) => dispatch(new UpdateTitleCommand(newTitle))}
-        isPlaying={isPlaying}
-        onPlayToggle={handlePlayToggle}
-        bpm={bpm}
-        onBpmChange={setBpm}
-        errorMsg={errorMsg}
-        onToggleHelp={() => setShowHelp(true)}
-        midiStatus={midiStatus}
-        melodies={MELODIES}
-        selectedInstrument={selectedInstrument}
-        onInstrumentChange={(instrument) => {
-          setSelectedInstrument(instrument);
-          setInstrument(instrument);
-        }}
-        samplerLoaded={samplerLoaded}
-      />
+      {showToolbar && (
+        <Toolbar 
+          ref={toolbarRef}
+          scoreTitle={score.title}
+          label={label}
+          isEditingTitle={isEditingTitle}
+          onEditingChange={setIsEditingTitle}
+          onTitleChange={(newTitle) => dispatch(new UpdateTitleCommand(newTitle))}
+          isPlaying={isPlaying}
+          onPlayToggle={enablePlayback ? handlePlayToggle : undefined}
+          bpm={bpm}
+          onBpmChange={setBpm}
+          errorMsg={errorMsg}
+          onToggleHelp={() => setShowHelp(true)}
+          midiStatus={midiStatus}
+          melodies={MELODIES}
+          selectedInstrument={selectedInstrument}
+          onInstrumentChange={(instrument) => {
+            setSelectedInstrument(instrument);
+            setInstrument(instrument);
+          }}
+          samplerLoaded={samplerLoaded}
+        />
+      )}
 
       {showHelp && (
         <Portal>
@@ -316,4 +336,5 @@ const ScoreEditor = ({ scale = 1, label, initialData }: { scale?: number, label?
     );
 };
 
+export { ScoreEditorContent };
 export default ScoreEditor;
