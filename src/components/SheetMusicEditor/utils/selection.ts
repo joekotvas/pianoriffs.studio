@@ -205,3 +205,73 @@ export const calculateNoteRange = (
         n.staffIndex === anchor.staffIndex // Generally prevent ranges spanning staves
     );
 };
+
+/**
+ * Checks if a rest event is selected.
+ * Uses the first (and only) note in a rest event for selection checking.
+ */
+export const isRestSelected = (
+    selection: Selection,
+    event: { id: string | number; notes?: { id: string | number }[] },
+    measureIndex: number,
+    staffIndex: number
+): boolean => {
+    const restNoteId = event.notes?.[0]?.id ?? null;
+    
+    // Check primary selection
+    const isPrimary =
+        selection.measureIndex === measureIndex &&
+        compareIds(selection.eventId, event.id) &&
+        selection.staffIndex === staffIndex;
+
+    // Check multi-selection
+    const isInMulti = selection.selectedNotes?.some(
+        (sn) =>
+            sn.measureIndex === measureIndex &&
+            compareIds(sn.eventId, event.id) &&
+            sn.staffIndex === staffIndex &&
+            compareIds(sn.noteId, restNoteId)
+    ) ?? false;
+
+    return isPrimary || isInMulti;
+};
+
+/**
+ * Checks if ALL notes in a beam group are selected.
+ * A beam is considered selected only when every note it connects is selected.
+ */
+export const isBeamGroupSelected = (
+    selection: Selection,
+    beam: { ids: (string | number)[] },
+    events: { id: string | number; notes?: { id: string | number }[] }[],
+    measureIndex: number
+): boolean => {
+    // Collect all notes participating in this beam
+    const beamNoteIds: { eventId: string | number; noteId: string | number }[] = [];
+    
+    beam.ids.forEach((eventId) => {
+        const ev = events.find((e) => compareIds(e.id, eventId));
+        if (ev?.notes) {
+            ev.notes.forEach((n) => beamNoteIds.push({ eventId: ev.id, noteId: n.id }));
+        }
+    });
+
+    if (beamNoteIds.length === 0) return false;
+
+    // Check if every note is in the selection
+    return beamNoteIds.every((bn) => {
+        if (selection.selectedNotes && selection.selectedNotes.length > 0) {
+            return selection.selectedNotes.some(
+                (sn) =>
+                    sn.measureIndex === measureIndex &&
+                    compareIds(sn.eventId, bn.eventId) &&
+                    compareIds(sn.noteId, bn.noteId)
+            );
+        }
+        return (
+            selection.measureIndex === measureIndex &&
+            compareIds(selection.eventId, bn.eventId) &&
+            compareIds(selection.noteId, bn.noteId)
+        );
+    });
+};
