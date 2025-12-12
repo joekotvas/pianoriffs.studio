@@ -4,8 +4,7 @@ import { ScoreEvent, KeySignatureConfig } from '../../types';
 import { CONFIG, STEM, LAYOUT } from '../../config';
 import { NOTE_TYPES } from '../../constants';
 import { useTheme } from '../../context/ThemeContext';
-import { calculateMeasureLayout, getOffsetForPitch, calculateChordLayout, calculateBeamingGroups, getPitchForOffset, applyMeasureCentering } from '../../engines/layout';
-import { calculateTupletBrackets } from '../../engines/layout/tuplets'; // Restore tuplets import
+import { getOffsetForPitch, calculateChordLayout, getPitchForOffset } from '../../engines/layout';
 import { getNoteDuration, isRestEvent, getFirstNoteId } from '../../utils/core';
 import ChordGroup from './ChordGroup';
 import { Rest } from './Rest';
@@ -13,6 +12,8 @@ import Beam from './Beam';
 import TupletBracket from './TupletBracket';
 import { MeasureProps } from '../../componentTypes';
 import { getEffectiveAccidental, getKeyAccidental, getDiatonicPitch } from '../../utils/accidentalContext';
+import { useAccidentalContext } from '../../hooks/useAccidentalContext';
+import { useMeasureLayout } from '../../hooks/useMeasureLayout';
 
 /**
  * Renders a single measure of the score.
@@ -54,98 +55,19 @@ const Measure: React.FC<MeasureProps> = ({
   const [isNoteHovered, setIsNoteHovered] = useState(false);
   const [cursorStyle, setCursorStyle] = useState<string>('crosshair');
 
-  // --- Layout Calculation ---
-  const measureLayout = useMemo(() => {
-    return calculateMeasureLayout(events, undefined, clef, measureData.isPickup, forcedEventPositions);
-  }, [events, clef, measureData.isPickup, forcedEventPositions]);
+  // --- Layout Calculation (Extracted to Hook) ---
+  const {
+    hitZones,
+    eventPositions,
+    totalWidth,
+    effectiveWidth,
+    centeredEvents,
+    beamGroups,
+    tupletGroups
+  } = useMeasureLayout(events, clef, measureData.isPickup, forcedEventPositions, forcedWidth);
 
-  const { hitZones, eventPositions, totalWidth, processedEvents } = measureLayout;
-
-  // --- Accidental Context Calculation ---
-  const accidentalOverrides = useMemo(() => {
-    const overrides: Record<string, string | null> = {};
-    const pitchHistory: Record<string, 'sharp' | 'flat' | 'natural'> = {}; // Key: "C4", "F#5" -> stores effective accidental
-    const alteredLetters = new Set<string>(); // Tracks if "A", "B" etc has been altered from key
-
-    // Sort events by time (quant) just in case, though they should be sorted
-    const sortedEvents = [...events].sort((a,b) => (a.quant || 0) - (b.quant || 0));
-
-    sortedEvents.forEach(event => {
-        if (!event.notes) return;
-        event.notes.forEach((note: any) => {
-             // Skip rest notes (null pitch)
-             if (note.pitch === null) return;
-             
-             const effective = getEffectiveAccidental(note.pitch, keySignature);
-             const keyAccidental = getKeyAccidental(note.pitch.charAt(0), keySignature);
-             const diatonicPitch = getDiatonicPitch(note.pitch);
-             
-             let showSymbol: string | null = null;
-             
-             const prev = pitchHistory[diatonicPitch];
-             
-             if (prev) {
-                 // Rule: If repeated pitch (same line), only show if it CHANGES.
-                 if (prev !== effective) {
-                     showSymbol = effective; 
-                 } else {
-                     showSymbol = null; // Hide
-                 }
-             } else {
-                 // First time on this line
-                 if (effective !== keyAccidental) {
-                     // Deviation from key -> Show
-                     showSymbol = effective;
-                     alteredLetters.add(note.pitch.charAt(0));
-                 } else {
-                     // Matches key... BUT check if letter was altered elsewhere
-                     if (alteredLetters.has(note.pitch.charAt(0))) {
-                         // Cautionary -> Show
-                         showSymbol = effective;
-                     } else {
-                         showSymbol = null;
-                     }
-                 }
-             }
-             
-             // Update History
-             pitchHistory[diatonicPitch] = effective;
-             
-             // Store result
-             if (showSymbol) {
-                 const map = { sharp: '♯', flat: '♭', natural: '♮' };
-                 overrides[note.id] = map[showSymbol] || null;
-             } else {
-                 overrides[note.id] = null; // Explicitly hide
-             }
-        });
-    });
-    return overrides;
-  }, [events, keySignature]);
-
-  // Use forced width if provided (Grand Staff sync), otherwise calculated width
-  const effectiveWidth = forcedWidth || totalWidth;
-
-  // Re-calculate centering if width is forced (Grand Staff alignment)
-  const centeredEvents = useMemo(() => {
-      // Only necessary if width changed and we have a rest placeholder
-      if (forcedWidth && processedEvents.length === 1 && processedEvents[0].id === 'rest-placeholder') {
-          return applyMeasureCentering(processedEvents, effectiveWidth);
-      }
-      return processedEvents;
-  }, [processedEvents, forcedWidth, effectiveWidth]);
-  const beamGroups = useMemo(() => {
-      // Need to import calculateBeamingGroups!
-      // We will assume it is available in imports, or update imports below.
-      return calculateBeamingGroups(events, eventPositions, clef);
-  }, [events, eventPositions, clef]);
-
-  // Calculate Tuplets
-  const tupletGroups = useMemo(() => {
-      return calculateTupletBrackets(centeredEvents, eventPositions, clef); 
-  }, [centeredEvents, eventPositions, clef]);
-
-  // Use forced width if provided (Grand Staff sync), otherwise calculated width
+  // --- Accidental Context Calculation (Extracted to Hook) ---
+  const accidentalOverrides = useAccidentalContext(events, keySignature);
 
 
   // --- Event Handlers ---
