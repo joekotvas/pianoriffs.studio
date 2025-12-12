@@ -114,7 +114,20 @@ export const useSelection = ({ score }: UseSelectionProps) => {
     const measure = getActiveStaff(score, startStaffIndex).measures[measureIndex];
     const event = measure?.events.find((e: any) => e.id === eventId);
 
-    if (selectAllInEvent || !noteId) {
+    // Handle REST selection (events with no notes)
+    const isRestEvent = event?.isRest || (event && (!event.notes || event.notes.length === 0));
+    
+    if (isRestEvent) {
+        // For rests, we select at event level with noteId: null
+        // Create a special selectedNotes entry for the rest
+        notesToSelect = [{
+            staffIndex: startStaffIndex,
+            measureIndex,
+            eventId,
+            noteId: null  // Rests don't have notes
+        }];
+        targetNoteId = null;
+    } else if (selectAllInEvent || !noteId) {
         if (event && event.notes.length > 0) {
             notesToSelect = event.notes.map((n: any) => ({
                 staffIndex: startStaffIndex,
@@ -136,7 +149,11 @@ export const useSelection = ({ score }: UseSelectionProps) => {
              setSelection(prev => {
                 const newSelectedNotes = prev.selectedNotes ? [...prev.selectedNotes] : [];
                 notesToSelect.forEach(n => {
-                    if (!newSelectedNotes.some(ex => ex.noteId === n.noteId)) {
+                    // For rests, compare by eventId only since noteId is null
+                    const exists = isRestEvent 
+                        ? newSelectedNotes.some(ex => ex.eventId === n.eventId && ex.noteId === null)
+                        : newSelectedNotes.some(ex => ex.noteId === n.noteId);
+                    if (!exists) {
                         newSelectedNotes.push(n);
                     }
                 });
@@ -150,7 +167,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
                     anchor: prev.anchor // Maintain anchor? Or reset?
                 };
              });
-             playAudioFeedback(event?.notes || []);
+             if (!isRestEvent) playAudioFeedback(event?.notes || []);
              return; // Multi-select handled directly via setSelection
         } else {
              // Single Select of Event -> Replace selection

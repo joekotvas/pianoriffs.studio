@@ -166,7 +166,16 @@ const Measure: React.FC<MeasureProps> = ({
     // The visual Y relative to scale is `y` (from top of rect).
     // The Y offset relative to baseY is `(y + (baseY - 50)) - baseY` = `y - 50`.
     // We snap this to the nearest 6px (half line height) to match PITCH_TO_OFFSET steps.
-    const yOffset = Math.round((y - 50) / 6) * 6;
+    console.log("y before clamping", y);
+    let yOffset = Math.round((y - 50) / 6) * 6;
+    
+    // Clamp yOffset to valid pitch range to eliminate dead zones
+    // Treble: -48 (G6) to 102 (C3), Bass: -48 (B4) to 102 (E1)
+    const MIN_OFFSET = -48;
+    const MAX_OFFSET = 102;
+    console.log("yOffset before clamping", yOffset);
+    yOffset = Math.max(MIN_OFFSET, Math.min(MAX_OFFSET, yOffset));
+    console.log("yOffset after clamping", yOffset);
     const pitch = getPitchForOffset(yOffset, clef) || null;
 
     setHoveredMeasure(true);
@@ -217,6 +226,9 @@ const Measure: React.FC<MeasureProps> = ({
   };
   
   // PREVIEW LOGIC
+  // Cache for rest previews to prevent recalculation on pitch changes
+  const restPreviewCacheRef = useRef<{ key: string; result: any } | null>(null);
+  
   const previewRender = useMemo(() => {
     if (!previewNote) return null;
     
@@ -227,6 +239,14 @@ const Measure: React.FC<MeasureProps> = ({
     const isOverflowPreview = isLast && previewNote.measureIndex === measureIndex + 1;
     if (previewNote.measureIndex !== measureIndex && !isOverflowPreview) {
         return null;
+    }
+    
+    // For rests, use cached result if key fields haven't changed (ignore pitch)
+    if (previewNote.isRest) {
+      const cacheKey = `${previewNote.measureIndex}-${previewNote.index}-${previewNote.mode}-${previewNote.duration}-${previewNote.dotted}`;
+      if (restPreviewCacheRef.current && restPreviewCacheRef.current.key === cacheKey) {
+        return restPreviewCacheRef.current.result;
+      }
     }
     
     const visualTempNote = { 
@@ -270,12 +290,20 @@ const Measure: React.FC<MeasureProps> = ({
     
     const chordLayout = calculateChordLayout(combinedNotes, clef);
 
-    return {
+    const result = {
         chordNotes: combinedNotes,
         quant: 0,
         x: xPos,
         chordLayout
     };
+    
+    // Cache rest preview result
+    if (previewNote.isRest) {
+      const cacheKey = `${previewNote.measureIndex}-${previewNote.index}-${previewNote.mode}-${previewNote.duration}-${previewNote.dotted}`;
+      restPreviewCacheRef.current = { key: cacheKey, result };
+    }
+
+    return result;
 
   }, [previewNote, events, measureIndex, layout, hitZones, eventPositions, totalWidth, clef, isLast, selection.selectedNotes]);
 
@@ -332,12 +360,35 @@ const Measure: React.FC<MeasureProps> = ({
           y2={baseY + i * CONFIG.lineHeight}
           stroke={theme.score.line}
           strokeWidth={1}
+          style={{ pointerEvents: 'none' }}
         />
       ))}
 
       {/* RENDER EVENTS */}
       {renderableEvents.map((event, idx) => {
         if (event.isRest) {
+            // Placeholder rests (for empty measures) should be non-interactive
+            const isPlaceholder = event.id === 'rest-placeholder';
+            
+            // Check if this rest is selected
+            const isRestSelected = 
+                interaction.selection.measureIndex === measureIndex &&
+                interaction.selection.eventId === event.id &&
+                layout.staffIndex === interaction.selection.staffIndex;
+            
+            // Handle rest click for selection (only for real rests, not placeholders)
+            const handleRestClick = isPlaceholder ? undefined : (e: React.MouseEvent) => {
+                e.stopPropagation();
+                // Select rest at event level (no noteId for rests)
+                interaction.onSelectNote(
+                    measureIndex, 
+                    event.id, 
+                    null,  // noteId is null for rests
+                    layout.staffIndex,
+                    e.metaKey || e.ctrlKey  // isMulti
+                );
+            };
+            
             return (
                 <Rest
                    key={event.id}
@@ -345,8 +396,10 @@ const Measure: React.FC<MeasureProps> = ({
                    dotted={event.dotted}
                    x={event.x}
                    quant={event.quant}
-                   quantWidth={0} // To be refactored in Rest.tsx
                    baseY={baseY}
+                   isSelected={isRestSelected}
+                   onClick={handleRestClick}
+                   eventId={event.id}
                 />
             );
         }
@@ -441,6 +494,21 @@ const Measure: React.FC<MeasureProps> = ({
           <g style={{ pointerEvents: 'none' }}>
                {(() => {
                  const { chordNotes, quant, x } = previewRender;
+                 
+                 // Render rest preview when in REST mode
+                 if (previewNote?.isRest) {
+                   return (
+                     <Rest
+                       duration={previewNote.duration}
+                       dotted={previewNote.dotted}
+                       x={x}
+                       baseY={baseY}
+                       isGhost={true}
+                     />
+                   );
+                 }
+                 
+                 // Normal note preview
                  const shouldDrawStem = NOTE_TYPES[previewNote.duration].stem && previewNote.mode !== 'CHORD';
 
                  return (

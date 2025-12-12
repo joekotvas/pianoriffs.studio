@@ -305,31 +305,41 @@ export const navigateSelection = (measures: any[], selection: any, direction: st
     const eventIdx = measure.events.findIndex((e: any) => e.id === eventId);
     if (eventIdx === -1) return selection;
 
+    /**
+     * Helper to get noteId for an event.
+     * Returns null for rests or empty events, first note id otherwise.
+     */
+    const getNoteId = (event: any): string | number | null => {
+        if (event.isRest || !event.notes?.length) return null;
+        return event.notes[0].id;
+    };
+
     if (direction === 'left') {
         if (eventIdx > 0) {
             const prevEvent = measure.events[eventIdx - 1];
-            return { ...selection, eventId: prevEvent.id, noteId: prevEvent.notes[0].id };
+            return { ...selection, eventId: prevEvent.id, noteId: getNoteId(prevEvent) };
         } else if (measureIndex > 0) {
             const prevMeasure = measures[measureIndex - 1];
             if (prevMeasure.events.length > 0) {
                 const prevEvent = prevMeasure.events[prevMeasure.events.length - 1];
-                return { ...selection, measureIndex: measureIndex - 1, eventId: prevEvent.id, noteId: prevEvent.notes[0].id };
+                return { ...selection, measureIndex: measureIndex - 1, eventId: prevEvent.id, noteId: getNoteId(prevEvent) };
             }
         }
     } else if (direction === 'right') {
         if (eventIdx < measure.events.length - 1) {
             const nextEvent = measure.events[eventIdx + 1];
-            return { ...selection, eventId: nextEvent.id, noteId: nextEvent.notes[0].id };
+            return { ...selection, eventId: nextEvent.id, noteId: getNoteId(nextEvent) };
         } else if (measureIndex < measures.length - 1) {
             const nextMeasure = measures[measureIndex + 1];
             if (nextMeasure.events.length > 0) {
                 const nextEvent = nextMeasure.events[0];
-                return { ...selection, measureIndex: measureIndex + 1, eventId: nextEvent.id, noteId: nextEvent.notes[0].id };
+                return { ...selection, measureIndex: measureIndex + 1, eventId: nextEvent.id, noteId: getNoteId(nextEvent) };
             }
         }
     } else if (direction === 'up' || direction === 'down') {
          const event = measure.events[eventIdx];
-         if (event.notes.length > 1 && noteId) {
+         // Only navigate within chord if event has multiple notes
+         if (event.notes?.length > 1 && noteId) {
              // Sort notes by pitch to ensure consistent up/down navigation
              const sortedNotes = [...event.notes].sort((a: any, b: any) => {
                  const midiA = getMidi(a.pitch);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { CONFIG } from '../../config';
 import { useTheme } from '../../context/ThemeContext';
 import { calculateHeaderLayout, getNoteWidth, getOffsetForPitch } from '../../engines/layout';
@@ -256,6 +256,41 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
       containerRef.current?.focus();
   };
 
+  // --- MEMOIZED CALLBACKS FOR INTERACTION OBJECT ---
+  // These prevent unnecessary re-renders of child components
+  
+  const memoizedOnSelectNote = useCallback((
+    measureIndex: number | null, 
+    eventId: number | string | null, 
+    noteId: number | string | null, 
+    staffIndexParam?: number, 
+    isMulti?: boolean
+  ) => {
+    if (eventId !== null && measureIndex !== null) {
+      const targetStaff = staffIndexParam !== undefined ? staffIndexParam : 0;
+      handleNoteSelection(measureIndex, eventId, noteId, targetStaff, isMulti);
+    }
+  }, [handleNoteSelection]);
+  
+  const memoizedOnDragStart = useCallback((args: any) => {
+    handleDragStart(args);
+  }, [handleDragStart]);
+  
+  // Cache per-staff onHover handlers to prevent recreation
+  const hoverHandlersRef = useRef<Map<number, (measureIndex: number | null, hit: any, pitch: string | null) => void>>(new Map());
+  
+  const getHoverHandler = useCallback((staffIndex: number) => {
+    if (!hoverHandlersRef.current.has(staffIndex)) {
+      hoverHandlersRef.current.set(staffIndex, (measureIndex: number | null, hit: any, pitch: string | null) => {
+        if (!dragState.active) {
+          handleMeasureHover(measureIndex, hit, pitch || '', staffIndex);
+        }
+      });
+    }
+    return hoverHandlersRef.current.get(staffIndex)!;
+  }, [handleMeasureHover, dragState.active]);
+
+
   return (
     <div 
       ref={containerRef} 
@@ -292,7 +327,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
           {score.staves?.map((staff: any, staffIndex: number) => {
             const staffBaseY = CONFIG.baseY + staffIndex * CONFIG.staffSpacing;
             
-            // Construct Interaction State - pass full selection to all staves for cross-staff selection support
+            // Construct Interaction State - using memoized callbacks for stable references
             const interaction = {
                 selection, // Always pass the real selection - isNoteSelected checks staffIndex per-note
                 previewNote, // Global preview note (Staff filters it)
@@ -301,20 +336,9 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                 modifierHeld,
                 isDragging: dragState.active,
                 onAddNote: addNoteToMeasure,
-                onSelectNote: (measureIndex: number | null, eventId: number | string | null, noteId: number | string | null, staffIndexParam?: number, isMulti?: boolean) => {
-                   if (eventId !== null && measureIndex !== null) {
-                       const targetStaff = staffIndexParam !== undefined ? staffIndexParam : 0;
-                       handleNoteSelection(measureIndex, eventId, noteId, targetStaff, isMulti);
-                   }
-                },
-                onDragStart: (args: any) => {
-                   handleDragStart(args);
-                },
-                onHover: (measureIndex: number | null, hit: any, pitch: string | null) => {
-                   if (!dragState.active) {
-                       handleMeasureHover(measureIndex, hit, pitch || '', staffIndex);
-                   }
-                }
+                onSelectNote: memoizedOnSelectNote,
+                onDragStart: memoizedOnDragStart,
+                onHover: getHoverHandler(staffIndex)
             };
 
             return (

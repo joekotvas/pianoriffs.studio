@@ -94,20 +94,19 @@ export const useScoreLogic = (initialScore: any) => {
                   setActiveTie(!!note.tied);
               }
           } else {
-              // When no specific note selected, clear
+              // When no specific note selected (rest or event selection), clear
               setActiveAccidental(null);
               setActiveTie(false);
           }
           
           // Sync inputMode based on selection composition
-          // Single event: match its type
-          if (event.isRest) {
-              setInputMode('REST');
-          } else {
-              setInputMode('NOTE');
+          // Only update if mode actually differs to prevent unnecessary re-renders
+          const targetMode = event.isRest ? 'REST' : 'NOTE';
+          if (inputMode !== targetMode) {
+              setInputMode(targetMode);
           }
       }
-  }, [selection, score, setActiveAccidental, setActiveTie, setInputMode]);
+  }, [selection, score, setActiveAccidental, setActiveTie, setInputMode, inputMode]);
 
   // Deprecated shim
   const syncToolbarState = useCallback(() => {}, []); 
@@ -135,7 +134,8 @@ export const useScoreLogic = (initialScore: any) => {
     activeAccidental,
     activeTie,
     currentQuantsPerMeasure,
-    dispatch: engine.dispatch.bind(engine)
+    dispatch: engine.dispatch.bind(engine),
+    inputMode
   });
 
   // Modifiers: duration, dots, accidentals, ties

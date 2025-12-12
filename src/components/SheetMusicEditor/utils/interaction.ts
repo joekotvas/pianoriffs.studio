@@ -32,7 +32,13 @@ export const getAppendPreviewNote = (
     let defaultPitch = pitch;
     if (!defaultPitch) {
         if (measure.events.length > 0) {
-            defaultPitch = measure.events[measure.events.length - 1].notes[0].pitch;
+            const lastEvent = measure.events[measure.events.length - 1];
+            // Skip rests when determining pitch
+            if (!lastEvent.isRest && lastEvent.notes?.length > 0) {
+                defaultPitch = lastEvent.notes[0].pitch;
+            } else {
+                defaultPitch = 'C4'; // Fallback for rests
+            }
         } else {
              defaultPitch = 'C4'; // Validation fallback, caller should ideally provide better default based on clef
         }
@@ -69,20 +75,25 @@ export const calculateNextSelection = (
         if (measure && measure.events.length > 0) {
             // Select last event of current measure
             const lastEvent = measure.events[measure.events.length - 1];
+            // For rests, noteId is null; for notes, use first note
+            const noteId = lastEvent.isRest || !lastEvent.notes?.length ? null : lastEvent.notes[0].id;
+            const audio = lastEvent.isRest ? null : { notes: lastEvent.notes, duration: lastEvent.duration, dotted: lastEvent.dotted };
             return {
-                selection: { staffIndex, measureIndex, eventId: lastEvent.id, noteId: lastEvent.notes[0].id },
+                selection: { staffIndex, measureIndex, eventId: lastEvent.id, noteId },
                 previewNote: null,
-                audio: { notes: lastEvent.notes, duration: lastEvent.duration, dotted: lastEvent.dotted }
+                audio
             };
         } else if (measureIndex > 0) {
             // Select last event of previous measure
             const prevMeasure = measures[measureIndex - 1];
             if (prevMeasure && prevMeasure.events.length > 0) {
                 const lastEvent = prevMeasure.events[prevMeasure.events.length - 1];
+                const noteId = lastEvent.isRest || !lastEvent.notes?.length ? null : lastEvent.notes[0].id;
+                const audio = lastEvent.isRest ? null : { notes: lastEvent.notes, duration: lastEvent.duration, dotted: lastEvent.dotted };
                 return {
-                    selection: { staffIndex, measureIndex: measureIndex - 1, eventId: lastEvent.id, noteId: lastEvent.notes[0].id },
+                    selection: { staffIndex, measureIndex: measureIndex - 1, eventId: lastEvent.id, noteId },
                     previewNote: null,
-                    audio: { notes: lastEvent.notes, duration: lastEvent.duration, dotted: lastEvent.dotted }
+                    audio
                 };
             }
         }
@@ -118,7 +129,11 @@ export const calculateNextSelection = (
             // We are at the last event, try to move to ghost note
             const totalQuants = calculateTotalQuants(currentMeasure.events);
             const currentEvent = currentMeasure.events[eventIdx];
-            const pitch = currentEvent ? currentEvent.notes[0].pitch : 'C4';
+            // Get pitch: from note if available, else default based on clef
+            const defaultPitch = clef === 'bass' ? 'D3' : 'B4';
+            const pitch = (!currentEvent.isRest && currentEvent.notes?.length > 0) 
+                ? currentEvent.notes[0].pitch 
+                : defaultPitch;
 
             if (totalQuants < currentQuantsPerMeasure) {
                 // Move to ghost note in current measure

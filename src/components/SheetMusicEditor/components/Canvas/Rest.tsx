@@ -11,70 +11,69 @@ interface RestProps {
   x?: number;
   quant?: number;
   baseY?: number;
-  noteX?: number; // Pre-calculated x-position if available
+  noteX?: number;
+  /** Whether the rest is currently selected */
+  isSelected?: boolean;
+  /** Whether this is a ghost/preview rest */
+  isGhost?: boolean;
+  /** Click handler for selection */
+  onClick?: (e: React.MouseEvent) => void;
+  /** Event ID for testing */
+  eventId?: string | number;
 }
 
 /**
  * Y-offset for each rest type, relative to baseY (top of staff).
- * In standard notation:
- * - Whole rest hangs from the 4th line (line index 1, at baseY + lineHeight)
- * - Half rest sits on the 3rd line (line index 2, at baseY + 2*lineHeight)
- * - Quarter/Eighth/Sixteenth rests are centered vertically on the staff
  */
 const getRestY = (duration: string, baseY: number): number => {
   const lineHeight = CONFIG.lineHeight;
-  const staffMiddle = baseY + lineHeight * 2; // Middle line (3rd line)
+  const staffMiddle = baseY + lineHeight * 2;
   
   switch (duration) {
     case 'whole':
-      // Whole rest hangs from line 2 (the 4th line from bottom)
       return baseY + lineHeight;
     case 'half':
-      // Half rest sits on line 3 (the middle line)
       return baseY + lineHeight * 2;
     default:
-      // Quarter, eighth, sixteenth, etc. are centered on the staff
       return staffMiddle;
   }
 };
 
 /**
  * Renders a rest symbol using Bravura font glyphs.
- * @param {Object} props
- * @param {string} props.duration - Duration of the rest (whole, half, quarter, eighth, etc.)
- * @param {boolean} props.dotted - Whether the rest is dotted
- * @param {number} props.x - X position for the rest
- * @param {number} props.baseY - Y-offset for the staff (top line)
+ * Supports selection highlighting and click interaction.
  */
-export const Rest = ({
+export const Rest: React.FC<RestProps> = ({
   duration,
   dotted = false,
   x = 0,
-  baseY = CONFIG.baseY
-}: RestProps) => {
+  baseY = CONFIG.baseY,
+  isSelected = false,
+  isGhost = false,
+  onClick,
+  eventId
+}) => {
   const { theme } = useTheme();
   
-  // Get the appropriate glyph for this rest duration
   const glyph = REST_GLYPHS[duration];
   if (!glyph) {
-    // Fallback: render nothing if unknown duration
     console.warn(`Unknown rest duration: ${duration}`);
     return null;
   }
   
-  // Position rest at x (passed from layout engine) or at measure padding
+  const color = isGhost ? theme.accent : (isSelected ? theme.accent : theme.score.note);
   const finalX = x > 0 ? x : CONFIG.measurePaddingLeft;
   const restY = getRestY(duration, baseY);
-  
-  // Font size based on staff space (SMuFL: 1 staff space = 0.25em)
   const fontSize = getFontSize(CONFIG.lineHeight);
   
-  // Dot positioning for dotted rests
+  // Hit area dimensions - larger than notes since rest glyphs are taller
+  const hitAreaWidth = 24;  // Slightly wider than notes
+  const hitAreaHeight = 36; // Taller to cover rest glyph height
+  
   const renderDot = () => {
     if (!dotted) return null;
-    // Position dot to the right of the rest, in a space
-    const dotX = finalX + fontSize * 0.4; // Roughly half a glyph width to the right
-    const dotY = restY - CONFIG.lineHeight / 2; // Move up to a space for visibility
+    const dotX = finalX + fontSize * 0.4;
+    const dotY = restY - CONFIG.lineHeight / 2;
     return (
       <text
         x={dotX}
@@ -82,7 +81,7 @@ export const Rest = ({
         fontFamily={BRAVURA_FONT}
         fontSize={fontSize}
         textAnchor="start"
-        fill={theme.score.note}
+        fill={color}
         style={{ userSelect: 'none' }}
       >
         {DOTS.augmentationDot}
@@ -91,15 +90,35 @@ export const Rest = ({
   };
   
   return (
-    <g className="rest-group">
+    <g 
+      className="rest-group" 
+      data-selected={isSelected}
+      data-testid={eventId ? `rest-${eventId}` : undefined}
+      style={{ opacity: isGhost ? 0.5 : 1 }}
+    >
+      {/* Invisible hit area for click detection */}
+      {onClick && (
+        <rect
+          x={finalX - hitAreaWidth / 2}
+          y={restY - hitAreaHeight / 2}
+          width={hitAreaWidth}
+          height={hitAreaHeight}
+          fill="white"
+          fillOpacity={0.01}
+          style={{ cursor: 'pointer' }}
+          onClick={onClick}
+        />
+      )}
+      
+      {/* Rest glyph */}
       <text
         x={finalX}
         y={restY}
         fontFamily={BRAVURA_FONT}
         fontSize={fontSize}
         textAnchor="middle"
-        fill={theme.score.note}
-        style={{ userSelect: 'none' }}
+        fill={color}
+        style={{ userSelect: 'none', pointerEvents: (isGhost || !onClick) ? 'none' : 'auto' }}
       >
         {glyph}
       </text>

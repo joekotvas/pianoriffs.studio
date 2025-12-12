@@ -11,7 +11,9 @@ import { AddMeasureCommand } from '../commands/MeasureCommands';
 import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
 import { DeleteEventCommand } from '../commands/DeleteEventCommand';
 import { ChangePitchCommand } from '../commands/ChangePitchCommand';
+import { AddRestCommand } from '../commands/AddRestCommand';
 import { getAppendPreviewNote } from '../utils/interaction';
+import { InputMode } from './useEditorTools';
 
 interface UseNoteActionsProps {
   scoreRef: RefObject<Score>;
@@ -25,6 +27,8 @@ interface UseNoteActionsProps {
   activeTie: boolean;
   currentQuantsPerMeasure: number;
   dispatch: (command: Command) => void;
+  /** Input mode: NOTE or REST */
+  inputMode: InputMode;
   // deprecated but currently passed by useScoreLogic before refactor is complete
   syncToolbarState?: any; 
 }
@@ -51,13 +55,26 @@ export const useNoteActions = ({
   activeAccidental,
   activeTie,
   currentQuantsPerMeasure,
-  dispatch
+  dispatch,
+  inputMode
 }: UseNoteActionsProps): UseNoteActionsReturn => {
 
   const handleMeasureHover = useCallback((measureIndex: number | null, hit: any, rawPitch: string, staffIndex: number = 0) => {
     if (measureIndex === null || !hit) {
-      setPreviewNote(null);
+      // Only clear preview if this call is from the same staff as current preview
+      // This prevents staff B's mouseLeave from clearing staff A's preview
+      setPreviewNote((prev: any) => {
+        if (!prev) return null;
+        if (prev.staffIndex === staffIndex) return null;
+        return prev; // Different staff, keep current preview
+      });
       return;
+    }
+    
+    // If rawPitch is empty (Y position outside pitch range), keep previous preview
+    // This prevents "dead zones" where hover does nothing
+    if (!rawPitch) {
+      return; // Keep existing preview state
     }
 
     const currentScore = scoreRef.current;
@@ -115,19 +132,41 @@ export const useNoteActions = ({
            }
     }
     
-    setPreviewNote({
+    // Build new preview object
+    const newPreview = {
       measureIndex: targetMeasureIndex,
       staffIndex,
       quant: 0, 
       visualQuant: 0, 
-      pitch: finalPitch, // Use calculated pitch
+      pitch: finalPitch,
       duration: activeDuration,
       dotted: isDotted,
       mode: targetMode,
       index: targetIndex,
-      eventId: hit.type === 'EVENT' ? hit.eventId : undefined // Pass Event ID for CHORD mode
+      eventId: hit.type === 'EVENT' ? hit.eventId : undefined,
+      isRest: inputMode === 'REST'
+    };
+    
+    // Only update if preview actually changed to avoid flickering
+    setPreviewNote((prev: any) => {
+      if (!prev) return newPreview;
+      // Compare key fields - for rests, ignore pitch since it's not used
+      const pitchMatch = newPreview.isRest ? true : (prev.pitch === newPreview.pitch);
+      if (
+        prev.measureIndex === newPreview.measureIndex &&
+        prev.staffIndex === newPreview.staffIndex &&
+        pitchMatch &&
+        prev.mode === newPreview.mode &&
+        prev.index === newPreview.index &&
+        prev.isRest === newPreview.isRest &&
+        prev.duration === newPreview.duration &&
+        prev.dotted === newPreview.dotted
+      ) {
+        return prev; // Return same reference to avoid re-render
+      }
+      return newPreview;
     });
-  }, [activeDuration, isDotted, currentQuantsPerMeasure, scoreRef, setPreviewNote, activeAccidental]);
+  }, [activeDuration, isDotted, currentQuantsPerMeasure, scoreRef, setPreviewNote, activeAccidental, inputMode]);
 
   const addNoteToMeasure = useCallback((measureIndex: number, newNote: any, shouldAutoAdvance = false, placementOverride: any = null) => {
     const currentScore = scoreRef.current;
@@ -172,7 +211,11 @@ export const useNoteActions = ({
     const targetEventId = placementOverride?.eventId || newNote.eventId || (mode === 'CHORD' && targetMeasure.events[insertIndex]?.id);
 
     if (mode === 'CHORD' && targetEventId) {
-        // Add note to existing event
+        // Add note to existing event (only for notes, not rests)
+        if (inputMode === 'REST') {
+            // Cannot add rest as chord - rests are standalone events
+            return;
+        }
         const noteToAdd = {
             id: Date.now() + 1,
             pitch: newNote.pitch,
@@ -184,8 +227,24 @@ export const useNoteActions = ({
         // Update selection to the new note
         select(measureIndex, targetEventId, noteToAdd.id, currentStaffIndex);
         setPreviewNote(null);
+    } else if (inputMode === 'REST') {
+        // Create new rest event
+        const eventId = Date.now().toString();
+        
+        dispatch(new AddRestCommand(
+            measureIndex, 
+            activeDuration, 
+            isDotted, 
+            mode === 'INSERT' ? insertIndex : undefined,
+            eventId,
+            currentStaffIndex
+        ));
+
+        // Select rest at event level (no noteId)
+        select(measureIndex, eventId, null, currentStaffIndex);
+        setPreviewNote(null);
     } else {
-        // Create new event
+        // Create new note event
         const eventId = Date.now().toString();
         const noteToAdd = {
             id: Date.now() + 1,
@@ -209,7 +268,10 @@ export const useNoteActions = ({
         setPreviewNote(null);
     }
 
-    playNote(newNote.pitch);
+    // Only play sound for notes, not rests
+    if (inputMode === 'NOTE') {
+        playNote(newNote.pitch);
+    }
     
     if (shouldAutoAdvance && mode === 'APPEND') {
         const simulatedEvents = [...targetMeasure.events];
