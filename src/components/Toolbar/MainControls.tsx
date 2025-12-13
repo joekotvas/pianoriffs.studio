@@ -13,7 +13,7 @@ interface MainControlsProps {
   onEditingChange: (isEditing: boolean) => void;
   onTitleChange: (title: string) => void;
   isPlaying: boolean;
-  onPlayToggle: () => void;
+  onPlayToggle?: () => void;
   bpm: number;
   onBpmChange: (bpm: number) => void;
   midiStatus: { connected: boolean; deviceName: string | null; error: string | null };

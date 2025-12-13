@@ -5,7 +5,7 @@ import { getActiveStaff, Score, Selection } from '@/types';
 import { getNoteDuration } from '@/utils/core';
 
 interface UseAutoScrollProps {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   score: Score;
   selection: Selection;
   playbackPosition: { measureIndex: number | null; quant: number | null; duration: number };

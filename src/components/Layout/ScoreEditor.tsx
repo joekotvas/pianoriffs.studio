@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useRef, useState, useCallback } from 'react';
 
 // Contexts
@@ -16,7 +15,7 @@ import { useTitleEditor } from '@hooks/useTitleEditor';
 
 // Components
 import ScoreCanvas from '@components/Canvas/ScoreCanvas';
-import Toolbar from '@components/Toolbar/Toolbar';
+import Toolbar, { ToolbarHandle } from '@components/Toolbar/Toolbar';
 import { ScoreTitleField } from '@components/Layout/ScoreTitleField';
 import ShortcutsOverlay from '@components/Layout/Overlays/ShortcutsOverlay';
 import ConfirmDialog from '@components/Layout/Overlays/ConfirmDialog';
@@ -87,7 +86,11 @@ const ScoreEditorContent = ({
     scoreRef,
     selection,
     onUpdatePitch: updateNotePitch,
-    onSelectNote: handleNoteSelection
+    onSelectNote: (measureIndex, eventId, noteId, staffIndex, isMulti, selectAllInEvent, isShift) => {
+      if (measureIndex !== null && eventId !== null) {
+        handleNoteSelection(measureIndex, eventId, noteId, staffIndex, isMulti, selectAllInEvent, isShift);
+      }
+    }
   });
 
   useKeyboardShortcuts(
@@ -121,7 +124,7 @@ const ScoreEditorContent = ({
   }, [pendingClefChange, dispatch, setPendingClefChange]);
 
   const handleBackgroundClick = useCallback(() => {
-    setSelection({ staffIndex: 0, measureIndex: null, eventId: null, noteId: null });
+    setSelection({ staffIndex: 0, measureIndex: null, eventId: null, noteId: null, selectedNotes: [] });
   }, [setSelection]);
 
   const handleHoverChange = useCallback((isHovering: boolean) => {
@@ -176,8 +179,15 @@ const ScoreEditorContent = ({
         </Portal>
       )}
 
-      <div className="p-8">
-        <div className="mb-4 relative z-20">
+      <div
+        className="score-editor-content"
+        style={{
+          backgroundColor: theme.background,
+          borderRadius: '1rem',
+          paddingTop: '1rem'
+        }}
+        >
+        <div className="relative z-20">
           <ScoreTitleField 
             title={score.title}
             isEditing={titleEditor.isEditing}

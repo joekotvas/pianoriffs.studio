@@ -23,14 +23,14 @@ import { InstrumentType } from '@/engines/toneEngine';
 
 interface ToolbarProps {
   scoreTitle: string; // Keep for now as it might be passed from outside or local buffer
-  label: string;
+  label?: string;
   isEditingTitle: boolean;
   onEditingChange: (isEditing: boolean) => void;
   onTitleChange: (title: string) => void; // Keep for now
   
   // Playback props - these are local to ScoreEditor (usePlayback), so pass them in
   isPlaying: boolean;
-  onPlayToggle: () => void;
+  onPlayToggle?: () => void;
   bpm: number;
   onBpmChange: (bpm: number) => void;
   
@@ -209,7 +209,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
         </div>
       </MainControls>
 
-      <div className="w-full h-px mb-2" style={{ backgroundColor: theme.border }}></div>
+      <div className="w-full h-px" style={{ backgroundColor: theme.border }}></div>
 
       {/* Row 2: Note Durations, Modifiers, Accidentals, Undo/Redo, Measure Tools */}
       <div className="flex items-center gap-4 flex-wrap">

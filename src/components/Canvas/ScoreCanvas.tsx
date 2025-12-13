@@ -19,7 +19,7 @@ interface ScoreCanvasProps {
   onKeySigClick?: () => void;
   onTimeSigClick?: () => void;
   onClefClick?: () => void;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   onHoverChange: (isHovering: boolean) => void;
   onBackgroundClick?: () => void;
 }
@@ -88,13 +88,12 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
       }
   });
 
-
-  // --- AUTO-SCROLL LOGIC ---
   const activeStaff = getActiveStaff(score);
   const keySignature = score.keySignature || activeStaff.keySignature || 'C';
   const timeSignature = score.timeSignature || '4/4';
   const clef = score.staves.length >= 2 ? 'grand' : (activeStaff.clef || 'treble');
-
+  
+  // --- AUTO-SCROLL LOGIC ---
   useAutoScroll({
     containerRef,
     score,
@@ -103,7 +102,6 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     previewNote,
     scale
   });
-
 
   // Calculate synchronized measure layouts for Grand Staff
   const { synchronizedLayoutData, unifiedCursorX, unifiedCursorWidth, isGrandStaff, numStaves } = useGrandStaffLayout({
@@ -116,6 +114,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
   const cursorRef = useRef<SVGGElement>(null);
 
+  // --- PLAYBACK CURSOR ANIMATION LOGIC ---
   useEffect(() => {
       if (cursorRef.current && unifiedCursorX !== null && unifiedCursorWidth !== undefined) {
           // 1. Snap to Start (Instant)
@@ -325,7 +324,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     <div 
       ref={containerRef} 
       data-testid="score-canvas-container"
-      className="ScoreCanvas overflow-x-auto relative outline-none z-10 pl-12 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600/50" 
+      className="ScoreCanvas overflow-x-auto relative outline-none z-10 pl-8 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600/50" 
       style={{ marginTop: '-30px', backgroundColor: theme.background }} 
       onClick={handleBackgroundClick}
       tabIndex={0}

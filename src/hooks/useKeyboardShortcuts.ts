@@ -16,8 +16,9 @@ import { getActiveStaff } from '@/types';
 interface UIState {
   isEditingTitle: boolean;
   isHoveringScore: boolean;
-  scoreContainerRef: React.RefObject<HTMLDivElement>;
+  scoreContainerRef: React.RefObject<HTMLDivElement | null>;
   isAnyMenuOpen?: () => boolean;
+  isDisabled?: boolean;
 }
 
 export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, handlers: any) => {

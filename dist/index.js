@@ -10193,7 +10193,7 @@ function ScoreTitleField({
         onChange: (e) => setBuffer(e.target.value),
         onBlur: commit,
         onKeyDown: (e) => e.key === "Enter" && commit(),
-        className: "font-bold font-serif text-3xl px-2 py-0 rounded outline-none bg-transparent",
+        className: "ScoreTitleFieldInput font-bold font-serif text-3xl px-1 mx-[2.5rem] py-0 rounded outline-none bg-transparent",
         style: { color: theme.text, borderColor: theme.border, borderWidth: "1px" }
       }
     );
@@ -10202,8 +10202,8 @@ function ScoreTitleField({
     "h2",
     {
       onClick: () => setIsEditing(true),
-      className: "font-bold font-serif text-3xl px-2 py-0 rounded hover:bg-white/10 cursor-pointer transition-colors inline-block",
-      style: { color: theme.text },
+      className: "ScoreTitleField font-bold font-serif text-3xl px-[2.75rem] py-0 rounded hover:bg-white/10 cursor-pointer transition-colors inline-block",
+      style: { color: theme.text, borderColor: "transparent", borderWidth: "1px" },
       children: title
     }
   );
@@ -11289,7 +11289,11 @@ var ScoreEditorContent = ({
     scoreRef,
     selection,
     onUpdatePitch: updateNotePitch,
-    onSelectNote: handleNoteSelection
+    onSelectNote: (measureIndex, eventId, noteId, staffIndex, isMulti, selectAllInEvent, isShift) => {
+      if (measureIndex !== null && eventId !== null) {
+        handleNoteSelection(measureIndex, eventId, noteId, staffIndex, isMulti, selectAllInEvent, isShift);
+      }
+    }
   });
   useKeyboardShortcuts(
     scoreLogic,
@@ -11323,7 +11327,7 @@ var ScoreEditorContent = ({
     setPendingClefChange(null);
   }, [pendingClefChange, dispatch, setPendingClefChange]);
   const handleBackgroundClick = React3.useCallback(() => {
-    setSelection({ staffIndex: 0, measureIndex: null, eventId: null, noteId: null });
+    setSelection({ staffIndex: 0, measureIndex: null, eventId: null, noteId: null, selectedNotes: [] });
   }, [setSelection]);
   const handleHoverChange = React3.useCallback((isHovering) => {
     var _a;
@@ -11371,8 +11375,8 @@ var ScoreEditorContent = ({
           }
         ),
         showHelp && /* @__PURE__ */ jsxRuntime.jsx(Portal_default, { children: /* @__PURE__ */ jsxRuntime.jsx(ShortcutsOverlay_default, { onClose: () => setShowHelp(false) }) }),
-        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "p-8", children: [
-          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "mb-4 relative z-20", children: /* @__PURE__ */ jsxRuntime.jsx(
+        /* @__PURE__ */ jsxRuntime.jsxs("div", { className: "score-editor-content", children: [
+          /* @__PURE__ */ jsxRuntime.jsx("div", { className: "relative z-20", children: /* @__PURE__ */ jsxRuntime.jsx(
             ScoreTitleField,
             {
               title: score.title,

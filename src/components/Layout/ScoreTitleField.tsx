@@ -35,7 +35,7 @@ export function ScoreTitleField({
         onChange={(e) => setBuffer(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => e.key === 'Enter' && commit()}
-        className="font-bold font-serif text-3xl px-2 py-0 rounded outline-none bg-transparent"
+        className="ScoreTitleFieldInput font-bold font-serif text-3xl px-1 mx-[1.5rem] py-0 rounded outline-none bg-transparent"
         style={{ color: theme.text, borderColor: theme.border, borderWidth: '1px' }}
       />
     );
@@ -44,8 +44,8 @@ export function ScoreTitleField({
   return (
     <h2 
       onClick={() => setIsEditing(true)}
-      className="font-bold font-serif text-3xl px-2 py-0 rounded hover:bg-white/10 cursor-pointer transition-colors inline-block"
-      style={{ color: theme.text }}
+      className="ScoreTitleField font-bold font-serif text-3xl px-[1.75rem] py-0 rounded hover:bg-white/10 cursor-pointer transition-colors inline-block"
+      style={{ color: theme.text, borderColor: "transparent", borderWidth: '1px' }}
     >
       {title}
     </h2>
