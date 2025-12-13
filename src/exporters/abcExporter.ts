@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { NOTE_TYPES } from '../constants';
-import { getActiveStaff } from '../types';
-import { isRestEvent } from '../utils/core';
+import { NOTE_TYPES } from '@/constants';
+import { getActiveStaff } from '@/types';
+import { isRestEvent } from '@/utils/core';
 
 // ABC notation pitch mapping - Algorithmic
 const toAbcPitch = (pitch: string, clef: string = 'treble'): string => {

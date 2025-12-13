@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { CONFIG } from '../../config';
-import { useTheme } from '../../context/ThemeContext';
-import { calculateHeaderLayout, getNoteWidth, getOffsetForPitch } from '../../engines/layout';
-import { isRestEvent, getFirstNoteId } from '../../utils/core';
+import { CONFIG } from '@/config';
+import { useTheme } from '@/context/ThemeContext';
+import { calculateHeaderLayout, getNoteWidth, getOffsetForPitch } from '@/engines/layout';
+import { isRestEvent, getFirstNoteId } from '@/utils/core';
 import Staff, { calculateStaffWidth } from './Staff';
-import { getActiveStaff, createDefaultSelection } from '../../types';
-import { useScoreContext } from '../../context/ScoreContext';
-import { useScoreInteraction } from '../../hooks/useScoreInteraction';
-import { useAutoScroll } from '../../hooks/useAutoScroll';
-import { useGrandStaffLayout } from '../../hooks/useGrandStaffLayout';
-import { useDragToSelect } from '../../hooks/useDragToSelect';
+import { getActiveStaff, createDefaultSelection } from '@/types';
+import { useScoreContext } from '@/context/ScoreContext';
+import { useScoreInteraction } from '@/hooks/useScoreInteraction';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
+import { useGrandStaffLayout } from '@/hooks/useGrandStaffLayout';
+import { useDragToSelect } from '@/hooks/useDragToSelect';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
-import { LAYOUT } from '../../constants';
+import { LAYOUT } from '@/constants';
 
 interface ScoreCanvasProps {
   scale: number;

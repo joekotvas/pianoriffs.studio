@@ -4,7 +4,7 @@
  * Deep merge utility for merging partial RiffScore configs with defaults.
  */
 
-import { RiffScoreConfig, DeepPartial, DEFAULT_RIFF_CONFIG } from '../types';
+import { RiffScoreConfig, DeepPartial, DEFAULT_RIFF_CONFIG } from '@/types';
 
 /**
  * Checks if a value is a plain object (not array, null, or other type)

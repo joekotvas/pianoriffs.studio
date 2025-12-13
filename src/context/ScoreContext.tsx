@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useScoreLogic } from '../hooks/useScoreLogic';
+import { useScoreLogic } from '@/hooks/useScoreLogic';
 
-import { SetSingleStaffCommand } from '../commands/SetSingleStaffCommand';
+import { SetSingleStaffCommand } from '@/commands/SetSingleStaffCommand';
 
 // Infers the return type of useScoreLogic and extends it with UI state
 type ScoreContextType = ReturnType<typeof useScoreLogic> & {

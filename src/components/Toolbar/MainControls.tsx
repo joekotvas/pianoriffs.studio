@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Info, Music2, HelpCircle, RotateCcw, RotateCw } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 import ToolbarButton from './ToolbarButton';
 import InstrumentSelector from './InstrumentSelector';
 import FileMenu from './FileMenu';
-import { InstrumentType } from '../../engines/toneEngine';
-import { Score } from '../../types';
+import { InstrumentType } from '@/engines/toneEngine';
+import { Score } from '@/types';
 
 interface MainControlsProps {
   scoreTitle: string;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { ScoreEngine } from '../engines/ScoreEngine';
-import { Score } from '../types';
+import { ScoreEngine } from '@/engines/ScoreEngine';
+import { Score } from '@/types';
 
 export const useScoreEngine = (initialScore?: Score) => {
   // Use a ref to hold the engine instance so it persists across renders

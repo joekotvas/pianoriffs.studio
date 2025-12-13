@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score } from '../types';
+import { Score } from '@/types';
 
 export class UpdateTitleCommand implements Command {
   type = 'UPDATE_TITLE';

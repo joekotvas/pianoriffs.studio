@@ -2,8 +2,8 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ScoreEditor from '../ScoreEditor';
-import { ThemeProvider } from '../context/ThemeContext';
-import { createDefaultScore } from '../types';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { createDefaultScore } from '@/types';
 
 // Mock Child Component: Toolbar (Must support refs for imperative methods)
 // We mock this because we want to intercept the "openClefMenu" call

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { REST_GLYPHS, BRAVURA_FONT } from '../../constants/SMuFL';
+import { REST_GLYPHS, BRAVURA_FONT } from '@/constants/SMuFL';
 
 /**
  * Renders rest glyphs for toolbar display using Bravura font.

@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score } from '../types';
+import { Score } from '@/types';
 
 export class LoadScoreCommand implements Command {
   type = 'LOAD_SCORE';

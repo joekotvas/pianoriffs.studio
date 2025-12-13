@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score, Staff } from '../types';
-import { reflowScore } from '../utils/core';
+import { Score, Staff } from '@/types';
+import { reflowScore } from '@/utils/core';
 
 export class SetTimeSignatureCommand implements Command {
   type = 'SET_TIME_SIGNATURE';

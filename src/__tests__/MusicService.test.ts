@@ -13,7 +13,7 @@ import {
   getSemitones,
   getAccidentalGlyph,
   getScaleDegree,
-} from '../services/MusicService';
+} from '@/services/MusicService';
 
 describe('MusicService', () => {
   // =========================================================================

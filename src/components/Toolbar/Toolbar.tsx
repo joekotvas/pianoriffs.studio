@@ -10,16 +10,16 @@ import TupletControls from './TupletControls';
 import MelodyLibrary from './MelodyLibrary';
 import ToolbarButton from './ToolbarButton';
 import InputModeToggle from './InputModeToggle';
-import { Melody, getActiveStaff } from '../../types';
-import { useTheme } from '../../context/ThemeContext';
+import { Melody, getActiveStaff } from '@/types';
+import { useTheme } from '@/context/ThemeContext';
 import { BookOpen } from 'lucide-react';
-import { useScoreContext } from '../../context/ScoreContext';
-import { UpdateTitleCommand } from '../../commands/UpdateTitleCommand';
-import { ToggleRestCommand } from '../../commands/ToggleRestCommand';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useScoreContext } from '@/context/ScoreContext';
+import { UpdateTitleCommand } from '@/commands/UpdateTitleCommand';
+import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
-import { LoadScoreCommand } from '../../commands/LoadScoreCommand';
-import { InstrumentType } from '../../engines/toneEngine';
+import { LoadScoreCommand } from '@/commands/LoadScoreCommand';
+import { InstrumentType } from '@/engines/toneEngine';
 
 interface ToolbarProps {
   scoreTitle: string; // Keep for now as it might be passed from outside or local buffer

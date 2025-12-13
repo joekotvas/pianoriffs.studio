@@ -1,4 +1,4 @@
-import { calculateMeasureWidth } from '../engines/layout';
+import { calculateMeasureWidth } from '@/engines/layout';
 
 /**
  * Helper function that mirrors the synchronizedMeasureWidths calculation in ScoreCanvas.

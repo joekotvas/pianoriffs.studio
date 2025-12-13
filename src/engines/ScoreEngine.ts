@@ -1,6 +1,6 @@
-import { Score, createDefaultScore } from '../types';
-import { Command } from '../commands/types';
-import { logger, LogLevel } from '../utils/debug';
+import { Score, createDefaultScore } from '@/types';
+import { Command } from '@/commands/types';
+import { logger, LogLevel } from '@/utils/debug';
 
 type Listener = (score: Score) => void;
 

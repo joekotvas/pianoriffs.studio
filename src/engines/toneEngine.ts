@@ -6,7 +6,7 @@
  */
 
 import * as Tone from 'tone';
-import { TimelineEvent } from '../services/TimelineService';
+import { TimelineEvent } from '@/services/TimelineService';
 
 // --- TYPES ---
 

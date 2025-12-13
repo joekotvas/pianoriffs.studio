@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Selection, createDefaultSelection, Score, getActiveStaff } from '../types';
-import { toggleNoteInSelection, calculateNoteRange, getLinearizedNotes } from '../utils/selection';
-import { playNote } from '../engines/toneEngine';
+import { Selection, createDefaultSelection, Score, getActiveStaff } from '@/types';
+import { toggleNoteInSelection, calculateNoteRange, getLinearizedNotes } from '@/utils/selection';
+import { playNote } from '@/engines/toneEngine';
 
 interface UseSelectionProps {
   score: Score;

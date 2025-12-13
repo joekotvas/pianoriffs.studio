@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { ScoreEvent } from '../types';
+import { ScoreEvent } from '@/types';
 import { 
   calculateMeasureLayout, 
   calculateBeamingGroups, 
   applyMeasureCentering 
-} from '../engines/layout';
-import { calculateTupletBrackets } from '../engines/layout/tuplets';
-import { BeamGroup } from '../engines/layout/types';
+} from '@/engines/layout';
+import { calculateTupletBrackets } from '@/engines/layout/tuplets';
+import { BeamGroup } from '@/engines/layout/types';
 
 /**
  * Hook to compute all layout-related data for a measure.

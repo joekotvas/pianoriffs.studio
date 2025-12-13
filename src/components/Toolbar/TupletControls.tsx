@@ -1,6 +1,6 @@
 import React from 'react';
 import ToolbarButton from './ToolbarButton';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 
 interface TupletControlsProps {
   onApplyTuplet: (ratio: [number, number], groupSize: number) => void;

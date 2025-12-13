@@ -1,6 +1,6 @@
-import { NOTE_TYPES, TIME_SIGNATURES } from '../constants';
-import { CONFIG } from '../config';
-import { getMidi, movePitchVisual } from '../services/MusicService';
+import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
+import { CONFIG } from '@/config';
+import { getMidi, movePitchVisual } from '@/services/MusicService';
 
 /**
  * Calculates the duration of a note in quants.

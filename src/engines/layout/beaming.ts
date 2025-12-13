@@ -1,8 +1,8 @@
 import { ScoreEvent, BeamGroup } from './types';
-import { getNoteDuration } from '../../utils/core';
+import { getNoteDuration } from '@/utils/core';
 import { getOffsetForPitch, getNoteWidth, getPitchForOffset, calculateChordLayout, getStemOffset } from './positioning';
-import { CONFIG } from '../../config';
-import { MIDDLE_LINE_Y, BEAMING } from '../../constants';
+import { CONFIG } from '@/config';
+import { MIDDLE_LINE_Y, BEAMING } from '@/constants';
 
 // Removed temporary interfaces
 

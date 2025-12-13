@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { initTone, scheduleTonePlayback, stopTonePlayback, getState, InstrumentState } from '../engines/toneEngine';
-import { createTimeline } from '../services/TimelineService';
+import { initTone, scheduleTonePlayback, stopTonePlayback, getState, InstrumentState } from '@/engines/toneEngine';
+import { createTimeline } from '@/services/TimelineService';
 
 export const usePlayback = (score: any, bpm: number) => {
   const [isPlaying, setIsPlaying] = useState(false);

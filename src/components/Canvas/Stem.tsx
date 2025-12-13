@@ -1,5 +1,5 @@
 import React from 'react';
-import { LAYOUT } from '../../constants';
+import { LAYOUT } from '@/constants';
 
 /**
  * Renders the vertical stem line for a note or chord.

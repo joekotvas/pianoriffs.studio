@@ -2,7 +2,7 @@
  * Tests for generateScore utility
  */
 
-import { generateStaves, createEmptyMeasure, resetIdCounter } from '../utils/generateScore';
+import { generateStaves, createEmptyMeasure, resetIdCounter } from '@/utils/generateScore';
 
 describe('generateScore', () => {
   beforeEach(() => {

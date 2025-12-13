@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { CONFIG } from '../config';
-import { calculateMeasureWidth, calculateMeasureLayout, calculateHeaderLayout } from '../engines/layout';
-import { getActiveStaff, Score, Selection } from '../types';
-import { getNoteDuration } from '../utils/core';
+import { CONFIG } from '@/config';
+import { calculateMeasureWidth, calculateMeasureLayout, calculateHeaderLayout } from '@/engines/layout';
+import { getActiveStaff, Score, Selection } from '@/types';
+import { getNoteDuration } from '@/utils/core';
 
 interface UseAutoScrollProps {
   containerRef: React.RefObject<HTMLDivElement>;

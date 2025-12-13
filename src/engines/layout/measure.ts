@@ -6,9 +6,9 @@
  * and special cases like tuplets and empty measures.
  */
 
-import { CONFIG } from '../../config';
-import { getNoteDuration } from '../../utils/core';
-import { MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH, LAYOUT } from '../../constants';
+import { CONFIG } from '@/config';
+import { getNoteDuration } from '@/utils/core';
+import { MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH, LAYOUT } from '@/constants';
 import { ScoreEvent, MeasureLayout, HitZone, Note, ChordLayout } from './types';
 import { getNoteWidth, calculateChordLayout, getOffsetForPitch } from './positioning';
 import { getTupletGroup } from './tuplets';

@@ -4,7 +4,7 @@
  * Generates staff structures from templates for RiffScore initialization.
  */
 
-import { Staff, Measure, StaffTemplate } from '../types';
+import { Staff, Measure, StaffTemplate } from '@/types';
 
 let idCounter = 0;
 const generateId = (prefix: string): string => `${prefix}-${++idCounter}`;

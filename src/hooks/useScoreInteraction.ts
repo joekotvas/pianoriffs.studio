@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { movePitchVisual } from '../services/MusicService';
-import { CONFIG } from '../config';
-import { isNoteSelected } from '../utils/selection';
-import { Selection } from '../types';
+import { movePitchVisual } from '@/services/MusicService';
+import { CONFIG } from '@/config';
+import { isNoteSelected } from '@/utils/selection';
+import { Selection } from '@/types';
 
 interface DragState {
   active: boolean;

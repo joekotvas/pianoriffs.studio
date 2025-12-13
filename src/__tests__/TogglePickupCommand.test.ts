@@ -1,5 +1,5 @@
-import { TogglePickupCommand } from '../commands/TogglePickupCommand';
-import { Score, createDefaultScore } from '../types';
+import { TogglePickupCommand } from '@/commands/TogglePickupCommand';
+import { Score, createDefaultScore } from '@/types';
 
 describe('TogglePickupCommand', () => {
   let score: Score;

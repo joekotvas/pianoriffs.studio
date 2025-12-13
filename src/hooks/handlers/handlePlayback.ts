@@ -1,4 +1,4 @@
-import { getActiveStaff } from '../../types';
+import { getActiveStaff } from '@/types';
 
 /**
  * Handles playback keyboard shortcuts (Space, P).

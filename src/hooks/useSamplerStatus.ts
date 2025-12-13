@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { isSamplerLoaded } from '../engines/toneEngine';
+import { isSamplerLoaded } from '@/engines/toneEngine';
 
 /**
  * Manages the loading state of the Tone.js sampler.

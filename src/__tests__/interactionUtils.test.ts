@@ -1,4 +1,4 @@
-import { calculateNextSelection, calculateTranspositionWithPreview } from '../utils/interaction';
+import { calculateNextSelection, calculateTranspositionWithPreview } from '@/utils/interaction';
 
 // Mock utils dependencies if needed, or rely on them being pure functions
 // Since interactionUtils imports from utils, we might need to mock utils if we want isolated unit tests.

@@ -1,17 +1,17 @@
 import { useCallback, RefObject } from 'react';
-import { getAppendPreviewNote } from '../utils/interaction';
-import { canAddEventToMeasure } from '../utils/validation';
-import { playNote } from '../engines/toneEngine';
-import { applyKeySignature } from '../services/MusicService';
+import { getAppendPreviewNote } from '@/utils/interaction';
+import { canAddEventToMeasure } from '@/utils/validation';
+import { playNote } from '@/engines/toneEngine';
+import { applyKeySignature } from '@/services/MusicService';
 import { Note } from 'tonal';
-import { Score, getActiveStaff, createDefaultSelection, Selection } from '../types';
-import { Command } from '../commands/types';
-import { AddEventCommand } from '../commands/AddEventCommand';
-import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
-import { AddMeasureCommand } from '../commands/MeasureCommands';
-import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
-import { DeleteEventCommand } from '../commands/DeleteEventCommand';
-import { ChangePitchCommand } from '../commands/ChangePitchCommand';
+import { Score, getActiveStaff, createDefaultSelection, Selection } from '@/types';
+import { Command } from '@/commands/types';
+import { AddEventCommand } from '@/commands/AddEventCommand';
+import { AddNoteToEventCommand } from '@/commands/AddNoteToEventCommand';
+import { AddMeasureCommand } from '@/commands/MeasureCommands';
+import { DeleteNoteCommand } from '@/commands/DeleteNoteCommand';
+import { DeleteEventCommand } from '@/commands/DeleteEventCommand';
+import { ChangePitchCommand } from '@/commands/ChangePitchCommand';
 
 import { InputMode } from './useEditorTools';
 

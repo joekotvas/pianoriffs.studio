@@ -1,6 +1,6 @@
 import React from 'react';
-import { CONFIG } from '../../config';
-import { BRAVURA_FONT, getFontSize, FLAGS as SMUFL_FLAGS } from '../../constants/SMuFL';
+import { CONFIG } from '@/config';
+import { BRAVURA_FONT, getFontSize, FLAGS as SMUFL_FLAGS } from '@/constants/SMuFL';
 
 /**
  * Renders flag glyphs for notes (eighth, sixteenth, etc.) using Bravura font.

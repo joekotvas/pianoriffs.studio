@@ -2,8 +2,8 @@
  * Tests for mergeConfig utility
  */
 
-import { mergeRiffConfig } from '../utils/mergeConfig';
-import { DEFAULT_RIFF_CONFIG } from '../types';
+import { mergeRiffConfig } from '@/utils/mergeConfig';
+import { DEFAULT_RIFF_CONFIG } from '@/types';
 
 describe('mergeConfig', () => {
   describe('mergeRiffConfig', () => {

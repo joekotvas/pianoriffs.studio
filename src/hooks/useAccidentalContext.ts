@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { ScoreEvent } from '../types';
-import { getEffectiveAccidental, getKeyAccidental, getDiatonicPitch } from '../utils/accidentalContext';
+import { ScoreEvent } from '@/types';
+import { getEffectiveAccidental, getKeyAccidental, getDiatonicPitch } from '@/utils/accidentalContext';
 
 /**
  * Hook to calculate which accidentals should be displayed for notes in a measure.

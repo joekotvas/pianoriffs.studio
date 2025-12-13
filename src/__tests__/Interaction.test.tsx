@@ -2,9 +2,9 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ScoreEditor from '../ScoreEditor';
-import { ThemeProvider } from '../context/ThemeContext';
-import { createDefaultScore } from '../types';
-import { CONFIG } from '../config';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { createDefaultScore } from '@/types';
+import { CONFIG } from '@/config';
 
 // Fix JSDOM missing scrollTo
 Element.prototype.scrollTo = jest.fn();

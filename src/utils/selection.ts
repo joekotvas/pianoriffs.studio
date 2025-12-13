@@ -1,5 +1,5 @@
 
-import { Selection, createDefaultSelection, Score, Staff, Measure } from '../types';
+import { Selection, createDefaultSelection, Score, Staff, Measure } from '@/types';
 
 interface NoteContext {
     staffIndex: number;

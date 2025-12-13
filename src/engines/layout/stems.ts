@@ -2,7 +2,7 @@
  * Constants and helpers for calculating stem geometry.
  */
 
-import { STEM } from '../../constants';
+import { STEM } from '@/constants';
 
 // Re-export for backwards compatibility
 export const STEM_LENGTHS = STEM.LENGTHS;

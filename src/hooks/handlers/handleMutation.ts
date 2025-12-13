@@ -1,4 +1,4 @@
-import { ToggleRestCommand } from '../../commands/ToggleRestCommand';
+import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
 
 /**
  * Handles mutation keyboard shortcuts (Enter, Delete, Accidentals, Ties, Transposition, Undo/Redo).

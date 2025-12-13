@@ -1,9 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ScoreCanvas from '../components/Canvas/ScoreCanvas';
-import { createDefaultScore } from '../types';
-import { ThemeProvider } from '../context/ThemeContext';
-import { ScoreContext } from '../context/ScoreContext';
+import ScoreCanvas from '@/components/Canvas/ScoreCanvas';
+import { createDefaultScore } from '@/types';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { ScoreContext } from '@/context/ScoreContext';
 
 // Mock dependencies
 jest.mock('../components/Canvas/Staff', () => {

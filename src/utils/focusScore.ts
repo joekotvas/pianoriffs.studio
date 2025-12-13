@@ -1,6 +1,6 @@
-import { Score, Selection, getActiveStaff } from '../types';
+import { Score, Selection, getActiveStaff } from '@/types';
 import { calculateTotalQuants } from './core';
-import { TIME_SIGNATURES } from '../constants';
+import { TIME_SIGNATURES } from '@/constants';
 
 /** Creates an empty selection at the given position */
 const createSelection = (

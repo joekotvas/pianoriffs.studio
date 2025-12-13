@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score } from '../types';
-import { updateNote } from '../utils/commandHelpers';
+import { Score } from '@/types';
+import { updateNote } from '@/utils/commandHelpers';
 
 export class ChangePitchCommand implements Command {
   public readonly type = 'CHANGE_PITCH';

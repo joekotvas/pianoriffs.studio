@@ -2,6 +2,85 @@ import * as react from 'react';
 import react__default, { ReactNode } from 'react';
 import * as react_jsx_runtime from 'react/jsx-runtime';
 
+declare const THEMES: {
+    readonly DARK: {
+        accent: "#20B2AA";
+        background: "hsla(217, 33%, 18%, 1.00)";
+        panelBackground: "rgba(30, 41, 59, 0.8)";
+        text: "#e2e8f0";
+        secondaryText: "hsla(215, 20%, 65%, 1.00)";
+        border: "rgba(255, 255, 255, 0.1)";
+        buttonBackground: "rgba(30, 41, 59, 0.8)";
+        buttonHoverBackground: "hsla(218, 33%, 28%, 1.00)";
+        score: {
+            line: "hsla(215, 16%, 47%, 1.00)";
+            note: "#e2e8f0";
+            fill: "#e2e8f0";
+        };
+    };
+    readonly COOL: {
+        accent: "#22d3ee";
+        background: "#0f172a";
+        panelBackground: "rgba(15, 23, 42, 0.8)";
+        text: "#bfdbfe";
+        secondaryText: "#60a5fa";
+        border: "rgba(255, 255, 255, 0.1)";
+        buttonBackground: "rgba(15, 23, 42, 0.8)";
+        buttonHoverBackground: "#1e3a8a";
+        score: {
+            line: "#60a5fa";
+            note: "#bfdbfe";
+            fill: "#bfdbfe";
+        };
+    };
+    readonly WARM: {
+        accent: "#fb923c";
+        background: "#1c1917";
+        panelBackground: "rgba(28, 25, 23, 0.8)";
+        text: "#e7e5e4";
+        secondaryText: "#a8a29e";
+        border: "rgba(255, 255, 255, 0.1)";
+        buttonBackground: "rgba(28, 25, 23, 0.8)";
+        buttonHoverBackground: "#292524";
+        score: {
+            line: "#78716c";
+            note: "#e7e5e4";
+            fill: "#e7e5e4";
+        };
+    };
+    readonly LIGHT: {
+        accent: "#20B2AA";
+        background: string;
+        panelBackground: string;
+        text: "hsla(217, 33%, 18%, 1.00)";
+        secondaryText: "hsla(215, 16%, 47%, 1.00)";
+        border: string;
+        buttonBackground: string;
+        buttonHoverBackground: string;
+        score: {
+            line: "hsla(215, 20%, 65%, 1.00)";
+            note: string;
+            fill: string;
+        };
+    };
+};
+type ThemeName = keyof typeof THEMES;
+interface Theme {
+    accent: string;
+    background: string;
+    panelBackground: string;
+    text: string;
+    secondaryText: string;
+    border: string;
+    buttonBackground: string;
+    buttonHoverBackground: string;
+    score: {
+        line: string;
+        note: string;
+        fill: string;
+    };
+}
+
 /**
  * Type definitions for the Sheet Music Editor
  *
@@ -85,10 +164,17 @@ type StaffTemplate = 'grand' | 'treble' | 'bass';
  * - Generator Mode: Pass `staff` + `measureCount` to create blank scores
  * - Render Mode: Pass `staves` array to load existing compositions
  */
+/**
+ * Configuration interface for RiffScore component.
+ * Supports two modes:
+ * - Generator Mode: Pass `staff` + `measureCount` to create blank scores
+ * - Render Mode: Pass `staves` array to load existing compositions
+ */
 interface RiffScoreConfig {
     ui: {
         showToolbar: boolean;
         scale: number;
+        theme?: ThemeName;
     };
     interaction: {
         isEnabled: boolean;
@@ -149,85 +235,6 @@ declare const ScoreEditor: ({ scale, label, initialData }: {
     initialData?: any;
 }) => react_jsx_runtime.JSX.Element;
 
-declare const THEMES: {
-    readonly DARK: {
-        accent: "#20B2AA";
-        background: "hsla(217, 33%, 18%, 1.00)";
-        panelBackground: "rgba(30, 41, 59, 0.8)";
-        text: "#e2e8f0";
-        secondaryText: "hsla(215, 20%, 65%, 1.00)";
-        border: "rgba(255, 255, 255, 0.1)";
-        buttonBackground: "rgba(30, 41, 59, 0.8)";
-        buttonHoverBackground: "hsla(218, 33%, 28%, 1.00)";
-        score: {
-            line: "hsla(215, 16%, 47%, 1.00)";
-            note: "#e2e8f0";
-            fill: "#e2e8f0";
-        };
-    };
-    readonly COOL: {
-        accent: "#22d3ee";
-        background: "#0f172a";
-        panelBackground: "rgba(15, 23, 42, 0.8)";
-        text: "#bfdbfe";
-        secondaryText: "#60a5fa";
-        border: "rgba(255, 255, 255, 0.1)";
-        buttonBackground: "rgba(15, 23, 42, 0.8)";
-        buttonHoverBackground: "#1e3a8a";
-        score: {
-            line: "#60a5fa";
-            note: "#bfdbfe";
-            fill: "#bfdbfe";
-        };
-    };
-    readonly WARM: {
-        accent: "#fb923c";
-        background: "#1c1917";
-        panelBackground: "rgba(28, 25, 23, 0.8)";
-        text: "#e7e5e4";
-        secondaryText: "#a8a29e";
-        border: "rgba(255, 255, 255, 0.1)";
-        buttonBackground: "rgba(28, 25, 23, 0.8)";
-        buttonHoverBackground: "#292524";
-        score: {
-            line: "#78716c";
-            note: "#e7e5e4";
-            fill: "#e7e5e4";
-        };
-    };
-    readonly LIGHT: {
-        accent: "#20B2AA";
-        background: string;
-        panelBackground: string;
-        text: "hsla(217, 33%, 18%, 1.00)";
-        secondaryText: "hsla(215, 16%, 47%, 1.00)";
-        border: string;
-        buttonBackground: string;
-        buttonHoverBackground: string;
-        score: {
-            line: "hsla(215, 20%, 65%, 1.00)";
-            note: string;
-            fill: string;
-        };
-    };
-};
-type ThemeName = keyof typeof THEMES;
-interface Theme {
-    accent: string;
-    background: string;
-    panelBackground: string;
-    text: string;
-    secondaryText: string;
-    border: string;
-    buttonBackground: string;
-    buttonHoverBackground: string;
-    score: {
-        line: string;
-        note: string;
-        fill: string;
-    };
-}
-
 interface ThemeContextType {
     theme: Theme;
     themeName: ThemeName;
@@ -237,6 +244,7 @@ interface ThemeContextType {
 }
 declare const ThemeProvider: react__default.FC<{
     children: react__default.ReactNode;
+    initialTheme?: ThemeName;
 }>;
 declare const useTheme: () => ThemeContextType;
 

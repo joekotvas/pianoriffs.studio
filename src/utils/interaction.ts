@@ -1,6 +1,6 @@
 import { navigateSelection, calculateTotalQuants, getNoteDuration } from './core';
-import { movePitchVisual } from '../services/MusicService';
-import { CONFIG } from '../config';
+import { movePitchVisual } from '@/services/MusicService';
+import { CONFIG } from '@/config';
 
 /**
  * Calculates the next selection state based on navigation direction.

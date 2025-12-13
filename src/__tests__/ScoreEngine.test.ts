@@ -1,9 +1,9 @@
-import { ScoreEngine } from '../engines/ScoreEngine';
-import { AddEventCommand } from '../commands/AddEventCommand';
-import { DeleteNoteCommand } from '../commands/DeleteNoteCommand';
-import { ChangePitchCommand } from '../commands/ChangePitchCommand';
-import { AddMeasureCommand, DeleteMeasureCommand } from '../commands/MeasureCommands';
-import { createDefaultScore, Note } from '../types';
+import { ScoreEngine } from '@/engines/ScoreEngine';
+import { AddEventCommand } from '@/commands/AddEventCommand';
+import { DeleteNoteCommand } from '@/commands/DeleteNoteCommand';
+import { ChangePitchCommand } from '@/commands/ChangePitchCommand';
+import { AddMeasureCommand, DeleteMeasureCommand } from '@/commands/MeasureCommands';
+import { createDefaultScore, Note } from '@/types';
 
 describe('ScoreEngine', () => {
   it('should initialize with default score', () => {

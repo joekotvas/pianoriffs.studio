@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { NOTE_TYPES, KEY_SIGNATURES } from '../constants';
-import { getActiveStaff } from '../types';
-import { isRestEvent } from '../utils/core';
+import { NOTE_TYPES, KEY_SIGNATURES } from '@/constants';
+import { getActiveStaff } from '@/types';
+import { isRestEvent } from '@/utils/core';
 
 export const generateMusicXML = (score: any) => {
     // Phase 2: Iterate over all staves

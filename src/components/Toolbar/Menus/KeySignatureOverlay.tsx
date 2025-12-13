@@ -1,8 +1,8 @@
 import React from 'react';
-import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '../../../constants';
-import { useTheme } from '../../../context/ThemeContext';
+import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '@/constants';
+import { useTheme } from '@/context/ThemeContext';
 import DropdownOverlay from './DropdownOverlay';
-import { ACCIDENTALS, BRAVURA_FONT } from '../../../constants/SMuFL';
+import { ACCIDENTALS, BRAVURA_FONT } from '@/constants/SMuFL';
 
 interface KeySignatureOverlayProps {
   current: string;

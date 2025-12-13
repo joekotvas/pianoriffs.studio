@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
-import { useSelection } from '../hooks/useSelection';
-import { createDefaultScore } from '../types';
+import { useSelection } from '@/hooks/useSelection';
+import { createDefaultScore } from '@/types';
 
 // Mock toneEngine
 jest.mock('../engines/toneEngine', () => ({

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { getPitchForOffset } from '../engines/layout';
-import { HitZone } from '../engines/layout/types';
+import { getPitchForOffset } from '@/engines/layout';
+import { HitZone } from '@/engines/layout/types';
 
 interface UseMeasureInteractionParams {
   hitZones: HitZone[];

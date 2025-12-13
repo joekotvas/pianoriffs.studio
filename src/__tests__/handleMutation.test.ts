@@ -1,4 +1,4 @@
-import { handleMutation } from '../hooks/handlers/handleMutation';
+import { handleMutation } from '@/hooks/handlers/handleMutation';
 
 describe('handleMutation', () => {
     let mockLogic: any;

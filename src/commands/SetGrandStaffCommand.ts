@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, Staff, Measure } from '../types';
+import { Score, Staff, Measure } from '@/types';
 
 /**
  * Command to convert a single-staff score to a Grand Staff (Treble + Bass).

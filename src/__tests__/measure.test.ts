@@ -2,12 +2,12 @@ import {
     calculateMeasureLayout, 
     calculateMeasureWidth, 
     analyzePlacement 
-} from '../engines/layout/measure';
-import { calculateSystemLayout } from '../engines/layout/system';
-import { calculateChordLayout, calculateBeamingGroups } from '../engines/layout';
-import { Note, ScoreEvent } from '../engines/layout/types';
-import { CONFIG } from '../config';
-import { NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH } from '../constants';
+} from '@/engines/layout/measure';
+import { calculateSystemLayout } from '@/engines/layout/system';
+import { calculateChordLayout, calculateBeamingGroups } from '@/engines/layout';
+import { Note, ScoreEvent } from '@/engines/layout/types';
+import { CONFIG } from '@/config';
+import { NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH } from '@/constants';
 
 // --- TEST HELPERS ---
 

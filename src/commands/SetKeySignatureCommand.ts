@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, Staff } from '../types';
+import { Score, Staff } from '@/types';
 
 export class SetKeySignatureCommand implements Command {
   type = 'SET_KEY_SIGNATURE';

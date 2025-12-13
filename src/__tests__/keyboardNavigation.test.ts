@@ -1,8 +1,8 @@
-import { handleNavigation } from '../hooks/handlers/handleNavigation';
-import { createDefaultScore, getActiveStaff } from '../types';
-import { SetGrandStaffCommand } from '../commands/SetGrandStaffCommand';
-import { AddEventCommand } from '../commands/AddEventCommand';
-import { ScoreEngine } from '../engines/ScoreEngine';
+import { handleNavigation } from '@/hooks/handlers/handleNavigation';
+import { createDefaultScore, getActiveStaff } from '@/types';
+import { SetGrandStaffCommand } from '@/commands/SetGrandStaffCommand';
+import { AddEventCommand } from '@/commands/AddEventCommand';
+import { ScoreEngine } from '@/engines/ScoreEngine';
 
 /**
  * Integration tests for keyboard navigation using simulated key events.

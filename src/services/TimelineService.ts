@@ -1,7 +1,7 @@
-import { TIME_SIGNATURES } from '../constants';
-import { getNoteDuration } from '../utils/core';
+import { TIME_SIGNATURES } from '@/constants';
+import { getNoteDuration } from '@/utils/core';
 import { getFrequency } from './MusicService';
-import { getActiveStaff } from '../types';
+import { getActiveStaff } from '@/types';
 
 export interface TimelineEvent {
     time: number;       // Start time in seconds

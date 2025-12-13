@@ -1,10 +1,10 @@
 import React, { useCallback, RefObject } from 'react';
-import { Selection, Score, getActiveStaff, createDefaultSelection } from '../types';
-import { calculateNextSelection, calculateTranspositionWithPreview, calculateCrossStaffSelection } from '../utils/interaction';
-import { playNote } from '../engines/toneEngine';
-import { Command } from '../commands/types';
-import { AddMeasureCommand } from '../commands/MeasureCommands';
-import { TransposeSelectionCommand } from '../commands/TransposeSelectionCommand';
+import { Selection, Score, getActiveStaff, createDefaultSelection } from '@/types';
+import { calculateNextSelection, calculateTranspositionWithPreview, calculateCrossStaffSelection } from '@/utils/interaction';
+import { playNote } from '@/engines/toneEngine';
+import { Command } from '@/commands/types';
+import { AddMeasureCommand } from '@/commands/MeasureCommands';
+import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand';
 
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NOTE_TYPES } from '../../constants';
+import { NOTE_TYPES } from '@/constants';
 import NoteIcon from '../Assets/NoteIcon';
 import RestIcon from '../Assets/RestIcon';
 import ToolbarButton from './ToolbarButton';

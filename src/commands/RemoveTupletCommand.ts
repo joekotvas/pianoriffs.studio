@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score } from '../types';
-import { updateMeasure } from '../utils/commandHelpers';
+import { Score } from '@/types';
+import { updateMeasure } from '@/utils/commandHelpers';
 
 /**
  * Command to remove tuplet metadata from a group of events.

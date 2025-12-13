@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Selection } from '../types';
+import { Selection } from '@/types';
 
 export type EditorState = 
     | 'SELECTION_READY'   // User has an active selection (editing existing notes)

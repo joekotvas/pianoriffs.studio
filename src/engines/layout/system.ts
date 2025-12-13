@@ -5,9 +5,9 @@
  * Ensures that events at the same rhythmic position align across staves.
  */
 
-import { CONFIG } from '../../config';
-import { getNoteDuration } from '../../utils/core';
-import { NOTE_SPACING_BASE_UNIT, LAYOUT } from '../../constants';
+import { CONFIG } from '@/config';
+import { getNoteDuration } from '@/utils/core';
+import { NOTE_SPACING_BASE_UNIT, LAYOUT } from '@/constants';
 import { ScoreEvent, Note } from './types';
 import { calculateChordLayout } from './positioning';
 

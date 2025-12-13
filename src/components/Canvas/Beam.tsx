@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { useTheme } from '../../context/ThemeContext';
-import { BEAMING } from '../../constants';
+import { useTheme } from '@/context/ThemeContext';
+import { BEAMING } from '@/constants';
 
 /**
  * Renders a beam connecting multiple notes.

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { requestMIDIAccess, setupMIDIListeners, midiNoteToPitch } from '../engines/midiEngine';
-import { playNote } from '../engines/toneEngine';
-import { getActiveStaff } from '../types';
+import { requestMIDIAccess, setupMIDIListeners, midiNoteToPitch } from '@/engines/midiEngine';
+import { playNote } from '@/engines/toneEngine';
+import { getActiveStaff } from '@/types';
 
 export const useMIDI = (
   addChordCallback: (measureIndex: number, notes: any[], duration: string, isDotted: boolean) => void,

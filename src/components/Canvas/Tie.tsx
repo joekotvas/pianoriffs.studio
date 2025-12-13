@@ -1,5 +1,5 @@
 import React from 'react';
-import { TIE } from '../../constants';
+import { TIE } from '@/constants';
 
 interface TieProps {
   startX: number;

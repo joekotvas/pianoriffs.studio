@@ -7,7 +7,7 @@
  */
 
 import { Note, Key, Interval } from 'tonal';
-import { ACCIDENTALS } from '../constants/SMuFL';
+import { ACCIDENTALS } from '@/constants/SMuFL';
 
 // --- Constants ---
 

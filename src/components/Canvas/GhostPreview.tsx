@@ -1,7 +1,7 @@
 import React from 'react';
 import { Rest } from './Rest';
 import ChordGroup from './ChordGroup';
-import { NOTE_TYPES } from '../../constants';
+import { NOTE_TYPES } from '@/constants';
 
 interface GhostPreviewProps {
   previewRender: {

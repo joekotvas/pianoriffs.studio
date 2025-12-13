@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
-import { Score, getActiveStaff, createDefaultSelection, Selection } from '../types';
-import { Command } from '../commands/types';
-import { AddMeasureCommand, DeleteMeasureCommand } from '../commands/MeasureCommands';
-import { TogglePickupCommand } from '../commands/TogglePickupCommand';
-import { SetGrandStaffCommand } from '../commands/SetGrandStaffCommand';
-import { SetTimeSignatureCommand } from '../commands/SetTimeSignatureCommand';
-import { SetKeySignatureCommand } from '../commands/SetKeySignatureCommand';
+import { Score, getActiveStaff, createDefaultSelection, Selection } from '@/types';
+import { Command } from '@/commands/types';
+import { AddMeasureCommand, DeleteMeasureCommand } from '@/commands/MeasureCommands';
+import { TogglePickupCommand } from '@/commands/TogglePickupCommand';
+import { SetGrandStaffCommand } from '@/commands/SetGrandStaffCommand';
+import { SetTimeSignatureCommand } from '@/commands/SetTimeSignatureCommand';
+import { SetKeySignatureCommand } from '@/commands/SetKeySignatureCommand';
 
 interface UseMeasureActionsProps {
   score: Score;

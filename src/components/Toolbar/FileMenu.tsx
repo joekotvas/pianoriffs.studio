@@ -2,9 +2,9 @@ import React, { useState, useRef } from 'react';
 import { Menu, Copy, Check, Download, FileJson, Music, FileCode } from 'lucide-react';
 import ToolbarButton from './ToolbarButton';
 import DropdownOverlay from './Menus/DropdownOverlay';
-import { useTheme } from '../../context/ThemeContext';
-import { useExport, ExportFormat } from '../../hooks/useExport';
-import { Score } from '../../types';
+import { useTheme } from '@/context/ThemeContext';
+import { useExport, ExportFormat } from '@/hooks/useExport';
+import { Score } from '@/types';
 
 interface FileMenuProps {
   score: Score;

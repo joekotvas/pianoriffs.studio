@@ -1,4 +1,4 @@
-import { Melody } from '../types';
+import { Melody } from '@/types';
 
 export const MELODIES: Melody[] = [
   {

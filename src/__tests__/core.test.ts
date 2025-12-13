@@ -13,7 +13,7 @@ import {
   getFirstNoteId,
   navigateSelection,
   reflowScore
-} from '../utils/core';
+} from '@/utils/core';
 
 describe('core.ts utilities', () => {
   

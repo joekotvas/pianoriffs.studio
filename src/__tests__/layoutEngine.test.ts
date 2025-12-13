@@ -1,7 +1,7 @@
-import { calculateChordLayout, calculateMeasureLayout, calculateBeamingGroups, getPitchForOffset, getOffsetForPitch } from '../engines/layout';
-import { Note } from '../engines/layout/types'; // Note might be explicitly exported or not, check index
-import { CONFIG } from '../config';
-import { MIDDLE_LINE_Y } from '../constants';
+import { calculateChordLayout, calculateMeasureLayout, calculateBeamingGroups, getPitchForOffset, getOffsetForPitch } from '@/engines/layout';
+import { Note } from '@/engines/layout/types'; // Note might be explicitly exported or not, check index
+import { CONFIG } from '@/config';
+import { MIDDLE_LINE_Y } from '@/constants';
 
 describe('layoutEngine', () => {
     describe('calculateChordLayout', () => {

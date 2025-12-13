@@ -4,7 +4,7 @@
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { usePlayback } from '../hooks/usePlayback';
+import { usePlayback } from '@/hooks/usePlayback';
 
 // Mock toneEngine
 const mockInitTone = jest.fn().mockResolvedValue(undefined);

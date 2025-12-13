@@ -2,11 +2,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ThemeProvider } from '../context/ThemeContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import ScoreEditor from '../ScoreEditor';
-import { ScoreEvent, Note } from '../engines/layout/types';
-import { Score } from '../types'; // Correct Score type import for the Editor props
-import { CONFIG } from '../config';
+import { ScoreEvent, Note } from '@/engines/layout/types';
+import { Score } from '@/types'; // Correct Score type import for the Editor props
+import { CONFIG } from '@/config';
 
 // Create a score with Beams, Tuplets, and Rests to force rendering of all Measure sub-components
 const createComplexScore = (): Score => {

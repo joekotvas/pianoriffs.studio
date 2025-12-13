@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
-import { ApplyTupletCommand } from '../commands/TupletCommands';
-import { RemoveTupletCommand } from '../commands/RemoveTupletCommand';
-import { getActiveStaff } from '../types';
-import { Command } from '../commands/types';
+import { ApplyTupletCommand } from '@/commands/TupletCommands';
+import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
+import { getActiveStaff } from '@/types';
+import { Command } from '@/commands/types';
 
 /**
  * Hook providing tuplet manipulation actions.

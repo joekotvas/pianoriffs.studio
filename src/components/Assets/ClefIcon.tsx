@@ -1,5 +1,5 @@
 import React from 'react';
-import { CLEFS, BRAVURA_FONT } from '../../constants/SMuFL';
+import { CLEFS, BRAVURA_FONT } from '@/constants/SMuFL';
 
 interface ClefIconProps extends React.SVGProps<SVGSVGElement> {
   clef: string;

@@ -4,7 +4,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { useTupletActions } from '../hooks/useTupletActions';
+import { useTupletActions } from '@/hooks/useTupletActions';
 
 // Mock ApplyTupletCommand and RemoveTupletCommand
 jest.mock('../commands/TupletCommands', () => ({

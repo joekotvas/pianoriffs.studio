@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { TIME_SIGNATURES } from '../constants';
-import { CONFIG } from '../config';
+import { TIME_SIGNATURES } from '@/constants';
+import { CONFIG } from '@/config';
 import { useScoreEngine } from './useScoreEngine';
 import { useEditorTools } from './useEditorTools';
 import { useMeasureActions } from './useMeasureActions';
@@ -11,9 +11,9 @@ import { useTupletActions } from './useTupletActions';
 import { useSelection } from './useSelection';
 import { useEditorMode } from './useEditorMode';
 
-import { Score, createDefaultScore, migrateScore, getActiveStaff } from '../types';
-import { getAppendPreviewNote } from '../utils/interaction';
-import { calculateFocusSelection } from '../utils/focusScore';
+import { Score, createDefaultScore, migrateScore, getActiveStaff } from '@/types';
+import { getAppendPreviewNote } from '@/utils/interaction';
+import { calculateFocusSelection } from '@/utils/focusScore';
 
 /**
  * Main score logic orchestrator hook.

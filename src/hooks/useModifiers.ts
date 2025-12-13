@@ -1,11 +1,11 @@
 import { useCallback, RefObject } from 'react';
-import { canModifyEventDuration, canToggleEventDot } from '../utils/validation';
-import { getNoteDuration } from '../utils/core';
-import { playNote } from '../engines/toneEngine';
-import { Score, getActiveStaff, Selection, Note as ScoreNote } from '../types';
-import { Command } from '../commands/types';
-import { UpdateEventCommand } from '../commands/UpdateEventCommand';
-import { UpdateNoteCommand } from '../commands/UpdateNoteCommand';
+import { canModifyEventDuration, canToggleEventDot } from '@/utils/validation';
+import { getNoteDuration } from '@/utils/core';
+import { playNote } from '@/engines/toneEngine';
+import { Score, getActiveStaff, Selection, Note as ScoreNote } from '@/types';
+import { Command } from '@/commands/types';
+import { UpdateEventCommand } from '@/commands/UpdateEventCommand';
+import { UpdateNoteCommand } from '@/commands/UpdateNoteCommand';
 import { Note as TonalNote } from 'tonal';
 
 interface UseModifiersProps {

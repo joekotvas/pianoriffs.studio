@@ -1,6 +1,6 @@
 
-import { calculateNoteRange, getLinearizedNotes } from '../utils/selection';
-import { Score } from '../types';
+import { calculateNoteRange, getLinearizedNotes } from '@/utils/selection';
+import { Score } from '@/types';
 
 // Mock Score Factory
 const createMockScore = (): Score => ({

@@ -1,6 +1,6 @@
-import { ApplyTupletCommand } from '../commands/TupletCommands';
-import { RemoveTupletCommand } from '../commands/RemoveTupletCommand';
-import { Score, createDefaultScore } from '../types';
+import { ApplyTupletCommand } from '@/commands/TupletCommands';
+import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
+import { Score, createDefaultScore } from '@/types';
 
 describe('Tuplet Commands', () => {
   let baseScore: Score;

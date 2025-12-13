@@ -1,8 +1,8 @@
 import { useMemo, useRef } from 'react';
-import { ScoreEvent } from '../types';
-import { calculateChordLayout } from '../engines/layout';
-import { HitZone } from '../engines/layout/types';
-import { CONFIG } from '../config';
+import { ScoreEvent } from '@/types';
+import { calculateChordLayout } from '@/engines/layout';
+import { HitZone } from '@/engines/layout/types';
+import { CONFIG } from '@/config';
 
 interface PreviewNote {
   measureIndex: number;

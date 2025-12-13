@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { PRECOMPOSED_NOTES_UP, BRAVURA_FONT } from '../../constants/SMuFL';
+import { PRECOMPOSED_NOTES_UP, BRAVURA_FONT } from '@/constants/SMuFL';
 
 // Custom sizing for notes that need adjustment
 const NOTE_SIZING = {

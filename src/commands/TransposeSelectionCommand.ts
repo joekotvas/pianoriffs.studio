@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score, getActiveStaff, Selection, Staff } from '../types';
-import { movePitchVisual } from '../services/MusicService';
+import { Score, getActiveStaff, Selection, Staff } from '@/types';
+import { movePitchVisual } from '@/services/MusicService';
 
 export class TransposeSelectionCommand implements Command {
   public readonly type = 'TRANSPOSE_SELECTION';

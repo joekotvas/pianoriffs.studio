@@ -1,6 +1,6 @@
 
-import { toggleNoteInSelection, isNoteSelected, compareIds } from '../utils/selection';
-import { createDefaultSelection } from '../types';
+import { toggleNoteInSelection, isNoteSelected, compareIds } from '@/utils/selection';
+import { createDefaultSelection } from '@/types';
 
 describe('Selection Utils', () => {
     describe('compareIds', () => {

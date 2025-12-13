@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, ChevronDown } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
-import { InstrumentType, getInstrumentOptions, setInstrument, getSelectedInstrument } from '../../engines/toneEngine';
+import { useTheme } from '@/context/ThemeContext';
+import { InstrumentType, getInstrumentOptions, setInstrument, getSelectedInstrument } from '@/engines/toneEngine';
 
 interface InstrumentSelectorProps {
     selectedInstrument: InstrumentType;

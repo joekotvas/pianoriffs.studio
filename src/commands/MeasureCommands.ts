@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, getActiveStaff, Measure } from '../types';
+import { Score, getActiveStaff, Measure } from '@/types';
 
 export class AddMeasureCommand implements Command {
   public readonly type = 'ADD_MEASURE';

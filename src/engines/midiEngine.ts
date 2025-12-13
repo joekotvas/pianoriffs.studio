@@ -10,7 +10,7 @@
  * Uses the Web MIDI API.
  */
 
-import { midiToPitch } from '../services/MusicService';
+import { midiToPitch } from '@/services/MusicService';
 
 /**
  * Converts a MIDI note number to a pitch string (e.g., 60 -> "C4")

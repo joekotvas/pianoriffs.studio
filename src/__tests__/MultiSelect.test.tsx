@@ -2,8 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ScoreEditor from '../ScoreEditor';
-import { ThemeProvider } from '../context/ThemeContext';
-import { createDefaultScore } from '../types';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { createDefaultScore } from '@/types';
 
 // Mocks
 jest.mock('../components/Toolbar/Toolbar', () => (props: any) => <div data-testid="score-toolbar" />);

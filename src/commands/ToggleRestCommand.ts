@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score, Note, ScoreEvent, Selection, getActiveStaff } from '../types';
-import { updateEvent } from '../utils/commandHelpers';
+import { Score, Note, ScoreEvent, Selection, getActiveStaff } from '@/types';
+import { updateEvent } from '@/utils/commandHelpers';
 
 /**
  * Represents the previous state of an event for undo purposes.

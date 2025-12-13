@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score, Note, ScoreEvent } from '../types';
-import { updateMeasure } from '../utils/commandHelpers';
+import { Score, Note, ScoreEvent } from '@/types';
+import { updateMeasure } from '@/utils/commandHelpers';
 
 /**
  * Unified command to add a score event (note or rest) to a measure.

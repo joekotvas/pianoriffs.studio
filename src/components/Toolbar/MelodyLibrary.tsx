@@ -1,8 +1,8 @@
 import React from 'react';
-import { Melody } from '../../types';
+import { Melody } from '@/types';
 import { BookOpen } from 'lucide-react';
 import DropdownOverlay from './Menus/DropdownOverlay';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 
 interface MelodyLibraryProps {
   melodies: Melody[];

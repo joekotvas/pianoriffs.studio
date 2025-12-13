@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score, Note } from '../types';
-import { updateEvent } from '../utils/commandHelpers';
+import { Score, Note } from '@/types';
+import { updateEvent } from '@/utils/commandHelpers';
 
 export class AddNoteToEventCommand implements Command {
   public readonly type = 'ADD_NOTE_TO_EVENT';

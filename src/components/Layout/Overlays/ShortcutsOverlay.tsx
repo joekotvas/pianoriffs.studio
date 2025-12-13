@@ -2,7 +2,20 @@ import React, { useEffect } from 'react';
 import { X, Keyboard } from 'lucide-react';
 import { useTheme } from '@context/ThemeContext';
 
-const ShortcutGroup = ({ title, shortcuts, theme }) => (
+import { Theme } from '@config';
+
+interface Shortcut {
+  label: string;
+  keys: string[];
+}
+
+interface ShortcutGroupProps {
+  title: string;
+  shortcuts: Shortcut[];
+  theme: Theme;
+}
+
+const ShortcutGroup: React.FC<ShortcutGroupProps> = ({ title, shortcuts, theme }) => (
   <div className="mb-6">
     <h3 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1" style={{ color: theme.secondaryText, borderColor: theme.border }}>{title}</h3>
     <div className="grid grid-cols-1 gap-2">
@@ -22,11 +35,15 @@ const ShortcutGroup = ({ title, shortcuts, theme }) => (
   </div>
 );
 
-const ShortcutsOverlay = ({ onClose }) => {
+interface ShortcutsOverlayProps {
+  onClose: () => void;
+}
+
+const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);

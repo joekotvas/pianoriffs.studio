@@ -1,8 +1,8 @@
-import { TransposeSelectionCommand } from '../commands/TransposeSelectionCommand';
-import { createDefaultScore, getActiveStaff } from '../types';
-import { SetGrandStaffCommand } from '../commands/SetGrandStaffCommand';
-import { AddEventCommand } from '../commands/AddEventCommand';
-import { ScoreEngine } from '../engines/ScoreEngine';
+import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand';
+import { createDefaultScore, getActiveStaff } from '@/types';
+import { SetGrandStaffCommand } from '@/commands/SetGrandStaffCommand';
+import { AddEventCommand } from '@/commands/AddEventCommand';
+import { ScoreEngine } from '@/engines/ScoreEngine';
 
 describe('Grand Staff Bass Clef Transposition', () => {
   let engine: ScoreEngine;

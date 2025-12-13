@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { CONFIG } from '../config';
-import { calculateSystemLayout, calculateMeasureLayout, getNoteWidth, calculateHeaderLayout, calculateMeasureWidth } from '../engines/layout';
-import { Score, getActiveStaff } from '../types';
-import { getNoteDuration } from '../utils/core';
+import { CONFIG } from '@/config';
+import { calculateSystemLayout, calculateMeasureLayout, getNoteWidth, calculateHeaderLayout, calculateMeasureWidth } from '@/engines/layout';
+import { Score, getActiveStaff } from '@/types';
+import { getNoteDuration } from '@/utils/core';
 
 interface UseGrandStaffLayoutProps {
   score: Score;

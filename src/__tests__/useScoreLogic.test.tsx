@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
-import { useScoreLogic } from '../hooks/useScoreLogic';
-import { createDefaultScore } from '../types';
+import { useScoreLogic } from '@/hooks/useScoreLogic';
+import { createDefaultScore } from '@/types';
 
 // Mock audio engine to prevent actual playback during tests
 jest.mock('../engines/toneEngine', () => ({

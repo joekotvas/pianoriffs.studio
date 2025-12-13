@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { useTheme } from '../../../context/ThemeContext';
-import { useFocusTrap } from '../../../hooks/useFocusTrap';
+import { useTheme } from '@/context/ThemeContext';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import Portal from '../../Layout/Portal';
 
 interface DropdownOverlayProps {

@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score, ScoreEvent, Note } from '../types';
-import { updateMeasure } from '../utils/commandHelpers';
+import { Score, ScoreEvent, Note } from '@/types';
+import { updateMeasure } from '@/utils/commandHelpers';
 
 export class DeleteNoteCommand implements Command {
   public readonly type = 'DELETE_NOTE';

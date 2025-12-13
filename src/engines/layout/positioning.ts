@@ -1,8 +1,8 @@
-import { NOTE_TYPES, MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES, LAYOUT, STEM } from '../../constants';
-import { CONFIG } from '../../config';
-import { getNoteDuration } from '../../utils/core';
+import { NOTE_TYPES, MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES, LAYOUT, STEM } from '@/constants';
+import { CONFIG } from '@/config';
+import { getNoteDuration } from '@/utils/core';
 import { Note, ChordLayout, HeaderLayout } from './types';
-import { getStaffPitch } from '../../services/MusicService';
+import { getStaffPitch } from '@/services/MusicService';
 
 // ========== HEADER LAYOUT (SSOT) ==========
 

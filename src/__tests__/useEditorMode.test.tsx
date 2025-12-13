@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
-import { useEditorMode } from '../hooks/useEditorMode';
-import { createDefaultSelection } from '../types';
+import { useEditorMode } from '@/hooks/useEditorMode';
+import { createDefaultSelection } from '@/types';
 
 describe('useEditorMode', () => {
     

@@ -25,7 +25,19 @@
     "paths": {
       "@riffscore/*": [
         "src/*"
-      ]
+      ],
+      "@/*": ["../src/*"],
+      "@context/*": ["../src/context/*"],
+      "@hooks/*": ["../src/hooks/*"],
+      "@components/*": ["../src/components/*"],
+      "@utils/*": ["../src/utils/*"],
+      "@commands/*": ["../src/commands/*"],
+      "@engines/*": ["../src/engines/*"],
+      "@assets/*": ["../src/components/Assets/*"],
+      "@services/*": ["../src/services/*"],
+      "@config/*": ["../src/config/*"],
+      "@types/*": ["../src/types/*"],
+      "@constants/*": ["../src/constants/*"]
     },
     "incremental": true
   },

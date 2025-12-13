@@ -1,8 +1,8 @@
 import { ScoreEvent, TupletBracketGroup } from './types';
-import { getNoteDuration } from '../../utils/core';
+import { getNoteDuration } from '@/utils/core';
 import { getOffsetForPitch } from './positioning';
-import { CONFIG } from '../../config';
-import { MIDDLE_LINE_Y, TUPLET, STEM } from '../../constants';
+import { CONFIG } from '@/config';
+import { MIDDLE_LINE_Y, TUPLET, STEM } from '@/constants';
 
 /**
  * Helper to determine the events belonging to a tuplet group starting at a given index.

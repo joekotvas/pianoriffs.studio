@@ -1,13 +1,13 @@
 // @ts-nocheck
 import React, { useMemo } from 'react';
-import { CONFIG } from '../../config';
-import { useTheme } from '../../context/ThemeContext';
-import { getFirstNoteId } from '../../utils/core';
-import { isRestSelected, isBeamGroupSelected } from '../../utils/selection';
-import { useAccidentalContext } from '../../hooks/useAccidentalContext';
-import { useMeasureLayout } from '../../hooks/useMeasureLayout';
-import { useMeasureInteraction } from '../../hooks/useMeasureInteraction';
-import { usePreviewRender } from '../../hooks/usePreviewRender';
+import { CONFIG } from '@/config';
+import { useTheme } from '@/context/ThemeContext';
+import { getFirstNoteId } from '@/utils/core';
+import { isRestSelected, isBeamGroupSelected } from '@/utils/selection';
+import { useAccidentalContext } from '@/hooks/useAccidentalContext';
+import { useMeasureLayout } from '@/hooks/useMeasureLayout';
+import { useMeasureInteraction } from '@/hooks/useMeasureInteraction';
+import { usePreviewRender } from '@/hooks/usePreviewRender';
 import { MeasureProps } from '../../componentTypes';
 
 // Components

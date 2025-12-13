@@ -1,15 +1,15 @@
 import React from 'react';
-import { CONFIG } from '../../config';
-import { useTheme } from '../../context/ThemeContext';
-import { calculateMeasureWidth, calculateMeasureLayout, getOffsetForPitch, calculateHeaderLayout } from '../../engines/layout';
-import { getNoteDuration } from '../../utils/core';
-import { isNoteSelected } from '../../utils/selection';
+import { CONFIG } from '@/config';
+import { useTheme } from '@/context/ThemeContext';
+import { calculateMeasureWidth, calculateMeasureLayout, getOffsetForPitch, calculateHeaderLayout } from '@/engines/layout';
+import { getNoteDuration } from '@/utils/core';
+import { isNoteSelected } from '@/utils/selection';
 import Measure from './Measure';
 import Tie from './Tie';
 import ScoreHeader from './ScoreHeader';
 
 import { InteractionState } from '../../componentTypes';
-import { Measure as MeasureData } from '../../types';
+import { Measure as MeasureData } from '@/types';
 
 /**
  * Props for a self-contained Staff component.

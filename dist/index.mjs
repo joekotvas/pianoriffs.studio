@@ -4920,9 +4920,14 @@ var ScoreProvider = ({ children, initialScore }) => {
 init_config();
 init_constants();
 var ThemeContext = createContext(void 0);
-var ThemeProvider = ({ children }) => {
-  const [themeName, setThemeName] = useState(DEFAULT_THEME);
+var ThemeProvider = ({ children, initialTheme }) => {
+  const [themeName, setThemeName] = useState(initialTheme || DEFAULT_THEME);
   const [zoom, setZoom] = useState(DEFAULT_SCALE);
+  useEffect(() => {
+    if (initialTheme) {
+      setThemeName(initialTheme);
+    }
+  }, [initialTheme]);
   const theme = THEMES[themeName];
   return /* @__PURE__ */ jsx(ThemeContext.Provider, { value: { theme, themeName, setTheme: setThemeName, zoom, setZoom }, children });
 };
@@ -6016,6 +6021,7 @@ var NoteHead = ({ x, y, duration, color }) => {
   return /* @__PURE__ */ jsx(
     "text",
     {
+      className: "NoteHead",
       x,
       y,
       fontFamily: BRAVURA_FONT,
@@ -6474,7 +6480,7 @@ var Rest = ({
   return /* @__PURE__ */ jsxs(
     "g",
     {
-      className: "rest-group",
+      className: "Rest rest-group",
       "data-selected": isSelected,
       "data-testid": eventId ? `rest-${eventId}` : void 0,
       style: { opacity: isGhost ? 0.5 : 1 },
@@ -6732,7 +6738,7 @@ var Measure2 = ({
     });
     return map;
   }, [beamGroups]);
-  return /* @__PURE__ */ jsxs("g", { transform: `translate(${startX}, 0)`, children: [
+  return /* @__PURE__ */ jsxs("g", { className: "Measure", transform: `translate(${startX}, 0)`, children: [
     /* @__PURE__ */ jsx(
       "rect",
       {
@@ -6869,7 +6875,7 @@ var Tie = ({ startX, startY, endX, endY, direction, color = "black" }) => {
 };
 var Tie_default = Tie;
 
-// src/components/Panels/ScoreHeader.tsx
+// src/components/Canvas/ScoreHeader.tsx
 init_constants();
 init_config();
 init_layout();
@@ -6889,7 +6895,7 @@ var ScoreHeader = ({
   const { keySigStartX, keySigVisualWidth, timeSigStartX, startOfMeasures } = headerLayout;
   const { KEY_SIG_ACCIDENTAL_WIDTH, TIME_SIG_WIDTH } = HEADER_CONSTANTS;
   const CLEF_WIDTH = 40;
-  return /* @__PURE__ */ jsxs("g", { children: [
+  return /* @__PURE__ */ jsxs("g", { className: "ScoreHeader", children: [
     [0, 1, 2, 3, 4].map((i) => /* @__PURE__ */ jsx("line", { x1: 0, y1: baseY + i * CONFIG.lineHeight, x2: startOfMeasures, y2: baseY + i * CONFIG.lineHeight, stroke: theme.score.line, strokeWidth: "1" }, `staff-head-${i}`)),
     /* @__PURE__ */ jsx("line", { x1: 0, y1: baseY, x2: 0, y2: baseY + CONFIG.lineHeight * 4, stroke: theme.secondaryText, strokeWidth: "1" }),
     /* @__PURE__ */ jsxs(
@@ -7758,7 +7764,7 @@ var ScoreCanvas = ({
     {
       ref: containerRef,
       "data-testid": "score-canvas-container",
-      className: "overflow-x-auto relative outline-none z-10 pl-12 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600/50",
+      className: "ScoreCanvas overflow-x-auto relative outline-none z-10 pl-12 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600/50",
       style: { marginTop: "-30px", backgroundColor: theme.background },
       onClick: handleBackgroundClick,
       tabIndex: 0,
@@ -7872,13 +7878,35 @@ var ToolbarButton = React3.forwardRef(({
   title,
   preventFocus = false,
   isEmphasized = false,
-  isDashed = false
+  isDashed = false,
+  height = "h-9",
+  variant = "default"
 }, ref) => {
   const { theme } = useTheme();
-  const baseStyles = "flex items-center justify-center rounded border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed h-9";
+  const baseStyles = "flex items-center justify-center rounded border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
   const sizeStyles = showLabel ? "min-w-9 px-3" : "w-9";
   const borderStyle = isDashed ? "border-dashed" : "border-solid";
   const [isHovered, setIsHovered] = React3.useState(false);
+  const isGhost = variant === "ghost";
+  const getBackgroundColor = () => {
+    if (isActive) return theme.accent;
+    if (isHovered) return theme.buttonHoverBackground;
+    if (isGhost) return "transparent";
+    if (isEmphasized) return theme.buttonBackground;
+    return theme.buttonBackground;
+  };
+  const getBorderColor = () => {
+    if (isActive) return theme.accent;
+    if (isEmphasized) return theme.accent;
+    if (isDashed) return theme.secondaryText;
+    if (isGhost && !isHovered) return "transparent";
+    return theme.border;
+  };
+  const getColor = () => {
+    if (isActive) return "#ffffff";
+    if (isEmphasized) return theme.accent;
+    return theme.secondaryText;
+  };
   return /* @__PURE__ */ jsxs(
     "button",
     {
@@ -7894,14 +7922,15 @@ var ToolbarButton = React3.forwardRef(({
       disabled,
       className: `
         ${baseStyles}
+        ${height}
         ${sizeStyles}
         ${borderStyle}
         ${className}
       `,
       style: {
-        backgroundColor: isActive ? theme.accent : isHovered ? theme.buttonHoverBackground : isEmphasized ? theme.buttonBackground : theme.buttonBackground,
-        borderColor: isActive ? theme.accent : isEmphasized ? theme.accent : theme.border,
-        color: isActive ? "#ffffff" : isEmphasized ? theme.accent : theme.secondaryText
+        backgroundColor: getBackgroundColor(),
+        borderColor: getBorderColor(),
+        color: getColor()
       },
       title: title || label,
       "aria-label": label,
@@ -7917,10 +7946,13 @@ var ToolbarButton_default = ToolbarButton;
 var InstrumentSelector = ({
   selectedInstrument,
   onInstrumentChange,
-  samplerLoaded
+  samplerLoaded,
+  height = "h-9",
+  variant = "default"
 }) => {
   const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef(null);
   const options = [
     { id: "bright", name: "Bright Synth" },
@@ -7949,15 +7981,20 @@ var InstrumentSelector = ({
     setInstrument(id);
     setIsOpen(false);
   };
+  const isGhost = variant === "ghost";
+  const borderColor = isOpen ? theme.accent : isGhost && !isHovered ? "transparent" : theme.border;
+  const bgColor = isGhost && !isHovered && !isOpen ? "transparent" : theme.buttonBackground;
   return /* @__PURE__ */ jsxs("div", { ref: containerRef, className: "relative", children: [
     /* @__PURE__ */ jsxs(
       "button",
       {
         onClick: () => setIsOpen(!isOpen),
-        className: "flex items-center gap-1.5 px-2 py-1 rounded border text-xs font-medium transition-colors",
+        onMouseEnter: () => setIsHovered(true),
+        onMouseLeave: () => setIsHovered(false),
+        className: `flex items-center gap-1.5 px-3 ${height} rounded border text-xs font-medium transition-colors`,
         style: {
-          backgroundColor: theme.buttonBackground,
-          borderColor: isOpen ? theme.accent : theme.border,
+          backgroundColor: bgColor,
+          borderColor,
           color: theme.secondaryText
         },
         children: [
@@ -8542,7 +8579,7 @@ var ExportRow = ({
     }
   );
 };
-var FileMenu = ({ score, bpm }) => {
+var FileMenu = ({ score, bpm, height = "h-9", variant = "default" }) => {
   var _a, _b;
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -8578,7 +8615,9 @@ var FileMenu = ({ score, bpm }) => {
         label: "File Menu",
         onClick: () => setIsOpen(!isOpen),
         isActive: isOpen,
-        preventFocus: true
+        preventFocus: true,
+        height,
+        variant
       }
     ),
     isOpen && /* @__PURE__ */ jsxs(
@@ -8661,13 +8700,17 @@ var MainControls = ({
   onInstrumentChange,
   samplerLoaded,
   score,
-  children
+  children,
+  rowHeight = "h-9",
+  buttonVariant = "default"
 }) => {
   const { theme } = useTheme();
   const titleInputRef = useRef(null);
   const [titleBuffer, setTitleBuffer] = useState("");
   const [bpmBuffer, setBpmBuffer] = useState(String(bpm));
   const [isFocused, setIsFocused] = useState(false);
+  const [isBpmHovered, setIsBpmHovered] = useState(false);
+  const [isMidiHovered, setIsMidiHovered] = useState(false);
   useEffect(() => {
     setBpmBuffer(String(bpm));
   }, [bpm]);
@@ -8690,8 +8733,9 @@ var MainControls = ({
       onBpmChange(clamped);
     }
   };
+  const isGhost = buttonVariant === "ghost";
   return /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4", children: [
-    /* @__PURE__ */ jsx(FileMenu_default, { score, bpm }),
+    /* @__PURE__ */ jsx(FileMenu_default, { score, bpm, height: rowHeight, variant: buttonVariant }),
     /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
     /* @__PURE__ */ jsxs("div", { className: "flex gap-1", children: [
       /* @__PURE__ */ jsx(
@@ -8700,7 +8744,9 @@ var MainControls = ({
           icon: /* @__PURE__ */ jsx(RotateCcw, { size: 18 }),
           label: "Undo",
           onClick: onUndo,
-          disabled: !canUndo
+          disabled: !canUndo,
+          height: rowHeight,
+          variant: buttonVariant
         }
       ),
       /* @__PURE__ */ jsx(
@@ -8709,7 +8755,9 @@ var MainControls = ({
           icon: /* @__PURE__ */ jsx(RotateCw, { size: 18 }),
           label: "Redo",
           onClick: onRedo,
-          disabled: !canRedo
+          disabled: !canRedo,
+          height: rowHeight,
+          variant: buttonVariant
         }
       )
     ] }),
@@ -8722,22 +8770,26 @@ var MainControls = ({
           label: isPlaying ? "Pause" : "Play",
           showLabel: true,
           onClick: onPlayToggle,
-          isEmphasized: true
+          isEmphasized: true,
+          height: rowHeight,
+          variant: buttonVariant
         }
       ),
       /* @__PURE__ */ jsxs(
         "div",
         {
-          className: "flex items-center gap-0 px-2 rounded border h-9 transition-colors",
+          className: `flex items-center gap-0 px-2 rounded border ${rowHeight} transition-colors`,
           style: {
-            borderColor: isFocused ? theme.accent : theme.secondaryText,
-            opacity: isFocused ? 1 : 0.8
+            borderColor: isFocused ? theme.accent : isGhost && !isBpmHovered ? "transparent" : theme.border,
+            backgroundColor: isGhost && !isBpmHovered && !isFocused ? "transparent" : "transparent"
           },
+          onMouseEnter: () => setIsBpmHovered(true),
+          onMouseLeave: () => setIsBpmHovered(false),
           children: [
             /* @__PURE__ */ jsx(
               "span",
               {
-                className: "text-sm font-bold uppercase tracking-wider",
+                className: "text-xs font-bold uppercase tracking-wider",
                 style: { color: theme.secondaryText },
                 children: "BPM"
               }
@@ -8762,7 +8814,14 @@ var MainControls = ({
     /* @__PURE__ */ jsxs(
       "div",
       {
-        className: `flex items-center gap-1.5 px-2 py-1 rounded border text-xs font-medium ${midiStatus.connected ? "bg-[#0ac5b20f] border-[#507d7d] text-[#4f9e9e]" : "bg-slate-800/50 border-white/10 text-slate-400"}`,
+        className: `flex items-center gap-1.5 px-3 ${rowHeight} rounded border text-xs font-medium ${midiStatus.connected ? "bg-[#0ac5b20f] border-[#507d7d] text-[#4f9e9e]" : "bg-slate-800/50 border-white/10 text-slate-400"}`,
+        style: {
+          borderColor: isGhost && !isMidiHovered && !midiStatus.connected ? "transparent" : midiStatus.connected ? "#507d7d" : isMidiHovered ? theme.border : isGhost ? "transparent" : theme.border,
+          // Note: Keep MIDI status distinct if connected, otherwise follow ghost rules
+          backgroundColor: isGhost && !midiStatus.connected ? "transparent" : void 0
+        },
+        onMouseEnter: () => setIsMidiHovered(true),
+        onMouseLeave: () => setIsMidiHovered(false),
         title: midiStatus.connected ? `MIDI: ${midiStatus.deviceName}` : midiStatus.error || "No MIDI device connected",
         children: [
           /* @__PURE__ */ jsx(Music2, { size: 12 }),
@@ -8775,7 +8834,9 @@ var MainControls = ({
       {
         selectedInstrument,
         onInstrumentChange,
-        samplerLoaded
+        samplerLoaded,
+        height: rowHeight,
+        variant: buttonVariant
       }
     ),
     /* @__PURE__ */ jsx("div", { className: "flex-1" }),
@@ -8787,7 +8848,9 @@ var MainControls = ({
         onClick: onToggleHelp,
         label: "Keyboard Shortcuts",
         icon: /* @__PURE__ */ jsx(HelpCircle, { size: 18 }),
-        preventFocus: true
+        preventFocus: true,
+        height: rowHeight,
+        variant: buttonVariant
       }
     )
   ] });
@@ -8888,7 +8951,7 @@ var ClefIcon_default = ClefIcon;
 // src/components/Toolbar/StaffControls.tsx
 init_constants();
 
-// src/components/Overlays/ClefOverlay.tsx
+// src/components/Toolbar/Menus/ClefOverlay.tsx
 init_constants();
 var ClefOverlay = ({ current, onSelect, onClose, position, triggerRef }) => {
   const { theme } = useTheme();
@@ -8933,7 +8996,7 @@ var ClefOverlay = ({ current, onSelect, onClose, position, triggerRef }) => {
 };
 var ClefOverlay_default = ClefOverlay;
 
-// src/components/Overlays/KeySignatureOverlay.tsx
+// src/components/Toolbar/Menus/KeySignatureOverlay.tsx
 init_constants();
 init_SMuFL();
 var KeySignatureOverlay = ({
@@ -9020,7 +9083,7 @@ var KeySignatureOverlay = ({
 };
 var KeySignatureOverlay_default = KeySignatureOverlay;
 
-// src/components/Overlays/TimeSignatureOverlay.tsx
+// src/components/Toolbar/Menus/TimeSignatureOverlay.tsx
 init_constants();
 var TimeSignatureOverlay = ({ current, onSelect, onClose, position, triggerRef }) => {
   const { theme } = useTheme();
@@ -9085,7 +9148,8 @@ var StaffControls = forwardRef(({
   keySignature,
   onKeySignatureChange,
   timeSignature,
-  onTimeSignatureChange
+  onTimeSignatureChange,
+  variant = "default"
 }, ref) => {
   var _a, _b, _c, _d, _e, _f, _g;
   const [showClefMenu, setShowClefMenu] = useState(false);
@@ -9109,7 +9173,8 @@ var StaffControls = forwardRef(({
         label: currentClef.label,
         showLabel: false,
         onClick: () => setShowClefMenu(!showClefMenu),
-        icon: /* @__PURE__ */ jsx(ClefIcon_default, { clef: clef || "treble", className: "w-6 h-6" })
+        icon: /* @__PURE__ */ jsx(ClefIcon_default, { clef: clef || "treble", className: "w-6 h-6" }),
+        variant
       }
     ),
     showClefMenu && /* @__PURE__ */ jsx(
@@ -9135,7 +9200,8 @@ var StaffControls = forwardRef(({
         label: ((_c = KEY_SIGNATURES[keySignature]) == null ? void 0 : _c.label) || keySignature,
         showLabel: true,
         onClick: () => setShowKeySig(!showKeySig),
-        className: "text-xs font-bold"
+        className: "text-xs font-bold",
+        variant
       }
     ),
     showKeySig && /* @__PURE__ */ jsx(
@@ -9162,7 +9228,8 @@ var StaffControls = forwardRef(({
         label: timeSignature,
         showLabel: true,
         onClick: () => setShowTimeSig(!showTimeSig),
-        className: "text-xs font-bold"
+        className: "text-xs font-bold",
+        variant
       }
     ),
     showTimeSig && /* @__PURE__ */ jsx(
@@ -9332,7 +9399,8 @@ var DurationControls = ({
   isDurationValid,
   selectedDurations = [],
   editorState = "IDLE",
-  inputMode = "NOTE"
+  inputMode = "NOTE",
+  variant = "default"
 }) => {
   return /* @__PURE__ */ jsx("div", { className: "flex gap-1", children: Object.keys(NOTE_TYPES).map((type) => {
     const shortcuts = {
@@ -9369,7 +9437,8 @@ var DurationControls = ({
         isDashed,
         icon: /* @__PURE__ */ jsx(IconComponent, { type, color: isActive ? "white" : "currentColor" }),
         preventFocus: true,
-        disabled: !isDurationValid(type)
+        disabled: !isDurationValid(type),
+        variant
       },
       type
     );
@@ -9388,7 +9457,8 @@ var ModifierControls = ({
   isDotValid,
   selectedDots = [],
   selectedTies = [],
-  editorState = "IDLE"
+  editorState = "IDLE",
+  variant = "default"
 }) => {
   let dotActive = isDotted;
   let dotDashed = false;
@@ -9429,7 +9499,8 @@ var ModifierControls = ({
         isEmphasized: dotEmphasized,
         icon: /* @__PURE__ */ jsx(Circle, { size: 8, fill: "currentColor" }),
         preventFocus: true,
-        disabled: !isDotValid
+        disabled: !isDotValid,
+        variant
       }
     ),
     /* @__PURE__ */ jsx(
@@ -9441,7 +9512,8 @@ var ModifierControls = ({
         isDashed: tieDashed,
         isEmphasized: tieEmphasized,
         icon: /* @__PURE__ */ jsx(TieIcon_default, { size: 16 }),
-        preventFocus: true
+        preventFocus: true,
+        variant
       }
     )
   ] });
@@ -9451,7 +9523,8 @@ var AccidentalControls = ({
   activeAccidental,
   onToggleAccidental,
   selectedAccidentals = [],
-  editorState = "IDLE"
+  editorState = "IDLE",
+  variant = "default"
 }) => {
   const getVisualState = (type) => {
     let isActive = activeAccidental === type;
@@ -9486,7 +9559,8 @@ var AccidentalControls = ({
         isEmphasized: flatState.isEmphasized,
         className: "text-xl pb-1",
         icon: "\u266D",
-        preventFocus: true
+        preventFocus: true,
+        variant
       }
     ),
     /* @__PURE__ */ jsx(
@@ -9499,7 +9573,8 @@ var AccidentalControls = ({
         isEmphasized: naturalState.isEmphasized,
         className: "text-xl pb-1",
         icon: "\u266E",
-        preventFocus: true
+        preventFocus: true,
+        variant
       }
     ),
     /* @__PURE__ */ jsx(
@@ -9512,7 +9587,8 @@ var AccidentalControls = ({
         isEmphasized: sharpState.isEmphasized,
         className: "text-xl pb-1",
         icon: "\u266F",
-        preventFocus: true
+        preventFocus: true,
+        variant
       }
     )
   ] });
@@ -9522,7 +9598,8 @@ var MeasureControls = ({
   onAddMeasure,
   onRemoveMeasure,
   onTogglePickup,
-  isPickup
+  isPickup,
+  variant = "default"
 }) => {
   return /* @__PURE__ */ jsxs("div", { className: "flex gap-1", children: [
     /* @__PURE__ */ jsx(
@@ -9530,7 +9607,8 @@ var MeasureControls = ({
       {
         onClick: onAddMeasure,
         label: "Add Measure",
-        icon: /* @__PURE__ */ jsx(SquarePlus, { size: 16 })
+        icon: /* @__PURE__ */ jsx(SquarePlus, { size: 16 }),
+        variant
       }
     ),
     /* @__PURE__ */ jsx(
@@ -9538,7 +9616,8 @@ var MeasureControls = ({
       {
         onClick: onRemoveMeasure,
         label: "Remove Measure",
-        icon: /* @__PURE__ */ jsx(SquareMinus, { size: 16 })
+        icon: /* @__PURE__ */ jsx(SquareMinus, { size: 16 }),
+        variant
       }
     ),
     /* @__PURE__ */ jsx(
@@ -9547,7 +9626,8 @@ var MeasureControls = ({
         onClick: onTogglePickup,
         isActive: isPickup,
         label: "Toggle Pickup",
-        icon: /* @__PURE__ */ jsx("span", { className: "text-xs font-bold", children: "PK" })
+        icon: /* @__PURE__ */ jsx("span", { className: "text-xs font-bold", children: "PK" }),
+        variant
       }
     )
   ] });
@@ -9558,7 +9638,8 @@ var TupletControls = ({
   onRemoveTuplet,
   canApplyTriplet,
   canApplyQuintuplet,
-  activeTupletRatio
+  activeTupletRatio,
+  variant = "default"
 }) => {
   const { theme } = useTheme();
   const isTripletActive = (activeTupletRatio == null ? void 0 : activeTupletRatio[0]) === 3 && (activeTupletRatio == null ? void 0 : activeTupletRatio[1]) === 2;
@@ -9593,7 +9674,8 @@ var TupletControls = ({
             /* @__PURE__ */ jsx("div", { className: "w-1 h-1 rounded-full", style: { backgroundColor: "currentColor" } }),
             /* @__PURE__ */ jsx("div", { className: "w-1 h-1 rounded-full", style: { backgroundColor: "currentColor" } })
           ] })
-        ] })
+        ] }),
+        variant
       }
     ),
     /* @__PURE__ */ jsx(
@@ -9613,7 +9695,8 @@ var TupletControls = ({
             /* @__PURE__ */ jsx("div", { className: "w-1 h-1 rounded-full", style: { backgroundColor: "currentColor" } }),
             /* @__PURE__ */ jsx("div", { className: "w-1 h-1 rounded-full", style: { backgroundColor: "currentColor" } })
           ] })
-        ] })
+        ] }),
+        variant
       }
     )
   ] });
@@ -9757,7 +9840,7 @@ var NoteGroupIcon = ({ color }) => /* @__PURE__ */ jsxs("svg", { width: "24", he
   ),
   /* @__PURE__ */ jsx("line", { x1: 20.5, y1: 18, x2: 20.5, y2: 8, stroke: color, strokeWidth: 1.5 })
 ] });
-var InputModeToggle = ({ mode, onToggle }) => {
+var InputModeToggle = ({ mode, onToggle, variant = "default" }) => {
   const { theme } = useTheme();
   const isActive = mode === "REST";
   return /* @__PURE__ */ jsx(
@@ -9768,7 +9851,8 @@ var InputModeToggle = ({ mode, onToggle }) => {
       isActive: false,
       title: isActive ? "Switch to Note Mode (R)" : "Switch to Rest Mode (R)",
       preventFocus: true,
-      icon: isActive ? /* @__PURE__ */ jsx(NoteGroupIcon, { color: theme.secondaryText }) : /* @__PURE__ */ jsx(RestGroupIcon, { color: theme.secondaryText })
+      icon: isActive ? /* @__PURE__ */ jsx(NoteGroupIcon, { color: theme.secondaryText }) : /* @__PURE__ */ jsx(RestGroupIcon, { color: theme.secondaryText }),
+      variant
     }
   );
 };
@@ -9789,6 +9873,7 @@ var LoadScoreCommand = class {
     return this.previousScore || score;
   }
 };
+var TOP_ROW_HEIGHT = "h-9";
 var Toolbar = forwardRef(({
   scoreTitle,
   label,
@@ -9933,6 +10018,8 @@ var Toolbar = forwardRef(({
             onInstrumentChange,
             samplerLoaded,
             score,
+            rowHeight: TOP_ROW_HEIGHT,
+            buttonVariant: "ghost",
             children: /* @__PURE__ */ jsxs("div", { className: "flex gap-1 relative", children: [
               /* @__PURE__ */ jsx(
                 ToolbarButton_default,
@@ -9944,7 +10031,9 @@ var Toolbar = forwardRef(({
                   isActive: showLibrary,
                   preventFocus: true,
                   showLabel: true,
-                  isEmphasized: !showLibrary
+                  isEmphasized: !showLibrary,
+                  height: TOP_ROW_HEIGHT,
+                  variant: "ghost"
                 }
               ),
               showLibrary && /* @__PURE__ */ jsx(
@@ -9964,6 +10053,7 @@ var Toolbar = forwardRef(({
             ] })
           }
         ),
+        /* @__PURE__ */ jsx("div", { className: "w-full h-px mb-2", style: { backgroundColor: theme.border } }),
         /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4 flex-wrap", children: [
           /* @__PURE__ */ jsx(
             StaffControls_default,
@@ -9974,7 +10064,8 @@ var Toolbar = forwardRef(({
               keySignature: score.keySignature || activeStaff.keySignature,
               onKeySignatureChange: handleKeySignatureChange,
               timeSignature: score.timeSignature,
-              onTimeSignatureChange: handleTimeSignatureChange
+              onTimeSignatureChange: handleTimeSignatureChange,
+              variant: "ghost"
             }
           ),
           /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
@@ -9982,7 +10073,8 @@ var Toolbar = forwardRef(({
             InputModeToggle_default,
             {
               mode: inputMode,
-              onToggle: handleInputModeClick
+              onToggle: handleInputModeClick,
+              variant: "ghost"
             }
           ),
           /* @__PURE__ */ jsx(
@@ -9993,7 +10085,8 @@ var Toolbar = forwardRef(({
               isDurationValid: checkDurationValidity,
               selectedDurations,
               editorState,
-              inputMode
+              inputMode,
+              variant: "ghost"
             }
           ),
           /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
@@ -10007,7 +10100,8 @@ var Toolbar = forwardRef(({
               isDotValid: checkDotValidity(),
               selectedDots,
               selectedTies,
-              editorState
+              editorState,
+              variant: "ghost"
             }
           ),
           /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
@@ -10017,7 +10111,8 @@ var Toolbar = forwardRef(({
               activeAccidental,
               onToggleAccidental: handleAccidentalToggle,
               selectedAccidentals,
-              editorState
+              editorState,
+              variant: "ghost"
             }
           ),
           /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
@@ -10028,7 +10123,8 @@ var Toolbar = forwardRef(({
               onRemoveTuplet: removeTuplet,
               canApplyTriplet: canApplyTuplet(3),
               canApplyQuintuplet: canApplyTuplet(5),
-              activeTupletRatio
+              activeTupletRatio,
+              variant: "ghost"
             }
           ),
           /* @__PURE__ */ jsx("div", { className: "flex-1" }),
@@ -10038,7 +10134,8 @@ var Toolbar = forwardRef(({
               onAddMeasure: addMeasure,
               onRemoveMeasure: removeMeasure,
               onTogglePickup: togglePickup,
-              isPickup: (_e = activeStaff.measures[0]) == null ? void 0 : _e.isPickup
+              isPickup: (_e = activeStaff.measures[0]) == null ? void 0 : _e.isPickup,
+              variant: "ghost"
             }
           )
         ] }),
@@ -11214,8 +11311,9 @@ var ScoreEditorContent = ({
   return /* @__PURE__ */ jsxs(
     "div",
     {
-      className: "backdrop-blur-md p-4 rounded-lg shadow-xl mb-8",
+      className: "ScoreEditor backdrop-blur-md rounded-lg shadow-xl mb-8",
       style: {
+        padding: ".5rem",
         backgroundColor: theme.panelBackground,
         borderColor: theme.border,
         borderWidth: "1px",
@@ -11316,7 +11414,7 @@ var RiffScoreInner = ({ config: userConfig }) => {
     pointerEvents: config.interaction.isEnabled ? "auto" : "none",
     userSelect: "none"
   }), [config.interaction.isEnabled]);
-  return /* @__PURE__ */ jsx("div", { style: containerStyle, children: /* @__PURE__ */ jsx(ScoreProvider, { initialScore, children: /* @__PURE__ */ jsx(
+  return /* @__PURE__ */ jsx("div", { className: "RiffScore", style: containerStyle, children: /* @__PURE__ */ jsx(ScoreProvider, { initialScore, children: /* @__PURE__ */ jsx(
     ScoreEditorContent,
     {
       scale: config.ui.scale,
@@ -11327,7 +11425,8 @@ var RiffScoreInner = ({ config: userConfig }) => {
   ) }) });
 };
 var RiffScore = ({ config }) => {
-  return /* @__PURE__ */ jsx(ThemeProvider, { children: /* @__PURE__ */ jsx(RiffScoreInner, { config }) });
+  var _a;
+  return /* @__PURE__ */ jsx(ThemeProvider, { initialTheme: (_a = config == null ? void 0 : config.ui) == null ? void 0 : _a.theme, children: /* @__PURE__ */ jsx(RiffScoreInner, { config }) });
 };
 init_config();
 var ConfigMenu = () => {
@@ -11347,7 +11446,7 @@ var ConfigMenu = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
-  return /* @__PURE__ */ jsxs("div", { className: "fixed top-4 right-4 z-50", ref: menuRef, children: [
+  return /* @__PURE__ */ jsxs("div", { className: "ConfigMenu fixed top-4 right-4 z-50", ref: menuRef, children: [
     /* @__PURE__ */ jsx(
       "button",
       {

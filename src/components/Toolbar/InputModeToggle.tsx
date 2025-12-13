@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { useTheme } from '../../context/ThemeContext';
-import { RESTS, NOTEHEADS, BRAVURA_FONT } from '../../constants/SMuFL';
+import { useTheme } from '@/context/ThemeContext';
+import { RESTS, NOTEHEADS, BRAVURA_FONT } from '@/constants/SMuFL';
 
 /**
  * Input mode for the toolbar - determines whether clicks/keyboard

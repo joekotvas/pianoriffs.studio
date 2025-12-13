@@ -1,6 +1,6 @@
 import React from 'react';
-import { TIME_SIGNATURES } from '../../../constants';
-import { useTheme } from '../../../context/ThemeContext';
+import { TIME_SIGNATURES } from '@/constants';
+import { useTheme } from '@/context/ThemeContext';
 import DropdownOverlay from './DropdownOverlay';
 
 interface TimeSignatureOverlayProps {

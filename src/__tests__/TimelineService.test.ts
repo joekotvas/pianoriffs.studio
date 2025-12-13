@@ -1,4 +1,4 @@
-import { createTimeline } from '../services/TimelineService';
+import { createTimeline } from '@/services/TimelineService';
 
 describe('TimelineService', () => {
     const mockScore = {

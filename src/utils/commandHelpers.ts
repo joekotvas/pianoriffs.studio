@@ -1,4 +1,4 @@
-import { Score, getActiveStaff, Measure, ScoreEvent, Note } from '../types';
+import { Score, getActiveStaff, Measure, ScoreEvent, Note } from '@/types';
 
 /**
  * Helper to update a specific measure in the score.

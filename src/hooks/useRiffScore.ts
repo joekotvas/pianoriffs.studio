@@ -10,9 +10,9 @@ import {
   RiffScoreConfig, 
   DeepPartial, 
   Score,
-} from '../types';
-import { mergeRiffConfig } from '../utils/mergeConfig';
-import { generateStaves } from '../utils/generateScore';
+} from '@/types';
+import { mergeRiffConfig } from '@/utils/mergeConfig';
+import { generateStaves } from '@/utils/generateScore';
 
 export interface UseRiffScoreResult {
   config: RiffScoreConfig;

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { THEMES, Theme, ThemeName, DEFAULT_THEME } from '../config';
-import { DEFAULT_SCALE } from '../constants';
+import { THEMES, Theme, ThemeName, DEFAULT_THEME } from '@/config';
+import { DEFAULT_SCALE } from '@/constants';
 
 interface ThemeContextType {
   theme: Theme;

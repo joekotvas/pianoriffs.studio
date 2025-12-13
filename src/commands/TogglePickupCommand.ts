@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score } from '../types';
+import { Score } from '@/types';
 
 export class TogglePickupCommand implements Command {
   type = 'TOGGLE_PICKUP';

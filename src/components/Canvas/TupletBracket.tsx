@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTheme } from '../../context/ThemeContext';
-import { TUPLET } from '../../constants';
+import { useTheme } from '@/context/ThemeContext';
+import { TUPLET } from '@/constants';
 
 interface TupletBracketProps {
   startX: number;

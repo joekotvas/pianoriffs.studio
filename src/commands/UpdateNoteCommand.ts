@@ -1,6 +1,6 @@
 import { Command } from './types';
-import { Score, Note } from '../types';
-import { updateNote } from '../utils/commandHelpers';
+import { Score, Note } from '@/types';
+import { updateNote } from '@/utils/commandHelpers';
 
 export class UpdateNoteCommand implements Command {
   public readonly type = 'UPDATE_NOTE';

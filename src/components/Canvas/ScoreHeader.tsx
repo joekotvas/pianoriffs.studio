@@ -1,9 +1,9 @@
 import React from 'react';
-import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '../../constants';
-import { CONFIG } from '../../config';
-import { useTheme } from '../../context/ThemeContext';
-import { calculateHeaderLayout, HEADER_CONSTANTS } from '../../engines/layout';
-import { ACCIDENTALS, CLEFS, TIME_SIG_DIGITS, BRAVURA_FONT, getFontSize } from '../../constants/SMuFL';
+import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '@/constants';
+import { CONFIG } from '@/config';
+import { useTheme } from '@/context/ThemeContext';
+import { calculateHeaderLayout, HEADER_CONSTANTS } from '@/engines/layout';
+import { ACCIDENTALS, CLEFS, TIME_SIG_DIGITS, BRAVURA_FONT, getFontSize } from '@/constants/SMuFL';
 
 interface ScoreHeaderProps {
   clef: string;

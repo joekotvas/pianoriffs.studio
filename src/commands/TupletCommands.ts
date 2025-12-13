@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, getActiveStaff } from '../types';
+import { Score, getActiveStaff } from '@/types';
 
 /**
  * Command to apply tuplet metadata to a group of consecutive events.

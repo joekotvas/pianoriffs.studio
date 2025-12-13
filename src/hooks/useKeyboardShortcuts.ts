@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { handlePlayback } from './handlers/handlePlayback';
 import { handleNavigation } from './handlers/handleNavigation';
 import { handleMutation } from './handlers/handleMutation';
-import { getActiveStaff } from '../types';
+import { getActiveStaff } from '@/types';
 
 /**
  * Hook to handle global keyboard shortcuts.

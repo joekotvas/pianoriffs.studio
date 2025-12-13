@@ -1,11 +1,11 @@
 // @ts-nocheck
 import React, { useState, useMemo, useCallback } from 'react';
-import { NOTE_TYPES } from '../../constants';
-import { useTheme } from '../../context/ThemeContext';
-import { getStemOffset } from '../../engines/layout';
-import { calculateStemGeometry } from '../../engines/layout/stems';
-import { getAccidentalGlyph } from '../../services/MusicService';
-import { isNoteSelected, areAllNotesSelected } from '../../utils/selection';
+import { NOTE_TYPES } from '@/constants';
+import { useTheme } from '@/context/ThemeContext';
+import { getStemOffset } from '@/engines/layout';
+import { calculateStemGeometry } from '@/engines/layout/stems';
+import { getAccidentalGlyph } from '@/services/MusicService';
+import { isNoteSelected, areAllNotesSelected } from '@/utils/selection';
 
 // Visual Components
 import Note from './Note';
