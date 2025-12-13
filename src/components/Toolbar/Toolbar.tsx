@@ -344,7 +344,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
         />
 
         {/* Spacer */}
-        <div className="flex-1"></div>
+        {/* <div className="flex-1"></div> */}
 
         <MeasureControls 
           onAddMeasure={addMeasure}
