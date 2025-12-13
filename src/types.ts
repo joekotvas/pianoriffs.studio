@@ -1,3 +1,5 @@
+import { ThemeName } from './themes';
+
 /**
  * Type definitions for the Sheet Music Editor
  * 
@@ -223,10 +225,17 @@ export type StaffTemplate = 'grand' | 'treble' | 'bass';
  * - Generator Mode: Pass `staff` + `measureCount` to create blank scores
  * - Render Mode: Pass `staves` array to load existing compositions
  */
+/**
+ * Configuration interface for RiffScore component.
+ * Supports two modes:
+ * - Generator Mode: Pass `staff` + `measureCount` to create blank scores
+ * - Render Mode: Pass `staves` array to load existing compositions
+ */
 export interface RiffScoreConfig {
   ui: {
     showToolbar: boolean;
     scale: number;
+    theme?: ThemeName;
   };
   interaction: {
     isEnabled: boolean;      // Master switch for all interactions

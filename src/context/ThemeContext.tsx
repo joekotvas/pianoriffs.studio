@@ -12,9 +12,15 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [themeName, setThemeName] = useState<ThemeName>(DEFAULT_THEME);
+export const ThemeProvider: React.FC<{ children: React.ReactNode; initialTheme?: ThemeName }> = ({ children, initialTheme }) => {
+  const [themeName, setThemeName] = useState<ThemeName>(initialTheme || DEFAULT_THEME);
   const [zoom, setZoom] = useState(DEFAULT_SCALE);
+
+  useEffect(() => {
+    if (initialTheme) {
+      setThemeName(initialTheme);
+    }
+  }, [initialTheme]);
 
   const theme = THEMES[themeName];
 

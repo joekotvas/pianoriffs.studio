@@ -63,7 +63,7 @@ const RiffScoreInner: React.FC<RiffScoreProps> = ({ config: userConfig }) => {
  */
 export const RiffScore: React.FC<RiffScoreProps> = ({ config }) => {
   return (
-    <ThemeProvider>
+    <ThemeProvider initialTheme={config?.ui?.theme}>
       <RiffScoreInner config={config} />
     </ThemeProvider>
   );

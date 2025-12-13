@@ -93,7 +93,7 @@ const examples = [
 ];
 
 function ExamplesContent() {
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
   
   return (
     <div 
@@ -137,7 +137,13 @@ function ExamplesContent() {
                   </div>
                 </div>
               </div>
-              <RiffScore config={example.config} />
+              <RiffScore config={{
+                ...example.config,
+                ui: {
+                  ...example.config?.ui,
+                  theme: themeName // Pass currently active theme
+                }
+              }} />
             </section>
           );
         })}
