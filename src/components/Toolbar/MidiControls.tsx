@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Piano } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
-import InstrumentSelector from './InstrumentSelector';
 import { InstrumentType } from '@/engines/toneEngine';
 
 interface MidiControlsProps {
@@ -15,9 +14,6 @@ interface MidiControlsProps {
 
 const MidiControls: React.FC<MidiControlsProps> = ({
   midiStatus,
-  selectedInstrument,
-  onInstrumentChange,
-  samplerLoaded,
   height = "h-9",
   variant = "default"
 }) => {
@@ -48,13 +44,6 @@ const MidiControls: React.FC<MidiControlsProps> = ({
         <span>{midiStatus.connected ? 'MIDI' : 'No MIDI'}</span>
       </div>
 
-      {/* Instrument Selector */}
-      <InstrumentSelector
-        selectedInstrument={selectedInstrument}
-        onInstrumentChange={onInstrumentChange}
-        samplerLoaded={samplerLoaded}
-        height={height}
-      />
     </div>
   );
 };

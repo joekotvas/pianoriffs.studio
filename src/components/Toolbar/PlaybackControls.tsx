@@ -2,13 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import ToolbarButton from './ToolbarButton';
+import InstrumentSelector from './InstrumentSelector';
 import { PRECOMPOSED_NOTES_UP, BRAVURA_FONT } from '@/constants/SMuFL';
+import { InstrumentType } from '@/engines/toneEngine';
 
 interface PlaybackControlsProps {
   isPlaying: boolean;
   onPlayToggle?: () => void;
   bpm: number;
   onBpmChange: (bpm: number) => void;
+  selectedInstrument: InstrumentType;
+  onInstrumentChange: (instrument: InstrumentType) => void;
+  samplerLoaded: boolean;
   height?: string;
   variant?: 'default' | 'ghost';
 }
@@ -18,6 +23,9 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
   onPlayToggle,
   bpm,
   onBpmChange,
+  selectedInstrument,
+  onInstrumentChange,
+  samplerLoaded,
   height = "h-9",
   variant = "default"
 }) => {
@@ -49,8 +57,8 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
     <div className="flex items-center gap-2">
       <ToolbarButton
         icon={isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
-        label={isPlaying ? "Pause" : "Play"}
         showLabel={true}
+        label={isPlaying ? "Pause" : "Play"}
         onClick={onPlayToggle}
         isEmphasized={true}
         height={height}
@@ -77,12 +85,12 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
             fontSize: '1.5rem', 
             lineHeight: 1, 
             marginBottom: '-1rem',
-            marginRight: '.75rem',
-            marginLeft: '.5rem'
+            marginRight: '.25rem',
+            marginLeft: '.25rem'
           }}>
             {PRECOMPOSED_NOTES_UP.quarter}
           </span>
-          <span className="text-xs font-bold">=</span>
+          <span className="text-xs font-bold px-2"> = </span>
         </span>
         <input 
           type="text" 
@@ -90,12 +98,21 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
           onChange={(e) => setBpmBuffer(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={handleBpmBlur}
-          className="w-12 bg-transparent text-sm font-bold text-center outline-none"
+          className="w-8 bg-transparent text-sm font-bold text-center outline-none"
           style={{ color: theme.accent }}
         />
       </div>
+
+      {/* Instrument Selector */}
+      <InstrumentSelector
+        selectedInstrument={selectedInstrument}
+        onInstrumentChange={onInstrumentChange}
+        samplerLoaded={samplerLoaded}
+        height={height}
+      />
     </div>
   );
 };
 
 export default PlaybackControls;
+

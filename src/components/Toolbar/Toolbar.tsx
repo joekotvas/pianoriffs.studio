@@ -1,7 +1,24 @@
-import React, { useRef, useImperativeHandle, forwardRef, useState, useCallback } from 'react';
-import MainControls from './MainControls';
-import StaffControls, { StaffControlsHandle } from './StaffControls';
+import React, { 
+  useRef, 
+  useImperativeHandle, 
+  forwardRef, 
+  useState 
+} from 'react';
+import { BookOpen, HelpCircle } from 'lucide-react';
 
+// Contexts & Types
+import { useTheme } from '@/context/ThemeContext';
+import { useScoreContext } from '@/context/ScoreContext';
+import { Melody, getActiveStaff } from '@/types';
+import { InstrumentType } from '@/engines/toneEngine';
+
+// Hooks & Commands
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
+import { LoadScoreCommand } from '@/commands/LoadScoreCommand';
+
+// UI Components
+import StaffControls, { StaffControlsHandle } from './StaffControls';
 import DurationControls from './DurationControls';
 import ModifierControls from './ModifierControls';
 import AccidentalControls from './AccidentalControls';
@@ -10,44 +27,42 @@ import TupletControls from './TupletControls';
 import MelodyLibrary from './MelodyLibrary';
 import ToolbarButton from './ToolbarButton';
 import InputModeToggle from './InputModeToggle';
+import FileMenu from './FileMenu';
+import HistoryControls from './HistoryControls';
+import PlaybackControls from './PlaybackControls';
+// import MidiControls from './MidiControls';
+import Divider from './Divider';
 import { DropdownTrigger } from './Menus/DropdownOverlay';
-import { Melody, getActiveStaff } from '@/types';
-import { useTheme } from '@/context/ThemeContext';
-import { BookOpen } from 'lucide-react';
-import { useScoreContext } from '@/context/ScoreContext';
-import { UpdateTitleCommand } from '@/commands/UpdateTitleCommand';
-import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
 
-import { LoadScoreCommand } from '@/commands/LoadScoreCommand';
-import { InstrumentType } from '@/engines/toneEngine';
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface ToolbarProps {
-  scoreTitle: string; // Keep for now as it might be passed from outside or local buffer
+  // Metadata
+  scoreTitle: string;
   label?: string;
   isEditingTitle: boolean;
   onEditingChange: (isEditing: boolean) => void;
-  onTitleChange: (title: string) => void; // Keep for now
+  onTitleChange: (title: string) => void;
   
-  // Playback props - these are local to ScoreEditor (usePlayback), so pass them in
+  // Playback & System
   isPlaying: boolean;
   onPlayToggle?: () => void;
   bpm: number;
   onBpmChange: (bpm: number) => void;
-  
   errorMsg: string | null;
   onToggleHelp: () => void;
+  onEscape?: () => void;
   
+  // MIDI / Audio
   midiStatus: { connected: boolean; deviceName: string | null; error: string | null };
-  melodies: Melody[];
-  
-  // Instrument selection
+  samplerLoaded: boolean;
   selectedInstrument: InstrumentType;
   onInstrumentChange: (instrument: InstrumentType) => void;
-  samplerLoaded: boolean;
   
-  // Focus return
-  onEscape?: () => void;
+  // Data
+  melodies: Melody[];
 }
 
 export interface ToolbarHandle {
@@ -57,18 +72,13 @@ export interface ToolbarHandle {
   isMenuOpen: () => boolean;
 }
 
-/**
- * Toolbar component for the Sheet Music Editor.
- * Contains controls for playback, duration selection, BPM, title editing, and history (undo/redo).
- */
 const TOP_ROW_HEIGHT = "h-9";
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
-  scoreTitle,
-  label,
-  isEditingTitle,
-  onEditingChange,
-  onTitleChange,
   isPlaying,
   onPlayToggle,
   bpm,
@@ -82,57 +92,76 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
   samplerLoaded,
   onEscape
 }, ref) => {
+  // -- Local State & Refs --
+  const { theme } = useTheme();
   const staffControlsRef = useRef<StaffControlsHandle>(null);
   const melodyLibBtnRef = useRef<HTMLButtonElement>(null);
   const toolbarContainerRef = useRef<HTMLDivElement>(null);
+  
   const [showLibrary, setShowLibrary] = useState(false);
   const [isToolbarFocused, setIsToolbarFocused] = useState(false);
-  const { theme } = useTheme();
 
-  // Consume Score Context
+  // -- Score Context (Grouped for Clarity) --
+  const scoreCtx = useScoreContext();
+  
+  // 1. Core Data
+  const { score, dispatch, inputMode, toggleInputMode, selection, editorState } = scoreCtx;
+  
+  // 2. History
+  const { history, undo, redoStack, redo } = scoreCtx;
+  
+  // 3. Duration & Rhythms
+  const { 
+    activeDuration, handleDurationChange, checkDurationValidity, selectedDurations,
+    isDotted, handleDotToggle, checkDotValidity, selectedDots,
+    activeTie, handleTieToggle, selectedTies
+  } = scoreCtx;
+
+  // 4. Pitch & Accidentals
+  const { 
+    activeAccidental, handleAccidentalToggle, selectedAccidentals 
+  } = scoreCtx;
+
+  // 5. Structure (Measures, Staff)
   const {
-      score, selection, // Added selection
-      activeDuration, handleDurationChange, checkDurationValidity,
-      isDotted, handleDotToggle, checkDotValidity,
-      activeAccidental, handleAccidentalToggle,
-      activeTie, handleTieToggle,
-      history, undo, redoStack, redo,
-      addMeasure, removeMeasure, togglePickup,
-      handleTimeSignatureChange, handleKeySignatureChange,
-      handleClefChange,
-      dispatch, applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio,
-      selectedDurations, editorState, selectedDots, selectedTies, selectedAccidentals,
-      inputMode, setInputMode, toggleInputMode // Added toggleInputMode
-  } = useScoreContext();
+    addMeasure, removeMeasure, togglePickup,
+    handleTimeSignatureChange, handleKeySignatureChange, handleClefChange
+  } = scoreCtx;
 
-  // Handler for Input Mode Toggle (Matches 'R' key behavior)
+  // 6. Advanced (Tuplets)
+  const { 
+    applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio 
+  } = scoreCtx;
+
+
+  // -- Handlers --
+
   const handleInputModeClick = () => {
-      // Logic mirrors handleMutation.ts 'R' key handler
-      const hasSelection = selection?.selectedNotes && selection.selectedNotes.length > 0;
-      
-      if (hasSelection) {
-          dispatch(new ToggleRestCommand(selection));
-      } else {
-          toggleInputMode();
-      }
+    const hasSelection = selection?.selectedNotes && selection.selectedNotes.length > 0;
+    if (hasSelection) {
+      dispatch(new ToggleRestCommand(selection));
+    } else {
+      toggleInputMode();
+    }
   };
+
+  const handleMelodySelect = (melody: Melody) => {
+    dispatch(new LoadScoreCommand(melody.score));
+    setShowLibrary(false);
+  };
+
+  // -- Derived Logic --
+
+  const isAnyMenuOpen = showLibrary || (staffControlsRef.current?.isMenuOpen() ?? false);
+  const activeStaff = getActiveStaff(score);
 
   useImperativeHandle(ref, () => ({
     openTimeSigMenu: () => staffControlsRef.current?.openTimeSigMenu(),
     openKeySigMenu: () => staffControlsRef.current?.openKeySigMenu(),
     openClefMenu: () => staffControlsRef.current?.openClefMenu(),
-    isMenuOpen: () => showLibrary || (staffControlsRef.current?.isMenuOpen() ?? false)
-  }), [showLibrary]);
+    isMenuOpen: () => isAnyMenuOpen
+  }), [showLibrary, isAnyMenuOpen]);
 
-  const handleMelodySelect = (melody: Melody) => {
-      dispatch(new LoadScoreCommand(melody.score));
-      setShowLibrary(false);
-  };
-
-  // Track if any menu is open (dropdown menus handle their own focus trap)
-  const isAnyMenuOpen = showLibrary || (staffControlsRef.current?.isMenuOpen() ?? false);
-  
-  // Focus trap for toolbar navigation - only active when toolbar has focus and no menus are open
   useFocusTrap({
     containerRef: toolbarContainerRef,
     isActive: isToolbarFocused && !isAnyMenuOpen,
@@ -140,11 +169,11 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       setIsToolbarFocused(false);
       onEscape?.();
     },
-    autoFocus: false, // Don't auto-focus first element
-    enableArrowKeys: false // Use Tab only for toolbar navigation
+    autoFocus: false,
+    enableArrowKeys: false
   });
 
-  const activeStaff = getActiveStaff(score);
+  // -- Render --
 
   return (
     <div 
@@ -153,31 +182,50 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
       style={{ borderColor: theme.border }}
       onFocus={() => setIsToolbarFocused(true)}
       onBlur={(e) => {
-        // Only deactivate if focus leaves the toolbar entirely
         if (!toolbarContainerRef.current?.contains(e.relatedTarget as Node)) {
           setIsToolbarFocused(false);
         }
       }}
     >
-      {/* Row 1: Play, Undo/Redo, BPM, MIDI, Melody Library, Help */}
-      <MainControls 
-        isPlaying={isPlaying}
-        onPlayToggle={onPlayToggle}
-        bpm={bpm}
-        onBpmChange={onBpmChange}
-        midiStatus={midiStatus}
-        onToggleHelp={onToggleHelp}
-        canUndo={history.length > 0}
-        onUndo={undo}
-        canRedo={redoStack.length > 0}
-        onRedo={redo}
-        selectedInstrument={selectedInstrument}
-        onInstrumentChange={onInstrumentChange}
-        samplerLoaded={samplerLoaded}
-        score={score}
-        rowHeight={TOP_ROW_HEIGHT}
-        buttonVariant="ghost"
-      >
+      {/* -----------------------------------------------------------
+          ROW 1: System / File / Playback / MIDI / Library
+      ------------------------------------------------------------ */}
+      <div className="row flex items-center gap-4">
+        <FileMenu 
+          score={score} 
+          bpm={bpm} 
+          height={TOP_ROW_HEIGHT} 
+          variant="ghost" 
+        />
+        
+        <Divider />
+
+        <HistoryControls
+          canUndo={history.length > 0}
+          onUndo={undo}
+          canRedo={redoStack.length > 0}
+          onRedo={redo}
+          height={TOP_ROW_HEIGHT}
+          variant="ghost"
+        />
+
+        <Divider />
+
+        <PlaybackControls
+          isPlaying={isPlaying}
+          onPlayToggle={onPlayToggle}
+          bpm={bpm}
+          onBpmChange={onBpmChange}
+          selectedInstrument={selectedInstrument}
+          onInstrumentChange={onInstrumentChange}
+          samplerLoaded={samplerLoaded}
+          height={TOP_ROW_HEIGHT}
+          variant="ghost"
+        />
+
+        <Divider />
+
+        {/* Library Menu */}
         <div className="flex gap-1 relative">
           <DropdownTrigger
             ref={melodyLibBtnRef}
@@ -193,20 +241,44 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
               onSelectMelody={handleMelodySelect}
               onClose={() => setShowLibrary(false)}
               position={{ 
-                  x: (melodyLibBtnRef.current?.getBoundingClientRect().right || 0) - 256, // Align right edge
-                  y: (melodyLibBtnRef.current?.getBoundingClientRect().bottom || 0) + 5
+                x: (melodyLibBtnRef.current?.getBoundingClientRect().right || 0) - 256,
+                y: (melodyLibBtnRef.current?.getBoundingClientRect().bottom || 0) + 5
               }}
               triggerRef={melodyLibBtnRef as React.RefObject<HTMLElement>}
             />
           )}
         </div>
-      </MainControls>
+{/* 
+        <Divider />
 
-      <div className="w-full h-px" style={{ backgroundColor: theme.border }}></div>
+        <MidiControls
+          midiStatus={midiStatus}
+          selectedInstrument={selectedInstrument}
+          onInstrumentChange={onInstrumentChange}
+          samplerLoaded={samplerLoaded}
+          height={TOP_ROW_HEIGHT}
+          variant="ghost"
+        />
+ */}
+        {/* Spacer */}
+        <div className="flex-1"></div>
 
-      {/* Row 2: Note Durations, Modifiers, Accidentals, Undo/Redo, Measure Tools */}
-      <div className="flex items-center gap-4 flex-wrap">
-        {/* Staff Selection & Signatures */}
+        <ToolbarButton 
+          onClick={onToggleHelp}
+          label="Keyboard Shortcuts"
+          icon={<HelpCircle size={18} />}
+          preventFocus={true}
+          height={TOP_ROW_HEIGHT}
+          variant="ghost"
+        />
+      </div>
+
+      <Divider orientation="horizontal" />
+
+      {/* -----------------------------------------------------------
+          ROW 2: Notation / Editing Controls
+      ------------------------------------------------------------ */}
+      <div className="row flex items-center gap-4 flex-wrap">
         <StaffControls
           ref={staffControlsRef}
           clef={score.staves.length >= 2 ? 'grand' : (activeStaff.clef || 'treble')}
@@ -218,16 +290,14 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           variant="ghost"
         />
 
-        <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
+        <Divider />
 
-        {/* Input Mode Toggle (Note/Rest) */}
         <InputModeToggle 
           mode={inputMode} 
           onToggle={handleInputModeClick} 
           variant="ghost"
         />
 
-        {/* Duration Buttons */}
         <DurationControls 
           activeDuration={activeDuration}
           onDurationChange={handleDurationChange}
@@ -238,9 +308,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           variant="ghost"
         />
 
-        <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
+        <Divider />
 
-        {/* Modifiers: Dot, Tie */}
         <ModifierControls 
           isDotted={isDotted}
           onDotToggle={handleDotToggle}
@@ -253,9 +322,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           variant="ghost"
         />
 
-        <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
+        <Divider />
 
-        {/* Accidentals */}
         <AccidentalControls 
           activeAccidental={activeAccidental}
           onToggleAccidental={handleAccidentalToggle}
@@ -264,9 +332,8 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           variant="ghost"
         />
 
-        <div className="w-px h-6" style={{ backgroundColor: theme.border }}></div>
+        <Divider />
 
-        {/* Tuplets */}
         <TupletControls 
           onApplyTuplet={applyTuplet}
           onRemoveTuplet={removeTuplet}
@@ -276,8 +343,9 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           variant="ghost"
         />
 
+        {/* Spacer */}
         <div className="flex-1"></div>
-        {/* Measure Tools */}
+
         <MeasureControls 
           onAddMeasure={addMeasure}
           onRemoveMeasure={removeMeasure}
@@ -287,8 +355,11 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
         />
       </div>
       
+      {/* Error Message */}
       {errorMsg && (
-        <div className="w-full text-red-600 text-xs mt-2 font-bold animate-pulse">⚠️ {errorMsg}</div>
+        <div className="w-full text-red-600 text-xs mt-2 font-bold animate-pulse">
+          ⚠️ {errorMsg}
+        </div>
       )}
     </div>
   );

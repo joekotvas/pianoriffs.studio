@@ -2,7 +2,7 @@ import { Key, Note } from 'tonal';
 import React3, { createContext, forwardRef, useState, useRef, useImperativeHandle, useContext, useCallback, useEffect, useMemo } from 'react';
 import * as Tone from 'tone';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
-import { ChevronDown, BookOpen, HelpCircle, Circle, SquarePlus, SquareMinus, Menu, FileJson, Music, FileCode, RotateCcw, RotateCw, Pause, Play, Piano, Copy, Download, AudioWaveform, Check, X, Settings, Keyboard } from 'lucide-react';
+import { ChevronDown, BookOpen, HelpCircle, Menu, FileJson, Music, FileCode, RotateCcw, RotateCw, Pause, Play, Piano, Circle, SquarePlus, SquareMinus, Copy, Download, AudioWaveform, Check, X, Settings, Keyboard } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 var __defProp = Object.defineProperty;
@@ -7867,82 +7867,6 @@ var ScoreCanvas = ({
   );
 };
 var ScoreCanvas_default = ScoreCanvas;
-var ToolbarButton = React3.forwardRef(({
-  icon,
-  label,
-  showLabel = false,
-  isActive = false,
-  onClick,
-  className = "",
-  disabled = false,
-  title,
-  preventFocus = false,
-  isEmphasized = false,
-  isDashed = false,
-  height = "h-9",
-  variant = "default"
-}, ref) => {
-  const { theme } = useTheme();
-  const baseStyles = "flex items-center justify-center rounded border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
-  const sizeStyles = showLabel ? "min-w-9 px-3" : "w-9";
-  const borderStyle = isDashed ? "border-dashed" : "border-solid";
-  const [isHovered, setIsHovered] = React3.useState(false);
-  const isGhost = variant === "ghost";
-  const getBackgroundColor = () => {
-    if (isActive) return theme.accent;
-    if (isHovered) return theme.buttonHoverBackground;
-    if (isGhost) return "transparent";
-    if (isEmphasized) return theme.buttonBackground;
-    return theme.buttonBackground;
-  };
-  const getBorderColor = () => {
-    if (isActive) return theme.accent;
-    if (isEmphasized) return theme.accent;
-    if (isDashed) return theme.secondaryText;
-    if (isGhost && !isHovered) return "transparent";
-    return theme.border;
-  };
-  const getColor = () => {
-    if (isActive) return "#ffffff";
-    if (isEmphasized) return theme.accent;
-    return theme.secondaryText;
-  };
-  return /* @__PURE__ */ jsxs(
-    "button",
-    {
-      ref,
-      onClick,
-      onMouseEnter: () => !disabled && setIsHovered(true),
-      onMouseLeave: () => setIsHovered(false),
-      onMouseDown: (e) => {
-        if (preventFocus) {
-          e.preventDefault();
-        }
-      },
-      disabled,
-      className: `
-        ${baseStyles}
-        ${height}
-        ${sizeStyles}
-        ${borderStyle}
-        ${className}
-      `,
-      style: {
-        backgroundColor: getBackgroundColor(),
-        borderColor: getBorderColor(),
-        color: getColor()
-      },
-      title: title || label,
-      "aria-label": label,
-      children: [
-        icon && /* @__PURE__ */ jsx("span", { className: showLabel ? "mr-2" : "", children: icon }),
-        showLabel ? /* @__PURE__ */ jsx("span", { className: "text-xs font-bold uppercase tracking-wide", children: label }) : /* @__PURE__ */ jsx("span", { className: "sr-only", children: label })
-      ]
-    }
-  );
-});
-ToolbarButton.displayName = "ToolbarButton";
-var ToolbarButton_default = ToolbarButton;
 function useFocusTrap({
   containerRef,
   isActive,
@@ -8017,6 +7941,119 @@ function useFocusTrap({
     };
   }, [isActive, onEscape, containerRef, returnFocusRef, enableArrowKeys, getFocusableElements]);
 }
+
+// src/commands/LoadScoreCommand.ts
+var LoadScoreCommand = class {
+  constructor(newScore) {
+    this.newScore = newScore;
+    this.type = "LOAD_SCORE";
+    this.previousScore = null;
+  }
+  execute(score) {
+    this.previousScore = score;
+    return this.newScore;
+  }
+  undo(score) {
+    return this.previousScore || score;
+  }
+};
+
+// src/components/Assets/ClefIcon.tsx
+init_SMuFL();
+var ClefIcon = (_a) => {
+  var _b = _a, { clef } = _b, props = __objRest(_b, ["clef"]);
+  const viewBox = props.viewBox || "0 0 60 60";
+  const key = clef || "treble";
+  const getClefGlyph = () => {
+    switch (key) {
+      case "treble":
+        return CLEFS.gClef;
+      case "bass":
+        return CLEFS.fClef;
+      case "alto":
+      case "tenor":
+        return CLEFS.cClef;
+      default:
+        return CLEFS.gClef;
+    }
+  };
+  const getClefConfig = () => {
+    switch (key) {
+      case "treble":
+        return { fontSize: 55, x: 30, y: 42 };
+      case "bass":
+        return { fontSize: 45, x: 28, y: 28 };
+      case "alto":
+      case "tenor":
+        return { fontSize: 40, x: 30, y: 30 };
+      default:
+        return { fontSize: 55, x: 30, y: 42 };
+    }
+  };
+  const config = getClefConfig();
+  return /* @__PURE__ */ jsx("svg", __spreadProps(__spreadValues({ viewBox, fill: "none" }, props), { children: key === "grand" ? /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx("path", { d: "M5,10 Q0,10 0,20 L0,40 Q0,50 5,50", fill: "none", stroke: "currentColor", strokeWidth: "1.5" }),
+    [0, 1, 2].map((i) => /* @__PURE__ */ jsx("line", { x1: "8", y1: 12 + i * 6, x2: "55", y2: 12 + i * 6, stroke: "currentColor", strokeWidth: "1", opacity: "0.4" }, `t-${i}`)),
+    /* @__PURE__ */ jsx(
+      "text",
+      {
+        x: 22,
+        y: 26,
+        fontFamily: BRAVURA_FONT,
+        fontSize: 28,
+        fill: "currentColor",
+        textAnchor: "middle",
+        children: CLEFS.gClef
+      }
+    ),
+    [0, 1, 2].map((i) => /* @__PURE__ */ jsx("line", { x1: "8", y1: 38 + i * 6, x2: "55", y2: 38 + i * 6, stroke: "currentColor", strokeWidth: "1", opacity: "0.4" }, `b-${i}`)),
+    /* @__PURE__ */ jsx(
+      "text",
+      {
+        x: 22,
+        y: 46,
+        fontFamily: BRAVURA_FONT,
+        fontSize: 22,
+        fill: "currentColor",
+        textAnchor: "middle",
+        children: CLEFS.fClef
+      }
+    )
+  ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+    [0, 1, 2, 3, 4].map((i) => /* @__PURE__ */ jsx(
+      "line",
+      {
+        x1: "0",
+        y1: 10 + i * 10,
+        x2: "60",
+        y2: 10 + i * 10,
+        stroke: "currentColor",
+        strokeWidth: "1",
+        opacity: "0.3"
+      },
+      i
+    )),
+    /* @__PURE__ */ jsx(
+      "text",
+      {
+        x: config.x,
+        y: config.y,
+        fontFamily: BRAVURA_FONT,
+        fontSize: config.fontSize,
+        fill: "currentColor",
+        textAnchor: "middle",
+        children: getClefGlyph()
+      }
+    )
+  ] }) }));
+};
+var ClefIcon_default = ClefIcon;
+
+// src/components/Toolbar/StaffControls.tsx
+init_constants();
+
+// src/components/Toolbar/Menus/ClefOverlay.tsx
+init_constants();
 var Portal = ({ children }) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -8158,902 +8195,6 @@ var DropdownItem = ({
   );
 };
 var DropdownOverlay_default = DropdownOverlay;
-
-// src/exporters/jsonExporter.ts
-var generateJSON = (score) => {
-  return JSON.stringify(score, null, 2);
-};
-
-// src/exporters/abcExporter.ts
-init_constants();
-init_core();
-var toAbcPitch = (pitch, clef = "treble") => {
-  const match = pitch.match(/^([A-G])(#{1,2}|b{1,2})?(\d+)$/);
-  if (!match) return "C";
-  const letter = match[1];
-  const octave = parseInt(match[3], 10);
-  let abcPitch = "";
-  if (octave >= 5) {
-    abcPitch = letter.toLowerCase();
-    if (octave > 5) {
-      abcPitch += "'".repeat(octave - 5);
-    }
-  } else {
-    abcPitch = letter.toUpperCase();
-    if (octave < 4) {
-      abcPitch += ",".repeat(4 - octave);
-    }
-  }
-  return abcPitch;
-};
-var generateABC = (score, bpm) => {
-  const staves = score.staves || [getActiveStaff(score)];
-  const timeSig = score.timeSignature || "4/4";
-  const keySig = score.keySignature || "C";
-  let abc = `X:1
-T:${score.title}
-M:${timeSig}
-L:1/4
-K:${keySig}
-Q:1/4=${bpm}
-`;
-  if (staves.length > 1) {
-    abc += `%%staves {${staves.map((_, i) => i + 1).join(" ")}}
-`;
-  }
-  staves.forEach((staff, staffIndex) => {
-    const clef = staff.clef || "treble";
-    const abcClef = clef === "bass" ? "bass" : "treble";
-    const voiceId = staffIndex + 1;
-    abc += `V:${voiceId} clef=${abcClef}
-`;
-    staff.measures.forEach((measure, i) => {
-      measure.events.forEach((event) => {
-        var _a;
-        let durationString = "";
-        const base = ((_a = NOTE_TYPES[event.duration]) == null ? void 0 : _a.abcDuration) || "";
-        if (event.dotted) {
-          switch (event.duration) {
-            case "whole":
-              durationString = "6";
-              break;
-            case "half":
-              durationString = "3";
-              break;
-            case "quarter":
-              durationString = "3/2";
-              break;
-            case "eighth":
-              durationString = "3/4";
-              break;
-            case "sixteenth":
-              durationString = "3/8";
-              break;
-            case "thirtysecond":
-              durationString = "3/16";
-              break;
-            case "sixtyfourth":
-              durationString = "3/32";
-              break;
-            default:
-              durationString = base;
-          }
-        } else {
-          durationString = base;
-        }
-        let prefix = "";
-        if (event.tuplet && event.tuplet.position === 0) {
-          prefix += `(${event.tuplet.ratio[0]}`;
-        }
-        if (isRestEvent(event)) {
-          abc += `${prefix}z${durationString} `;
-        } else {
-          const formatNote = (n) => {
-            let acc = "";
-            if (n.accidental === "sharp") acc = "^";
-            else if (n.accidental === "flat") acc = "_";
-            else if (n.accidental === "natural") acc = "=";
-            else if (n.accidental === "double-sharp") acc = "^^";
-            else if (n.accidental === "double-flat") acc = "__";
-            if (!acc) {
-              if (n.pitch.includes("##")) acc = "^^";
-              else if (n.pitch.includes("#")) acc = "^";
-              else if (n.pitch.includes("bb")) acc = "__";
-              else if (n.pitch.includes("b")) acc = "_";
-            }
-            const pitch = toAbcPitch(n.pitch, clef);
-            const tie = n.tied ? "-" : "";
-            return `${acc}${pitch}${tie}`;
-          };
-          if (event.notes.length > 1) {
-            const chordContent = event.notes.map(formatNote).join("");
-            abc += `${prefix}[${chordContent}]${durationString} `;
-          } else {
-            const noteContent = formatNote(event.notes[0]);
-            abc += `${prefix}${noteContent}${durationString} `;
-          }
-        }
-      });
-      abc += "| ";
-      if ((i + 1) % 4 === 0) abc += "\n";
-    });
-    abc += "\n";
-  });
-  return abc;
-};
-
-// src/exporters/musicXmlExporter.ts
-init_constants();
-init_core();
-var generateMusicXML = (score) => {
-  const staves = score.staves || [getActiveStaff(score)];
-  const timeSig = score.timeSignature || "4/4";
-  const keySigData = KEY_SIGNATURES[score.keySignature || "C"];
-  let fifths = 0;
-  if (keySigData) {
-    fifths = keySigData.type === "sharp" ? keySigData.count : -keySigData.count;
-  }
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
-<score-partwise version="3.1">
-  <part-list>`;
-  staves.forEach((_, index) => {
-    const id = index + 1;
-    xml += `
-    <score-part id="P${id}">
-      <part-name>Staff ${id}</part-name>
-    </score-part>`;
-  });
-  xml += `
-  </part-list>`;
-  staves.forEach((staff, staffIndex) => {
-    const partId = `P${staffIndex + 1}`;
-    const clef = staff.clef || "treble";
-    const clefSign = clef === "bass" ? "F" : "G";
-    const clefLine = clef === "bass" ? "4" : "2";
-    const activeTies = /* @__PURE__ */ new Set();
-    xml += `
-  <part id="${partId}">`;
-    staff.measures.forEach((measure, mIndex) => {
-      xml += `
-    <measure number="${mIndex + 1}">`;
-      if (mIndex === 0) {
-        xml += `
-    <attributes>
-      <divisions>16</divisions>
-      <key>
-        <fifths>${fifths}</fifths>
-      </key>
-      <time>
-        <beats>${timeSig.split("/")[0]}</beats>
-        <beat-type>${timeSig.split("/")[1]}</beat-type>
-      </time>
-      <clef>
-        <sign>${clefSign}</sign>
-        <line>${clefLine}</line>
-      </clef>
-    </attributes>`;
-      }
-      measure.events.forEach((event) => {
-        let duration = NOTE_TYPES[event.duration].duration;
-        if (event.dotted) duration = duration * 1.5;
-        if (event.tuplet) {
-          duration = Math.floor(duration * event.tuplet.ratio[1] / event.tuplet.ratio[0]);
-        }
-        const xmlType = NOTE_TYPES[event.duration].xmlType;
-        if (isRestEvent(event)) {
-          xml += `
-    <note>
-      <rest/>
-      <duration>${duration}</duration>
-      <type>${xmlType}</type>
-      ${event.dotted ? "<dot/>" : ""}
-    </note>`;
-        } else {
-          event.notes.forEach((note, nIndex) => {
-            const isChord = nIndex > 0;
-            const step = note.pitch.charAt(0);
-            const octave = note.pitch.slice(-1);
-            let accidentalTag = "";
-            if (note.accidental) {
-              const acc = note.accidental === "natural" ? "natural" : note.accidental === "sharp" ? "sharp" : note.accidental === "flat" ? "flat" : "";
-              if (acc) accidentalTag = `<accidental>${acc}</accidental>`;
-            }
-            let tieTags = "";
-            let tiedNotations = "";
-            const pitchKey = note.pitch;
-            if (activeTies.has(pitchKey)) {
-              tieTags += '<tie type="stop"/>';
-              tiedNotations += '<tied type="stop"/>';
-            }
-            if (note.tied) {
-              tieTags += '<tie type="start"/>';
-              tiedNotations += '<tied type="start"/>';
-              activeTies.add(pitchKey);
-            } else {
-              if (activeTies.has(pitchKey)) {
-                activeTies.delete(pitchKey);
-              }
-            }
-            if (tiedNotations) {
-              tiedNotations = `<notations>${tiedNotations}</notations>`;
-            }
-            let timeModTag = "";
-            let tupletNotations = "";
-            if (event.tuplet) {
-              timeModTag = `
-      <time-modification>
-        <actual-notes>${event.tuplet.groupSize}</actual-notes>
-        <normal-notes>${event.tuplet.ratio[1]}</normal-notes>
-      </time-modification>`;
-              if (event.tuplet.position === 0) {
-                const tupTag = '<tuplet type="start" bracket="yes"/>';
-                if (tiedNotations) {
-                  tupletNotations = tupTag;
-                } else {
-                  tupletNotations = `<notations>${tupTag}</notations>`;
-                }
-              } else if (event.tuplet.position === event.tuplet.groupSize - 1) {
-                const tupTag = '<tuplet type="stop"/>';
-                if (tiedNotations) {
-                  tupletNotations = tupTag;
-                } else {
-                  tupletNotations = `<notations>${tupTag}</notations>`;
-                }
-              }
-            }
-            let finalNotations = tiedNotations;
-            if (tupletNotations) {
-              if (finalNotations) {
-                const content = tupletNotations.replace("<notations>", "").replace("</notations>", "");
-                finalNotations = finalNotations.replace("</notations>", `${content}</notations>`);
-              } else {
-                finalNotations = tupletNotations;
-              }
-            }
-            xml += `
-    <note>
-      ${isChord ? "<chord/>" : ""}
-      <pitch>
-        <step>${step}</step>
-        <octave>${octave}</octave>
-      </pitch>
-      <duration>${duration}</duration>
-      <type>${xmlType}</type>
-      ${accidentalTag}
-      ${timeModTag}
-      ${event.dotted ? "<dot/>" : ""}
-      ${tieTags}
-      ${finalNotations}
-    </note>`;
-          });
-        }
-      });
-      xml += `
-    </measure>`;
-    });
-    xml += `
-  </part>`;
-  });
-  xml += `
-</score-partwise>`;
-  return xml;
-};
-
-// src/hooks/useExport.ts
-var getFileInfo = (format, title) => {
-  const safeTitle = title.replace(/[^a-zA-Z0-9]/g, "_") || "untitled";
-  switch (format) {
-    case "json":
-      return { filename: `${safeTitle}.json`, mimeType: "application/json", extension: ".json" };
-    case "abc":
-      return { filename: `${safeTitle}.abc`, mimeType: "text/plain", extension: ".abc" };
-    case "musicxml":
-      return { filename: `${safeTitle}.musicxml`, mimeType: "application/vnd.recordare.musicxml+xml", extension: ".musicxml" };
-  }
-};
-function useExport(score, bpm) {
-  const generate = useCallback((format) => {
-    switch (format) {
-      case "json":
-        return generateJSON(score);
-      case "abc":
-        return generateABC(score, bpm);
-      case "musicxml":
-        return generateMusicXML(score);
-    }
-  }, [score, bpm]);
-  const copyToClipboard = useCallback(async (format) => {
-    const content = generate(format);
-    await navigator.clipboard.writeText(content);
-  }, [generate]);
-  const downloadFile = useCallback(async (format) => {
-    const content = generate(format);
-    const { filename, mimeType } = getFileInfo(format, score.title);
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [generate, score.title]);
-  return { copyToClipboard, downloadFile };
-}
-var ExportButton = ({
-  onClick,
-  icon,
-  successIcon = /* @__PURE__ */ jsx(Check, { size: 14 }),
-  label,
-  isSuccess = false
-}) => {
-  const { theme } = useTheme();
-  const [isHovered, setIsHovered] = useState(false);
-  return /* @__PURE__ */ jsx(
-    "button",
-    {
-      onClick,
-      onMouseEnter: () => setIsHovered(true),
-      onMouseLeave: () => setIsHovered(false),
-      className: "p-1.5 rounded transition-colors",
-      style: {
-        backgroundColor: isSuccess ? "transparent" : isHovered ? theme.buttonHoverBackground : theme.buttonBackground,
-        color: isSuccess ? "#4ade80" : theme.text,
-        borderColor: theme.border
-      },
-      title: label,
-      children: isSuccess ? successIcon : icon
-    }
-  );
-};
-var ExportRow = ({
-  label,
-  icon,
-  format,
-  onCopy,
-  onDownload,
-  feedback
-}) => {
-  const { theme } = useTheme();
-  const isCopied = feedback === `${format}-copy`;
-  const isDownloaded = feedback === `${format}-download`;
-  return /* @__PURE__ */ jsxs(
-    "div",
-    {
-      className: "flex items-center justify-between px-4 py-2 border-b last:border-b-0",
-      style: { borderColor: theme.border },
-      children: [
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 text-sm", style: { color: theme.text }, children: [
-          /* @__PURE__ */ jsx("span", { style: { color: theme.secondaryText }, children: icon }),
-          label
-        ] }),
-        /* @__PURE__ */ jsxs("div", { className: "flex gap-1", children: [
-          /* @__PURE__ */ jsx(
-            ExportButton,
-            {
-              onClick: () => onCopy(format),
-              icon: /* @__PURE__ */ jsx(Copy, { size: 14 }),
-              label: "Copy to clipboard",
-              isSuccess: isCopied
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            ExportButton,
-            {
-              onClick: () => onDownload(format),
-              icon: /* @__PURE__ */ jsx(Download, { size: 14 }),
-              label: "Download file",
-              isSuccess: isDownloaded
-            }
-          )
-        ] })
-      ]
-    }
-  );
-};
-var FileMenu = ({ score, bpm, height = "h-9", variant = "default" }) => {
-  var _a, _b;
-  const [isOpen, setIsOpen] = useState(false);
-  const [feedback, setFeedback] = useState(null);
-  const buttonRef = useRef(null);
-  const { theme } = useTheme();
-  const { copyToClipboard, downloadFile } = useExport(score, bpm);
-  const handleAction = async (format, action) => {
-    try {
-      if (action === "copy") {
-        await copyToClipboard(format);
-      } else {
-        await downloadFile(format);
-      }
-      setFeedback(`${format}-${action}`);
-      setTimeout(() => {
-        setFeedback(null);
-        setIsOpen(false);
-      }, 1e3);
-    } catch (error) {
-      console.error(`Export failed:`, error);
-    }
-  };
-  const handleClose = () => {
-    setIsOpen(false);
-    setFeedback(null);
-  };
-  return /* @__PURE__ */ jsxs("div", { className: "relative", children: [
-    /* @__PURE__ */ jsx(
-      ToolbarButton_default,
-      {
-        ref: buttonRef,
-        icon: /* @__PURE__ */ jsx(Menu, { size: 18 }),
-        label: "File Menu",
-        onClick: () => setIsOpen(!isOpen),
-        isActive: isOpen,
-        preventFocus: true,
-        height,
-        variant
-      }
-    ),
-    isOpen && /* @__PURE__ */ jsxs(
-      DropdownOverlay_default,
-      {
-        onClose: handleClose,
-        triggerRef: buttonRef,
-        position: {
-          x: ((_a = buttonRef.current) == null ? void 0 : _a.getBoundingClientRect().left) || 0,
-          y: (((_b = buttonRef.current) == null ? void 0 : _b.getBoundingClientRect().bottom) || 0) + 5
-        },
-        width: 220,
-        children: [
-          /* @__PURE__ */ jsx(
-            "div",
-            {
-              className: "px-4 py-2 border-b",
-              style: {
-                backgroundColor: theme.buttonHoverBackground,
-                borderColor: theme.border
-              },
-              children: /* @__PURE__ */ jsx("h3", { className: "font-semibold text-sm", style: { color: theme.text }, children: "Export" })
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            ExportRow,
-            {
-              label: "JSON",
-              icon: /* @__PURE__ */ jsx(FileJson, { size: 14 }),
-              format: "json",
-              onCopy: (f) => handleAction(f, "copy"),
-              onDownload: (f) => handleAction(f, "download"),
-              feedback
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            ExportRow,
-            {
-              label: "ABC Notation",
-              icon: /* @__PURE__ */ jsx(Music, { size: 14 }),
-              format: "abc",
-              onCopy: (f) => handleAction(f, "copy"),
-              onDownload: (f) => handleAction(f, "download"),
-              feedback
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            ExportRow,
-            {
-              label: "MusicXML",
-              icon: /* @__PURE__ */ jsx(FileCode, { size: 14 }),
-              format: "musicxml",
-              onCopy: (f) => handleAction(f, "copy"),
-              onDownload: (f) => handleAction(f, "download"),
-              feedback
-            }
-          )
-        ]
-      }
-    )
-  ] });
-};
-var FileMenu_default = FileMenu;
-var HistoryControls = ({
-  canUndo,
-  onUndo,
-  canRedo,
-  onRedo,
-  height = "h-9",
-  variant = "default"
-}) => {
-  return /* @__PURE__ */ jsxs("div", { className: "flex gap-1", children: [
-    /* @__PURE__ */ jsx(
-      ToolbarButton_default,
-      {
-        icon: /* @__PURE__ */ jsx(RotateCcw, { size: 18 }),
-        label: "Undo",
-        onClick: onUndo,
-        disabled: !canUndo,
-        height,
-        variant
-      }
-    ),
-    /* @__PURE__ */ jsx(
-      ToolbarButton_default,
-      {
-        icon: /* @__PURE__ */ jsx(RotateCw, { size: 18 }),
-        label: "Redo",
-        onClick: onRedo,
-        disabled: !canRedo,
-        height,
-        variant
-      }
-    )
-  ] });
-};
-var HistoryControls_default = HistoryControls;
-init_SMuFL();
-var PlaybackControls = ({
-  isPlaying,
-  onPlayToggle,
-  bpm,
-  onBpmChange,
-  height = "h-9",
-  variant = "default"
-}) => {
-  const { theme } = useTheme();
-  const [bpmBuffer, setBpmBuffer] = useState(String(bpm));
-  const [isFocused, setIsFocused] = useState(false);
-  const [isBpmHovered, setIsBpmHovered] = useState(false);
-  useEffect(() => {
-    setBpmBuffer(String(bpm));
-  }, [bpm]);
-  const handleBpmBlur = () => {
-    setIsFocused(false);
-    const value = Number(bpmBuffer);
-    if (!bpmBuffer || isNaN(value) || value <= 0) {
-      setBpmBuffer("120");
-      onBpmChange(120);
-    } else {
-      const clamped = Math.max(1, Math.min(300, value));
-      setBpmBuffer(String(clamped));
-      onBpmChange(clamped);
-    }
-  };
-  const isGhost = variant === "ghost";
-  return /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-    /* @__PURE__ */ jsx(
-      ToolbarButton_default,
-      {
-        icon: isPlaying ? /* @__PURE__ */ jsx(Pause, { size: 14, fill: "currentColor" }) : /* @__PURE__ */ jsx(Play, { size: 14, fill: "currentColor" }),
-        label: isPlaying ? "Pause" : "Play",
-        showLabel: true,
-        onClick: onPlayToggle,
-        isEmphasized: true,
-        height,
-        variant
-      }
-    ),
-    /* @__PURE__ */ jsxs(
-      "div",
-      {
-        className: `flex items-center gap-0 px-2 rounded border ${height} transition-colors`,
-        style: {
-          borderColor: isFocused ? theme.accent : isGhost && !isBpmHovered ? "transparent" : theme.border,
-          backgroundColor: isGhost && !isBpmHovered && !isFocused ? "transparent" : "transparent"
-        },
-        onMouseEnter: () => setIsBpmHovered(true),
-        onMouseLeave: () => setIsBpmHovered(false),
-        children: [
-          /* @__PURE__ */ jsxs(
-            "span",
-            {
-              className: "flex items-center gap-0.5",
-              style: { color: theme.secondaryText },
-              children: [
-                /* @__PURE__ */ jsx("span", { style: {
-                  fontFamily: BRAVURA_FONT,
-                  fontSize: "1.5rem",
-                  lineHeight: 1,
-                  marginBottom: "-1rem",
-                  marginRight: ".75rem",
-                  marginLeft: ".5rem"
-                }, children: PRECOMPOSED_NOTES_UP.quarter }),
-                /* @__PURE__ */ jsx("span", { className: "text-xs font-bold", children: "=" })
-              ]
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "input",
-            {
-              type: "text",
-              value: bpmBuffer,
-              onChange: (e) => setBpmBuffer(e.target.value),
-              onFocus: () => setIsFocused(true),
-              onBlur: handleBpmBlur,
-              className: "w-12 bg-transparent text-sm font-bold text-center outline-none",
-              style: { color: theme.accent }
-            }
-          )
-        ]
-      }
-    )
-  ] });
-};
-var PlaybackControls_default = PlaybackControls;
-var InstrumentSelector = ({
-  selectedInstrument,
-  onInstrumentChange,
-  samplerLoaded,
-  height = "h-9"
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const buttonRef = useRef(null);
-  const options = [
-    { id: "bright", name: "Bright Synth" },
-    { id: "mellow", name: "Mellow Synth" },
-    { id: "organ", name: "Organ Synth" },
-    {
-      id: "piano",
-      name: samplerLoaded ? "Piano Samples" : "Piano (Loading...)",
-      loading: !samplerLoaded
-    }
-  ];
-  const selectedOption = options.find((o) => o.id === selectedInstrument) || options[0];
-  const handleSelect = (id) => {
-    onInstrumentChange(id);
-    setInstrument(id);
-    setIsOpen(false);
-  };
-  const getPosition = () => {
-    if (!buttonRef.current) return { x: 0, y: 0 };
-    const rect = buttonRef.current.getBoundingClientRect();
-    return { x: rect.left, y: rect.bottom + 4 };
-  };
-  return /* @__PURE__ */ jsxs("div", { className: "relative", children: [
-    /* @__PURE__ */ jsx(
-      DropdownTrigger,
-      {
-        ref: buttonRef,
-        label: selectedOption.name,
-        icon: /* @__PURE__ */ jsx(AudioWaveform, { size: 14 }),
-        isOpen,
-        onClick: () => setIsOpen(!isOpen),
-        height
-      }
-    ),
-    isOpen && /* @__PURE__ */ jsx(
-      DropdownOverlay_default,
-      {
-        onClose: () => setIsOpen(false),
-        position: getPosition(),
-        triggerRef: buttonRef,
-        width: 176,
-        children: /* @__PURE__ */ jsx("div", { className: "p-1", children: options.map((option) => /* @__PURE__ */ jsx(
-          DropdownItem,
-          {
-            onClick: () => handleSelect(option.id),
-            isSelected: option.id === selectedInstrument,
-            children: /* @__PURE__ */ jsxs("span", { className: "flex items-center justify-between w-full", children: [
-              /* @__PURE__ */ jsx("span", { children: option.name }),
-              option.id === selectedInstrument && /* @__PURE__ */ jsx(Check, { size: 12, className: "text-green-600" })
-            ] })
-          },
-          option.id
-        )) })
-      }
-    )
-  ] });
-};
-var InstrumentSelector_default = InstrumentSelector;
-var MidiControls = ({
-  midiStatus,
-  selectedInstrument,
-  onInstrumentChange,
-  samplerLoaded,
-  height = "h-9",
-  variant = "default"
-}) => {
-  const { theme } = useTheme();
-  const [isMidiHovered, setIsMidiHovered] = useState(false);
-  const isGhost = variant === "ghost";
-  return /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
-    /* @__PURE__ */ jsxs(
-      "div",
-      {
-        className: `flex items-center gap-1.5 px-3 ${height} rounded border text-xs font-medium ${midiStatus.connected ? "bg-[#0ac5b20f] border-[#507d7d] text-[#4f9e9e]" : "bg-slate-800/50 border-white/10 text-slate-400"}`,
-        style: {
-          borderColor: isGhost && !isMidiHovered && !midiStatus.connected ? "transparent" : midiStatus.connected ? "#507d7d" : isMidiHovered ? theme.border : isGhost ? "transparent" : theme.border,
-          backgroundColor: isGhost && !midiStatus.connected ? "transparent" : void 0
-        },
-        onMouseEnter: () => setIsMidiHovered(true),
-        onMouseLeave: () => setIsMidiHovered(false),
-        title: midiStatus.connected ? `MIDI: ${midiStatus.deviceName}` : midiStatus.error || "No MIDI device connected",
-        children: [
-          /* @__PURE__ */ jsx(Piano, { size: 12 }),
-          /* @__PURE__ */ jsx("span", { children: midiStatus.connected ? "MIDI" : "No MIDI" })
-        ]
-      }
-    ),
-    /* @__PURE__ */ jsx(
-      InstrumentSelector_default,
-      {
-        selectedInstrument,
-        onInstrumentChange,
-        samplerLoaded,
-        height
-      }
-    )
-  ] });
-};
-var MidiControls_default = MidiControls;
-var MainControls = ({
-  isPlaying,
-  onPlayToggle,
-  bpm,
-  onBpmChange,
-  midiStatus,
-  onToggleHelp,
-  canUndo,
-  onUndo,
-  canRedo,
-  onRedo,
-  selectedInstrument,
-  onInstrumentChange,
-  samplerLoaded,
-  score,
-  children,
-  rowHeight = "h-9",
-  buttonVariant = "default"
-}) => {
-  const { theme } = useTheme();
-  return /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4", children: [
-    /* @__PURE__ */ jsx(FileMenu_default, { score, bpm, height: rowHeight, variant: buttonVariant }),
-    /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
-    /* @__PURE__ */ jsx(
-      HistoryControls_default,
-      {
-        canUndo,
-        onUndo,
-        canRedo,
-        onRedo,
-        height: rowHeight,
-        variant: buttonVariant
-      }
-    ),
-    /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
-    /* @__PURE__ */ jsx(
-      PlaybackControls_default,
-      {
-        isPlaying,
-        onPlayToggle,
-        bpm,
-        onBpmChange,
-        height: rowHeight,
-        variant: buttonVariant
-      }
-    ),
-    /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
-    /* @__PURE__ */ jsx(
-      MidiControls_default,
-      {
-        midiStatus,
-        selectedInstrument,
-        onInstrumentChange,
-        samplerLoaded,
-        height: rowHeight,
-        variant: buttonVariant
-      }
-    ),
-    /* @__PURE__ */ jsx("div", { className: "flex-1" }),
-    children,
-    /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
-    /* @__PURE__ */ jsx(
-      ToolbarButton_default,
-      {
-        onClick: onToggleHelp,
-        label: "Keyboard Shortcuts",
-        icon: /* @__PURE__ */ jsx(HelpCircle, { size: 18 }),
-        preventFocus: true,
-        height: rowHeight,
-        variant: buttonVariant
-      }
-    )
-  ] });
-};
-var MainControls_default = MainControls;
-
-// src/components/Assets/ClefIcon.tsx
-init_SMuFL();
-var ClefIcon = (_a) => {
-  var _b = _a, { clef } = _b, props = __objRest(_b, ["clef"]);
-  const viewBox = props.viewBox || "0 0 60 60";
-  const key = clef || "treble";
-  const getClefGlyph = () => {
-    switch (key) {
-      case "treble":
-        return CLEFS.gClef;
-      case "bass":
-        return CLEFS.fClef;
-      case "alto":
-      case "tenor":
-        return CLEFS.cClef;
-      default:
-        return CLEFS.gClef;
-    }
-  };
-  const getClefConfig = () => {
-    switch (key) {
-      case "treble":
-        return { fontSize: 55, x: 30, y: 42 };
-      case "bass":
-        return { fontSize: 45, x: 28, y: 28 };
-      case "alto":
-      case "tenor":
-        return { fontSize: 40, x: 30, y: 30 };
-      default:
-        return { fontSize: 55, x: 30, y: 42 };
-    }
-  };
-  const config = getClefConfig();
-  return /* @__PURE__ */ jsx("svg", __spreadProps(__spreadValues({ viewBox, fill: "none" }, props), { children: key === "grand" ? /* @__PURE__ */ jsxs(Fragment, { children: [
-    /* @__PURE__ */ jsx("path", { d: "M5,10 Q0,10 0,20 L0,40 Q0,50 5,50", fill: "none", stroke: "currentColor", strokeWidth: "1.5" }),
-    [0, 1, 2].map((i) => /* @__PURE__ */ jsx("line", { x1: "8", y1: 12 + i * 6, x2: "55", y2: 12 + i * 6, stroke: "currentColor", strokeWidth: "1", opacity: "0.4" }, `t-${i}`)),
-    /* @__PURE__ */ jsx(
-      "text",
-      {
-        x: 22,
-        y: 26,
-        fontFamily: BRAVURA_FONT,
-        fontSize: 28,
-        fill: "currentColor",
-        textAnchor: "middle",
-        children: CLEFS.gClef
-      }
-    ),
-    [0, 1, 2].map((i) => /* @__PURE__ */ jsx("line", { x1: "8", y1: 38 + i * 6, x2: "55", y2: 38 + i * 6, stroke: "currentColor", strokeWidth: "1", opacity: "0.4" }, `b-${i}`)),
-    /* @__PURE__ */ jsx(
-      "text",
-      {
-        x: 22,
-        y: 46,
-        fontFamily: BRAVURA_FONT,
-        fontSize: 22,
-        fill: "currentColor",
-        textAnchor: "middle",
-        children: CLEFS.fClef
-      }
-    )
-  ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
-    [0, 1, 2, 3, 4].map((i) => /* @__PURE__ */ jsx(
-      "line",
-      {
-        x1: "0",
-        y1: 10 + i * 10,
-        x2: "60",
-        y2: 10 + i * 10,
-        stroke: "currentColor",
-        strokeWidth: "1",
-        opacity: "0.3"
-      },
-      i
-    )),
-    /* @__PURE__ */ jsx(
-      "text",
-      {
-        x: config.x,
-        y: config.y,
-        fontFamily: BRAVURA_FONT,
-        fontSize: config.fontSize,
-        fill: "currentColor",
-        textAnchor: "middle",
-        children: getClefGlyph()
-      }
-    )
-  ] }) }));
-};
-var ClefIcon_default = ClefIcon;
-
-// src/components/Toolbar/StaffControls.tsx
-init_constants();
-
-// src/components/Toolbar/Menus/ClefOverlay.tsx
-init_constants();
 var ClefOverlay = ({ current, onSelect, onClose, position, triggerRef }) => {
   const { theme } = useTheme();
   return /* @__PURE__ */ jsx(
@@ -9243,6 +8384,82 @@ var TimeSignatureOverlay = ({ current, onSelect, onClose, position, triggerRef }
   );
 };
 var TimeSignatureOverlay_default = TimeSignatureOverlay;
+var ToolbarButton = React3.forwardRef(({
+  icon,
+  label,
+  showLabel = false,
+  isActive = false,
+  onClick,
+  className = "",
+  disabled = false,
+  title,
+  preventFocus = false,
+  isEmphasized = false,
+  isDashed = false,
+  height = "h-9",
+  variant = "default"
+}, ref) => {
+  const { theme } = useTheme();
+  const baseStyles = "flex items-center justify-center rounded border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
+  const sizeStyles = showLabel ? "min-w-9 px-3" : "w-9";
+  const borderStyle = isDashed ? "border-dashed" : "border-solid";
+  const [isHovered, setIsHovered] = React3.useState(false);
+  const isGhost = variant === "ghost";
+  const getBackgroundColor = () => {
+    if (isActive) return theme.accent;
+    if (isHovered) return theme.buttonHoverBackground;
+    if (isGhost) return "transparent";
+    if (isEmphasized) return theme.buttonBackground;
+    return theme.buttonBackground;
+  };
+  const getBorderColor = () => {
+    if (isActive) return theme.accent;
+    if (isEmphasized) return theme.accent;
+    if (isDashed) return theme.secondaryText;
+    if (isGhost && !isHovered) return "transparent";
+    return theme.border;
+  };
+  const getColor = () => {
+    if (isActive) return "#ffffff";
+    if (isEmphasized) return theme.accent;
+    return theme.secondaryText;
+  };
+  return /* @__PURE__ */ jsxs(
+    "button",
+    {
+      ref,
+      onClick,
+      onMouseEnter: () => !disabled && setIsHovered(true),
+      onMouseLeave: () => setIsHovered(false),
+      onMouseDown: (e) => {
+        if (preventFocus) {
+          e.preventDefault();
+        }
+      },
+      disabled,
+      className: `
+        ${baseStyles}
+        ${height}
+        ${sizeStyles}
+        ${borderStyle}
+        ${className}
+      `,
+      style: {
+        backgroundColor: getBackgroundColor(),
+        borderColor: getBorderColor(),
+        color: getColor()
+      },
+      title: title || label,
+      "aria-label": label,
+      children: [
+        icon && /* @__PURE__ */ jsx("span", { className: showLabel ? "mr-2" : "", children: icon }),
+        showLabel ? /* @__PURE__ */ jsx("span", { className: "text-xs font-bold uppercase tracking-wide", children: label }) : /* @__PURE__ */ jsx("span", { className: "sr-only", children: label })
+      ]
+    }
+  );
+});
+ToolbarButton.displayName = "ToolbarButton";
+var ToolbarButton_default = ToolbarButton;
 var StaffControls = forwardRef(({
   clef,
   onClefChange,
@@ -9947,28 +9164,754 @@ var InputModeToggle = ({ mode, onToggle, variant = "default" }) => {
 };
 var InputModeToggle_default = InputModeToggle;
 
-// src/commands/LoadScoreCommand.ts
-var LoadScoreCommand = class {
-  constructor(newScore) {
-    this.newScore = newScore;
-    this.type = "LOAD_SCORE";
-    this.previousScore = null;
+// src/exporters/jsonExporter.ts
+var generateJSON = (score) => {
+  return JSON.stringify(score, null, 2);
+};
+
+// src/exporters/abcExporter.ts
+init_constants();
+init_core();
+var toAbcPitch = (pitch, clef = "treble") => {
+  const match = pitch.match(/^([A-G])(#{1,2}|b{1,2})?(\d+)$/);
+  if (!match) return "C";
+  const letter = match[1];
+  const octave = parseInt(match[3], 10);
+  let abcPitch = "";
+  if (octave >= 5) {
+    abcPitch = letter.toLowerCase();
+    if (octave > 5) {
+      abcPitch += "'".repeat(octave - 5);
+    }
+  } else {
+    abcPitch = letter.toUpperCase();
+    if (octave < 4) {
+      abcPitch += ",".repeat(4 - octave);
+    }
   }
-  execute(score) {
-    this.previousScore = score;
-    return this.newScore;
+  return abcPitch;
+};
+var generateABC = (score, bpm) => {
+  const staves = score.staves || [getActiveStaff(score)];
+  const timeSig = score.timeSignature || "4/4";
+  const keySig = score.keySignature || "C";
+  let abc = `X:1
+T:${score.title}
+M:${timeSig}
+L:1/4
+K:${keySig}
+Q:1/4=${bpm}
+`;
+  if (staves.length > 1) {
+    abc += `%%staves {${staves.map((_, i) => i + 1).join(" ")}}
+`;
   }
-  undo(score) {
-    return this.previousScore || score;
+  staves.forEach((staff, staffIndex) => {
+    const clef = staff.clef || "treble";
+    const abcClef = clef === "bass" ? "bass" : "treble";
+    const voiceId = staffIndex + 1;
+    abc += `V:${voiceId} clef=${abcClef}
+`;
+    staff.measures.forEach((measure, i) => {
+      measure.events.forEach((event) => {
+        var _a;
+        let durationString = "";
+        const base = ((_a = NOTE_TYPES[event.duration]) == null ? void 0 : _a.abcDuration) || "";
+        if (event.dotted) {
+          switch (event.duration) {
+            case "whole":
+              durationString = "6";
+              break;
+            case "half":
+              durationString = "3";
+              break;
+            case "quarter":
+              durationString = "3/2";
+              break;
+            case "eighth":
+              durationString = "3/4";
+              break;
+            case "sixteenth":
+              durationString = "3/8";
+              break;
+            case "thirtysecond":
+              durationString = "3/16";
+              break;
+            case "sixtyfourth":
+              durationString = "3/32";
+              break;
+            default:
+              durationString = base;
+          }
+        } else {
+          durationString = base;
+        }
+        let prefix = "";
+        if (event.tuplet && event.tuplet.position === 0) {
+          prefix += `(${event.tuplet.ratio[0]}`;
+        }
+        if (isRestEvent(event)) {
+          abc += `${prefix}z${durationString} `;
+        } else {
+          const formatNote = (n) => {
+            let acc = "";
+            if (n.accidental === "sharp") acc = "^";
+            else if (n.accidental === "flat") acc = "_";
+            else if (n.accidental === "natural") acc = "=";
+            else if (n.accidental === "double-sharp") acc = "^^";
+            else if (n.accidental === "double-flat") acc = "__";
+            if (!acc) {
+              if (n.pitch.includes("##")) acc = "^^";
+              else if (n.pitch.includes("#")) acc = "^";
+              else if (n.pitch.includes("bb")) acc = "__";
+              else if (n.pitch.includes("b")) acc = "_";
+            }
+            const pitch = toAbcPitch(n.pitch, clef);
+            const tie = n.tied ? "-" : "";
+            return `${acc}${pitch}${tie}`;
+          };
+          if (event.notes.length > 1) {
+            const chordContent = event.notes.map(formatNote).join("");
+            abc += `${prefix}[${chordContent}]${durationString} `;
+          } else {
+            const noteContent = formatNote(event.notes[0]);
+            abc += `${prefix}${noteContent}${durationString} `;
+          }
+        }
+      });
+      abc += "| ";
+      if ((i + 1) % 4 === 0) abc += "\n";
+    });
+    abc += "\n";
+  });
+  return abc;
+};
+
+// src/exporters/musicXmlExporter.ts
+init_constants();
+init_core();
+var generateMusicXML = (score) => {
+  const staves = score.staves || [getActiveStaff(score)];
+  const timeSig = score.timeSignature || "4/4";
+  const keySigData = KEY_SIGNATURES[score.keySignature || "C"];
+  let fifths = 0;
+  if (keySigData) {
+    fifths = keySigData.type === "sharp" ? keySigData.count : -keySigData.count;
+  }
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="3.1">
+  <part-list>`;
+  staves.forEach((_, index) => {
+    const id = index + 1;
+    xml += `
+    <score-part id="P${id}">
+      <part-name>Staff ${id}</part-name>
+    </score-part>`;
+  });
+  xml += `
+  </part-list>`;
+  staves.forEach((staff, staffIndex) => {
+    const partId = `P${staffIndex + 1}`;
+    const clef = staff.clef || "treble";
+    const clefSign = clef === "bass" ? "F" : "G";
+    const clefLine = clef === "bass" ? "4" : "2";
+    const activeTies = /* @__PURE__ */ new Set();
+    xml += `
+  <part id="${partId}">`;
+    staff.measures.forEach((measure, mIndex) => {
+      xml += `
+    <measure number="${mIndex + 1}">`;
+      if (mIndex === 0) {
+        xml += `
+    <attributes>
+      <divisions>16</divisions>
+      <key>
+        <fifths>${fifths}</fifths>
+      </key>
+      <time>
+        <beats>${timeSig.split("/")[0]}</beats>
+        <beat-type>${timeSig.split("/")[1]}</beat-type>
+      </time>
+      <clef>
+        <sign>${clefSign}</sign>
+        <line>${clefLine}</line>
+      </clef>
+    </attributes>`;
+      }
+      measure.events.forEach((event) => {
+        let duration = NOTE_TYPES[event.duration].duration;
+        if (event.dotted) duration = duration * 1.5;
+        if (event.tuplet) {
+          duration = Math.floor(duration * event.tuplet.ratio[1] / event.tuplet.ratio[0]);
+        }
+        const xmlType = NOTE_TYPES[event.duration].xmlType;
+        if (isRestEvent(event)) {
+          xml += `
+    <note>
+      <rest/>
+      <duration>${duration}</duration>
+      <type>${xmlType}</type>
+      ${event.dotted ? "<dot/>" : ""}
+    </note>`;
+        } else {
+          event.notes.forEach((note, nIndex) => {
+            const isChord = nIndex > 0;
+            const step = note.pitch.charAt(0);
+            const octave = note.pitch.slice(-1);
+            let accidentalTag = "";
+            if (note.accidental) {
+              const acc = note.accidental === "natural" ? "natural" : note.accidental === "sharp" ? "sharp" : note.accidental === "flat" ? "flat" : "";
+              if (acc) accidentalTag = `<accidental>${acc}</accidental>`;
+            }
+            let tieTags = "";
+            let tiedNotations = "";
+            const pitchKey = note.pitch;
+            if (activeTies.has(pitchKey)) {
+              tieTags += '<tie type="stop"/>';
+              tiedNotations += '<tied type="stop"/>';
+            }
+            if (note.tied) {
+              tieTags += '<tie type="start"/>';
+              tiedNotations += '<tied type="start"/>';
+              activeTies.add(pitchKey);
+            } else {
+              if (activeTies.has(pitchKey)) {
+                activeTies.delete(pitchKey);
+              }
+            }
+            if (tiedNotations) {
+              tiedNotations = `<notations>${tiedNotations}</notations>`;
+            }
+            let timeModTag = "";
+            let tupletNotations = "";
+            if (event.tuplet) {
+              timeModTag = `
+      <time-modification>
+        <actual-notes>${event.tuplet.groupSize}</actual-notes>
+        <normal-notes>${event.tuplet.ratio[1]}</normal-notes>
+      </time-modification>`;
+              if (event.tuplet.position === 0) {
+                const tupTag = '<tuplet type="start" bracket="yes"/>';
+                if (tiedNotations) {
+                  tupletNotations = tupTag;
+                } else {
+                  tupletNotations = `<notations>${tupTag}</notations>`;
+                }
+              } else if (event.tuplet.position === event.tuplet.groupSize - 1) {
+                const tupTag = '<tuplet type="stop"/>';
+                if (tiedNotations) {
+                  tupletNotations = tupTag;
+                } else {
+                  tupletNotations = `<notations>${tupTag}</notations>`;
+                }
+              }
+            }
+            let finalNotations = tiedNotations;
+            if (tupletNotations) {
+              if (finalNotations) {
+                const content = tupletNotations.replace("<notations>", "").replace("</notations>", "");
+                finalNotations = finalNotations.replace("</notations>", `${content}</notations>`);
+              } else {
+                finalNotations = tupletNotations;
+              }
+            }
+            xml += `
+    <note>
+      ${isChord ? "<chord/>" : ""}
+      <pitch>
+        <step>${step}</step>
+        <octave>${octave}</octave>
+      </pitch>
+      <duration>${duration}</duration>
+      <type>${xmlType}</type>
+      ${accidentalTag}
+      ${timeModTag}
+      ${event.dotted ? "<dot/>" : ""}
+      ${tieTags}
+      ${finalNotations}
+    </note>`;
+          });
+        }
+      });
+      xml += `
+    </measure>`;
+    });
+    xml += `
+  </part>`;
+  });
+  xml += `
+</score-partwise>`;
+  return xml;
+};
+
+// src/hooks/useExport.ts
+var getFileInfo = (format, title) => {
+  const safeTitle = title.replace(/[^a-zA-Z0-9]/g, "_") || "untitled";
+  switch (format) {
+    case "json":
+      return { filename: `${safeTitle}.json`, mimeType: "application/json", extension: ".json" };
+    case "abc":
+      return { filename: `${safeTitle}.abc`, mimeType: "text/plain", extension: ".abc" };
+    case "musicxml":
+      return { filename: `${safeTitle}.musicxml`, mimeType: "application/vnd.recordare.musicxml+xml", extension: ".musicxml" };
   }
 };
+function useExport(score, bpm) {
+  const generate = useCallback((format) => {
+    switch (format) {
+      case "json":
+        return generateJSON(score);
+      case "abc":
+        return generateABC(score, bpm);
+      case "musicxml":
+        return generateMusicXML(score);
+    }
+  }, [score, bpm]);
+  const copyToClipboard = useCallback(async (format) => {
+    const content = generate(format);
+    await navigator.clipboard.writeText(content);
+  }, [generate]);
+  const downloadFile = useCallback(async (format) => {
+    const content = generate(format);
+    const { filename, mimeType } = getFileInfo(format, score.title);
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [generate, score.title]);
+  return { copyToClipboard, downloadFile };
+}
+var ExportButton = ({
+  onClick,
+  icon,
+  successIcon = /* @__PURE__ */ jsx(Check, { size: 14 }),
+  label,
+  isSuccess = false
+}) => {
+  const { theme } = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
+  return /* @__PURE__ */ jsx(
+    "button",
+    {
+      onClick,
+      onMouseEnter: () => setIsHovered(true),
+      onMouseLeave: () => setIsHovered(false),
+      className: "p-1.5 rounded transition-colors",
+      style: {
+        backgroundColor: isSuccess ? "transparent" : isHovered ? theme.buttonHoverBackground : theme.buttonBackground,
+        color: isSuccess ? "#4ade80" : theme.text,
+        borderColor: theme.border
+      },
+      title: label,
+      children: isSuccess ? successIcon : icon
+    }
+  );
+};
+var ExportRow = ({
+  label,
+  icon,
+  format,
+  onCopy,
+  onDownload,
+  feedback
+}) => {
+  const { theme } = useTheme();
+  const isCopied = feedback === `${format}-copy`;
+  const isDownloaded = feedback === `${format}-download`;
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: "flex items-center justify-between px-4 py-2 border-b last:border-b-0",
+      style: { borderColor: theme.border },
+      children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 text-sm", style: { color: theme.text }, children: [
+          /* @__PURE__ */ jsx("span", { style: { color: theme.secondaryText }, children: icon }),
+          label
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "flex gap-1", children: [
+          /* @__PURE__ */ jsx(
+            ExportButton,
+            {
+              onClick: () => onCopy(format),
+              icon: /* @__PURE__ */ jsx(Copy, { size: 14 }),
+              label: "Copy to clipboard",
+              isSuccess: isCopied
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            ExportButton,
+            {
+              onClick: () => onDownload(format),
+              icon: /* @__PURE__ */ jsx(Download, { size: 14 }),
+              label: "Download file",
+              isSuccess: isDownloaded
+            }
+          )
+        ] })
+      ]
+    }
+  );
+};
+var FileMenu = ({ score, bpm, height = "h-9", variant = "default" }) => {
+  var _a, _b;
+  const [isOpen, setIsOpen] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  const buttonRef = useRef(null);
+  const { theme } = useTheme();
+  const { copyToClipboard, downloadFile } = useExport(score, bpm);
+  const handleAction = async (format, action) => {
+    try {
+      if (action === "copy") {
+        await copyToClipboard(format);
+      } else {
+        await downloadFile(format);
+      }
+      setFeedback(`${format}-${action}`);
+      setTimeout(() => {
+        setFeedback(null);
+        setIsOpen(false);
+      }, 1e3);
+    } catch (error) {
+      console.error(`Export failed:`, error);
+    }
+  };
+  const handleClose = () => {
+    setIsOpen(false);
+    setFeedback(null);
+  };
+  return /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+    /* @__PURE__ */ jsx(
+      ToolbarButton_default,
+      {
+        ref: buttonRef,
+        icon: /* @__PURE__ */ jsx(Menu, { size: 18 }),
+        label: "File Menu",
+        onClick: () => setIsOpen(!isOpen),
+        isActive: isOpen,
+        preventFocus: true,
+        height,
+        variant
+      }
+    ),
+    isOpen && /* @__PURE__ */ jsxs(
+      DropdownOverlay_default,
+      {
+        onClose: handleClose,
+        triggerRef: buttonRef,
+        position: {
+          x: ((_a = buttonRef.current) == null ? void 0 : _a.getBoundingClientRect().left) || 0,
+          y: (((_b = buttonRef.current) == null ? void 0 : _b.getBoundingClientRect().bottom) || 0) + 5
+        },
+        width: 220,
+        children: [
+          /* @__PURE__ */ jsx(
+            "div",
+            {
+              className: "px-4 py-2 border-b",
+              style: {
+                backgroundColor: theme.buttonHoverBackground,
+                borderColor: theme.border
+              },
+              children: /* @__PURE__ */ jsx("h3", { className: "font-semibold text-sm", style: { color: theme.text }, children: "Export" })
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            ExportRow,
+            {
+              label: "JSON",
+              icon: /* @__PURE__ */ jsx(FileJson, { size: 14 }),
+              format: "json",
+              onCopy: (f) => handleAction(f, "copy"),
+              onDownload: (f) => handleAction(f, "download"),
+              feedback
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            ExportRow,
+            {
+              label: "ABC Notation",
+              icon: /* @__PURE__ */ jsx(Music, { size: 14 }),
+              format: "abc",
+              onCopy: (f) => handleAction(f, "copy"),
+              onDownload: (f) => handleAction(f, "download"),
+              feedback
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            ExportRow,
+            {
+              label: "MusicXML",
+              icon: /* @__PURE__ */ jsx(FileCode, { size: 14 }),
+              format: "musicxml",
+              onCopy: (f) => handleAction(f, "copy"),
+              onDownload: (f) => handleAction(f, "download"),
+              feedback
+            }
+          )
+        ]
+      }
+    )
+  ] });
+};
+var FileMenu_default = FileMenu;
+var HistoryControls = ({
+  canUndo,
+  onUndo,
+  canRedo,
+  onRedo,
+  height = "h-9",
+  variant = "default"
+}) => {
+  return /* @__PURE__ */ jsxs("div", { className: "flex gap-1", children: [
+    /* @__PURE__ */ jsx(
+      ToolbarButton_default,
+      {
+        icon: /* @__PURE__ */ jsx(RotateCcw, { size: 18 }),
+        label: "Undo",
+        onClick: onUndo,
+        disabled: !canUndo,
+        height,
+        variant
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      ToolbarButton_default,
+      {
+        icon: /* @__PURE__ */ jsx(RotateCw, { size: 18 }),
+        label: "Redo",
+        onClick: onRedo,
+        disabled: !canRedo,
+        height,
+        variant
+      }
+    )
+  ] });
+};
+var HistoryControls_default = HistoryControls;
+var InstrumentSelector = ({
+  selectedInstrument,
+  onInstrumentChange,
+  samplerLoaded,
+  height = "h-9"
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef(null);
+  const options = [
+    { id: "bright", name: "Bright Synth" },
+    { id: "mellow", name: "Mellow Synth" },
+    { id: "organ", name: "Organ Synth" },
+    {
+      id: "piano",
+      name: samplerLoaded ? "Piano Samples" : "Piano (Loading...)",
+      loading: !samplerLoaded
+    }
+  ];
+  const selectedOption = options.find((o) => o.id === selectedInstrument) || options[0];
+  const handleSelect = (id) => {
+    onInstrumentChange(id);
+    setInstrument(id);
+    setIsOpen(false);
+  };
+  const getPosition = () => {
+    if (!buttonRef.current) return { x: 0, y: 0 };
+    const rect = buttonRef.current.getBoundingClientRect();
+    return { x: rect.left, y: rect.bottom + 4 };
+  };
+  return /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+    /* @__PURE__ */ jsx(
+      DropdownTrigger,
+      {
+        ref: buttonRef,
+        label: selectedOption.name,
+        icon: /* @__PURE__ */ jsx(AudioWaveform, { size: 14 }),
+        isOpen,
+        onClick: () => setIsOpen(!isOpen),
+        height
+      }
+    ),
+    isOpen && /* @__PURE__ */ jsx(
+      DropdownOverlay_default,
+      {
+        onClose: () => setIsOpen(false),
+        position: getPosition(),
+        triggerRef: buttonRef,
+        width: 176,
+        children: /* @__PURE__ */ jsx("div", { className: "p-1", children: options.map((option) => /* @__PURE__ */ jsx(
+          DropdownItem,
+          {
+            onClick: () => handleSelect(option.id),
+            isSelected: option.id === selectedInstrument,
+            children: /* @__PURE__ */ jsxs("span", { className: "flex items-center justify-between w-full", children: [
+              /* @__PURE__ */ jsx("span", { children: option.name }),
+              option.id === selectedInstrument && /* @__PURE__ */ jsx(Check, { size: 12, className: "text-green-600" })
+            ] })
+          },
+          option.id
+        )) })
+      }
+    )
+  ] });
+};
+var InstrumentSelector_default = InstrumentSelector;
+
+// src/components/Toolbar/PlaybackControls.tsx
+init_SMuFL();
+var PlaybackControls = ({
+  isPlaying,
+  onPlayToggle,
+  bpm,
+  onBpmChange,
+  selectedInstrument,
+  onInstrumentChange,
+  samplerLoaded,
+  height = "h-9",
+  variant = "default"
+}) => {
+  const { theme } = useTheme();
+  const [bpmBuffer, setBpmBuffer] = useState(String(bpm));
+  const [isFocused, setIsFocused] = useState(false);
+  const [isBpmHovered, setIsBpmHovered] = useState(false);
+  useEffect(() => {
+    setBpmBuffer(String(bpm));
+  }, [bpm]);
+  const handleBpmBlur = () => {
+    setIsFocused(false);
+    const value = Number(bpmBuffer);
+    if (!bpmBuffer || isNaN(value) || value <= 0) {
+      setBpmBuffer("120");
+      onBpmChange(120);
+    } else {
+      const clamped = Math.max(1, Math.min(300, value));
+      setBpmBuffer(String(clamped));
+      onBpmChange(clamped);
+    }
+  };
+  const isGhost = variant === "ghost";
+  return /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+    /* @__PURE__ */ jsx(
+      ToolbarButton_default,
+      {
+        icon: isPlaying ? /* @__PURE__ */ jsx(Pause, { size: 14, fill: "currentColor" }) : /* @__PURE__ */ jsx(Play, { size: 14, fill: "currentColor" }),
+        label: isPlaying ? "Pause" : "Play",
+        showLabel: true,
+        onClick: onPlayToggle,
+        isEmphasized: true,
+        height,
+        variant
+      }
+    ),
+    /* @__PURE__ */ jsxs(
+      "div",
+      {
+        className: `flex items-center gap-0 px-2 rounded border ${height} transition-colors`,
+        style: {
+          borderColor: isFocused ? theme.accent : isGhost && !isBpmHovered ? "transparent" : theme.border,
+          backgroundColor: isGhost && !isBpmHovered && !isFocused ? "transparent" : "transparent"
+        },
+        onMouseEnter: () => setIsBpmHovered(true),
+        onMouseLeave: () => setIsBpmHovered(false),
+        children: [
+          /* @__PURE__ */ jsxs(
+            "span",
+            {
+              className: "flex items-center gap-0.5",
+              style: { color: theme.secondaryText },
+              children: [
+                /* @__PURE__ */ jsx("span", { style: {
+                  fontFamily: BRAVURA_FONT,
+                  fontSize: "1.5rem",
+                  lineHeight: 1,
+                  marginBottom: "-1rem",
+                  marginRight: ".75rem",
+                  marginLeft: ".5rem"
+                }, children: PRECOMPOSED_NOTES_UP.quarter }),
+                /* @__PURE__ */ jsx("span", { className: "text-xs font-bold", children: "=" })
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              type: "text",
+              value: bpmBuffer,
+              onChange: (e) => setBpmBuffer(e.target.value),
+              onFocus: () => setIsFocused(true),
+              onBlur: handleBpmBlur,
+              className: "w-12 bg-transparent text-sm font-bold text-center outline-none",
+              style: { color: theme.accent }
+            }
+          )
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      InstrumentSelector_default,
+      {
+        selectedInstrument,
+        onInstrumentChange,
+        samplerLoaded,
+        height
+      }
+    )
+  ] });
+};
+var PlaybackControls_default = PlaybackControls;
+var MidiControls = ({
+  midiStatus,
+  height = "h-9",
+  variant = "default"
+}) => {
+  const { theme } = useTheme();
+  const [isMidiHovered, setIsMidiHovered] = useState(false);
+  const isGhost = variant === "ghost";
+  return /* @__PURE__ */ jsx("div", { className: "flex items-center gap-2", children: /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: `flex items-center gap-1.5 px-3 ${height} rounded border text-xs font-medium ${midiStatus.connected ? "bg-[#0ac5b20f] border-[#507d7d] text-[#4f9e9e]" : "bg-slate-800/50 border-white/10 text-slate-400"}`,
+      style: {
+        borderColor: isGhost && !isMidiHovered && !midiStatus.connected ? "transparent" : midiStatus.connected ? "#507d7d" : isMidiHovered ? theme.border : isGhost ? "transparent" : theme.border,
+        backgroundColor: isGhost && !midiStatus.connected ? "transparent" : void 0
+      },
+      onMouseEnter: () => setIsMidiHovered(true),
+      onMouseLeave: () => setIsMidiHovered(false),
+      title: midiStatus.connected ? `MIDI: ${midiStatus.deviceName}` : midiStatus.error || "No MIDI device connected",
+      children: [
+        /* @__PURE__ */ jsx(Piano, { size: 12 }),
+        /* @__PURE__ */ jsx("span", { children: midiStatus.connected ? "MIDI" : "No MIDI" })
+      ]
+    }
+  ) });
+};
+var MidiControls_default = MidiControls;
+var Divider = ({
+  orientation = "vertical",
+  className = ""
+}) => {
+  const { theme } = useTheme();
+  if (orientation === "horizontal") {
+    return /* @__PURE__ */ jsx(
+      "div",
+      {
+        className: `w-full h-px ${className}`,
+        style: { backgroundColor: theme.border }
+      }
+    );
+  }
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      className: `w-px h-6 ${className}`,
+      style: { backgroundColor: theme.border }
+    }
+  );
+};
+var Divider_default = Divider;
 var TOP_ROW_HEIGHT = "h-9";
 var Toolbar = forwardRef(({
-  scoreTitle,
-  label,
-  isEditingTitle,
-  onEditingChange,
-  onTitleChange,
   isPlaying,
   onPlayToggle,
   bpm,
@@ -9983,51 +9926,47 @@ var Toolbar = forwardRef(({
   onEscape
 }, ref) => {
   var _a, _b, _c, _d, _e;
+  const { theme } = useTheme();
   const staffControlsRef = useRef(null);
   const melodyLibBtnRef = useRef(null);
   const toolbarContainerRef = useRef(null);
   const [showLibrary, setShowLibrary] = useState(false);
   const [isToolbarFocused, setIsToolbarFocused] = useState(false);
-  const { theme } = useTheme();
+  const scoreCtx = useScoreContext();
+  const { score, dispatch, inputMode, toggleInputMode, selection, editorState } = scoreCtx;
+  const { history, undo, redoStack, redo } = scoreCtx;
   const {
-    score,
-    selection,
-    // Added selection
     activeDuration,
     handleDurationChange,
     checkDurationValidity,
+    selectedDurations,
     isDotted,
     handleDotToggle,
     checkDotValidity,
-    activeAccidental,
-    handleAccidentalToggle,
+    selectedDots,
     activeTie,
     handleTieToggle,
-    history,
-    undo,
-    redoStack,
-    redo,
+    selectedTies
+  } = scoreCtx;
+  const {
+    activeAccidental,
+    handleAccidentalToggle,
+    selectedAccidentals
+  } = scoreCtx;
+  const {
     addMeasure,
     removeMeasure,
     togglePickup,
     handleTimeSignatureChange,
     handleKeySignatureChange,
-    handleClefChange,
-    dispatch,
+    handleClefChange
+  } = scoreCtx;
+  const {
     applyTuplet,
     removeTuplet,
     canApplyTuplet,
-    activeTupletRatio,
-    selectedDurations,
-    editorState,
-    selectedDots,
-    selectedTies,
-    selectedAccidentals,
-    inputMode,
-    setInputMode,
-    toggleInputMode
-    // Added toggleInputMode
-  } = useScoreContext();
+    activeTupletRatio
+  } = scoreCtx;
   const handleInputModeClick = () => {
     const hasSelection = (selection == null ? void 0 : selection.selectedNotes) && selection.selectedNotes.length > 0;
     if (hasSelection) {
@@ -10036,6 +9975,12 @@ var Toolbar = forwardRef(({
       toggleInputMode();
     }
   };
+  const handleMelodySelect = (melody) => {
+    dispatch(new LoadScoreCommand(melody.score));
+    setShowLibrary(false);
+  };
+  const isAnyMenuOpen = showLibrary || ((_b = (_a = staffControlsRef.current) == null ? void 0 : _a.isMenuOpen()) != null ? _b : false);
+  const activeStaff = getActiveStaff(score);
   useImperativeHandle(ref, () => ({
     openTimeSigMenu: () => {
       var _a2;
@@ -10049,16 +9994,8 @@ var Toolbar = forwardRef(({
       var _a2;
       return (_a2 = staffControlsRef.current) == null ? void 0 : _a2.openClefMenu();
     },
-    isMenuOpen: () => {
-      var _a2, _b2;
-      return showLibrary || ((_b2 = (_a2 = staffControlsRef.current) == null ? void 0 : _a2.isMenuOpen()) != null ? _b2 : false);
-    }
-  }), [showLibrary]);
-  const handleMelodySelect = (melody) => {
-    dispatch(new LoadScoreCommand(melody.score));
-    setShowLibrary(false);
-  };
-  const isAnyMenuOpen = showLibrary || ((_b = (_a = staffControlsRef.current) == null ? void 0 : _a.isMenuOpen()) != null ? _b : false);
+    isMenuOpen: () => isAnyMenuOpen
+  }), [showLibrary, isAnyMenuOpen]);
   useFocusTrap({
     containerRef: toolbarContainerRef,
     isActive: isToolbarFocused && !isAnyMenuOpen,
@@ -10067,11 +10004,8 @@ var Toolbar = forwardRef(({
       onEscape == null ? void 0 : onEscape();
     },
     autoFocus: false,
-    // Don't auto-focus first element
     enableArrowKeys: false
-    // Use Tab only for toolbar navigation
   });
-  const activeStaff = getActiveStaff(score);
   return /* @__PURE__ */ jsxs(
     "div",
     {
@@ -10086,56 +10020,98 @@ var Toolbar = forwardRef(({
         }
       },
       children: [
-        /* @__PURE__ */ jsx(
-          MainControls_default,
-          {
-            isPlaying,
-            onPlayToggle,
-            bpm,
-            onBpmChange,
-            midiStatus,
-            onToggleHelp,
-            canUndo: history.length > 0,
-            onUndo: undo,
-            canRedo: redoStack.length > 0,
-            onRedo: redo,
-            selectedInstrument,
-            onInstrumentChange,
-            samplerLoaded,
-            score,
-            rowHeight: TOP_ROW_HEIGHT,
-            buttonVariant: "ghost",
-            children: /* @__PURE__ */ jsxs("div", { className: "flex gap-1 relative", children: [
-              /* @__PURE__ */ jsx(
-                DropdownTrigger,
-                {
-                  ref: melodyLibBtnRef,
-                  label: "Library",
-                  icon: /* @__PURE__ */ jsx(BookOpen, { size: 14 }),
-                  isOpen: showLibrary,
-                  onClick: () => setShowLibrary(!showLibrary),
-                  height: TOP_ROW_HEIGHT
-                }
-              ),
-              showLibrary && /* @__PURE__ */ jsx(
-                MelodyLibrary_default,
-                {
-                  melodies,
-                  onSelectMelody: handleMelodySelect,
-                  onClose: () => setShowLibrary(false),
-                  position: {
-                    x: (((_c = melodyLibBtnRef.current) == null ? void 0 : _c.getBoundingClientRect().right) || 0) - 256,
-                    // Align right edge
-                    y: (((_d = melodyLibBtnRef.current) == null ? void 0 : _d.getBoundingClientRect().bottom) || 0) + 5
-                  },
-                  triggerRef: melodyLibBtnRef
-                }
-              )
-            ] })
-          }
-        ),
-        /* @__PURE__ */ jsx("div", { className: "w-full h-px", style: { backgroundColor: theme.border } }),
-        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-4 flex-wrap", children: [
+        /* @__PURE__ */ jsxs("div", { className: "row flex items-center gap-4", children: [
+          /* @__PURE__ */ jsx(
+            FileMenu_default,
+            {
+              score,
+              bpm,
+              height: TOP_ROW_HEIGHT,
+              variant: "ghost"
+            }
+          ),
+          /* @__PURE__ */ jsx(Divider_default, {}),
+          /* @__PURE__ */ jsx(
+            HistoryControls_default,
+            {
+              canUndo: history.length > 0,
+              onUndo: undo,
+              canRedo: redoStack.length > 0,
+              onRedo: redo,
+              height: TOP_ROW_HEIGHT,
+              variant: "ghost"
+            }
+          ),
+          /* @__PURE__ */ jsx(Divider_default, {}),
+          /* @__PURE__ */ jsx(
+            PlaybackControls_default,
+            {
+              isPlaying,
+              onPlayToggle,
+              bpm,
+              onBpmChange,
+              selectedInstrument,
+              onInstrumentChange,
+              samplerLoaded,
+              height: TOP_ROW_HEIGHT,
+              variant: "ghost"
+            }
+          ),
+          /* @__PURE__ */ jsx(Divider_default, {}),
+          /* @__PURE__ */ jsx("div", { className: "flex-1" }),
+          /* @__PURE__ */ jsxs("div", { className: "flex gap-1 relative", children: [
+            /* @__PURE__ */ jsx(
+              DropdownTrigger,
+              {
+                ref: melodyLibBtnRef,
+                label: "Library",
+                icon: /* @__PURE__ */ jsx(BookOpen, { size: 14 }),
+                isOpen: showLibrary,
+                onClick: () => setShowLibrary(!showLibrary),
+                height: TOP_ROW_HEIGHT
+              }
+            ),
+            showLibrary && /* @__PURE__ */ jsx(
+              MelodyLibrary_default,
+              {
+                melodies,
+                onSelectMelody: handleMelodySelect,
+                onClose: () => setShowLibrary(false),
+                position: {
+                  x: (((_c = melodyLibBtnRef.current) == null ? void 0 : _c.getBoundingClientRect().right) || 0) - 256,
+                  y: (((_d = melodyLibBtnRef.current) == null ? void 0 : _d.getBoundingClientRect().bottom) || 0) + 5
+                },
+                triggerRef: melodyLibBtnRef
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsx(Divider_default, {}),
+          /* @__PURE__ */ jsx(
+            MidiControls_default,
+            {
+              midiStatus,
+              selectedInstrument,
+              onInstrumentChange,
+              samplerLoaded,
+              height: TOP_ROW_HEIGHT,
+              variant: "ghost"
+            }
+          ),
+          /* @__PURE__ */ jsx(Divider_default, {}),
+          /* @__PURE__ */ jsx(
+            ToolbarButton_default,
+            {
+              onClick: onToggleHelp,
+              label: "Keyboard Shortcuts",
+              icon: /* @__PURE__ */ jsx(HelpCircle, { size: 18 }),
+              preventFocus: true,
+              height: TOP_ROW_HEIGHT,
+              variant: "ghost"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsx(Divider_default, { orientation: "horizontal" }),
+        /* @__PURE__ */ jsxs("div", { className: "row flex items-center gap-4 flex-wrap", children: [
           /* @__PURE__ */ jsx(
             StaffControls_default,
             {
@@ -10149,7 +10125,7 @@ var Toolbar = forwardRef(({
               variant: "ghost"
             }
           ),
-          /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
+          /* @__PURE__ */ jsx(Divider_default, {}),
           /* @__PURE__ */ jsx(
             InputModeToggle_default,
             {
@@ -10170,7 +10146,7 @@ var Toolbar = forwardRef(({
               variant: "ghost"
             }
           ),
-          /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
+          /* @__PURE__ */ jsx(Divider_default, {}),
           /* @__PURE__ */ jsx(
             ModifierControls_default,
             {
@@ -10185,7 +10161,7 @@ var Toolbar = forwardRef(({
               variant: "ghost"
             }
           ),
-          /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
+          /* @__PURE__ */ jsx(Divider_default, {}),
           /* @__PURE__ */ jsx(
             AccidentalControls_default,
             {
@@ -10196,7 +10172,7 @@ var Toolbar = forwardRef(({
               variant: "ghost"
             }
           ),
-          /* @__PURE__ */ jsx("div", { className: "w-px h-6", style: { backgroundColor: theme.border } }),
+          /* @__PURE__ */ jsx(Divider_default, {}),
           /* @__PURE__ */ jsx(
             TupletControls_default,
             {
