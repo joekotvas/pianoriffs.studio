@@ -97,7 +97,7 @@ function ExamplesContent() {
   
   return (
     <div 
-      className="min-h-screen p-8 font-sans transition-colors duration-300" 
+      className="min-h-screen p-2 md:p-8 font-sans transition-colors duration-300" 
       style={{ backgroundColor: theme.background, color: theme.text }}
     >
       <ConfigMenu />
@@ -107,7 +107,7 @@ function ExamplesContent() {
           RiffScore
         </h1>
         <p className="text-xl" style={{ color: theme.secondaryText }}>
-          Configurable Music Notation Editor for React
+          Easily embed an interactive sheet music editor in your React web app
         </p>
       </header>
 
