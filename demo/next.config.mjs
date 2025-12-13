@@ -7,6 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   // Transpile the parent library
   transpilePackages: ['riffscore'],
+  // Fix workspace root inference for monorepo builds (Netlify)
+  outputFileTracingRoot: path.resolve(__dirname, '..'),
   // Disable turbopack for webpack config
   webpack: (config) => {
     const srcPath = path.resolve(__dirname, '../src');
