@@ -42,9 +42,10 @@ export const handleMutation = (
     }
 
     // REST TOGGLE (R key)
+    // Skip if CMD/CTRL is held (allow browser refresh with CMD+R / CTRL+R)
     // - Always toggles inputMode
     // - When selection exists, also converts notes↔rests
-    if (e.key === 'r' || e.key === 'R') {
+    if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         
         // Always toggle the input mode
