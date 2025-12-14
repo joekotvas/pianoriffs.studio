@@ -126,10 +126,15 @@ export class ToggleRestCommand implements Command {
           return true;
         });
       } else {
-        // Convert to rests
+        // Convert to rests - create a pitchless note to maintain selection compatibility
+        const firstNoteId = event.notes[0]?.id || `${eventId}-rest`;
         newScore = updateEvent(newScore, staffIndex, measureIndex, eventId, (e) => {
           e.isRest = true;
-          e.notes = [];
+          e.notes = [{
+            id: firstNoteId,
+            pitch: null,
+            isRest: true
+          }];
           return true;
         });
       }
