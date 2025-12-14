@@ -96,11 +96,6 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(({
                     setShowKeySig(false);
                 }}
                 onClose={() => setShowKeySig(false)}
-                position={{ 
-                    x: keySigBtnRef.current?.getBoundingClientRect().left || 0, 
-                    y: (keySigBtnRef.current?.getBoundingClientRect().bottom || 0) + 5
-                }}
-                triggerRef={keySigBtnRef as React.RefObject<HTMLElement>}
             />
         )}
 

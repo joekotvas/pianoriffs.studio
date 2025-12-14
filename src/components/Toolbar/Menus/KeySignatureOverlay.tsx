@@ -1,77 +1,116 @@
-import React from 'react';
-import { KEY_SIGNATURE_OFFSETS, KeySignatureOffsets } from '@/constants';
+import React, { useState, useEffect } from 'react';
+import { X, Music } from 'lucide-react';
+import { Key } from 'tonal';
+import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets, KeySignature } from '@/constants';
 import { useTheme } from '@/context/ThemeContext';
-import DropdownOverlay from './DropdownOverlay';
 import { ACCIDENTALS, BRAVURA_FONT } from '@/constants/SMuFL';
+
+// ==========================================
+// 1. TYPES & INTERFACES
+// ==========================================
 
 interface KeySignatureOverlayProps {
   current: string;
   clef?: string;
   onSelect: (key: string) => void;
   onClose: () => void;
-  position: { x: number; y: number };
-  triggerRef: React.RefObject<HTMLElement>;
 }
 
-// Standard order of sharps and flats
-const SHARPS = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
-const FLATS  = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
+// ==========================================
+// 2. CONSTANTS
+// ==========================================
 
-// Key signature data with precomputed accidentals
-interface KeyPairData {
-  majorKey: string;
-  minorKey: string;
-  type: 'sharp' | 'flat';
-  count: number;
-  accidentals: string[];
-}
+// Circle of fifths order for key signature selection UI
+// Derived dynamically using Tonal.js Key.majorKey().minorRelative
+const FLAT_ROOTS = ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
+const SHARP_ROOTS = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
 
-// Flats section: C (no accidentals) then around the flat side
-const FLAT_KEYS: KeyPairData[] = [
-  { majorKey: 'C', minorKey: 'A', type: 'flat', count: 0, accidentals: [] },
-  { majorKey: 'F', minorKey: 'D', type: 'flat', count: 1, accidentals: FLATS.slice(0, 1) },
-  { majorKey: 'Bb', minorKey: 'G', type: 'flat', count: 2, accidentals: FLATS.slice(0, 2) },
-  { majorKey: 'Eb', minorKey: 'C', type: 'flat', count: 3, accidentals: FLATS.slice(0, 3) },
-  { majorKey: 'Ab', minorKey: 'F', type: 'flat', count: 4, accidentals: FLATS.slice(0, 4) },
-  { majorKey: 'Db', minorKey: 'Bb', type: 'flat', count: 5, accidentals: FLATS.slice(0, 5) },
-  { majorKey: 'Gb', minorKey: 'Eb', type: 'flat', count: 6, accidentals: FLATS.slice(0, 6) },
-  { majorKey: 'Cb', minorKey: 'Ab', type: 'flat', count: 7, accidentals: FLATS.slice(0, 7) },
-];
+const CIRCLE_OF_FIFTHS = {
+  flats: FLAT_ROOTS.map(root => [root, `${Key.majorKey(root).minorRelative}m`] as [string, string]),
+  sharps: SHARP_ROOTS.map(root => [root, `${Key.majorKey(root).minorRelative}m`] as [string, string]),
+};
 
-// Sharps section: G (1 sharp) then around the sharp side
-const SHARP_KEYS: KeyPairData[] = [
-  { majorKey: 'G', minorKey: 'E', type: 'sharp', count: 1, accidentals: SHARPS.slice(0, 1) },
-  { majorKey: 'D', minorKey: 'B', type: 'sharp', count: 2, accidentals: SHARPS.slice(0, 2) },
-  { majorKey: 'A', minorKey: 'F#', type: 'sharp', count: 3, accidentals: SHARPS.slice(0, 3) },
-  { majorKey: 'E', minorKey: 'C#', type: 'sharp', count: 4, accidentals: SHARPS.slice(0, 4) },
-  { majorKey: 'B', minorKey: 'G#', type: 'sharp', count: 5, accidentals: SHARPS.slice(0, 5) },
-  { majorKey: 'F#', minorKey: 'D#', type: 'sharp', count: 6, accidentals: SHARPS.slice(0, 6) },
-  { majorKey: 'C#', minorKey: 'A#', type: 'sharp', count: 7, accidentals: SHARPS.slice(0, 7) },
-];
+// ==========================================
+// 3. SUB-COMPONENTS
+// ==========================================
 
-// Render a key signature button showing major/minor pair
-const KeyPairButton = ({
-  data,
+/**
+ * StaffPreview: Handles the SVG rendering of the staff lines and accidentals
+ */
+const StaffPreview = ({ 
+  data, 
+  clef, 
+  theme 
+}: { 
+  data: KeySignature, 
+  clef: string, 
+  theme: any 
+}) => {
+  const { type, count, accidentals } = data;
+  const accWidth = Math.max(40, (count * 10) + 20);
+
+  return (
+    <div className="h-16 flex items-center justify-center w-full">
+      <svg width={accWidth} height="60" viewBox={`0 0 ${accWidth} 60`} style={{ overflow: 'visible' }}>
+        {/* Staff Lines */}
+        {[0, 1, 2, 3, 4].map(i => (
+          <line
+            key={i}
+            x1="0" y1={10 + (i * 10)}
+            x2={accWidth} y2={10 + (i * 10)}
+            stroke={theme.secondaryText}
+            strokeWidth="1"
+            opacity="0.5"
+          />
+        ))}
+        
+        {/* Accidentals */}
+        {accidentals.map((acc, i) => {
+          const validClef = (clef in KEY_SIGNATURE_OFFSETS) ? (clef as keyof KeySignatureOffsets) : 'treble';
+          const offset = KEY_SIGNATURE_OFFSETS[validClef][type][acc];
+          
+          return (
+            <text
+              key={i}
+              x={10 + (i * 10)}
+              y={10 + offset}
+              fontSize="32"
+              fontFamily={BRAVURA_FONT}
+              fill={theme.text}
+            >
+              {type === 'sharp' ? ACCIDENTALS.sharp : ACCIDENTALS.flat}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
+/**
+ * KeyOptionButton: The interactive button wrapper
+ */
+const KeyOptionButton = ({
+  keyId,
   current,
   clef,
   theme,
   onSelect,
 }: {
-  data: KeyPairData;
+  keyId: string;
   current: string;
   clef: string;
   theme: any;
   onSelect: (key: string) => void;
 }) => {
-  const { majorKey, minorKey, type, count, accidentals } = data;
+  const data = KEY_SIGNATURES[keyId];
+  if (!data) return null;
   
-  // Selected if either the major or minor key matches current
-  const isSelected = current === majorKey || current === minorKey;
-  const accWidth = Math.max(40, (count * 10) + 20);
+  const isSelected = current === keyId;
   
   return (
     <button
-      onClick={() => onSelect(majorKey)}
+      onClick={() => onSelect(keyId)}
       className="flex flex-col items-center justify-center p-2 rounded-md transition-colors border"
       style={{
         backgroundColor: isSelected ? theme.buttonHoverBackground : 'transparent',
@@ -79,130 +118,199 @@ const KeyPairButton = ({
         color: theme.text,
       }}
       onMouseEnter={(e) => {
-        if (!isSelected) {
-          e.currentTarget.style.backgroundColor = theme.buttonHoverBackground;
-        }
+        if (!isSelected) e.currentTarget.style.backgroundColor = theme.buttonHoverBackground;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = isSelected ? theme.buttonHoverBackground : 'transparent';
       }}
     >
-      {/* Staff preview */}
-      <div className="mb-2 h-16 flex items-center justify-center w-full">
-        <svg width={accWidth} height="60" viewBox={`0 0 ${accWidth} 60`}>
-          {/* Staff Lines */}
-          {[0, 1, 2, 3, 4].map(i => (
-            <line
-              key={i}
-              x1="0"
-              y1={10 + (i * 10)}
-              x2={accWidth}
-              y2={10 + (i * 10)}
-              stroke={theme.secondaryText}
-              strokeWidth="1"
-              opacity="0.5"
-            />
-          ))}
-          
-          {/* Accidentals */}
-          {accidentals.map((acc, i) => {
-            const validClef = (clef in KEY_SIGNATURE_OFFSETS) ? (clef as keyof KeySignatureOffsets) : 'treble';
-            const offset = KEY_SIGNATURE_OFFSETS[validClef][type][acc];
-            const x = 10 + (i * 10);
-            const y = 10 + offset;
-            
-            return (
-              <text
-                key={i}
-                x={x}
-                y={y}
-                fontSize="32"
-                fontFamily={BRAVURA_FONT}
-                fill={theme.text}
-              >
-                {type === 'sharp' ? ACCIDENTALS.sharp : ACCIDENTALS.flat}
-              </text>
-            );
-          })}
-        </svg>
-      </div>
+      <StaffPreview data={data} clef={clef} theme={theme} />
       
-      {/* Label: Major / Minor pair */}
       <span className="text-xs font-medium text-center">
-        {majorKey} Major / {minorKey} minor
+        {data.label}
       </span>
     </button>
   );
 };
+
+/**
+ * ModeToggle: Major/Minor selector toggle
+ */
+const ModeToggle = ({
+  mode,
+  setMode,
+  theme,
+}: {
+  mode: 'major' | 'minor';
+  setMode: (mode: 'major' | 'minor') => void;
+  theme: any;
+}) => (
+  <div 
+    className="flex rounded-lg p-1 mb-4"
+    style={{ backgroundColor: theme.buttonBackground }}
+  >
+    <button
+      onClick={() => setMode('major')}
+      className="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      style={{
+        backgroundColor: mode === 'major' ? theme.accent : 'transparent',
+        color: mode === 'major' ? '#ffffff' : theme.secondaryText,
+      }}
+    >
+      Major
+    </button>
+    <button
+      onClick={() => setMode('minor')}
+      className="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      style={{
+        backgroundColor: mode === 'minor' ? theme.accent : 'transparent',
+        color: mode === 'minor' ? '#ffffff' : theme.secondaryText,
+      }}
+    >
+      Minor
+    </button>
+  </div>
+);
+
+/**
+ * KeySection: Renders a titled grid of key options
+ */
+const KeySection = ({ 
+  title, 
+  keys, 
+  current, 
+  clef, 
+  theme, 
+  onSelect,
+  mode,
+}: {
+  title: string;
+  keys: [string, string][]; // [majorKey, minorKey]
+  current: string;
+  clef: string;
+  theme: any;
+  onSelect: (key: string) => void;
+  mode: 'major' | 'minor';
+}) => (
+  <div className="mb-4">
+    <h3 
+      className="text-xs font-semibold uppercase tracking-wide mb-2 px-1"
+      style={{ color: theme.secondaryText }}
+    >
+      {title}
+    </h3>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      {keys.map(([majorKey, minorKey]) => (
+        <KeyOptionButton
+          key={mode === 'major' ? majorKey : minorKey}
+          keyId={mode === 'major' ? majorKey : minorKey}
+          current={current}
+          clef={clef}
+          theme={theme}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+// ==========================================
+// 4. MAIN COMPONENT
+// ==========================================
 
 const KeySignatureOverlay: React.FC<KeySignatureOverlayProps> = ({
   current,
   clef = 'treble',
   onSelect,
   onClose,
-  position,
-  triggerRef
 }) => {
   const { theme } = useTheme();
+  
+  // Determine initial mode from current key
+  const currentData = KEY_SIGNATURES[current];
+  const initialMode = currentData?.mode || 'major';
+  const [mode, setMode] = useState<'major' | 'minor'>(initialMode);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
-    <DropdownOverlay
-      onClose={onClose}
-      position={position}
-      triggerRef={triggerRef}
-      width="auto"
-      className="w-80 md:w-[600px] max-w-full"
-      maxHeight={500}
+    <div 
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" 
+      onClick={onClose}
     >
-      <div className="p-3 dropdown-scroll overflow-y-auto" style={{ maxHeight: '500px' }}>
-        {/* Flats Section (including C Major with no accidentals) */}
-        <div className="mb-4">
-          <h3 
-            className="text-xs font-semibold uppercase tracking-wide mb-2 px-1"
+      <div 
+        className="rounded-xl shadow-2xl w-full max-w-xl overflow-hidden" 
+        style={{ backgroundColor: theme.panelBackground }} 
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div 
+          className="p-4 border-b flex items-center justify-between" 
+          style={{ backgroundColor: theme.background, borderColor: theme.border }}
+        >
+          <div className="flex items-center gap-2">
+            <Music size={20} style={{ color: theme.accent }} />
+            <h2 className="font-bold text-lg" style={{ color: theme.text }}>
+              Key Signature
+            </h2>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-1 rounded-full transition-colors hover:bg-white/10" 
             style={{ color: theme.secondaryText }}
           >
-            Flats
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {FLAT_KEYS.map((data) => (
-              <KeyPairButton
-                key={data.majorKey}
-                data={data}
-                current={current}
-                clef={clef}
-                theme={theme}
-                onSelect={onSelect}
-              />
-            ))}
-          </div>
+            <X size={20} />
+          </button>
         </div>
 
-        {/* Divider */}
-        <hr className="border-t my-3" style={{ borderColor: theme.border }} />
+        {/* Content */}
+        <div className="p-4 max-h-[70vh] overflow-y-auto">
+          {/* Major/Minor Toggle */}
+          <ModeToggle mode={mode} setMode={setMode} theme={theme} />
 
-        {/* Sharps Section */}
-        <div>
-          <h3 
-            className="text-xs font-semibold uppercase tracking-wide mb-2 px-1"
-            style={{ color: theme.secondaryText }}
-          >
-            Sharps
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {SHARP_KEYS.map((data) => (
-              <KeyPairButton
-                key={data.majorKey}
-                data={data}
-                current={current}
-                clef={clef}
-                theme={theme}
-                onSelect={onSelect}
-              />
-            ))}
-          </div>
+          {/* Key Sections */}
+          <KeySection
+            title="Flats"
+            keys={CIRCLE_OF_FIFTHS.flats}
+            current={current}
+            clef={clef}
+            theme={theme}
+            onSelect={onSelect}
+            mode={mode}
+          />
+
+          <hr className="border-t my-3" style={{ borderColor: theme.border }} />
+
+          <KeySection
+            title="Sharps"
+            keys={CIRCLE_OF_FIFTHS.sharps}
+            current={current}
+            clef={clef}
+            theme={theme}
+            onSelect={onSelect}
+            mode={mode}
+          />
+        </div>
+
+        {/* Footer */}
+        <div 
+          className="p-3 border-t text-center text-xs" 
+          style={{ backgroundColor: theme.background, borderColor: theme.border, color: theme.secondaryText }}
+        >
+          Press <kbd 
+            className="px-1 py-0.5 rounded border font-mono" 
+            style={{ backgroundColor: theme.buttonBackground, borderColor: theme.border, color: theme.text }}
+          >Esc</kbd> to close
         </div>
       </div>
-    </DropdownOverlay>
+    </div>
   );
 };
 
