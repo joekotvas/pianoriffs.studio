@@ -16,7 +16,7 @@ export const COLORS = {
   slate500: 'hsla(215, 16%, 47%, 1.00)',
   slate400: 'hsla(215, 20%, 65%, 1.00)',
   slate200: '#e2e8f0',
-  teal: '#20B2AA', 
+  teal: '#1DA59C', // #1DA59C
   
   // Blue (Cool)
   blue950: '#0f172a',
