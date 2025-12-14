@@ -1,11 +1,15 @@
 import { useState, useCallback } from 'react';
 import { getPitchForOffset } from '@/engines/layout';
 import { HitZone } from '@/engines/layout/types';
+import { CLAMP_LIMITS, MOUSE_OFFSET_SNAP } from '@/constants';
 
 interface UseMeasureInteractionParams {
   hitZones: HitZone[];
   clef: string;
   scale: number;
+  baseY: number;
+  topMargin: number;
+  mouseLimits?: { min: number; max: number };
   measureIndex: number;
   isLast: boolean;
   activeDuration: string;
@@ -37,6 +41,9 @@ export function useMeasureInteraction({
   hitZones,
   clef,
   scale,
+  baseY,
+  topMargin,
+  mouseLimits,
   measureIndex,
   isLast,
   activeDuration,
@@ -64,12 +71,28 @@ export function useMeasureInteraction({
 
     // Calculate pitch from Y position
     // Snap to nearest half-line (6px) for staff positioning
-    let yOffset = Math.round((y - 50) / 6) * 6;
+    // Y is relative to measure bounding box.
+    // Original working logic was y - 50.
+    // 50 = CONFIG.baseY (70) - CONFIG.topMargin (20).
+    // So currentY (relative to box) needs to be adjusted by (baseY - topMargin).
+    let yOffset = Math.round((y - (baseY - topMargin)) / MOUSE_OFFSET_SNAP) * MOUSE_OFFSET_SNAP;
 
-    // Clamp to valid pitch range
-    const MIN_OFFSET = -48;
-    const MAX_OFFSET = 102;
-    yOffset = Math.max(MIN_OFFSET, Math.min(MAX_OFFSET, yOffset));
+    // Check visual limits
+    // Default: 4 ledger lines above/below. 
+    // Props can restrict this (e.g. Grand Staff inner zones).
+    const minLimit = mouseLimits?.min ?? CLAMP_LIMITS.OUTER_TOP;
+    const maxLimit = mouseLimits?.max ?? CLAMP_LIMITS.OUTER_BOTTOM;
+
+    // Strict bounds check: If outside, ignore interaction (allows other staves to handle, or shows nothing)
+    if (yOffset < minLimit || yOffset > maxLimit) {
+      if (hoveredMeasure) {
+        setHoveredMeasure(false);
+        onHover?.(null, null, null);
+        setCursorStyle('crosshair');
+      }
+      return;
+    }
+
     const pitch = getPitchForOffset(yOffset, clef) || null;
 
     setHoveredMeasure(true);
@@ -82,7 +105,7 @@ export function useMeasureInteraction({
       onHover?.(measureIndex, { x, quant: 0, duration: activeDuration }, pitch);
       setCursorStyle('crosshair');
     }
-  }, [isNoteHovered, hitZones, clef, scale, measureIndex, activeDuration, onHover]);
+  }, [isNoteHovered, hitZones, clef, scale, baseY, topMargin, mouseLimits, measureIndex, activeDuration, onHover]);
 
   const handleMeasureMouseLeave = useCallback(() => {
     setHoveredMeasure(false);

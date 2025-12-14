@@ -11,6 +11,7 @@ export interface LayoutConfig {
   keySignature: string; // Current Key Sig
   staffIndex: number; // Which staff this measure belongs to
   verticalOffset: number; // Vertical offset for hit detection mapping
+  mouseLimits?: { min: number; max: number }; // Optional clamping range
 }
 
 /**

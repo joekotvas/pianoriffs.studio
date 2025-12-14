@@ -11,7 +11,7 @@ import { ACCIDENTALS } from '@/constants/SMuFL';
 
 // --- Constants ---
 
-const STAFF_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+export const STAFF_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
 // ============================================================================
 // 1. ANALYSIS (Audio & Midi)
@@ -145,14 +145,40 @@ export const applyKeySignature = (visualPitch: string, keyRoot: string): string 
 };
 
 /**
+ * Compares two pitches and returns -1, 0, or 1 (like a comparator).
+ * Uses MIDI values for comparison.
+ */
+export const comparePitch = (a: string, b: string): number => {
+  const midiA = getMidi(a);
+  const midiB = getMidi(b);
+  return midiA < midiB ? -1 : midiA > midiB ? 1 : 0;
+};
+
+/**
+ * Clamps a pitch to the allowed range for a clef.
+ * If pitch is out of bounds, returns the boundary pitch.
+ */
+export const clampPitch = (pitch: string, minPitch: string, maxPitch: string): string => {
+  if (comparePitch(pitch, minPitch) < 0) return minPitch;
+  if (comparePitch(pitch, maxPitch) > 0) return maxPitch;
+  return pitch;
+};
+
+/**
  * Calculates a new pitch by moving visually along staff lines, 
  * automatically applying the key signature to the destination.
  * 
  * @param pitch Starting pitch (e.g. "C4")
  * @param steps Visual steps to move (e.g. 1 = next line/space)
  * @param keyRoot Key context (e.g. "G")
+ * @param pitchRange Optional pitch range for clamping (if provided, result will be clamped)
  */
-export const movePitchVisual = (pitch: string, steps: number, keyRoot: string = 'C'): string => {
+export const movePitchVisual = (
+  pitch: string, 
+  steps: number, 
+  keyRoot: string = 'C',
+  pitchRange?: { min: string; max: string }
+): string => {
   const n = Note.get(pitch);
   if (!n.letter || n.oct === undefined) return pitch;
 
@@ -168,5 +194,12 @@ export const movePitchVisual = (pitch: string, steps: number, keyRoot: string = 
   const newOctave = n.oct + octaveChange;
 
   // 2. Snap to Key (Music Theory)
-  return applyKeySignature(`${newLetter}${newOctave}`, keyRoot);
+  let result = applyKeySignature(`${newLetter}${newOctave}`, keyRoot);
+
+  // 3. Clamp to allowed range (if pitchRange provided)
+  if (pitchRange) {
+    result = clampPitch(result, pitchRange.min, pitchRange.max);
+  }
+
+  return result;
 };

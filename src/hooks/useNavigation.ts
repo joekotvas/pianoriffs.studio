@@ -156,7 +156,7 @@ export const useNavigation = ({
             previewNote,
             direction,
             isShift,
-            activeStaff.clef
+            activeStaff.keySignature || 'C'
         );
         
         if (previewResult?.previewNote) {
@@ -178,7 +178,7 @@ export const useNavigation = ({
             previewNote,
             direction,
             isShift,
-            activeStaff.clef
+            keySignature
         );
         
         if (audioResult?.audio) playAudioFeedback(audioResult.audio.notes);

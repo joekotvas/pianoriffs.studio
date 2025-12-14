@@ -11,7 +11,7 @@ import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { useGrandStaffLayout } from '@/hooks/useGrandStaffLayout';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
-import { LAYOUT } from '@/constants';
+import { LAYOUT, CLAMP_LIMITS, STAFF_HEIGHT } from '@/constants';
 
 interface ScoreCanvasProps {
   scale: number;
@@ -370,6 +370,17 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                 onHover: getHoverHandler(staffIndex)
             };
 
+            // Calculate clamping limits for Grand Staff
+            // Outer limits: 4 ledger lines (-48, 90)
+            // Inner limits: 2 ledger lines (24, -24) to avoid overlap
+            const isTop = staffIndex === 0;
+            const isBottom = staffIndex === (score.staves.length - 1);
+            
+            const mouseLimits = {
+                min: isTop ? CLAMP_LIMITS.OUTER_TOP : -CLAMP_LIMITS.INNER_OFFSET, 
+                max: isBottom ? CLAMP_LIMITS.OUTER_BOTTOM : (STAFF_HEIGHT + CLAMP_LIMITS.INNER_OFFSET)
+            };
+
             return (
               <Staff
                 key={staff.id || staffIndex}
@@ -387,6 +398,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                 onKeySigClick={onKeySigClick}
                 onTimeSigClick={onTimeSigClick}
                 hidePlaybackCursor={isGrandStaff}
+                mouseLimits={mouseLimits}
               />
             );
           })}

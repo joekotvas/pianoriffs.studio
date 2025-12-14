@@ -20,6 +20,7 @@ export interface Config {
   scoreMarginLeft: number;
   headerWidth: number;
   staffSpacing: number;
+
   debug?: {
     enabled: boolean;
     logCommands: boolean;
@@ -38,6 +39,7 @@ export const CONFIG: Config = {
   scoreMarginLeft: 60,
   headerWidth: 60,
   staffSpacing: 120,
+
   debug: {
     enabled: true,
     logCommands: true,

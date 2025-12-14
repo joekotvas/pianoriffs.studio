@@ -285,3 +285,34 @@ export const FLAG_RENDERING = {
   SCALE_OTHERS: 1.2,
   OFFSET: 3,
 };
+
+// =============================================================================
+// STAFF LAYOUT & INTERACTION LIMITS
+// =============================================================================
+
+export const STAFF_LINES_COUNT = 5;
+export const STAFF_HEIGHT = (STAFF_LINES_COUNT - 1) * SPACE; // 48px
+
+// Visual limits for interactions
+export const LEDGER_LINE_STEP = SPACE; // 12px step for full line
+export const INNER_ZONE_LINES = 1.6; // Lines allowed in the gap between staves
+export const OUTER_ZONE_LINES = 4.6; // Lines allowed outside the system
+
+export const CLAMP_LIMITS = {
+  // Inner zone (gap) limit: 2 ledger lines (24px)
+  INNER_OFFSET: INNER_ZONE_LINES * LEDGER_LINE_STEP,
+  
+  // Outer zone (top of system) limit: 4 ledger lines up (-48px)
+  OUTER_TOP: -(OUTER_ZONE_LINES * LEDGER_LINE_STEP),
+  
+  // Outer zone (bottom of system) limit: User preference (90px)
+  // Accommodates 4 ledger lines down + breathing room
+  OUTER_BOTTOM: 90 
+};
+
+export const MOUSE_OFFSET_SNAP = HALF_SPACE; // 6px
+
+export const PIANO_RANGE = {
+  min: 'A0',  // MIDI 21
+  max: 'C8'   // MIDI 108
+};

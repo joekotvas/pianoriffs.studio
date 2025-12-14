@@ -1,6 +1,7 @@
 import { navigateSelection, calculateTotalQuants, getNoteDuration } from './core';
 import { movePitchVisual } from '@/services/MusicService';
 import { CONFIG } from '@/config';
+import { PIANO_RANGE } from '@/constants';
 
 /**
  * Calculates the next selection state based on navigation direction.
@@ -194,9 +195,15 @@ export const calculateNextSelection = (
  * @param {Object} selection - Current selection
  * @param {number} steps - Visual steps to move (positive or negative)
  * @param {string} keySignature - Key signature root
+ * @param {string} clef - Clef for pitch range clamping ('treble' or 'bass')
  * @returns {Object|null} Object containing new measures and the modified event, or null if no change
  */
-export const calculateTransposition = (measures: any[], selection: any, steps: number, keySignature: string = 'C') => {
+export const calculateTransposition = (
+    measures: any[], 
+    selection: any, 
+    steps: number, 
+    keySignature: string = 'C'
+) => {
     const { measureIndex, eventId, noteId } = selection;
     if (measureIndex === null || !eventId) return null;
 
@@ -211,8 +218,8 @@ export const calculateTransposition = (measures: any[], selection: any, steps: n
     const notes = [...event.notes];
     
     const modifyNote = (note: any) => {
-        // Use movePitchVisual instead of calculateNewPitch
-        const newPitch = movePitchVisual(note.pitch, steps, keySignature);
+        // Use movePitchVisual with piano range for clamping
+        const newPitch = movePitchVisual(note.pitch, steps, keySignature, PIANO_RANGE);
         return { ...note, pitch: newPitch };
     };
 
@@ -261,7 +268,7 @@ export const calculateTranspositionWithPreview = (
 
     // 1. Handle Preview Note (Ghost Note)
     if (selection.eventId === null && previewNote) {
-        const newPitch = movePitchVisual(previewNote.pitch, steps, keySignature);
+        const newPitch = movePitchVisual(previewNote.pitch, steps, keySignature, PIANO_RANGE);
         if (newPitch !== previewNote.pitch) {
             return {
                 previewNote: { ...previewNote, pitch: newPitch },

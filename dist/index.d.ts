@@ -5,7 +5,7 @@ import * as react_jsx_runtime from 'react/jsx-runtime';
 declare const THEMES: {
     readonly DARK: {
         accent: "#20B2AA";
-        background: "hsla(217, 33%, 18%, 1.00)";
+        background: "#1e293b";
         panelBackground: "rgba(30, 41, 59, 0.8)";
         text: "#e2e8f0";
         secondaryText: "hsla(215, 20%, 65%, 1.00)";
@@ -52,7 +52,7 @@ declare const THEMES: {
         accent: "#20B2AA";
         background: string;
         panelBackground: string;
-        text: "hsla(217, 33%, 18%, 1.00)";
+        text: "#1e293b";
         secondaryText: "hsla(215, 16%, 47%, 1.00)";
         border: string;
         buttonBackground: string;

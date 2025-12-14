@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { movePitchVisual } from '@/services/MusicService';
 import { CONFIG } from '@/config';
+import { PIANO_RANGE } from '@/constants';
 import { isNoteSelected } from '@/utils/selection';
 import { Selection } from '@/types';
 
@@ -127,7 +128,7 @@ export const useScoreInteraction = ({ scoreRef, selection, onUpdatePitch, onSele
     
             // Perform bulk update - use dragState context for same-event drags
             dragState.initialPitches.forEach((pStart: string, noteIdStr: string) => {
-                const newP = movePitchVisual(pStart, steps, keySignature);
+                const newP = movePitchVisual(pStart, steps, keySignature, PIANO_RANGE);
                 
                 // Check if this is a multi-event selection by looking at selection state
                 // If selection contains notes from different events, use selection to find context
@@ -150,7 +151,7 @@ export const useScoreInteraction = ({ scoreRef, selection, onUpdatePitch, onSele
             if (dragState.initialPitches.size > 0) {
                  // Update local state just for the primary dragged note for smoothness (if tracked)
                  const primaryStart = dragState.initialPitches.get(String(dragState.noteId)) || dragState.startPitch;
-                 const newPrimary = movePitchVisual(primaryStart, steps, keySignature);
+                 const newPrimary = movePitchVisual(primaryStart, steps, keySignature, PIANO_RANGE);
                  if (newPrimary !== dragState.currentPitch) {
                     setDragState(prev => ({ ...prev, currentPitch: newPrimary }));
                  }

@@ -1,6 +1,8 @@
 import { Command } from './types';
 import { Score, getActiveStaff, Selection, Staff } from '@/types';
 import { movePitchVisual } from '@/services/MusicService';
+import { CONFIG } from '@/config';
+import { PIANO_RANGE } from '@/constants';
 
 export class TransposeSelectionCommand implements Command {
   public readonly type = 'TRANSPOSE_SELECTION';
@@ -47,7 +49,7 @@ export class TransposeSelectionCommand implements Command {
     // Helper for robust ID comparison
     const idsMatch = (a: string | number | null, b: string | number | null) => String(a) === String(b);
 
-    const transposeFn = (pitch: string) => movePitchVisual(pitch, steps, keySig);
+    const transposeFn = (pitch: string) => movePitchVisual(pitch, steps, keySig, PIANO_RANGE);
     
     // CASE 0: Multi-Note Selection (using selection.selectedNotes)
     if (this.selection.selectedNotes && this.selection.selectedNotes.length > 0) {
