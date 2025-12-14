@@ -102,7 +102,10 @@ const CLEF_REFERENCE: Record<string, { pitch: string; offset: number }> = {
  * @param clef - Clef context ('treble' or 'bass')
  * @returns Y offset in pixels relative to CONFIG.baseY
  */
-export const getOffsetForPitch = (pitch: string, clef: string = 'treble'): number => {
+export const getOffsetForPitch = (pitch: string | null | undefined, clef: string = 'treble'): number => {
+  // Handle null/undefined pitch (e.g., rest notes)
+  if (!pitch) return 0;
+  
   const normalizedPitch = getStaffPitch(pitch);
   
   // Try lookup first for common pitches (faster)

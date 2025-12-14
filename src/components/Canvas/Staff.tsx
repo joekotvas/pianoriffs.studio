@@ -135,6 +135,9 @@ const Staff: React.FC<StaffProps> = ({
       measure.events.forEach((event, eIndex: number) => {
         const eventX = currentMeasureX + layout.eventPositions[event.id];
         event.notes.forEach((note: any, nIndex: number) => {
+          // Skip rest notes (which have null pitch) - they can't have ties
+          if (note.pitch === null) return;
+          
           allNotes.push({
             measureIndex: mIndex,
             eventIndex: eIndex,
