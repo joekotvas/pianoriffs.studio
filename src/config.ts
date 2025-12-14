@@ -10,6 +10,11 @@ export type { ThemeName, Theme } from './themes';
 // LAYOUT CONFIGURATION
 // =============================================================================
 
+export interface PitchRangeConfig {
+  treble: { min: string; max: string };
+  bass: { min: string; max: string };
+}
+
 export interface Config {
   lineHeight: number;
   topMargin: number;
@@ -20,6 +25,7 @@ export interface Config {
   scoreMarginLeft: number;
   headerWidth: number;
   staffSpacing: number;
+  pitchRange: PitchRangeConfig;
   debug?: {
     enabled: boolean;
     logCommands: boolean;
@@ -38,6 +44,10 @@ export const CONFIG: Config = {
   scoreMarginLeft: 60,
   headerWidth: 60,
   staffSpacing: 120,
+  pitchRange: {
+    treble: { min: 'G3', max: 'E6' },
+    bass: { min: 'E1', max: 'F4' }
+  },
   debug: {
     enabled: true,
     logCommands: true,

@@ -22,6 +22,7 @@ export interface StaffProps {
   keySignature: string;
   timeSignature: string;
   measures: MeasureData[];
+  pitchRange: { min: string; max: string }; // Allowed pitch range for this staff
   
   // Layout
   baseY?: number; // Y offset for stacking staves (default: CONFIG.baseY)
@@ -55,6 +56,7 @@ const Staff: React.FC<StaffProps> = ({
   keySignature,
   timeSignature,
   measures,
+  pitchRange,
   baseY = CONFIG.baseY,
   measureLayouts,
   scale,
@@ -107,7 +109,8 @@ const Staff: React.FC<StaffProps> = ({
           clef,
           keySignature,
           staffIndex,
-          verticalOffset
+          verticalOffset,
+          pitchRange
         }}
         interaction={scopedInteraction}
       />

@@ -3,7 +3,7 @@ import React from 'react';
 import { NOTE_TYPES, LAYOUT } from '@/constants';
 import { CONFIG } from '@/config';
 import { useTheme } from '@/context/ThemeContext';
-import { getOffsetForPitch } from '@/engines/layout';
+import { getOffsetForPitch, isPitchInRange } from '@/engines/layout';
 import { NOTEHEADS, BRAVURA_FONT, getFontSize, DOTS } from '@/constants/SMuFL';
 
 // =============================================================================
@@ -178,6 +178,7 @@ const Note = React.memo(({
   isGhost = false,
   accidentalGlyph = null,
   color: overrideColor = null,
+  pitchRange = null, // For out-of-range note transparency
   
   // Interaction handlers (optional for interactive notes)
   handlers = null, // { onMouseEnter, onMouseLeave, onMouseDown, onDoubleClick }
@@ -187,6 +188,10 @@ const Note = React.memo(({
   // Resolve pitch from either direct prop or note object
   const effectivePitch = pitch || note?.pitch;
   if (!effectivePitch) return null;
+  
+  // Check if note is within valid range
+  const isInRange = !pitchRange || isPitchInRange(effectivePitch, pitchRange);
+  const outOfRangeOpacity = 0.4; // Transparency for out-of-range notes
   
   // Calculate position
   const noteX = x + xShift;
@@ -216,6 +221,7 @@ const Note = React.memo(({
       className={!isGhost ? "note-group-container" : ""}
       onMouseEnter={() => handlers?.onMouseEnter?.(note?.id)}
       onMouseLeave={handlers?.onMouseLeave}
+      style={{ opacity: isInRange ? 1 : outOfRangeOpacity }}
     >
       {/* 1. Ledger Lines (behind everything) */}
       <LedgerLines x={noteX} y={noteY} baseY={baseY} color={color} />

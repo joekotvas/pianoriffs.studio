@@ -202,6 +202,7 @@ const ChordGroup = ({
             isSelected={isSelected || isAnyNoteHovered}
             isGhost={isGhost}
             accidentalGlyph={accidentalGlyph}
+            pitchRange={layout.pitchRange}
             handlers={handlers}
           />
         );

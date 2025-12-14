@@ -1,6 +1,7 @@
 import { Command } from './types';
 import { Score, getActiveStaff, Selection, Staff } from '@/types';
 import { movePitchVisual } from '@/services/MusicService';
+import { CONFIG } from '@/config';
 
 export class TransposeSelectionCommand implements Command {
   public readonly type = 'TRANSPOSE_SELECTION';
@@ -18,6 +19,8 @@ export class TransposeSelectionCommand implements Command {
     const activeStaff = getActiveStaff(score, staffIndex);
     // Key-aware transposition uses the key signature, not clef
     const keySig = activeStaff.keySignature || this.keySignature || 'C';
+    const clef = (activeStaff.clef || 'treble') as 'treble' | 'bass';
+    const pitchRange = CONFIG.pitchRange[clef] || CONFIG.pitchRange.treble;
     
     const newMeasures = [...activeStaff.measures];
     
@@ -47,7 +50,7 @@ export class TransposeSelectionCommand implements Command {
     // Helper for robust ID comparison
     const idsMatch = (a: string | number | null, b: string | number | null) => String(a) === String(b);
 
-    const transposeFn = (pitch: string) => movePitchVisual(pitch, steps, keySig);
+    const transposeFn = (pitch: string) => movePitchVisual(pitch, steps, keySig, pitchRange);
     
     // CASE 0: Multi-Note Selection (using selection.selectedNotes)
     if (this.selection.selectedNotes && this.selection.selectedNotes.length > 0) {

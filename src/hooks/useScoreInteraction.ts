@@ -124,10 +124,12 @@ export const useScoreInteraction = ({ scoreRef, selection, onUpdatePitch, onSele
             const currentScore = scoreRef.current;
             const currentStaff = currentScore?.staves?.[dragState.staffIndex];
             const keySignature = currentStaff?.keySignature || 'C';
+            const clef = currentStaff?.clef || 'treble';
+            const pitchRange = CONFIG.pitchRange[clef as 'treble' | 'bass'] || CONFIG.pitchRange.treble;
     
             // Perform bulk update - use dragState context for same-event drags
             dragState.initialPitches.forEach((pStart: string, noteIdStr: string) => {
-                const newP = movePitchVisual(pStart, steps, keySignature);
+                const newP = movePitchVisual(pStart, steps, keySignature, pitchRange);
                 
                 // Check if this is a multi-event selection by looking at selection state
                 // If selection contains notes from different events, use selection to find context
@@ -150,7 +152,7 @@ export const useScoreInteraction = ({ scoreRef, selection, onUpdatePitch, onSele
             if (dragState.initialPitches.size > 0) {
                  // Update local state just for the primary dragged note for smoothness (if tracked)
                  const primaryStart = dragState.initialPitches.get(String(dragState.noteId)) || dragState.startPitch;
-                 const newPrimary = movePitchVisual(primaryStart, steps, keySignature);
+                 const newPrimary = movePitchVisual(primaryStart, steps, keySignature, pitchRange);
                  if (newPrimary !== dragState.currentPitch) {
                     setDragState(prev => ({ ...prev, currentPitch: newPrimary }));
                  }

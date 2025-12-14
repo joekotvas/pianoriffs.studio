@@ -83,18 +83,84 @@ export const getYToPitch = (clef: string = 'treble'): Record<number, string> => 
 };
 
 /**
- * Gets the offset for a pitch in a given clef.
- * Normalizes accidentals (F#4 → F4) so they render on the correct staff line.
+ * Staff letter order for offset calculation
+ */
+const STAFF_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+
+/**
+ * Reference points for each clef (a known pitch -> offset mapping)
+ */
+const CLEF_REFERENCE: Record<string, { pitch: string; offset: number }> = {
+  treble: { pitch: 'C4', offset: 60 },  // Middle C on treble
+  bass: { pitch: 'E2', offset: 60 }     // E2 on bass at same position
+};
+
+/**
+ * Calculates the offset for ANY pitch in a given clef.
+ * Uses dynamic calculation based on staff line math, not lookup tables.
  * 
- * @param pitch - Pitch to look up (e.g., "F#4", "Bb3", "C4")
+ * Each staff step (line/space) = 6px
+ * Higher pitch = lower offset (goes up on staff)
+ * 
+ * @param pitch - Pitch to calculate offset for (e.g., "F#4", "C2", "G7")
  * @param clef - Clef context ('treble' or 'bass')
  * @returns Y offset in pixels relative to CONFIG.baseY
  */
 export const getOffsetForPitch = (pitch: string, clef: string = 'treble'): number => {
-  const mapping = getPitchToOffset(clef);
-  // Normalize pitch to staff position (F#4 → F4, Bb3 → B3)
   const normalizedPitch = getStaffPitch(pitch);
-  return mapping[normalizedPitch] ?? 0;
+  
+  // Try lookup first for common pitches (faster)
+  const mapping = getPitchToOffset(clef);
+  if (mapping[normalizedPitch] !== undefined) {
+    return mapping[normalizedPitch];
+  }
+  
+  // Dynamic calculation for any pitch
+  const ref = CLEF_REFERENCE[clef] || CLEF_REFERENCE.treble;
+  
+  // Parse pitch letter and octave
+  const match = normalizedPitch.match(/^([A-G])(\d+)$/);
+  if (!match) return 0;
+  
+  const [, letter, octStr] = match;
+  const octave = parseInt(octStr, 10);
+  
+  // Parse reference pitch
+  const refMatch = ref.pitch.match(/^([A-G])(\d+)$/);
+  if (!refMatch) return ref.offset;
+  
+  const [, refLetter, refOctStr] = refMatch;
+  const refOctave = parseInt(refOctStr, 10);
+  
+  // Calculate steps from reference
+  const letterIdx = STAFF_LETTERS.indexOf(letter);
+  const refLetterIdx = STAFF_LETTERS.indexOf(refLetter);
+  
+  // Steps = (octave difference * 7) + letter difference
+  const stepsFromRef = ((octave - refOctave) * 7) + (letterIdx - refLetterIdx);
+  
+  // Each step up = 6px lower offset (going up on staff)
+  return ref.offset - (stepsFromRef * 6);
+};
+
+/**
+ * Checks if a pitch is within the given range.
+ * Uses MIDI comparison for accurate pitch ordering.
+ * 
+ * @param pitch - Pitch to check
+ * @param pitchRange - Range with min and max pitches
+ * @returns true if pitch is within range (inclusive)
+ */
+export const isPitchInRange = (pitch: string, pitchRange: { min: string; max: string }): boolean => {
+  // Import Note from tonal for MIDI comparison
+  const { Note } = require('tonal');
+  const midi = Note.midi(pitch);
+  const minMidi = Note.midi(pitchRange.min);
+  const maxMidi = Note.midi(pitchRange.max);
+  
+  if (midi === null || minMidi === null || maxMidi === null) return true; // Assume valid if can't parse
+  
+  return midi >= minMidi && midi <= maxMidi;
 };
 
 /**

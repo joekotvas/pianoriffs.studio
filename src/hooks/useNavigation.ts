@@ -150,13 +150,15 @@ export const useNavigation = ({
 
     // 2. Scenario A: Transposing Ghost Note (Preview)
     if (selection.eventId === null && previewNote) {
+        const clef = (activeStaff.clef || 'treble') as 'treble' | 'bass';
         const previewResult = calculateTranspositionWithPreview(
             activeStaff.measures,
             selection,
             previewNote,
             direction,
             isShift,
-            activeStaff.clef
+            activeStaff.keySignature || 'C',
+            clef
         );
         
         if (previewResult?.previewNote) {
@@ -168,6 +170,7 @@ export const useNavigation = ({
 
     // 3. Scenario B: Transposing Real Selection
     const keySignature = activeStaff.keySignature || 'C';
+    const clef = (activeStaff.clef || 'treble') as 'treble' | 'bass';
     dispatch(new TransposeSelectionCommand(selection, semitones, keySignature));
 
     // Audio Preview for the change
@@ -178,7 +181,8 @@ export const useNavigation = ({
             previewNote,
             direction,
             isShift,
-            activeStaff.clef
+            keySignature,
+            clef
         );
         
         if (audioResult?.audio) playAudioFeedback(audioResult.audio.notes);

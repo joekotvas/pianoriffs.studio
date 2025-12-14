@@ -378,6 +378,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                 keySignature={staff.keySignature || keySignature}
                 timeSignature={timeSignature}
                 measures={staff.measures}
+                pitchRange={CONFIG.pitchRange[(staff.clef || (staffIndex === 0 ? 'treble' : 'bass')) as 'treble' | 'bass'] || CONFIG.pitchRange.treble}
                 measureLayouts={synchronizedLayoutData}
                 baseY={staffBaseY}
                 scale={scale}

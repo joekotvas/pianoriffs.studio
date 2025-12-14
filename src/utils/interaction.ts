@@ -194,11 +194,20 @@ export const calculateNextSelection = (
  * @param {Object} selection - Current selection
  * @param {number} steps - Visual steps to move (positive or negative)
  * @param {string} keySignature - Key signature root
+ * @param {string} clef - Clef for pitch range clamping ('treble' or 'bass')
  * @returns {Object|null} Object containing new measures and the modified event, or null if no change
  */
-export const calculateTransposition = (measures: any[], selection: any, steps: number, keySignature: string = 'C') => {
+export const calculateTransposition = (
+    measures: any[], 
+    selection: any, 
+    steps: number, 
+    keySignature: string = 'C',
+    clef: 'treble' | 'bass' = 'treble'
+) => {
     const { measureIndex, eventId, noteId } = selection;
     if (measureIndex === null || !eventId) return null;
+
+    const pitchRange = CONFIG.pitchRange[clef] || CONFIG.pitchRange.treble;
 
     const newMeasures = [...measures];
     const measure = { ...newMeasures[measureIndex] };
@@ -211,8 +220,8 @@ export const calculateTransposition = (measures: any[], selection: any, steps: n
     const notes = [...event.notes];
     
     const modifyNote = (note: any) => {
-        // Use movePitchVisual instead of calculateNewPitch
-        const newPitch = movePitchVisual(note.pitch, steps, keySignature);
+        // Use movePitchVisual with pitchRange for clamping
+        const newPitch = movePitchVisual(note.pitch, steps, keySignature, pitchRange);
         return { ...note, pitch: newPitch };
     };
 
@@ -244,6 +253,7 @@ export const calculateTransposition = (measures: any[], selection: any, steps: n
  * @param direction - The direction of transposition ('up', 'down')
  * @param isShift - Whether shift key is pressed (octave jump)
  * @param keySignature - The current key signature (default 'C')
+ * @param clef - The clef for pitch range clamping ('treble' or 'bass')
  * @returns An object containing the new measures (if changed), new previewNote (if changed), and audio feedback
  */
 export const calculateTranspositionWithPreview = (
@@ -252,16 +262,19 @@ export const calculateTranspositionWithPreview = (
     previewNote: any,
     direction: string,
     isShift: boolean,
-    keySignature: string = 'C'
+    keySignature: string = 'C',
+    clef: 'treble' | 'bass' = 'treble'
 ) => {
     // Determine steps (Visual Movement)
     // Up = 1, Down = -1. Shift = 7 (Octave)
     let steps = direction === 'up' ? 1 : -1;
     if (isShift) steps *= 7;
 
+    const pitchRange = CONFIG.pitchRange[clef] || CONFIG.pitchRange.treble;
+
     // 1. Handle Preview Note (Ghost Note)
     if (selection.eventId === null && previewNote) {
-        const newPitch = movePitchVisual(previewNote.pitch, steps, keySignature);
+        const newPitch = movePitchVisual(previewNote.pitch, steps, keySignature, pitchRange);
         if (newPitch !== previewNote.pitch) {
             return {
                 previewNote: { ...previewNote, pitch: newPitch },
@@ -272,7 +285,7 @@ export const calculateTranspositionWithPreview = (
     }
 
     // 2. Handle Selection Transposition
-    const result = calculateTransposition(measures, selection, steps, keySignature);
+    const result = calculateTransposition(measures, selection, steps, keySignature, clef);
     
     if (result) {
         const { measures: newMeasures, event } = result;

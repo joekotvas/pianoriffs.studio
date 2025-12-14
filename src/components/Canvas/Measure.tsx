@@ -94,6 +94,7 @@ const Measure: React.FC<MeasureProps> = ({
     activeDuration,
     previewNote,
     selection,
+    pitchRange: layout.pitchRange,
     onHover,
     onAddNote,
   });
