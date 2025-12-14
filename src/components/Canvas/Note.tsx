@@ -193,16 +193,13 @@ const Note = React.memo(({
   const noteX = x + xShift;
   const noteY = baseY + getOffsetForPitch(effectivePitch, clef);
   
-  // Determine color (preview uses accent color, opacity applied via style)
+  // Determine color (preview uses accent color, same as selection)
   const color = overrideColor || (
     isGhost ? theme.accent :
     isSelected ? theme.accent :
     isPreview ? theme.accent :
     theme.score.note
   );
-  
-  // Preview notes get 50% opacity
-  const groupOpacity = isPreview && !isSelected && !isGhost ? 0.5 : 1;
   
   // Dot Y position (move up if on a line)
   const relativeY = noteY - baseY;
@@ -223,7 +220,6 @@ const Note = React.memo(({
   return (
     <g
       className={!isGhost ? "note-group-container" : ""}
-      style={{ opacity: groupOpacity }}
       onMouseEnter={() => handlers?.onMouseEnter?.(note?.id)}
       onMouseLeave={handlers?.onMouseLeave}
     >

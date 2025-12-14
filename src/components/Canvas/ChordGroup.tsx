@@ -72,12 +72,18 @@ const ChordGroup = ({
     [beamSpec, stemX, effectiveDirection, minY, maxY, duration]
   );
 
-  // --- 2. Selection State ---
+  // --- 2. Selection & Lasso Preview State ---
   const isWholeChordSelected = !isGhost && areAllNotesSelected(selection, staffIndex, measureIndex, eventId, notes);
   const isAnyNoteHovered = !isGhost && !isDragging && hoveredNoteId !== null;
   
-  // Color: Ghost/Selected/Hovered -> Accent; Default -> Note Color
-  const groupColor = (isGhost || isWholeChordSelected || isAnyNoteHovered) 
+  // Check if entire chord is in lasso preview (all notes must be in preview)
+  const isWholeChordInLassoPreview = !isGhost && interaction.lassoPreviewIds?.size > 0 && notes.every(note => {
+    const noteKey = `${staffIndex}-${measureIndex}-${eventId}-${note.id}`;
+    return interaction.lassoPreviewIds?.has(noteKey);
+  });
+  
+  // Color: Ghost/Selected/Hovered/LassoPreview -> Accent; Default -> Note Color
+  const groupColor = (isGhost || isWholeChordSelected || isAnyNoteHovered || isWholeChordInLassoPreview) 
     ? theme.accent 
     : theme.score.note;
 

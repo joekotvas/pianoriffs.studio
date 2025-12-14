@@ -190,13 +190,29 @@ const Measure: React.FC<MeasureProps> = ({
       })}
 
       {/* LAYER 3: Beams & Tuplets */}
-      {beamGroups.map((beam, idx) => (
-        <Beam
-          key={`beam-${idx}`}
-          beam={beam}
-          color={isBeamGroupSelected(selection, beam, events, measureIndex) ? theme.accent : theme.score.note}
-        />
-      ))}
+      {beamGroups.map((beam, idx) => {
+        // Check if entire beam group is in lasso preview (all notes must be in preview)
+        const isBeamInLassoPreview = interaction.lassoPreviewIds?.size > 0 && beam.ids.every(eventId => {
+          const ev = events.find(e => e.id === eventId);
+          if (!ev?.notes) return false;
+          return ev.notes.every(n => {
+            const noteKey = `${layout.staffIndex}-${measureIndex}-${eventId}-${n.id}`;
+            return interaction.lassoPreviewIds?.has(noteKey);
+          });
+        });
+        
+        const beamColor = (isBeamGroupSelected(selection, beam, events, measureIndex) || isBeamInLassoPreview) 
+          ? theme.accent 
+          : theme.score.note;
+        
+        return (
+          <Beam
+            key={`beam-${idx}`}
+            beam={beam}
+            color={beamColor}
+          />
+        );
+      })}
 
       {tupletGroups.map((tuplet, idx) => (
         <TupletBracket
