@@ -76,14 +76,20 @@ export const calculateNextSelection = (
     if (selection.eventId === null && previewNote && direction === 'left') {
         const measureIndex = previewNote.measureIndex;
         const measure = measures[measureIndex];
-        if (measure && measure.events.length > 0) {
-            // Select last event of current measure
-            const lastEvent = measure.events[measure.events.length - 1];
-            // For rests, noteId is null; for notes, use first note
-            const noteId = lastEvent.isRest || !lastEvent.notes?.length ? null : lastEvent.notes[0].id;
-            const audio = lastEvent.isRest ? null : { notes: lastEvent.notes, duration: lastEvent.duration, dotted: lastEvent.dotted };
+        // Use previewNote.index - 1 to handle stale measure state after note entry.
+        // After adding a note, the measures array may not yet reflect the new event,
+        // but previewNote.index is correctly updated by addNoteToMeasure.
+        const targetEventIndex = previewNote.index > 0 
+            ? previewNote.index - 1 
+            : (measure?.events?.length ?? 1) - 1;
+        
+        if (measure && targetEventIndex >= 0 && measure.events[targetEventIndex]) {
+            const targetEvent = measure.events[targetEventIndex];
+            // For rests, use first note's id; for notes, use first note
+            const noteId = targetEvent.isRest || !targetEvent.notes?.length ? null : targetEvent.notes[0].id;
+            const audio = targetEvent.isRest ? null : { notes: targetEvent.notes, duration: targetEvent.duration, dotted: targetEvent.dotted };
             return {
-                selection: { staffIndex, measureIndex, eventId: lastEvent.id, noteId },
+                selection: { staffIndex, measureIndex, eventId: targetEvent.id, noteId },
                 previewNote: null,
                 audio
             };
