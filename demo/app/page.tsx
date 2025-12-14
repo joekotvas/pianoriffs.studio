@@ -153,7 +153,7 @@ function ExamplesContent() {
       <footer 
         className="fixed bottom-0 left-0 right-0 p-4 text-center border-t backdrop-blur-sm" 
         style={{ 
-          backgroundColor: `${theme.background}EE`, 
+          backgroundColor: `transparent`, 
           borderColor: theme.border, 
           color: theme.secondaryText 
         }}

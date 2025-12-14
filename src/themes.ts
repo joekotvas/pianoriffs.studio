@@ -10,7 +10,7 @@
 
 export const COLORS = {
   // Slate (Dark/Default)
-  slate800: 'hsla(217, 33%, 18%, 1.00)',
+  slate800: '#1e293b', // Converted from hsla(217, 33%, 18%, 1.00) for hex-alpha compatibility
   slate700: 'hsla(218, 33%, 28%, 1.00)',
   slate600: 'hsla(215, 16%, 38%, 1.00)',
   slate500: 'hsla(215, 16%, 47%, 1.00)',
