@@ -174,7 +174,7 @@ export const useScoreInteraction = ({ scoreRef, selection, onUpdatePitch, onSele
             document.removeEventListener('mouseup', handleMouseUp);
             document.body.style.cursor = 'default';
         };
-    }, [dragState, scoreRef, onUpdatePitch]);
+    }, [dragState, scoreRef, onUpdatePitch, selection]);
 
     return {
         dragState,

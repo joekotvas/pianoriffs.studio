@@ -106,7 +106,7 @@ export const updateNote = (
     updateFn: (note: Note) => boolean | void
 ): Score => {
     return updateEvent(score, staffIndex, measureIndex, eventId, (event) => {
-        const noteIndex = event.notes.findIndex(n => n.id === noteId);
+        const noteIndex = event.notes.findIndex(n => String(n.id) === String(noteId));
         if (noteIndex === -1) return false;
 
         const newNotes = [...event.notes];
