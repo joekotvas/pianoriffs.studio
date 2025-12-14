@@ -125,7 +125,8 @@ export const useNavigation = ({
     
     // --- 4. Handle Side Effects ---
     if (navResult.previewNote !== undefined) {
-        setPreviewNote(navResult.previewNote);
+        // Mark as keyboard-triggered so auto-scroll follows it
+        setPreviewNote(navResult.previewNote ? { ...navResult.previewNote, source: 'keyboard' } : null);
     }
 
     if (navResult.shouldCreateMeasure) {
@@ -159,7 +160,7 @@ export const useNavigation = ({
         );
         
         if (previewResult?.previewNote) {
-            setPreviewNote(previewResult.previewNote);
+            setPreviewNote({ ...previewResult.previewNote, source: 'keyboard' });
             if (previewResult.audio) playAudioFeedback(previewResult.audio.notes);
         }
         return;
@@ -201,7 +202,7 @@ export const useNavigation = ({
                 crossResult.selection.staffIndex
             );
             
-            setPreviewNote(crossResult.previewNote || null);
+            setPreviewNote(crossResult.previewNote ? { ...crossResult.previewNote, source: 'keyboard' } : null);
 
             // Play audio if we landed on a real note
             if (crossResult.selection.eventId) {

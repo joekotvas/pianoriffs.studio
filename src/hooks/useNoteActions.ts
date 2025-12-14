@@ -144,7 +144,8 @@ export const useNoteActions = ({
       mode: targetMode,
       index: targetIndex,
       eventId: hit.type === 'EVENT' ? hit.eventId : undefined,
-      isRest: inputMode === 'REST'
+      isRest: inputMode === 'REST',
+      source: 'hover' as const  // Mark as hover-triggered for auto-scroll filtering
     };
     
     // Only update if preview actually changed to avoid flickering
@@ -286,8 +287,13 @@ export const useNoteActions = ({
         );
 
         if (nextPreview.quant >= currentQuantsPerMeasure) {
+             const nextMeasureIndex = measureIndex + 1;
+             // Create new measure if it doesn't exist
+             if (nextMeasureIndex >= currentStaffData.measures.length) {
+                 dispatch(new AddMeasureCommand());
+             }
              setPreviewNote({
-                 measureIndex: measureIndex + 1,
+                 measureIndex: nextMeasureIndex,
                  staffIndex: currentStaffIndex,
                  quant: 0,
                  visualQuant: 0,
@@ -295,10 +301,11 @@ export const useNoteActions = ({
                  duration: activeDuration,
                  dotted: isDotted,
                  mode: 'APPEND',
-                 index: 0
+                 index: 0,
+                 source: 'keyboard' as const  // Entry-triggered, should scroll
              });
         } else {
-             setPreviewNote(nextPreview);
+             setPreviewNote({ ...nextPreview, source: 'keyboard' as const });
         }
         return;
     }
