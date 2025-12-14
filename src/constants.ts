@@ -54,30 +54,54 @@ export interface KeySignature {
   type: 'sharp' | 'flat';
   count: number;
   accidentals: string[];
+  mode: 'major' | 'minor';
+  tonic: string;
 }
 
-const SHARPS = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
-const FLATS  = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
+const SHARPS_ORDER = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
+const FLATS_ORDER  = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
 
+// All 15 key signature groups: C (no accidentals), 7 sharps, 7 flats
+// Each major key has a relative minor with the same accidentals
+// Keys are named distinctly: 'C' = C Major, 'Am' = A minor
 const MAJOR_ROOTS = [
-  'C',
-  'G', 'D', 'A', 'E', 'B', 'F#', 'C#',  // Sharp Keys
-  'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb' // Flat Keys
+  'C',                                       // No accidentals
+  'G', 'D', 'A', 'E', 'B', 'F#', 'C#',       // Sharp Keys
+  'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'   // Flat Keys
 ];
 
 export const KEY_SIGNATURES: Record<string, KeySignature> = {};
 
-MAJOR_ROOTS.forEach(root => {
-  const keyInfo = Key.majorKey(root);
-  const count = Math.abs(keyInfo.alteration);
-  const type: 'sharp' | 'flat' = keyInfo.alteration < 0 ? 'flat' : 'sharp';
+// Generate all key signatures using Tonal.js
+MAJOR_ROOTS.forEach(majorRoot => {
+  const majorInfo = Key.majorKey(majorRoot);
+  const count = Math.abs(majorInfo.alteration);
+  const type: 'sharp' | 'flat' = majorInfo.alteration < 0 ? 'flat' : 'sharp';
   const accidentals = type === 'flat' 
-    ? FLATS.slice(0, count) 
-    : SHARPS.slice(0, count);
+    ? FLATS_ORDER.slice(0, count) 
+    : SHARPS_ORDER.slice(0, count);
 
-  KEY_SIGNATURES[root] = { label: `${root} Major`, type, count, accidentals };
-  KEY_SIGNATURES[keyInfo.minorRelative] = { 
-    label: `${keyInfo.minorRelative} Minor`, type, count, accidentals 
+  // Major key: stored as root name (e.g., 'G', 'Bb')
+  KEY_SIGNATURES[majorRoot] = { 
+    label: `${majorRoot} Major`, 
+    type, 
+    count, 
+    accidentals,
+    mode: 'major',
+    tonic: majorRoot
+  };
+  
+  // Minor key: stored with 'm' suffix (e.g., 'Em', 'Gm')
+  // Use the relative minor from Tonal.js
+  const minorRoot = majorInfo.minorRelative;
+  const minorKey = `${minorRoot}m`;
+  KEY_SIGNATURES[minorKey] = { 
+    label: `${minorRoot} minor`, 
+    type, 
+    count, 
+    accidentals,
+    mode: 'minor',
+    tonic: minorRoot
   };
 });
 
