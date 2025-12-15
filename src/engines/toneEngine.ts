@@ -79,6 +79,7 @@ const SYNTH_PRESETS = {
 
 // --- STATE ---
 
+// Mutable registry of synth instances. Properties are added dynamically as instruments are loaded.
 const synths: Record<string, Tone.PolySynth> = {};
 let sampler: Tone.Sampler | null = null;
 let currentPart: Tone.Part | null = null;
