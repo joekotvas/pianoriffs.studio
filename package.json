@@ -1,6 +1,6 @@
 {
   "name": "riffscore",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "description": "An intuitive, embeddable sheet music editor for React",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -70,10 +70,14 @@
     "editor",
     "component"
   ],
-  "author": "",
+  "author": "Joseph Kotvas",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/joekotvas/RiffScore.git"
+  },
+  "homepage": "https://github.com/joekotvas/RiffScore#readme",
+  "bugs": {
+    "url": "https://github.com/joekotvas/RiffScore/issues"
   }
 }
