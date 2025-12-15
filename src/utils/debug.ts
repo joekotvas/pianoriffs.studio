@@ -4,12 +4,12 @@ export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
-  ERROR = 3
+  ERROR = 3,
 }
 
 export class DebugLogger {
   private static instance: DebugLogger;
-  
+
   private constructor() {}
 
   public static getInstance(): DebugLogger {
@@ -69,11 +69,11 @@ export class DebugLogger {
       this.log(`STATE CHANGE: ${oldStateHash} -> ${newStateHash}`, undefined, LogLevel.DEBUG);
     }
   }
-  
+
   public logValidationFailure(reason: string, context?: any) {
-      if (CONFIG.debug?.logValidation) {
-          this.log(`VALIDATION FAILED: ${reason}`, context, LogLevel.ERROR);
-      }
+    if (CONFIG.debug?.logValidation) {
+      this.log(`VALIDATION FAILED: ${reason}`, context, LogLevel.ERROR);
+    }
   }
 }
 

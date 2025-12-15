@@ -1,9 +1,9 @@
 export interface Note {
-  pitch: string | null;  // null for rest notes
+  pitch: string | null; // null for rest notes
   tied?: boolean;
   id: string | number;
   accidental?: string | null;
-  isRest?: boolean;      // True for rest notes
+  isRest?: boolean; // True for rest notes
 }
 
 export interface ScoreEvent {
@@ -67,7 +67,6 @@ export interface TupletBracketGroup {
   direction: 'up' | 'down';
   number: number;
 }
-
 
 export interface HeaderLayout {
   keySigStartX: number;

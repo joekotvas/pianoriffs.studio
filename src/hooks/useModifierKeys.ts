@@ -14,7 +14,7 @@ export function useModifierKeys() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!e.metaKey && !e.ctrlKey) setModifierHeld(false);
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     return () => {

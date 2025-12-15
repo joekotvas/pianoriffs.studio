@@ -16,29 +16,31 @@ jest.mock('../engines/toneEngine', () => ({
   initTone: (...args: any[]) => mockInitTone(...args),
   scheduleTonePlayback: (...args: any[]) => mockScheduleTonePlayback(...args),
   stopTonePlayback: () => mockStopTonePlayback(),
-  getState: () => mockGetState()
+  getState: () => mockGetState(),
 }));
 
 // Mock TimelineService
 const mockCreateTimeline = jest.fn().mockReturnValue([
   { measureIndex: 0, quant: 0, time: 0, notes: [{ pitch: 'C4' }] },
   { measureIndex: 0, quant: 16, time: 0.5, notes: [{ pitch: 'D4' }] },
-  { measureIndex: 1, quant: 0, time: 1.0, notes: [{ pitch: 'E4' }] }
+  { measureIndex: 1, quant: 0, time: 1.0, notes: [{ pitch: 'E4' }] },
 ]);
 
 jest.mock('../services/TimelineService', () => ({
-  createTimeline: (...args: any[]) => mockCreateTimeline(...args)
+  createTimeline: (...args: any[]) => mockCreateTimeline(...args),
 }));
 
 describe('usePlayback', () => {
   const createMockScore = () => ({
-    staves: [{
-      clef: 'treble',
-      measures: [
-        { events: [{ id: 'e1', notes: [{ pitch: 'C4' }], duration: 'quarter' }] },
-        { events: [{ id: 'e2', notes: [{ pitch: 'D4' }], duration: 'quarter' }] }
-      ]
-    }]
+    staves: [
+      {
+        clef: 'treble',
+        measures: [
+          { events: [{ id: 'e1', notes: [{ pitch: 'C4' }], duration: 'quarter' }] },
+          { events: [{ id: 'e2', notes: [{ pitch: 'D4' }], duration: 'quarter' }] },
+        ],
+      },
+    ],
   });
 
   beforeEach(() => {
@@ -60,7 +62,7 @@ describe('usePlayback', () => {
       expect(result.current.playbackPosition).toEqual({
         measureIndex: null,
         quant: null,
-        duration: 0
+        duration: 0,
       });
     });
 
@@ -70,7 +72,7 @@ describe('usePlayback', () => {
 
       expect(result.current.lastPlayStart).toEqual({
         measureIndex: 0,
-        quant: 0
+        quant: 0,
       });
     });
   });
@@ -120,9 +122,9 @@ describe('usePlayback', () => {
 
       expect(mockScheduleTonePlayback).toHaveBeenCalled();
       const scheduledArgs = mockScheduleTonePlayback.mock.calls[0];
-      expect(scheduledArgs[0]).toEqual(expect.arrayContaining([
-        expect.objectContaining({ measureIndex: 0 })
-      ]));
+      expect(scheduledArgs[0]).toEqual(
+        expect.arrayContaining([expect.objectContaining({ measureIndex: 0 })])
+      );
     });
 
     it('should update lastPlayStart when starting from specific position', async () => {
@@ -135,7 +137,7 @@ describe('usePlayback', () => {
 
       expect(result.current.lastPlayStart).toEqual({
         measureIndex: 1,
-        quant: 16
+        quant: 16,
       });
     });
 
@@ -203,7 +205,7 @@ describe('usePlayback', () => {
       expect(result.current.playbackPosition).toEqual({
         measureIndex: null,
         quant: null,
-        duration: 0
+        duration: 0,
       });
     });
   });
@@ -258,7 +260,7 @@ describe('usePlayback', () => {
       expect(result.current.playbackPosition).toEqual({
         measureIndex: 0,
         quant: 16,
-        duration: 0.5
+        duration: 0.5,
       });
     });
 
@@ -282,7 +284,7 @@ describe('usePlayback', () => {
       expect(result.current.playbackPosition).toEqual({
         measureIndex: null,
         quant: null,
-        duration: 0
+        duration: 0,
       });
     });
   });
@@ -331,10 +333,9 @@ describe('usePlayback', () => {
 
     it('should handle BPM changes', () => {
       const score = createMockScore();
-      const { result, rerender } = renderHook(
-        ({ bpm }) => usePlayback(score, bpm),
-        { initialProps: { bpm: 120 } }
-      );
+      const { result, rerender } = renderHook(({ bpm }) => usePlayback(score, bpm), {
+        initialProps: { bpm: 120 },
+      });
 
       // BPM change should update the hook dependencies
       rerender({ bpm: 140 });

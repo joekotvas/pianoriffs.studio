@@ -31,29 +31,29 @@ export class ScoreEngine {
       logger.logValidationFailure('Attempted to set invalid state in ScoreEngine', newState);
       return;
     }
-    
+
     this.state = newState;
     this.notifyListeners();
   }
 
   public dispatch(command: Command) {
     logger.logCommand(command.type, command);
-    
-    try {
-        const newState = command.execute(this.state);
-        
-        if (!newState || !newState.staves) {
-            logger.logValidationFailure(`Command ${command.type} returned invalid state`, newState);
-            // Don't update state if invalid
-            return;
-        }
 
-        this.history.push(command);
-        this.redoStack = []; // Clear redo stack on new action
-        this.setState(newState);
+    try {
+      const newState = command.execute(this.state);
+
+      if (!newState || !newState.staves) {
+        logger.logValidationFailure(`Command ${command.type} returned invalid state`, newState);
+        // Don't update state if invalid
+        return;
+      }
+
+      this.history.push(command);
+      this.redoStack = []; // Clear redo stack on new action
+      this.setState(newState);
     } catch (error) {
-        logger.log(`Error executing command ${command.type}`, error, LogLevel.ERROR);
-        console.error(error);
+      logger.log(`Error executing command ${command.type}`, error, LogLevel.ERROR);
+      console.error(error);
     }
   }
 
@@ -83,6 +83,6 @@ export class ScoreEngine {
   }
 
   private notifyListeners() {
-    this.listeners.forEach(listener => listener(this.state));
+    this.listeners.forEach((listener) => listener(this.state));
   }
 }

@@ -11,14 +11,14 @@ export class UpdateTitleCommand implements Command {
     this.previousTitle = score.title;
     return {
       ...score,
-      title: this.newTitle
+      title: this.newTitle,
     };
   }
 
   undo(score: Score): Score {
     return {
       ...score,
-      title: this.previousTitle
+      title: this.previousTitle,
     };
   }
 }

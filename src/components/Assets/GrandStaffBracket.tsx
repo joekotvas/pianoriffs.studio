@@ -9,7 +9,7 @@ interface GrandStaffBracketProps {
 
 const GrandStaffBracket: React.FC<GrandStaffBracketProps> = ({ topY, bottomY, x = 0 }) => {
   const { theme } = useTheme();
-  
+
   const height = bottomY - topY;
 
   // Render nothing if heights are invalid
@@ -33,14 +33,7 @@ const GrandStaffBracket: React.FC<GrandStaffBracketProps> = ({ topY, bottomY, x 
           fill={theme.secondaryText}
         />
       </svg>
-      <line
-        x1={20}
-        y1={topY}
-        x2={20}
-        y2={bottomY}
-        stroke={theme.secondaryText}
-        strokeWidth="1"
-      />
+      <line x1={20} y1={topY} x2={20} y2={bottomY} stroke={theme.secondaryText} strokeWidth="1" />
     </g>
   );
 };

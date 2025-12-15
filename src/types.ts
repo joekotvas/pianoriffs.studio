@@ -2,7 +2,7 @@ import { ThemeName } from './themes';
 
 /**
  * Type definitions for the Sheet Music Editor
- * 
+ *
  * This file defines the data model for scores, staves, measures, events, and notes.
  * The model supports multiple staves for Grand Staff rendering.
  */
@@ -11,26 +11,26 @@ import { ThemeName } from './themes';
 
 export interface Note {
   id: string | number;
-  pitch: string | null;     // e.g., 'C4', 'D#5', 'Bb3', or null for rests
+  pitch: string | null; // e.g., 'C4', 'D#5', 'Bb3', or null for rests
   accidental?: 'sharp' | 'flat' | 'natural' | null;
-  tied?: boolean;           // Tied to next note
-  isRest?: boolean;         // True for rest notes (pitchless)
+  tied?: boolean; // Tied to next note
+  isRest?: boolean; // True for rest notes (pitchless)
 }
 
 // ========== EVENT ==========
 
 export interface ScoreEvent {
   id: string | number;
-  duration: string;       // 'whole', 'half', 'quarter', etc.
+  duration: string; // 'whole', 'half', 'quarter', etc.
   dotted: boolean;
-  notes: Note[];          // Multiple notes = chord
+  notes: Note[]; // Multiple notes = chord
   isRest?: boolean;
   tuplet?: {
-    ratio: [number, number];  // e.g., [3, 2] for triplet (3 notes in space of 2)
-    groupSize: number;         // Total notes in tuplet group (e.g., 3 for triplet)
-    position: number;          // Position within tuplet (0, 1, 2 for triplet)
-    baseDuration?: string;     // Base duration of the tuplet (e.g., 'eighth' for eighth note triplet)
-    id?: string;               // Unique ID for the tuplet group
+    ratio: [number, number]; // e.g., [3, 2] for triplet (3 notes in space of 2)
+    groupSize: number; // Total notes in tuplet group (e.g., 3 for triplet)
+    position: number; // Position within tuplet (0, 1, 2 for triplet)
+    baseDuration?: string; // Base duration of the tuplet (e.g., 'eighth' for eighth note triplet)
+    id?: string; // Unique ID for the tuplet group
   };
 }
 
@@ -47,7 +47,7 @@ export interface Measure {
 export interface Staff {
   id: string | number;
   clef: 'treble' | 'bass' | 'grand';
-  keySignature: string;   // e.g., 'C', 'G', 'F', 'Bb'
+  keySignature: string; // e.g., 'C', 'G', 'F', 'Bb'
   measures: Measure[];
 }
 
@@ -55,8 +55,8 @@ export interface Staff {
 
 export interface Score {
   title: string;
-  timeSignature: string;  // Shared across staves (e.g., '4/4', '3/4')
-  keySignature: string;   // Shared across staves (e.g., 'C', 'G')
+  timeSignature: string; // Shared across staves (e.g., '4/4', '3/4')
+  keySignature: string; // Shared across staves (e.g., 'C', 'G')
   bpm: number;
   staves: Staff[];
 }
@@ -78,8 +78,8 @@ export const createDefaultScore = (): Score => ({
       keySignature: 'C',
       measures: [
         { id: 'm1', events: [] },
-        { id: 'm2', events: [] }
-      ]
+        { id: 'm2', events: [] },
+      ],
     },
     {
       id: 'staff-2',
@@ -87,10 +87,10 @@ export const createDefaultScore = (): Score => ({
       keySignature: 'C',
       measures: [
         { id: 'm1-bass', events: [] },
-        { id: 'm2-bass', events: [] }
-      ]
-    }
-  ]
+        { id: 'm2-bass', events: [] },
+      ],
+    },
+  ],
 });
 
 /**
@@ -111,10 +111,10 @@ export const migrateScore = (oldScore: any): Score => {
     // Sync any top-level legacy fields back to staves[0]
     // This handles the case where code does: setScore({ ...score, measures: newMeasures })
     const result = { ...oldScore };
-    
+
     // Ensure Score has keySignature
     if (!result.keySignature) {
-        result.keySignature = result.staves[0]?.keySignature || 'C';
+      result.keySignature = result.staves[0]?.keySignature || 'C';
     }
 
     if (result.staves[0]) {
@@ -132,17 +132,17 @@ export const migrateScore = (oldScore: any): Score => {
       if (oldScore.clef && oldScore.clef !== result.staves[0].clef) {
         updatedStaff.clef = oldScore.clef;
       }
-      
+
       // Sync timeSignature from staff to score if score is missing it (common in imported melodies)
       if (!result.timeSignature && updatedStaff.timeSignature) {
         result.timeSignature = updatedStaff.timeSignature;
       }
-      
+
       result.staves = [updatedStaff, ...result.staves.slice(1)];
     }
     return result as Score;
   }
-  
+
   // Migrate legacy single-staff format (no staves array)
   return {
     title: oldScore.title || 'Composition',
@@ -154,9 +154,12 @@ export const migrateScore = (oldScore: any): Score => {
         id: 'staff-1',
         clef: oldScore.clef || 'treble',
         keySignature: oldScore.keySignature || 'C',
-        measures: oldScore.measures || [{ id: 'm1', events: [] }, { id: 'm2', events: [] }]
-      }
-    ]
+        measures: oldScore.measures || [
+          { id: 'm1', events: [] },
+          { id: 'm2', events: [] },
+        ],
+      },
+    ],
   };
 };
 
@@ -175,21 +178,23 @@ export interface Melody {
  * Supports Grand Staff by tracking which staff is selected.
  */
 export interface Selection {
-  staffIndex: number;           // Index of the selected staff (0 for single staff, 0 or 1 for Grand Staff)
-  measureIndex: number | null;  // Index of the selected measure
-  eventId: string | number | null;  // ID of the selected event
-  noteId: string | number | null;   // ID of the selected note (for chords)
-  selectedNotes: Array<{           // List of all selected notes (including the primary one above)
-      staffIndex: number;
-      measureIndex: number;
-      eventId: string | number;
-      noteId: string | number | null;
+  staffIndex: number; // Index of the selected staff (0 for single staff, 0 or 1 for Grand Staff)
+  measureIndex: number | null; // Index of the selected measure
+  eventId: string | number | null; // ID of the selected event
+  noteId: string | number | null; // ID of the selected note (for chords)
+  selectedNotes: Array<{
+    // List of all selected notes (including the primary one above)
+    staffIndex: number;
+    measureIndex: number;
+    eventId: string | number;
+    noteId: string | number | null;
   }>;
-  anchor?: {                       // The static "anchor" point for range selection
-      staffIndex: number;
-      measureIndex: number;
-      eventId: string | number;
-      noteId: string | number | null;
+  anchor?: {
+    // The static "anchor" point for range selection
+    staffIndex: number;
+    measureIndex: number;
+    eventId: string | number;
+    noteId: string | number | null;
   } | null;
 }
 
@@ -202,7 +207,7 @@ export const createDefaultSelection = (): Selection => ({
   eventId: null,
   noteId: null,
   selectedNotes: [],
-  anchor: null
+  anchor: null,
 });
 
 // ========== RIFFSCORE CONFIG ==========
@@ -238,7 +243,7 @@ export interface RiffScoreConfig {
     theme?: ThemeName;
   };
   interaction: {
-    isEnabled: boolean;      // Master switch for all interactions
+    isEnabled: boolean; // Master switch for all interactions
     enableKeyboard: boolean;
     enablePlayback: boolean;
   };
@@ -247,11 +252,11 @@ export interface RiffScoreConfig {
     bpm: number;
     timeSignature: string;
     keySignature: string;
-    
+
     // Generator Mode Options
     staff?: StaffTemplate;
     measureCount?: number;
-    
+
     // Explicit Content (Overrides Generator Options)
     staves?: Staff[];
   };

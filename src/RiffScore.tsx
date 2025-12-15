@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * RiffScore Component
- * 
+ *
  * Configurable React component for rendering and interacting with musical scores.
  * Supports two modes:
  * - Generator Mode: Create blank scores from templates (staff + measureCount)
@@ -25,17 +25,20 @@ interface RiffScoreProps {
 const RiffScoreInner: React.FC<RiffScoreProps> = ({ config: userConfig }) => {
   const { config, initialScore } = useRiffScore(userConfig);
   const { theme } = useTheme();
-  
+
   // Container style for interaction master switch
-  const containerStyle = useMemo(() => ({
-    pointerEvents: config.interaction.isEnabled ? 'auto' : 'none',
-    userSelect: 'none' as const,
-  }), [config.interaction.isEnabled]);
+  const containerStyle = useMemo(
+    () => ({
+      pointerEvents: config.interaction.isEnabled ? 'auto' : 'none',
+      userSelect: 'none' as const,
+    }),
+    [config.interaction.isEnabled]
+  );
 
   return (
     <div className="RiffScore" style={containerStyle}>
       <ScoreProvider initialScore={initialScore}>
-        <ScoreEditorContent 
+        <ScoreEditorContent
           scale={config.ui.scale}
           showToolbar={config.ui.showToolbar}
           enableKeyboard={config.interaction.enableKeyboard}
@@ -48,15 +51,15 @@ const RiffScoreInner: React.FC<RiffScoreProps> = ({ config: userConfig }) => {
 
 /**
  * RiffScore - Configurable Music Notation Editor
- * 
+ *
  * @example
  * // Generator Mode - Create blank grand staff with 4 measures
  * <RiffScore config={{ score: { staff: 'grand', measureCount: 4 } }} />
- * 
+ *
  * @example
  * // Render Mode - Load existing composition
  * <RiffScore config={{ score: { staves: myStaves } }} />
- * 
+ *
  * @example
  * // Disable all interaction (read-only display)
  * <RiffScore config={{ interaction: { isEnabled: false } }} />

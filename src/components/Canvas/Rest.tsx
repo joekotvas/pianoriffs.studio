@@ -28,7 +28,7 @@ interface RestProps {
 const getRestY = (duration: string, baseY: number): number => {
   const lineHeight = CONFIG.lineHeight;
   const staffMiddle = baseY + lineHeight * 2;
-  
+
   switch (duration) {
     case 'whole':
       return baseY + lineHeight;
@@ -51,30 +51,30 @@ export const Rest: React.FC<RestProps> = ({
   isSelected = false,
   isGhost = false,
   onClick,
-  eventId
+  eventId,
 }) => {
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const glyph = REST_GLYPHS[duration];
   if (!glyph) {
     console.warn(`Unknown rest duration: ${duration}`);
     return null;
   }
-  
+
   // Color: accent for ghost/selected/hovered, normal otherwise
   const showHighlight = isGhost || isSelected || (isHovered && onClick);
   const color = showHighlight ? theme.accent : theme.score.note;
   const finalX = x > 0 ? x : CONFIG.measurePaddingLeft;
   const restY = getRestY(duration, baseY);
   const fontSize = getFontSize(CONFIG.lineHeight);
-  
+
   // Hit area dimensions - span full staff height for easier clicking
-  const hitAreaWidth = 30;  // Wide enough to cover rest glyph
+  const hitAreaWidth = 30; // Wide enough to cover rest glyph
   const staffHeight = CONFIG.lineHeight * 4; // 5 lines = 4 gaps
-  const hitAreaTop = baseY;  // Start at first staff line
+  const hitAreaTop = baseY; // Start at first staff line
   const hitAreaHeight = staffHeight;
-  
+
   const renderDot = () => {
     if (!dotted) return null;
     const dotX = finalX + fontSize * 0.4;
@@ -93,10 +93,10 @@ export const Rest: React.FC<RestProps> = ({
       </text>
     );
   };
-  
+
   return (
-    <g 
-      className="Rest rest-group" 
+    <g
+      className="Rest rest-group"
       data-selected={isSelected}
       data-testid={eventId ? `rest-${eventId}` : undefined}
       style={{ opacity: isGhost ? 0.5 : 1 }}
@@ -116,7 +116,7 @@ export const Rest: React.FC<RestProps> = ({
           onMouseLeave={() => setIsHovered(false)}
         />
       )}
-      
+
       {/* Rest glyph */}
       <text
         x={finalX}

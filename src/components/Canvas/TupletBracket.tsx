@@ -5,9 +5,9 @@ import { TUPLET } from '@/constants';
 interface TupletBracketProps {
   startX: number;
   endX: number;
-  startY: number;         // Y position at start
-  endY: number;           // Y position at end
-  number: number;         // e.g., 3, 5, 7
+  startY: number; // Y position at start
+  endY: number; // Y position at end
+  number: number; // e.g., 3, 5, 7
   direction: 'up' | 'down';
 }
 
@@ -22,21 +22,21 @@ const TupletBracket: React.FC<TupletBracketProps> = ({
   startY,
   endY,
   number,
-  direction
+  direction,
 }) => {
   const { theme } = useTheme();
 
   const bracketHeight = TUPLET.HOOK_HEIGHT;
   const numberFontSize = TUPLET.NUMBER_FONT_SIZE;
-  
+
   // Draw bracket as a path
-  //  Up:    |---|  
+  //  Up:    |---|
   //           3
   //  Down:    3
   //         |---|
-  
+
   const hookLength = direction === 'up' ? bracketHeight : -bracketHeight;
-  
+
   // Calculate path with slope
   const path = `
     M ${startX} ${startY + hookLength}
@@ -47,20 +47,16 @@ const TupletBracket: React.FC<TupletBracketProps> = ({
 
   const centerX = (startX + endX) / 2;
   const centerY = (startY + endY) / 2;
-  
+
   // Position text relative to the center of the bracket line
-  const textY = direction === 'up' ? centerY + TUPLET.NUMBER_OFFSET_UP : centerY + TUPLET.NUMBER_OFFSET_DOWN;
+  const textY =
+    direction === 'up' ? centerY + TUPLET.NUMBER_OFFSET_UP : centerY + TUPLET.NUMBER_OFFSET_DOWN;
 
   return (
     <g className="tuplet-bracket">
       {/* Bracket line */}
-      <path
-        d={path}
-        stroke={theme.score.note}
-        strokeWidth="1"
-        fill="none"
-      />
-      
+      <path d={path} stroke={theme.score.note} strokeWidth="1" fill="none" />
+
       {/* Number label */}
       <text
         x={centerX}

@@ -12,11 +12,10 @@ import {
   isNoteEvent,
   getFirstNoteId,
   navigateSelection,
-  reflowScore
+  reflowScore,
 } from '@/utils/core';
 
 describe('core.ts utilities', () => {
-  
   // ---------------------------------------------------
   // getNoteDuration
   // ---------------------------------------------------
@@ -32,14 +31,14 @@ describe('core.ts utilities', () => {
 
     it('should add 50% for dotted notes', () => {
       expect(getNoteDuration('quarter', true)).toBe(24); // 16 * 1.5
-      expect(getNoteDuration('half', true)).toBe(48);    // 32 * 1.5
-      expect(getNoteDuration('eighth', true)).toBe(12);  // 8 * 1.5
+      expect(getNoteDuration('half', true)).toBe(48); // 32 * 1.5
+      expect(getNoteDuration('eighth', true)).toBe(12); // 8 * 1.5
     });
 
     it('should apply tuplet ratio correctly', () => {
       // Triplet: 3 notes in space of 2
       expect(getNoteDuration('quarter', false, { ratio: [3, 2] })).toBeCloseTo(10.67, 1); // 16 * 2/3
-      
+
       // Quintuplet: 5 notes in space of 4
       expect(getNoteDuration('eighth', false, { ratio: [5, 4] })).toBeCloseTo(6.4, 1); // 8 * 4/5
     });
@@ -67,7 +66,7 @@ describe('core.ts utilities', () => {
       const events = [
         { duration: 'quarter', dotted: false },
         { duration: 'quarter', dotted: false },
-        { duration: 'half', dotted: false }
+        { duration: 'half', dotted: false },
       ];
       // 16 + 16 + 32 = 64
       expect(calculateTotalQuants(events)).toBe(64);
@@ -76,7 +75,7 @@ describe('core.ts utilities', () => {
     it('should handle dotted notes correctly', () => {
       const events = [
         { duration: 'quarter', dotted: true },
-        { duration: 'eighth', dotted: false }
+        { duration: 'eighth', dotted: false },
       ];
       // 24 + 8 = 32
       expect(calculateTotalQuants(events)).toBe(32);
@@ -86,7 +85,7 @@ describe('core.ts utilities', () => {
       const events = [
         { duration: 'quarter', dotted: false, tuplet: { ratio: [3, 2] } },
         { duration: 'quarter', dotted: false, tuplet: { ratio: [3, 2] } },
-        { duration: 'quarter', dotted: false, tuplet: { ratio: [3, 2] } }
+        { duration: 'quarter', dotted: false, tuplet: { ratio: [3, 2] } },
       ];
       // Each is ~10.67 quants, total ~32 (fits in half note space)
       expect(calculateTotalQuants(events)).toBeCloseTo(32, 0);
@@ -195,15 +194,15 @@ describe('core.ts utilities', () => {
         events: [
           { id: 'e1', notes: [{ id: 'n1', pitch: 'C4' }] },
           { id: 'e2', notes: [{ id: 'n2', pitch: 'D4' }] },
-          { id: 'e3', notes: [{ id: 'n3', pitch: 'E4' }] }
-        ]
+          { id: 'e3', notes: [{ id: 'n3', pitch: 'E4' }] },
+        ],
       },
       {
         events: [
           { id: 'e4', notes: [{ id: 'n4', pitch: 'F4' }] },
-          { id: 'e5', notes: [{ id: 'n5', pitch: 'G4' }] }
-        ]
-      }
+          { id: 'e5', notes: [{ id: 'n5', pitch: 'G4' }] },
+        ],
+      },
     ];
 
     it('should navigate right within measure', () => {
@@ -261,47 +260,59 @@ describe('core.ts utilities', () => {
 
     describe('chord navigation (up/down)', () => {
       it('should navigate up within chord', () => {
-        const measures = [{
-          events: [{
-            id: 'chord1',
-            notes: [
-              { id: 'low', pitch: 'C4' },
-              { id: 'mid', pitch: 'E4' },
-              { id: 'high', pitch: 'G4' }
-            ]
-          }]
-        }];
+        const measures = [
+          {
+            events: [
+              {
+                id: 'chord1',
+                notes: [
+                  { id: 'low', pitch: 'C4' },
+                  { id: 'mid', pitch: 'E4' },
+                  { id: 'high', pitch: 'G4' },
+                ],
+              },
+            ],
+          },
+        ];
         const selection = { measureIndex: 0, eventId: 'chord1', noteId: 'low' };
         const result = navigateSelection(measures, selection, 'up');
         expect(result.noteId).toBe('mid');
       });
 
       it('should navigate down within chord', () => {
-        const measures = [{
-          events: [{
-            id: 'chord1',
-            notes: [
-              { id: 'low', pitch: 'C4' },
-              { id: 'mid', pitch: 'E4' },
-              { id: 'high', pitch: 'G4' }
-            ]
-          }]
-        }];
+        const measures = [
+          {
+            events: [
+              {
+                id: 'chord1',
+                notes: [
+                  { id: 'low', pitch: 'C4' },
+                  { id: 'mid', pitch: 'E4' },
+                  { id: 'high', pitch: 'G4' },
+                ],
+              },
+            ],
+          },
+        ];
         const selection = { measureIndex: 0, eventId: 'chord1', noteId: 'high' };
         const result = navigateSelection(measures, selection, 'down');
         expect(result.noteId).toBe('mid');
       });
 
       it('should not navigate past top of chord', () => {
-        const measures = [{
-          events: [{
-            id: 'chord1',
-            notes: [
-              { id: 'low', pitch: 'C4' },
-              { id: 'high', pitch: 'G4' }
-            ]
-          }]
-        }];
+        const measures = [
+          {
+            events: [
+              {
+                id: 'chord1',
+                notes: [
+                  { id: 'low', pitch: 'C4' },
+                  { id: 'high', pitch: 'G4' },
+                ],
+              },
+            ],
+          },
+        ];
         const selection = { measureIndex: 0, eventId: 'chord1', noteId: 'high' };
         const result = navigateSelection(measures, selection, 'up');
         expect(result.noteId).toBe('high'); // unchanged
@@ -327,17 +338,19 @@ describe('core.ts utilities', () => {
     });
 
     it('should preserve events in a single full measure', () => {
-      const measures = [{
-        id: 1,
-        events: [
-          { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] },
-          { id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }] },
-          { id: 'e3', duration: 'quarter', dotted: false, notes: [{ id: 'n3', pitch: 'E4' }] },
-          { id: 'e4', duration: 'quarter', dotted: false, notes: [{ id: 'n4', pitch: 'F4' }] }
-        ],
-        isPickup: false
-      }];
-      
+      const measures = [
+        {
+          id: 1,
+          events: [
+            { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] },
+            { id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }] },
+            { id: 'e3', duration: 'quarter', dotted: false, notes: [{ id: 'n3', pitch: 'E4' }] },
+            { id: 'e4', duration: 'quarter', dotted: false, notes: [{ id: 'n4', pitch: 'F4' }] },
+          ],
+          isPickup: false,
+        },
+      ];
+
       const result = reflowScore(measures, '4/4');
       expect(result).toHaveLength(1);
       expect(result[0].events).toHaveLength(4);
@@ -345,30 +358,36 @@ describe('core.ts utilities', () => {
 
     it('should split overflowing measures', () => {
       // 6 quarters = 96 quants, needs 2 measures in 4/4 (64 quants each)
-      const measures = [{
-        id: 1,
-        events: Array(6).fill(null).map((_, i) => ({
-          id: `e${i}`,
-          duration: 'quarter',
-          dotted: false,
-          notes: [{ id: `n${i}`, pitch: 'C4' }]
-        })),
-        isPickup: false
-      }];
-      
+      const measures = [
+        {
+          id: 1,
+          events: Array(6)
+            .fill(null)
+            .map((_, i) => ({
+              id: `e${i}`,
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: `n${i}`, pitch: 'C4' }],
+            })),
+          isPickup: false,
+        },
+      ];
+
       const result = reflowScore(measures, '4/4');
       expect(result.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should preserve pickup measure flag', () => {
-      const measures = [{
-        id: 1,
-        events: [
-          { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] }
-        ],
-        isPickup: true
-      }];
-      
+      const measures = [
+        {
+          id: 1,
+          events: [
+            { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] },
+          ],
+          isPickup: true,
+        },
+      ];
+
       const result = reflowScore(measures, '4/4');
       expect(result[0].isPickup).toBe(true);
     });

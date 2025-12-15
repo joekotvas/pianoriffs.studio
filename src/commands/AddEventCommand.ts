@@ -4,14 +4,14 @@ import { updateMeasure } from '@/utils/commandHelpers';
 
 /**
  * Unified command to add a score event (note or rest) to a measure.
- * 
+ *
  * This replaces the separate AddNoteCommand and AddRestCommand with a single,
  * unified implementation that handles both cases.
- * 
+ *
  * @example
  * // Add a note
  * dispatch(new AddEventCommand(0, false, notePayload, 'quarter', false));
- * 
+ *
  * // Add a rest
  * dispatch(new AddEventCommand(0, true, null, 'quarter', false));
  */
@@ -54,11 +54,13 @@ export class AddEventCommand implements Command {
           duration: this.duration,
           dotted: this.isDotted,
           isRest: true,
-          notes: [{
-            id: restNoteId,
-            pitch: null,
-            isRest: true
-          }]
+          notes: [
+            {
+              id: restNoteId,
+              pitch: null,
+              isRest: true,
+            },
+          ],
         };
       } else {
         // Create a note event
@@ -67,7 +69,7 @@ export class AddEventCommand implements Command {
           duration: this.duration,
           dotted: this.isDotted,
           isRest: false,
-          notes: this.note ? [this.note] : []
+          notes: this.note ? [this.note] : [],
         };
       }
 

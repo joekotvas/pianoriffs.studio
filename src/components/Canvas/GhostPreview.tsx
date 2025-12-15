@@ -32,7 +32,7 @@ const GhostPreview: React.FC<GhostPreviewProps> = ({
   baseY,
   layout,
   interaction,
-  measureIndex
+  measureIndex,
 }) => {
   const { chordNotes, quant, x, chordLayout } = previewRender;
 

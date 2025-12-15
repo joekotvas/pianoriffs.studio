@@ -1,6 +1,6 @@
 /**
  * Score Generator Utility
- * 
+ *
  * Generates staff structures from templates for RiffScore initialization.
  */
 
@@ -12,7 +12,7 @@ const generateId = (prefix: string): string => `${prefix}-${++idCounter}`;
 /**
  * Creates an empty measure (no events).
  * The layout engine will generate a centered, non-interactive placeholder rest for display.
- * 
+ *
  * NOTE: Empty measures have `events: []`. The layout engine's createEmptyMeasureLayout
  * handles rendering a centered whole rest placeholder that doesn't block input.
  */
@@ -49,7 +49,7 @@ export const generateStaves = (
 ): Staff[] => {
   // Reset counter for deterministic IDs in tests
   idCounter = 0;
-  
+
   switch (template) {
     case 'grand':
       return [

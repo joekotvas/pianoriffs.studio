@@ -15,19 +15,33 @@ export class ChangePitchCommand implements Command {
   ) {}
 
   execute(score: Score): Score {
-    return updateNote(score, this.staffIndex, this.measureIndex, this.eventId, this.noteId, (note) => {
+    return updateNote(
+      score,
+      this.staffIndex,
+      this.measureIndex,
+      this.eventId,
+      this.noteId,
+      (note) => {
         this.oldPitch = note.pitch;
         note.pitch = this.newPitch;
         return true;
-    });
+      }
+    );
   }
 
   undo(score: Score): Score {
     if (this.oldPitch === null) return score;
 
-    return updateNote(score, this.staffIndex, this.measureIndex, this.eventId, this.noteId, (note) => {
+    return updateNote(
+      score,
+      this.staffIndex,
+      this.measureIndex,
+      this.eventId,
+      this.noteId,
+      (note) => {
         note.pitch = this.oldPitch!;
         return true;
-    });
+      }
+    );
   }
 }

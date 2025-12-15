@@ -15,18 +15,18 @@ const MeasureControls: React.FC<MeasureControlsProps> = ({
   onRemoveMeasure,
   onTogglePickup,
   isPickup,
-  variant = 'default'
+  variant = 'default',
 }) => {
   return (
     <div className="flex gap-1">
-      <ToolbarButton 
-        onClick={onAddMeasure} 
+      <ToolbarButton
+        onClick={onAddMeasure}
         label="Add Measure"
         icon={<SquarePlus size={16} />}
         variant={variant}
       />
-      <ToolbarButton 
-        onClick={onRemoveMeasure} 
+      <ToolbarButton
+        onClick={onRemoveMeasure}
         label="Remove Measure"
         icon={<SquareMinus size={16} />}
         variant={variant}

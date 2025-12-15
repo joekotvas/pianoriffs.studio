@@ -16,15 +16,15 @@ export class SetKeySignatureCommand implements Command {
       return score;
     }
 
-    const newStaves = score.staves.map(staff => ({
+    const newStaves = score.staves.map((staff) => ({
       ...staff,
-      keySignature: this.newSignature
+      keySignature: this.newSignature,
     }));
 
     return {
       ...score,
       keySignature: this.newSignature,
-      staves: newStaves
+      staves: newStaves,
     };
   }
 
@@ -34,7 +34,7 @@ export class SetKeySignatureCommand implements Command {
     return {
       ...score,
       keySignature: this.previousKeySignature,
-      staves: this.previousStaves
+      staves: this.previousStaves,
     };
   }
 }

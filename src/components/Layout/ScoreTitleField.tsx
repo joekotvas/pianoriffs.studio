@@ -25,7 +25,7 @@ export function ScoreTitleField({
   setBuffer,
   commit,
   inputRef,
-  theme
+  theme,
 }: ScoreTitleFieldProps) {
   if (isEditing) {
     return (
@@ -42,10 +42,10 @@ export function ScoreTitleField({
   }
 
   return (
-    <h2 
+    <h2
       onClick={() => setIsEditing(true)}
       className="ScoreTitleField font-bold font-serif text-3xl px-[1.75rem] py-0 rounded hover:bg-white/10 cursor-pointer transition-colors inline-block"
-      style={{ color: theme.text, borderColor: "transparent", borderWidth: '1px' }}
+      style={{ color: theme.text, borderColor: 'transparent', borderWidth: '1px' }}
     >
       {title}
     </h2>

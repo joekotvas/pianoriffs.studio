@@ -17,11 +17,11 @@ export class UpdateEventCommand implements Command {
     if (!activeStaff) return score;
 
     const newMeasures = [...activeStaff.measures];
-    
+
     if (!newMeasures[this.measureIndex]) return score;
 
     const measure = { ...newMeasures[this.measureIndex] };
-    const eventIndex = measure.events.findIndex(e => e.id === this.eventId);
+    const eventIndex = measure.events.findIndex((e) => e.id === this.eventId);
 
     if (eventIndex === -1) return score;
 
@@ -29,7 +29,7 @@ export class UpdateEventCommand implements Command {
     this.previousEvent = event;
 
     const newEvent = { ...event, ...this.updates };
-    
+
     const newEvents = [...measure.events];
     newEvents[eventIndex] = newEvent;
     measure.events = newEvents;
@@ -48,11 +48,11 @@ export class UpdateEventCommand implements Command {
     if (!activeStaff) return score;
 
     const newMeasures = [...activeStaff.measures];
-    
+
     if (!newMeasures[this.measureIndex]) return score;
 
     const measure = { ...newMeasures[this.measureIndex] };
-    const eventIndex = measure.events.findIndex(e => e.id === this.eventId);
+    const eventIndex = measure.events.findIndex((e) => e.id === this.eventId);
 
     if (eventIndex === -1) return score;
 

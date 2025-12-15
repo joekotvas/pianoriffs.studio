@@ -19,42 +19,34 @@ interface DropdownTriggerProps {
  * - ChevronDown icon
  * - Ghost style (transparent until hover/open)
  */
-export const DropdownTrigger = forwardRef<HTMLButtonElement, DropdownTriggerProps>(({
-  label,
-  icon,
-  isOpen,
-  onClick,
-  height = 'h-9'
-}, ref) => {
-  const { theme } = useTheme();
-  const [isHovered, setIsHovered] = React.useState(false);
-  
-  const borderColor = isOpen 
-    ? theme.accent 
-    : (isHovered ? theme.border : 'transparent');
-  const bgColor = (isHovered || isOpen) 
-    ? theme.buttonBackground 
-    : 'transparent';
+export const DropdownTrigger = forwardRef<HTMLButtonElement, DropdownTriggerProps>(
+  ({ label, icon, isOpen, onClick, height = 'h-9' }, ref) => {
+    const { theme } = useTheme();
+    const [isHovered, setIsHovered] = React.useState(false);
 
-  return (
-    <button
-      ref={ref}
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`flex items-center gap-1.5 px-3 ${height} rounded border text-sm font-medium tracking-wide transition-colors`}
-      style={{
-        backgroundColor: bgColor,
-        borderColor: borderColor,
-        color: theme.secondaryText
-      }}
-    >
-      {icon}
-      <span className="truncate">{label}</span>
-      <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-    </button>
-  );
-});
+    const borderColor = isOpen ? theme.accent : isHovered ? theme.border : 'transparent';
+    const bgColor = isHovered || isOpen ? theme.buttonBackground : 'transparent';
+
+    return (
+      <button
+        ref={ref}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`flex items-center gap-1.5 px-3 ${height} rounded border text-sm font-medium tracking-wide transition-colors`}
+        style={{
+          backgroundColor: bgColor,
+          borderColor: borderColor,
+          color: theme.secondaryText,
+        }}
+      >
+        {icon}
+        <span className="truncate">{label}</span>
+        <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+    );
+  }
+);
 
 interface DropdownOverlayProps {
   onClose: () => void;
@@ -73,7 +65,7 @@ const DropdownOverlay: React.FC<DropdownOverlayProps> = ({
   children,
   width = 'auto',
   maxHeight = 'auto',
-  className = ''
+  className = '',
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
@@ -85,13 +77,13 @@ const DropdownOverlay: React.FC<DropdownOverlayProps> = ({
     onEscape: onClose,
     returnFocusRef: triggerRef,
     autoFocus: true,
-    enableArrowKeys: true
+    enableArrowKeys: true,
   });
 
   return (
     <Portal>
       {/* Backdrop to catch clicks and prevent interaction with background */}
-      <div 
+      <div
         className="fixed inset-0 z-40 bg-transparent"
         onClick={(e) => {
           e.stopPropagation();
@@ -99,7 +91,7 @@ const DropdownOverlay: React.FC<DropdownOverlayProps> = ({
         }}
         aria-hidden="true"
       />
-      
+
       {/* Dropdown Content */}
       <div
         ref={ref}
@@ -155,11 +147,11 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
   onClick,
   children,
   isSelected = false,
-  className = ''
+  className = '',
 }) => {
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = React.useState(false);
-  
+
   return (
     <button
       onClick={onClick}
@@ -173,10 +165,10 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
         ${className}
       `}
       style={{
-        backgroundColor: isSelected 
-          ? theme.buttonHoverBackground 
-          : isHovered 
-            ? theme.buttonHoverBackground 
+        backgroundColor: isSelected
+          ? theme.buttonHoverBackground
+          : isHovered
+            ? theme.buttonHoverBackground
             : 'transparent',
         color: theme.secondaryText,
       }}

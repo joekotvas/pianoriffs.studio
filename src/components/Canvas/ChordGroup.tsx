@@ -18,7 +18,7 @@ import Flags from './Flags';
 
 /**
  * Renders a chord (group of notes) with shared stem and flags.
- * 
+ *
  * Hierarchy:
  * ChordGroup
  * ├── Stem (shared vertical line)
@@ -36,7 +36,7 @@ const ChordGroup = ({
   eventId,
   chordLayout,
   beamSpec = null,
-  
+
   // Appearance & Options
   isGhost = false,
   opacity = 1,
@@ -53,105 +53,127 @@ const ChordGroup = ({
   const { theme } = useTheme();
   const { baseY, clef, keySignature, staffIndex } = layout;
   const { selection, onDragStart, onSelectNote, isDragging } = interaction;
-  
+
   // Local State
   const [hoveredNoteId, setHoveredNoteId] = useState(null);
 
   // --- 1. Layout Calculations ---
   const { sortedNotes, direction, noteOffsets, maxNoteShift, minY, maxY } = chordLayout;
   const effectiveDirection = beamSpec?.direction || direction;
-  
+
   // Stem Geometry
-  const stemX = useMemo(() => 
-    x + getStemOffset(chordLayout, effectiveDirection), 
+  const stemX = useMemo(
+    () => x + getStemOffset(chordLayout, effectiveDirection),
     [x, chordLayout, effectiveDirection]
   );
-  
-  const { startY: stemStartY, endY: stemEndY } = useMemo(() => 
-    calculateStemGeometry({ beamSpec, stemX, direction: effectiveDirection, minY, maxY, duration }),
+
+  const { startY: stemStartY, endY: stemEndY } = useMemo(
+    () =>
+      calculateStemGeometry({
+        beamSpec,
+        stemX,
+        direction: effectiveDirection,
+        minY,
+        maxY,
+        duration,
+      }),
     [beamSpec, stemX, effectiveDirection, minY, maxY, duration]
   );
 
   // --- 2. Selection & Lasso Preview State ---
-  const isWholeChordSelected = !isGhost && areAllNotesSelected(selection, staffIndex, measureIndex, eventId, notes);
+  const isWholeChordSelected =
+    !isGhost && areAllNotesSelected(selection, staffIndex, measureIndex, eventId, notes);
   const isAnyNoteHovered = !isGhost && !isDragging && hoveredNoteId !== null;
-  
+
   // Check if entire chord is in lasso preview (all notes must be in preview)
-  const isWholeChordInLassoPreview = !isGhost && interaction.lassoPreviewIds?.size > 0 && notes.every(note => {
-    const noteKey = `${staffIndex}-${measureIndex}-${eventId}-${note.id}`;
-    return interaction.lassoPreviewIds?.has(noteKey);
-  });
-  
+  const isWholeChordInLassoPreview =
+    !isGhost &&
+    interaction.lassoPreviewIds?.size > 0 &&
+    notes.every((note) => {
+      const noteKey = `${staffIndex}-${measureIndex}-${eventId}-${note.id}`;
+      return interaction.lassoPreviewIds?.has(noteKey);
+    });
+
   // Color: Ghost/Selected/Hovered/LassoPreview -> Accent; Default -> Note Color
-  const groupColor = (isGhost || isWholeChordSelected || isAnyNoteHovered || isWholeChordInLassoPreview) 
-    ? theme.accent 
-    : theme.score.note;
+  const groupColor =
+    isGhost || isWholeChordSelected || isAnyNoteHovered || isWholeChordInLassoPreview
+      ? theme.accent
+      : theme.score.note;
 
   // Filter Notes (if needed)
   const notesToRender = useMemo(() => {
     if (!filterNote) return sortedNotes;
-    return typeof filterNote === 'function' 
-      ? sortedNotes.filter(filterNote) 
-      : sortedNotes.filter(n => n.pitch === filterNote);
+    return typeof filterNote === 'function'
+      ? sortedNotes.filter(filterNote)
+      : sortedNotes.filter((n) => n.pitch === filterNote);
   }, [sortedNotes, filterNote]);
 
   // --- 3. Interaction Handlers ---
-  const handlers = useMemo(() => ({
-    onMouseEnter: (id) => {
-      if (isGhost) return;
-      setHoveredNoteId(id);
-      onNoteHover?.(true);
-    },
-    onMouseLeave: () => {
-      setHoveredNoteId(null);
-      onNoteHover?.(false);
-    },
-    onMouseDown: (e, note) => {
+  const handlers = useMemo(
+    () => ({
+      onMouseEnter: (id) => {
+        if (isGhost) return;
+        setHoveredNoteId(id);
+        onNoteHover?.(true);
+      },
+      onMouseLeave: () => {
+        setHoveredNoteId(null);
+        onNoteHover?.(false);
+      },
+      onMouseDown: (e, note) => {
+        if (isGhost || !onDragStart) return;
+        e.stopPropagation();
+        const isModifier = e.metaKey || e.ctrlKey;
+        const isShift = e.shiftKey;
+
+        onDragStart({
+          measureIndex,
+          eventId,
+          noteId: note.id,
+          startPitch: note.pitch,
+          startY: e.clientY,
+          isMulti: isModifier,
+          isShift: isShift,
+          selectAllInEvent: !isModifier && !isShift,
+          staffIndex,
+        });
+      },
+      onDoubleClick: (e, note) => {
+        if (isGhost || !onSelectNote) return;
+        e.stopPropagation();
+        onSelectNote(measureIndex, eventId, note.id, staffIndex, false, false);
+      },
+    }),
+    [isGhost, onDragStart, onSelectNote, onNoteHover, measureIndex, eventId, staffIndex]
+  );
+
+  // Click on the Chord (stem area)
+  const handleGroupClick = useCallback(
+    (e) => {
       if (isGhost || !onDragStart) return;
       e.stopPropagation();
       const isModifier = e.metaKey || e.ctrlKey;
-      const isShift = e.shiftKey;
-      
+
       onDragStart({
         measureIndex,
         eventId,
-        noteId: note.id,
-        startPitch: note.pitch,
+        noteId: notes[0]?.id,
+        startPitch: null,
         startY: e.clientY,
         isMulti: isModifier,
-        isShift: isShift,
-        selectAllInEvent: !isModifier && !isShift,
-        staffIndex
+        selectAllInEvent: !isModifier,
+        staffIndex,
       });
     },
-    onDoubleClick: (e, note) => {
-      if (isGhost || !onSelectNote) return;
-      e.stopPropagation();
-      onSelectNote(measureIndex, eventId, note.id, staffIndex, false, false);
-    }
-  }), [isGhost, onDragStart, onSelectNote, onNoteHover, measureIndex, eventId, staffIndex]);
-
-  // Click on the Chord (stem area)
-  const handleGroupClick = useCallback((e) => {
-    if (isGhost || !onDragStart) return;
-    e.stopPropagation();
-    const isModifier = e.metaKey || e.ctrlKey;
-    
-    onDragStart({
-      measureIndex,
-      eventId,
-      noteId: notes[0]?.id,
-      startPitch: null,
-      startY: e.clientY,
-      isMulti: isModifier,
-      selectAllInEvent: !isModifier,
-      staffIndex
-    });
-  }, [isGhost, onDragStart, measureIndex, eventId, staffIndex, notes]);
+    [isGhost, onDragStart, measureIndex, eventId, staffIndex, notes]
+  );
 
   // --- 4. Render Decisions ---
   const showStem = renderStem && NOTE_TYPES[duration]?.stem;
-  const showFlags = renderStem && !beamSpec && ['eighth', 'sixteenth', 'thirtysecond', 'sixtyfourth'].includes(duration);
+  const showFlags =
+    renderStem &&
+    !beamSpec &&
+    ['eighth', 'sixteenth', 'thirtysecond', 'sixtyfourth'].includes(duration);
 
   return (
     <g
@@ -164,26 +186,24 @@ const ChordGroup = ({
       onClick={handleGroupClick}
     >
       {/* LAYER 1: Stem */}
-      {showStem && (
-        <Stem x={stemX} startY={stemStartY} endY={stemEndY} color={groupColor} />
-      )}
-      
+      {showStem && <Stem x={stemX} startY={stemStartY} endY={stemEndY} color={groupColor} />}
+
       {/* LAYER 2: Flags (unbeamed notes only) */}
       {showFlags && (
-        <Flags 
-          stemX={stemX} 
-          stemTipY={stemEndY} 
-          duration={duration} 
-          direction={effectiveDirection} 
-          color={groupColor} 
+        <Flags
+          stemX={stemX}
+          stemTipY={stemEndY}
+          duration={duration}
+          direction={effectiveDirection}
+          color={groupColor}
         />
       )}
 
       {/* LAYER 3: Notes */}
       {notesToRender.map((note) => {
         const accidentalGlyph = getAccidentalGlyph(
-          note.pitch, 
-          keySignature, 
+          note.pitch,
+          keySignature,
           accidentalOverrides?.[note.id]
         );
 

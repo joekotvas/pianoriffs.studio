@@ -29,8 +29,8 @@ describe('TogglePickupCommand', () => {
       keySignature: 'C',
       measures: [
         { id: 'm1-bass', events: [] },
-        { id: 'm2-bass', events: [] }
-      ]
+        { id: 'm2-bass', events: [] },
+      ],
     });
 
     // Initial state

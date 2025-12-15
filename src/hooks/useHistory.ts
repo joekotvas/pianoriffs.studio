@@ -5,18 +5,21 @@ export const useHistory = <T>(initialState: T) => {
   const [history, setHistory] = useState<T[]>([]);
   const [redoStack, setRedoStack] = useState<T[]>([]);
 
-  const pushState = useCallback((newState: T) => {
-    setHistory(prev => [...prev, state]);
-    setRedoStack([]);
-    setState(newState);
-  }, [state]);
+  const pushState = useCallback(
+    (newState: T) => {
+      setHistory((prev) => [...prev, state]);
+      setRedoStack([]);
+      setState(newState);
+    },
+    [state]
+  );
 
   const undo = useCallback(() => {
     if (history.length === 0) return;
     const previous = history[history.length - 1];
     const newHistory = history.slice(0, -1);
-    
-    setRedoStack(prev => [state, ...prev]);
+
+    setRedoStack((prev) => [state, ...prev]);
     setHistory(newHistory);
     setState(previous);
   }, [history, state]);
@@ -25,8 +28,8 @@ export const useHistory = <T>(initialState: T) => {
     if (redoStack.length === 0) return;
     const next = redoStack[0];
     const newRedoStack = redoStack.slice(1);
-    
-    setHistory(prev => [...prev, state]);
+
+    setHistory((prev) => [...prev, state]);
     setRedoStack(newRedoStack);
     setState(next);
   }, [redoStack, state]);
@@ -40,6 +43,6 @@ export const useHistory = <T>(initialState: T) => {
     history,
     redoStack,
     canUndo: history.length > 0,
-    canRedo: redoStack.length > 0
+    canRedo: redoStack.length > 0,
   };
 };

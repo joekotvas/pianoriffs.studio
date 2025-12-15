@@ -1,6 +1,6 @@
 /**
  * Theme Configuration for Sheet Music Editor
- * 
+ *
  * Defines color palettes and semantic theme mappings.
  */
 
@@ -17,7 +17,7 @@ export const COLORS = {
   slate400: 'hsla(215, 20%, 65%, 1.00)',
   slate200: '#e2e8f0',
   teal: '#1DA59C', // #1DA59C
-  
+
   // Blue (Cool)
   blue950: '#0f172a',
   blue900: '#1e3a8a',
@@ -59,7 +59,7 @@ const DARK = {
     line: COLORS.slate500,
     note: COLORS.slate200,
     fill: COLORS.slate200,
-  }
+  },
 };
 
 const COOL = {
@@ -75,7 +75,7 @@ const COOL = {
     line: COLORS.blue400,
     note: COLORS.blue200,
     fill: COLORS.blue200,
-  }
+  },
 };
 
 const WARM = {
@@ -91,7 +91,7 @@ const WARM = {
     line: COLORS.stone500,
     note: COLORS.stone200,
     fill: COLORS.stone200,
-  }
+  },
 };
 
 const LIGHT = {
@@ -107,7 +107,7 @@ const LIGHT = {
     line: COLORS.slate400,
     note: '#000000',
     fill: '#000000',
-  }
+  },
 };
 
 // =============================================================================
@@ -118,7 +118,7 @@ export const THEMES = {
   DARK,
   COOL,
   WARM,
-  LIGHT
+  LIGHT,
 } as const;
 
 export const DEFAULT_THEME = 'DARK';

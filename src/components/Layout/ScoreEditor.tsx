@@ -45,8 +45,8 @@ interface ScoreEditorContentProps {
 // Main Component
 // ------------------------------------------------------------------
 
-const ScoreEditorContent = ({ 
-  scale = 1, 
+const ScoreEditorContent = ({
+  scale = 1,
   label,
   showToolbar = true,
   enableKeyboard = true,
@@ -55,11 +55,22 @@ const ScoreEditorContent = ({
   // --- Context & Theme ---
   const { theme } = useTheme();
   const scoreLogic = useScoreContext();
-  const { 
-    score, dispatch, pendingClefChange, setPendingClefChange,
-    selection, setSelection, setPreviewNote,
-    activeDuration, isDotted, activeAccidental, scoreRef,
-    updateNotePitch, handleNoteSelection, addChordToMeasure, focusScore
+  const {
+    score,
+    dispatch,
+    pendingClefChange,
+    setPendingClefChange,
+    selection,
+    setSelection,
+    setPreviewNote,
+    activeDuration,
+    isDotted,
+    activeAccidental,
+    scoreRef,
+    updateNotePitch,
+    handleNoteSelection,
+    addChordToMeasure,
+    focusScore,
   } = scoreLogic;
 
   // --- Local UI State ---
@@ -80,25 +91,47 @@ const ScoreEditorContent = ({
 
   // --- Complex Hooks ---
   const playback = usePlayback(score, bpm);
-  const { midiStatus } = useMIDI(addChordToMeasure, activeDuration, isDotted, activeAccidental, scoreRef);
-  
+  const { midiStatus } = useMIDI(
+    addChordToMeasure,
+    activeDuration,
+    isDotted,
+    activeAccidental,
+    scoreRef
+  );
+
   useScoreInteraction({
     scoreRef,
     selection,
     onUpdatePitch: updateNotePitch,
-    onSelectNote: (measureIndex, eventId, noteId, staffIndex, isMulti, selectAllInEvent, isShift) => {
+    onSelectNote: (
+      measureIndex,
+      eventId,
+      noteId,
+      staffIndex,
+      isMulti,
+      selectAllInEvent,
+      isShift
+    ) => {
       if (measureIndex !== null && eventId !== null) {
-        handleNoteSelection(measureIndex, eventId, noteId, staffIndex, isMulti, selectAllInEvent, isShift);
+        handleNoteSelection(
+          measureIndex,
+          eventId,
+          noteId,
+          staffIndex,
+          isMulti,
+          selectAllInEvent,
+          isShift
+        );
       }
-    }
+    },
   });
 
   useKeyboardShortcuts(
     scoreLogic,
     playback,
-    { 
-      isEditingTitle: titleEditor.isEditing, 
-      isHoveringScore, 
+    {
+      isEditingTitle: titleEditor.isEditing,
+      isHoveringScore,
       scoreContainerRef,
       isAnyMenuOpen: () => (toolbarRef.current?.isMenuOpen() ?? false) || showHelp,
       isDisabled: !enableKeyboard,
@@ -124,21 +157,31 @@ const ScoreEditorContent = ({
   }, [pendingClefChange, dispatch, setPendingClefChange]);
 
   const handleBackgroundClick = useCallback(() => {
-    setSelection({ staffIndex: 0, measureIndex: null, eventId: null, noteId: null, selectedNotes: [] });
+    setSelection({
+      staffIndex: 0,
+      measureIndex: null,
+      eventId: null,
+      noteId: null,
+      selectedNotes: [],
+    });
   }, [setSelection]);
 
-  const handleHoverChange = useCallback((isHovering: boolean) => {
-    setIsHoveringScore(isHovering);
-    if (!isHovering) {
-      const isFocused = document.activeElement === scoreContainerRef.current || 
-                        scoreContainerRef.current?.contains(document.activeElement);
-      if (!isFocused) setPreviewNote(null);
-    }
-  }, [setPreviewNote]);
+  const handleHoverChange = useCallback(
+    (isHovering: boolean) => {
+      setIsHoveringScore(isHovering);
+      if (!isHovering) {
+        const isFocused =
+          document.activeElement === scoreContainerRef.current ||
+          scoreContainerRef.current?.contains(document.activeElement);
+        if (!isFocused) setPreviewNote(null);
+      }
+    },
+    [setPreviewNote]
+  );
 
   // --- Render ---
   return (
-    <div 
+    <div
       className="ScoreEditor backdrop-blur-md rounded-lg shadow-xl mb-8"
       style={{
         padding: '.5rem',
@@ -147,11 +190,11 @@ const ScoreEditorContent = ({
         borderWidth: '1px',
         color: theme.text,
         scrollbarWidth: 'thin',
-        scrollbarColor: `${theme.border} transparent`
+        scrollbarColor: `${theme.border} transparent`,
       }}
     >
       {showToolbar && (
-        <Toolbar 
+        <Toolbar
           ref={toolbarRef}
           label={label}
           scoreTitle={score.title}
@@ -184,11 +227,11 @@ const ScoreEditorContent = ({
         style={{
           backgroundColor: theme.background,
           borderRadius: '1rem',
-          paddingTop: '1rem'
+          paddingTop: '1rem',
         }}
-        >
+      >
         <div className="relative z-20">
-          <ScoreTitleField 
+          <ScoreTitleField
             title={score.title}
             isEditing={titleEditor.isEditing}
             setIsEditing={titleEditor.setIsEditing}
@@ -200,7 +243,7 @@ const ScoreEditorContent = ({
           />
         </div>
 
-        <ScoreCanvas 
+        <ScoreCanvas
           scale={scale}
           playbackPosition={playback.playbackPosition}
           containerRef={scoreContainerRef}
@@ -219,11 +262,11 @@ const ScoreEditorContent = ({
             message={`This will remove the ${pendingClefChange.targetClef === 'treble' ? 'bass' : 'treble'} clef and all its contents.`}
             actions={[
               { label: 'Cancel', onClick: () => setPendingClefChange(null), variant: 'secondary' },
-              { 
-                label: `Drop ${pendingClefChange.targetClef === 'treble' ? 'Bass' : 'Treble'} Clef`, 
-                onClick: handleClefConfirm, 
-                variant: 'danger' 
-              }
+              {
+                label: `Drop ${pendingClefChange.targetClef === 'treble' ? 'Bass' : 'Treble'} Clef`,
+                onClick: handleClefConfirm,
+                variant: 'danger',
+              },
             ]}
             onClose={() => setPendingClefChange(null)}
           />
@@ -237,7 +280,15 @@ const ScoreEditorContent = ({
 // Wrapper with Provider
 // ------------------------------------------------------------------
 
-const ScoreEditor = ({ scale = 1, label, initialData }: { scale?: number, label?: string, initialData?: any }) => {
+const ScoreEditor = ({
+  scale = 1,
+  label,
+  initialData,
+}: {
+  scale?: number;
+  label?: string;
+  initialData?: any;
+}) => {
   return (
     <ScoreProvider initialScore={initialData}>
       <ScoreEditorContent scale={scale} label={label} />

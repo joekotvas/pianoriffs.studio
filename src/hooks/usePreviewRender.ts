@@ -36,7 +36,7 @@ interface PreviewRenderResult {
 
 /**
  * Hook to calculate preview (ghost note/rest) rendering data.
- * 
+ *
  * Handles:
  * - Preview positioning based on mode (CHORD, INSERT, APPEND)
  * - Overflow preview for last measure
@@ -52,7 +52,7 @@ export function usePreviewRender({
   hitZones,
   eventPositions,
   totalWidth,
-  selectedNotes
+  selectedNotes,
 }: UsePreviewRenderParams): PreviewRenderResult | null {
   // Cache for rest previews to prevent recalculation on pitch changes
   const restPreviewCacheRef = useRef<{ key: string; result: PreviewRenderResult } | null>(null);
@@ -80,14 +80,14 @@ export function usePreviewRender({
     const visualTempNote = {
       ...previewNote,
       quant: 0, // Not used for positioning anymore
-      id: 'preview'
+      id: 'preview',
     };
 
     let combinedNotes: any[] = [visualTempNote];
     let xPos = 0;
 
     if (isOverflowPreview) {
-      const lastInsertZone = hitZones.find(z => z.type === 'INSERT' && z.index === events.length);
+      const lastInsertZone = hitZones.find((z) => z.type === 'INSERT' && z.index === events.length);
       if (lastInsertZone) {
         xPos = lastInsertZone.startX + (lastInsertZone.endX - lastInsertZone.startX) / 2;
       } else {
@@ -100,7 +100,7 @@ export function usePreviewRender({
         combinedNotes = [...(existingEvent.notes as any[]), visualTempNote];
       }
     } else if (previewNote.mode === 'INSERT') {
-      const insertZone = hitZones.find(z => z.type === 'INSERT' && z.index === previewNote.index);
+      const insertZone = hitZones.find((z) => z.type === 'INSERT' && z.index === previewNote.index);
       if (insertZone) {
         xPos = insertZone.startX + (insertZone.endX - insertZone.startX) / 2;
       } else {
@@ -112,7 +112,7 @@ export function usePreviewRender({
       }
     } else {
       // APPEND
-      const appendZone = hitZones.find(z => z.type === 'APPEND');
+      const appendZone = hitZones.find((z) => z.type === 'APPEND');
       xPos = appendZone ? appendZone.startX : 0;
     }
 
@@ -123,7 +123,7 @@ export function usePreviewRender({
       chordNotes: combinedNotes,
       quant: 0,
       x: xPos,
-      chordLayout
+      chordLayout,
     };
 
     // Cache rest preview result
@@ -133,5 +133,15 @@ export function usePreviewRender({
     }
 
     return result;
-  }, [previewNote, events, measureIndex, isLast, clef, hitZones, eventPositions, totalWidth, selectedNotes]);
+  }, [
+    previewNote,
+    events,
+    measureIndex,
+    isLast,
+    clef,
+    hitZones,
+    eventPositions,
+    totalWidth,
+    selectedNotes,
+  ]);
 }

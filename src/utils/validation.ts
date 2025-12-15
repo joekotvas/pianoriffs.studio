@@ -10,14 +10,14 @@ import { getNoteDuration, calculateTotalQuants } from './core';
  * @returns True if it fits, False otherwise
  */
 export const canAddEventToMeasure = (
-  events: any[], 
-  duration: string, 
-  dotted: boolean, 
+  events: any[],
+  duration: string,
+  dotted: boolean,
   maxQuants: number = CONFIG.quantsPerMeasure
 ): boolean => {
-    const currentTotal = calculateTotalQuants(events);
-    const newDur = getNoteDuration(duration, dotted, undefined);
-    return currentTotal + newDur <= maxQuants;
+  const currentTotal = calculateTotalQuants(events);
+  const newDur = getNoteDuration(duration, dotted, undefined);
+  return currentTotal + newDur <= maxQuants;
 };
 
 /**
@@ -29,26 +29,26 @@ export const canAddEventToMeasure = (
  * @returns True if valid, False otherwise
  */
 export const canModifyEventDuration = (
-    events: any[],
-    eventId: string | number,
-    targetDuration: string,
-    maxQuants: number = CONFIG.quantsPerMeasure
+  events: any[],
+  eventId: string | number,
+  targetDuration: string,
+  maxQuants: number = CONFIG.quantsPerMeasure
 ): boolean => {
-    const eventIndex = events.findIndex((e: any) => e.id === eventId);
-    if (eventIndex === -1) return true; // Defensive: If event doesn't exist, we can't strict check
+  const eventIndex = events.findIndex((e: any) => e.id === eventId);
+  if (eventIndex === -1) return true; // Defensive: If event doesn't exist, we can't strict check
 
-    const currentEvent = events[eventIndex];
-    
-    // Calculate total of ALL OTHER events
-    const otherEventsQuants = events.reduce((acc: number, e: any, idx: number) => {
-        if (idx === eventIndex) return acc;
-        return acc + getNoteDuration(e.duration, e.dotted, e.tuplet);
-    }, 0);
+  const currentEvent = events[eventIndex];
 
-    // Calculate new duration for THIS event
-    const newEventQuants = getNoteDuration(targetDuration, currentEvent.dotted, currentEvent.tuplet);
-    
-    return (otherEventsQuants + newEventQuants) <= maxQuants;
+  // Calculate total of ALL OTHER events
+  const otherEventsQuants = events.reduce((acc: number, e: any, idx: number) => {
+    if (idx === eventIndex) return acc;
+    return acc + getNoteDuration(e.duration, e.dotted, e.tuplet);
+  }, 0);
+
+  // Calculate new duration for THIS event
+  const newEventQuants = getNoteDuration(targetDuration, currentEvent.dotted, currentEvent.tuplet);
+
+  return otherEventsQuants + newEventQuants <= maxQuants;
 };
 
 /**
@@ -59,23 +59,27 @@ export const canModifyEventDuration = (
  * @returns True if valid, False otherwise
  */
 export const canToggleEventDot = (
-    events: any[],
-    eventId: string | number,
-    maxQuants: number = CONFIG.quantsPerMeasure
+  events: any[],
+  eventId: string | number,
+  maxQuants: number = CONFIG.quantsPerMeasure
 ): boolean => {
-    const eventIndex = events.findIndex((e: any) => e.id === eventId);
-    if (eventIndex === -1) return true;
+  const eventIndex = events.findIndex((e: any) => e.id === eventId);
+  if (eventIndex === -1) return true;
 
-    const currentEvent = events[eventIndex];
-    
-    // Calculate total of ALL OTHER events
-    const otherEventsQuants = events.reduce((acc: number, e: any, idx: number) => {
-        if (idx === eventIndex) return acc;
-        return acc + getNoteDuration(e.duration, e.dotted, e.tuplet);
-    }, 0);
+  const currentEvent = events[eventIndex];
 
-    // Calculate new duration for THIS event (with toggled dot)
-    const newEventQuants = getNoteDuration(currentEvent.duration, !currentEvent.dotted, currentEvent.tuplet);
-    
-    return (otherEventsQuants + newEventQuants) <= maxQuants;
+  // Calculate total of ALL OTHER events
+  const otherEventsQuants = events.reduce((acc: number, e: any, idx: number) => {
+    if (idx === eventIndex) return acc;
+    return acc + getNoteDuration(e.duration, e.dotted, e.tuplet);
+  }, 0);
+
+  // Calculate new duration for THIS event (with toggled dot)
+  const newEventQuants = getNoteDuration(
+    currentEvent.duration,
+    !currentEvent.dotted,
+    currentEvent.tuplet
+  );
+
+  return otherEventsQuants + newEventQuants <= maxQuants;
 };

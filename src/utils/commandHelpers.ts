@@ -3,7 +3,7 @@ import { Score, getActiveStaff, Measure, ScoreEvent, Note } from '@/types';
 /**
  * Helper to update a specific measure in the score.
  * Handles cloning of the staff and measures array.
- * 
+ *
  * @param score The current score state
  * @param staffIndex Index of the staff containing the measure
  * @param measureIndex Index of the measure to update
@@ -12,36 +12,36 @@ import { Score, getActiveStaff, Measure, ScoreEvent, Note } from '@/types';
  * @returns New score state (with updates) or original score (if invalid path or aborted)
  */
 export const updateMeasure = (
-    score: Score,
-    staffIndex: number,
-    measureIndex: number,
-    updateFn: (measure: Measure) => boolean | void
+  score: Score,
+  staffIndex: number,
+  measureIndex: number,
+  updateFn: (measure: Measure) => boolean | void
 ): Score => {
-    const activeStaff = score.staves[staffIndex];
-    if (!activeStaff) return score;
+  const activeStaff = score.staves[staffIndex];
+  if (!activeStaff) return score;
 
-    const newMeasures = [...activeStaff.measures];
-    if (!newMeasures[measureIndex]) return score;
+  const newMeasures = [...activeStaff.measures];
+  if (!newMeasures[measureIndex]) return score;
 
-    const measure = { ...newMeasures[measureIndex] };
-    
-    // Execute update logic
-    const shouldUpdate = updateFn(measure);
-    
-    if (shouldUpdate === false) return score;
+  const measure = { ...newMeasures[measureIndex] };
 
-    newMeasures[measureIndex] = measure;
-    
-    const newStaves = [...score.staves];
-    newStaves[staffIndex] = { ...activeStaff, measures: newMeasures };
+  // Execute update logic
+  const shouldUpdate = updateFn(measure);
 
-    return { ...score, staves: newStaves };
+  if (shouldUpdate === false) return score;
+
+  newMeasures[measureIndex] = measure;
+
+  const newStaves = [...score.staves];
+  newStaves[staffIndex] = { ...activeStaff, measures: newMeasures };
+
+  return { ...score, staves: newStaves };
 };
 
 /**
  * Helper to update a specific event in a measure.
  * Handles cloning of the event array.
- * 
+ *
  * @param score The current score state
  * @param staffIndex Index of the staff
  * @param measureIndex Index of the measure
@@ -51,43 +51,47 @@ export const updateMeasure = (
  * @returns New score state or original score
  */
 export const updateEvent = (
-    score: Score,
-    staffIndex: number,
-    measureIndex: number,
-    eventIdOrIndex: string | number,
-    updateFn: (event: ScoreEvent) => boolean | void
+  score: Score,
+  staffIndex: number,
+  measureIndex: number,
+  eventIdOrIndex: string | number,
+  updateFn: (event: ScoreEvent) => boolean | void
 ): Score => {
-    return updateMeasure(score, staffIndex, measureIndex, (measure) => {
-        const events = [...measure.events];
-        
-        let eventIndex = -1;
-        if (typeof eventIdOrIndex === 'number' && eventIdOrIndex < events.length && events[eventIdOrIndex]) {
-             // Treat as index if it matches valid range, though ID usually string. 
-             // To be safe, usually we assume ID. Let's strictly check logic.
-             // If we passed an Index (like in RemoveTuplet), we should support it.
-             // But usually commands act by ID.
-             eventIndex = eventIdOrIndex;
-        } else {
-             eventIndex = events.findIndex(e => e.id === eventIdOrIndex);
-        }
+  return updateMeasure(score, staffIndex, measureIndex, (measure) => {
+    const events = [...measure.events];
 
-        if (eventIndex === -1) return false;
+    let eventIndex = -1;
+    if (
+      typeof eventIdOrIndex === 'number' &&
+      eventIdOrIndex < events.length &&
+      events[eventIdOrIndex]
+    ) {
+      // Treat as index if it matches valid range, though ID usually string.
+      // To be safe, usually we assume ID. Let's strictly check logic.
+      // If we passed an Index (like in RemoveTuplet), we should support it.
+      // But usually commands act by ID.
+      eventIndex = eventIdOrIndex;
+    } else {
+      eventIndex = events.findIndex((e) => e.id === eventIdOrIndex);
+    }
 
-        const event = { ...events[eventIndex] };
-        const result = updateFn(event);
-        
-        if (result === false) return false;
+    if (eventIndex === -1) return false;
 
-        events[eventIndex] = event;
-        measure.events = events;
-        return true;
-    });
+    const event = { ...events[eventIndex] };
+    const result = updateFn(event);
+
+    if (result === false) return false;
+
+    events[eventIndex] = event;
+    measure.events = events;
+    return true;
+  });
 };
 
 /**
  * Helper to update a specific note in an event.
  * Handles cloning of the note array.
- * 
+ *
  * @param score The current score state
  * @param staffIndex Index of the staff
  * @param measureIndex Index of the measure
@@ -98,25 +102,25 @@ export const updateEvent = (
  * @returns New score state or original score
  */
 export const updateNote = (
-    score: Score,
-    staffIndex: number,
-    measureIndex: number,
-    eventId: string | number,
-    noteId: string | number,
-    updateFn: (note: Note) => boolean | void
+  score: Score,
+  staffIndex: number,
+  measureIndex: number,
+  eventId: string | number,
+  noteId: string | number,
+  updateFn: (note: Note) => boolean | void
 ): Score => {
-    return updateEvent(score, staffIndex, measureIndex, eventId, (event) => {
-        const noteIndex = event.notes.findIndex(n => String(n.id) === String(noteId));
-        if (noteIndex === -1) return false;
+  return updateEvent(score, staffIndex, measureIndex, eventId, (event) => {
+    const noteIndex = event.notes.findIndex((n) => String(n.id) === String(noteId));
+    if (noteIndex === -1) return false;
 
-        const newNotes = [...event.notes];
-        const note = { ...newNotes[noteIndex] };
+    const newNotes = [...event.notes];
+    const note = { ...newNotes[noteIndex] };
 
-        const result = updateFn(note);
-        if (result === false) return false;
+    const result = updateFn(note);
+    if (result === false) return false;
 
-        newNotes[noteIndex] = note;
-        event.notes = newNotes;
-        return true;
-    });
+    newNotes[noteIndex] = note;
+    event.notes = newNotes;
+    return true;
+  });
 };

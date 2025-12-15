@@ -192,26 +192,23 @@ const Measure: React.FC<MeasureProps> = ({
       {/* LAYER 3: Beams & Tuplets */}
       {beamGroups.map((beam, idx) => {
         // Check if entire beam group is in lasso preview (all notes must be in preview)
-        const isBeamInLassoPreview = interaction.lassoPreviewIds?.size > 0 && beam.ids.every(eventId => {
-          const ev = events.find(e => e.id === eventId);
-          if (!ev?.notes) return false;
-          return ev.notes.every(n => {
-            const noteKey = `${layout.staffIndex}-${measureIndex}-${eventId}-${n.id}`;
-            return interaction.lassoPreviewIds?.has(noteKey);
+        const isBeamInLassoPreview =
+          interaction.lassoPreviewIds?.size > 0 &&
+          beam.ids.every((eventId) => {
+            const ev = events.find((e) => e.id === eventId);
+            if (!ev?.notes) return false;
+            return ev.notes.every((n) => {
+              const noteKey = `${layout.staffIndex}-${measureIndex}-${eventId}-${n.id}`;
+              return interaction.lassoPreviewIds?.has(noteKey);
+            });
           });
-        });
-        
-        const beamColor = (isBeamGroupSelected(selection, beam, events, measureIndex) || isBeamInLassoPreview) 
-          ? theme.accent 
-          : theme.score.note;
-        
-        return (
-          <Beam
-            key={`beam-${idx}`}
-            beam={beam}
-            color={beamColor}
-          />
-        );
+
+        const beamColor =
+          isBeamGroupSelected(selection, beam, events, measureIndex) || isBeamInLassoPreview
+            ? theme.accent
+            : theme.score.note;
+
+        return <Beam key={`beam-${idx}`} beam={beam} color={beamColor} />;
       })}
 
       {tupletGroups.map((tuplet, idx) => (
@@ -224,12 +221,7 @@ const Measure: React.FC<MeasureProps> = ({
         />
       ))}
 
-      <MeasureBarLine 
-        x={effectiveWidth} 
-        baseY={baseY} 
-        isLast={isLast} 
-        theme={theme} 
-      />
+      <MeasureBarLine x={effectiveWidth} baseY={baseY} isLast={isLast} theme={theme} />
 
       {/* LAYER 4: Interface Overlay (Ghosts) */}
       {previewRender && !isNoteHovered && previewNote && (
