@@ -17,14 +17,27 @@ interface ShortcutGroupProps {
 
 const ShortcutGroup: React.FC<ShortcutGroupProps> = ({ title, shortcuts, theme }) => (
   <div className="mb-6">
-    <h3 className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1" style={{ color: theme.secondaryText, borderColor: theme.border }}>{title}</h3>
+    <h3
+      className="text-sm font-bold uppercase tracking-wider mb-3 border-b pb-1"
+      style={{ color: theme.secondaryText, borderColor: theme.border }}
+    >
+      {title}
+    </h3>
     <div className="grid grid-cols-1 gap-2">
       {shortcuts.map((s, i) => (
         <div key={i} className="flex items-center justify-between text-sm">
           <span style={{ color: theme.text }}>{s.label}</span>
           <div className="flex gap-1">
             {s.keys.map((k, j) => (
-              <kbd key={j} className="px-2 py-1 rounded text-xs font-mono min-w-[24px] text-center" style={{ backgroundColor: theme.buttonBackground, border: `1px solid ${theme.border}`, color: theme.secondaryText }}>
+              <kbd
+                key={j}
+                className="px-2 py-1 rounded text-xs font-mono min-w-[24px] text-center"
+                style={{
+                  backgroundColor: theme.buttonBackground,
+                  border: `1px solid ${theme.border}`,
+                  color: theme.secondaryText,
+                }}
+              >
                 {k}
               </kbd>
             ))}
@@ -89,52 +102,121 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
       { label: '16th Note', keys: ['3'] },
       { label: '32nd Note', keys: ['2'] },
       { label: '64th Note', keys: ['1'] },
-    ]
+    ],
   };
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden" style={{ backgroundColor: theme.panelBackground }} onClick={e => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden"
+        style={{ backgroundColor: theme.panelBackground }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="p-4 border-b flex items-center justify-between" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
+        <div
+          className="p-4 border-b flex items-center justify-between"
+          style={{ backgroundColor: theme.background, borderColor: theme.border }}
+        >
           <div className="flex items-center gap-2" style={{ color: theme.accent }}>
             <Keyboard size={20} />
-            <h2 className="font-bold text-lg" style={{ color: theme.text }}>Keyboard Shortcuts</h2>
+            <h2 className="font-bold text-lg" style={{ color: theme.text }}>
+              Keyboard Shortcuts
+            </h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full transition-colors" style={{ color: theme.secondaryText }}>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-full transition-colors"
+            style={{ color: theme.secondaryText }}
+          >
             <X size={20} />
           </button>
         </div>
 
         {/* Content */}
         <div className="p-6 max-h-[70vh] overflow-y-auto shortcuts-scroll">
-          
           {/* Welcome & Instructions */}
-          <div className="mb-8 p-4 rounded-lg border" style={{ backgroundColor: `${theme.accent}10`, borderColor: `${theme.accent}30` }}>
-             <h3 className="font-bold mb-2" style={{ color: theme.accent }}>Welcome to RiffScore!</h3>
-             <p className="text-sm mb-4" style={{ color: theme.text }}>
-               This editor allows you to create sheet music using both mouse and keyboard. 
-               Use the toolbar above to change note duration, add dots, or manage measures.
-             </p>
-             
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                   <h4 className="font-bold mb-1" style={{ color: theme.text }}>🖱️ Mouse Interactions</h4>
-                   <ul className="list-disc list-inside space-y-1" style={{ color: theme.secondaryText }}>
-                      <li>Click anywhere in a measure to place the cursor.</li>
-                      <li>Click existing notes to select them.</li>
-                      <li>Click the background to deselect.</li>
-                   </ul>
-                </div>
-                <div>
-                   <h4 className="font-bold mb-1" style={{ color: theme.text }}>⌨️ Keyboard Interactions</h4>
-                   <ul className="list-disc list-inside space-y-1" style={{ color: theme.secondaryText }}>
-                      <li>Use <kbd className="font-mono px-1 rounded" style={{ backgroundColor: theme.buttonBackground, border: `1px solid ${theme.border}`, color: theme.accent }}>Arrow Keys</kbd> to move the cursor.</li>
-                      <li>Press <kbd className="font-mono px-1 rounded" style={{ backgroundColor: theme.buttonBackground, border: `1px solid ${theme.border}`, color: theme.accent }}>Enter</kbd> to add a note at the cursor.</li>
-                      <li>Press <kbd className="font-mono px-1 rounded" style={{ backgroundColor: theme.buttonBackground, border: `1px solid ${theme.border}`, color: theme.accent }}>Space</kbd> to play/pause.</li>
-                   </ul>
-                </div>
-             </div>
+          <div
+            className="mb-8 p-4 rounded-lg border"
+            style={{ backgroundColor: `${theme.accent}10`, borderColor: `${theme.accent}30` }}
+          >
+            <h3 className="font-bold mb-2" style={{ color: theme.accent }}>
+              Welcome to RiffScore!
+            </h3>
+            <p className="text-sm mb-4" style={{ color: theme.text }}>
+              This editor allows you to create sheet music using both mouse and keyboard. Use the
+              toolbar above to change note duration, add dots, or manage measures.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <h4 className="font-bold mb-1" style={{ color: theme.text }}>
+                  🖱️ Mouse Interactions
+                </h4>
+                <ul
+                  className="list-disc list-inside space-y-1"
+                  style={{ color: theme.secondaryText }}
+                >
+                  <li>Click anywhere in a measure to place the cursor.</li>
+                  <li>Click existing notes to select them.</li>
+                  <li>Click the background to deselect.</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold mb-1" style={{ color: theme.text }}>
+                  ⌨️ Keyboard Interactions
+                </h4>
+                <ul
+                  className="list-disc list-inside space-y-1"
+                  style={{ color: theme.secondaryText }}
+                >
+                  <li>
+                    Use{' '}
+                    <kbd
+                      className="font-mono px-1 rounded"
+                      style={{
+                        backgroundColor: theme.buttonBackground,
+                        border: `1px solid ${theme.border}`,
+                        color: theme.accent,
+                      }}
+                    >
+                      Arrow Keys
+                    </kbd>{' '}
+                    to move the cursor.
+                  </li>
+                  <li>
+                    Press{' '}
+                    <kbd
+                      className="font-mono px-1 rounded"
+                      style={{
+                        backgroundColor: theme.buttonBackground,
+                        border: `1px solid ${theme.border}`,
+                        color: theme.accent,
+                      }}
+                    >
+                      Enter
+                    </kbd>{' '}
+                    to add a note at the cursor.
+                  </li>
+                  <li>
+                    Press{' '}
+                    <kbd
+                      className="font-mono px-1 rounded"
+                      style={{
+                        backgroundColor: theme.buttonBackground,
+                        border: `1px solid ${theme.border}`,
+                        color: theme.accent,
+                      }}
+                    >
+                      Space
+                    </kbd>{' '}
+                    to play/pause.
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -167,8 +249,26 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t text-center text-xs" style={{ backgroundColor: theme.background, borderColor: theme.border, color: theme.secondaryText }}>
-          Press <kbd className="px-1 py-0.5 rounded border font-mono" style={{ backgroundColor: theme.buttonBackground, borderColor: theme.border, color: theme.text }}>Esc</kbd> to close
+        <div
+          className="p-4 border-t text-center text-xs"
+          style={{
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+            color: theme.secondaryText,
+          }}
+        >
+          Press{' '}
+          <kbd
+            className="px-1 py-0.5 rounded border font-mono"
+            style={{
+              backgroundColor: theme.buttonBackground,
+              borderColor: theme.border,
+              color: theme.text,
+            }}
+          >
+            Esc
+          </kbd>{' '}
+          to close
         </div>
       </div>
     </div>

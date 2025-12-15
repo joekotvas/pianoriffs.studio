@@ -25,9 +25,8 @@ export function useFocusTrap({
   onEscape,
   returnFocusRef,
   autoFocus = true,
-  enableArrowKeys = false
+  enableArrowKeys = false,
 }: UseFocusTrapOptions) {
-  
   const getFocusableElements = useCallback(() => {
     if (!containerRef.current) return [];
     return Array.from(
@@ -75,9 +74,10 @@ export function useFocusTrap({
       if (e.key === 'Tab') {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (e.shiftKey) {
-          const prevIndex = (currentIndex - 1 + focusableElements.length) % focusableElements.length;
+          const prevIndex =
+            (currentIndex - 1 + focusableElements.length) % focusableElements.length;
           focusableElements[prevIndex].focus();
         } else {
           const nextIndex = (currentIndex + 1) % focusableElements.length;
@@ -98,10 +98,10 @@ export function useFocusTrap({
 
     // Use capture phase to intercept before default handlers
     document.addEventListener('keydown', handleKeyDown, true);
-    
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
-      
+
       // Return focus when trap is deactivated
       if (returnFocusRef?.current) {
         returnFocusRef.current.focus();

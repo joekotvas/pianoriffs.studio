@@ -29,6 +29,6 @@ export const useScoreEngine = (initialScore?: Score) => {
 
   return {
     score,
-    engine
+    engine,
   };
 };

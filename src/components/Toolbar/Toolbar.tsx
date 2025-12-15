@@ -1,9 +1,4 @@
-import React, { 
-  useRef, 
-  useImperativeHandle, 
-  forwardRef, 
-  useState 
-} from 'react';
+import React, { useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { BookOpen, HelpCircle } from 'lucide-react';
 
 // Contexts & Types
@@ -45,7 +40,7 @@ interface ToolbarProps {
   isEditingTitle: boolean;
   onEditingChange: (isEditing: boolean) => void;
   onTitleChange: (title: string) => void;
-  
+
   // Playback & System
   isPlaying: boolean;
   onPlayToggle?: () => void;
@@ -54,13 +49,13 @@ interface ToolbarProps {
   errorMsg: string | null;
   onToggleHelp: () => void;
   onEscape?: () => void;
-  
+
   // MIDI / Audio
   midiStatus: { connected: boolean; deviceName: string | null; error: string | null };
   samplerLoaded: boolean;
   selectedInstrument: InstrumentType;
   onInstrumentChange: (instrument: InstrumentType) => void;
-  
+
   // Data
   melodies: Melody[];
 }
@@ -72,183 +67,193 @@ export interface ToolbarHandle {
   isMenuOpen: () => boolean;
 }
 
-const TOP_ROW_HEIGHT = "h-9";
+const TOP_ROW_HEIGHT = 'h-9';
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
-  isPlaying,
-  onPlayToggle,
-  bpm,
-  onBpmChange,
-  errorMsg,
-  onToggleHelp,
-  midiStatus = { connected: false, deviceName: null, error: null },
-  melodies,
-  selectedInstrument,
-  onInstrumentChange,
-  samplerLoaded,
-  onEscape
-}, ref) => {
-  // -- Local State & Refs --
-  const { theme } = useTheme();
-  const staffControlsRef = useRef<StaffControlsHandle>(null);
-  const melodyLibBtnRef = useRef<HTMLButtonElement>(null);
-  const toolbarContainerRef = useRef<HTMLDivElement>(null);
-  
-  const [showLibrary, setShowLibrary] = useState(false);
-  const [isToolbarFocused, setIsToolbarFocused] = useState(false);
-
-  // -- Score Context (Grouped for Clarity) --
-  const scoreCtx = useScoreContext();
-  
-  // 1. Core Data
-  const { score, dispatch, inputMode, toggleInputMode, selection, editorState } = scoreCtx;
-  
-  // 2. History
-  const { history, undo, redoStack, redo } = scoreCtx;
-  
-  // 3. Duration & Rhythms
-  const { 
-    activeDuration, handleDurationChange, checkDurationValidity, selectedDurations,
-    isDotted, handleDotToggle, checkDotValidity, selectedDots,
-    activeTie, handleTieToggle, selectedTies
-  } = scoreCtx;
-
-  // 4. Pitch & Accidentals
-  const { 
-    activeAccidental, handleAccidentalToggle, selectedAccidentals 
-  } = scoreCtx;
-
-  // 5. Structure (Measures, Staff)
-  const {
-    addMeasure, removeMeasure, togglePickup,
-    handleTimeSignatureChange, handleKeySignatureChange, handleClefChange
-  } = scoreCtx;
-
-  // 6. Advanced (Tuplets)
-  const { 
-    applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio 
-  } = scoreCtx;
-
-
-  // -- Handlers --
-
-  const handleInputModeClick = () => {
-    const hasSelection = selection?.selectedNotes && selection.selectedNotes.length > 0;
-    if (hasSelection) {
-      dispatch(new ToggleRestCommand(selection));
-    } else {
-      toggleInputMode();
-    }
-  };
-
-  const handleMelodySelect = (melody: Melody) => {
-    dispatch(new LoadScoreCommand(melody.score));
-    setShowLibrary(false);
-  };
-
-  // -- Derived Logic --
-
-  const isAnyMenuOpen = showLibrary || (staffControlsRef.current?.isMenuOpen() ?? false);
-  const activeStaff = getActiveStaff(score);
-
-  useImperativeHandle(ref, () => ({
-    openTimeSigMenu: () => staffControlsRef.current?.openTimeSigMenu(),
-    openKeySigMenu: () => staffControlsRef.current?.openKeySigMenu(),
-    openClefMenu: () => staffControlsRef.current?.openClefMenu(),
-    isMenuOpen: () => isAnyMenuOpen
-  }), [showLibrary, isAnyMenuOpen]);
-
-  useFocusTrap({
-    containerRef: toolbarContainerRef,
-    isActive: isToolbarFocused && !isAnyMenuOpen,
-    onEscape: () => {
-      setIsToolbarFocused(false);
-      onEscape?.();
+const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
+  (
+    {
+      isPlaying,
+      onPlayToggle,
+      bpm,
+      onBpmChange,
+      errorMsg,
+      onToggleHelp,
+      midiStatus = { connected: false, deviceName: null, error: null },
+      melodies,
+      selectedInstrument,
+      onInstrumentChange,
+      samplerLoaded,
+      onEscape,
     },
-    autoFocus: false,
-    enableArrowKeys: false
-  });
+    ref
+  ) => {
+    // -- Local State & Refs --
+    const { theme } = useTheme();
+    const staffControlsRef = useRef<StaffControlsHandle>(null);
+    const melodyLibBtnRef = useRef<HTMLButtonElement>(null);
+    const toolbarContainerRef = useRef<HTMLDivElement>(null);
 
-  // -- Render --
+    const [showLibrary, setShowLibrary] = useState(false);
+    const [isToolbarFocused, setIsToolbarFocused] = useState(false);
 
-  return (
-    <div 
-      ref={toolbarContainerRef}
-      className="flex flex-col gap-2 mb-4 border-b pb-2"
-      style={{ borderColor: theme.border }}
-      onFocus={() => setIsToolbarFocused(true)}
-      onBlur={(e) => {
-        if (!toolbarContainerRef.current?.contains(e.relatedTarget as Node)) {
-          setIsToolbarFocused(false);
-        }
-      }}
-    >
-      {/* -----------------------------------------------------------
+    // -- Score Context (Grouped for Clarity) --
+    const scoreCtx = useScoreContext();
+
+    // 1. Core Data
+    const { score, dispatch, inputMode, toggleInputMode, selection, editorState } = scoreCtx;
+
+    // 2. History
+    const { history, undo, redoStack, redo } = scoreCtx;
+
+    // 3. Duration & Rhythms
+    const {
+      activeDuration,
+      handleDurationChange,
+      checkDurationValidity,
+      selectedDurations,
+      isDotted,
+      handleDotToggle,
+      checkDotValidity,
+      selectedDots,
+      activeTie,
+      handleTieToggle,
+      selectedTies,
+    } = scoreCtx;
+
+    // 4. Pitch & Accidentals
+    const { activeAccidental, handleAccidentalToggle, selectedAccidentals } = scoreCtx;
+
+    // 5. Structure (Measures, Staff)
+    const {
+      addMeasure,
+      removeMeasure,
+      togglePickup,
+      handleTimeSignatureChange,
+      handleKeySignatureChange,
+      handleClefChange,
+    } = scoreCtx;
+
+    // 6. Advanced (Tuplets)
+    const { applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio } = scoreCtx;
+
+    // -- Handlers --
+
+    const handleInputModeClick = () => {
+      const hasSelection = selection?.selectedNotes && selection.selectedNotes.length > 0;
+      if (hasSelection) {
+        dispatch(new ToggleRestCommand(selection));
+      } else {
+        toggleInputMode();
+      }
+    };
+
+    const handleMelodySelect = (melody: Melody) => {
+      dispatch(new LoadScoreCommand(melody.score));
+      setShowLibrary(false);
+    };
+
+    // -- Derived Logic --
+
+    const isAnyMenuOpen = showLibrary || (staffControlsRef.current?.isMenuOpen() ?? false);
+    const activeStaff = getActiveStaff(score);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        openTimeSigMenu: () => staffControlsRef.current?.openTimeSigMenu(),
+        openKeySigMenu: () => staffControlsRef.current?.openKeySigMenu(),
+        openClefMenu: () => staffControlsRef.current?.openClefMenu(),
+        isMenuOpen: () => isAnyMenuOpen,
+      }),
+      [showLibrary, isAnyMenuOpen]
+    );
+
+    useFocusTrap({
+      containerRef: toolbarContainerRef,
+      isActive: isToolbarFocused && !isAnyMenuOpen,
+      onEscape: () => {
+        setIsToolbarFocused(false);
+        onEscape?.();
+      },
+      autoFocus: false,
+      enableArrowKeys: false,
+    });
+
+    // -- Render --
+
+    return (
+      <div
+        ref={toolbarContainerRef}
+        className="flex flex-col gap-2 mb-4 border-b pb-2"
+        style={{ borderColor: theme.border }}
+        onFocus={() => setIsToolbarFocused(true)}
+        onBlur={(e) => {
+          if (!toolbarContainerRef.current?.contains(e.relatedTarget as Node)) {
+            setIsToolbarFocused(false);
+          }
+        }}
+      >
+        {/* -----------------------------------------------------------
           ROW 1: System / File / Playback / MIDI / Library
       ------------------------------------------------------------ */}
-      <div className="row flex items-center gap-4">
-        <FileMenu 
-          score={score} 
-          bpm={bpm} 
-          height={TOP_ROW_HEIGHT} 
-          variant="ghost" 
-        />
-        
-        <Divider />
+        <div className="row flex items-center gap-4">
+          <FileMenu score={score} bpm={bpm} height={TOP_ROW_HEIGHT} variant="ghost" />
 
-        <HistoryControls
-          canUndo={history.length > 0}
-          onUndo={undo}
-          canRedo={redoStack.length > 0}
-          onRedo={redo}
-          height={TOP_ROW_HEIGHT}
-          variant="ghost"
-        />
+          <Divider />
 
-        <Divider />
-
-        <PlaybackControls
-          isPlaying={isPlaying}
-          onPlayToggle={onPlayToggle}
-          bpm={bpm}
-          onBpmChange={onBpmChange}
-          selectedInstrument={selectedInstrument}
-          onInstrumentChange={onInstrumentChange}
-          samplerLoaded={samplerLoaded}
-          height={TOP_ROW_HEIGHT}
-          variant="ghost"
-        />
-
-        <Divider />
-
-        {/* Library Menu */}
-        <div className="flex gap-1 relative">
-          <DropdownTrigger
-            ref={melodyLibBtnRef}
-            label="Library"
-            icon={<BookOpen size={14} />}
-            isOpen={showLibrary}
-            onClick={() => setShowLibrary(!showLibrary)}
+          <HistoryControls
+            canUndo={history.length > 0}
+            onUndo={undo}
+            canRedo={redoStack.length > 0}
+            onRedo={redo}
             height={TOP_ROW_HEIGHT}
+            variant="ghost"
           />
-          {showLibrary && (
-            <MelodyLibrary 
-              melodies={melodies}
-              onSelectMelody={handleMelodySelect}
-              onClose={() => setShowLibrary(false)}
-              position={{ 
-                x: (melodyLibBtnRef.current?.getBoundingClientRect().right || 0) - 256,
-                y: (melodyLibBtnRef.current?.getBoundingClientRect().bottom || 0) + 5
-              }}
-              triggerRef={melodyLibBtnRef as React.RefObject<HTMLElement>}
+
+          <Divider />
+
+          <PlaybackControls
+            isPlaying={isPlaying}
+            onPlayToggle={onPlayToggle}
+            bpm={bpm}
+            onBpmChange={onBpmChange}
+            selectedInstrument={selectedInstrument}
+            onInstrumentChange={onInstrumentChange}
+            samplerLoaded={samplerLoaded}
+            height={TOP_ROW_HEIGHT}
+            variant="ghost"
+          />
+
+          <Divider />
+
+          {/* Library Menu */}
+          <div className="flex gap-1 relative">
+            <DropdownTrigger
+              ref={melodyLibBtnRef}
+              label="Library"
+              icon={<BookOpen size={14} />}
+              isOpen={showLibrary}
+              onClick={() => setShowLibrary(!showLibrary)}
+              height={TOP_ROW_HEIGHT}
             />
-          )}
-        </div>
-{/* 
+            {showLibrary && (
+              <MelodyLibrary
+                melodies={melodies}
+                onSelectMelody={handleMelodySelect}
+                onClose={() => setShowLibrary(false)}
+                position={{
+                  x: (melodyLibBtnRef.current?.getBoundingClientRect().right || 0) - 256,
+                  y: (melodyLibBtnRef.current?.getBoundingClientRect().bottom || 0) + 5,
+                }}
+                triggerRef={melodyLibBtnRef as React.RefObject<HTMLElement>}
+              />
+            )}
+          </div>
+          {/* 
         <Divider />
 
         <MidiControls
@@ -260,110 +265,107 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(({
           variant="ghost"
         />
  */}
-        {/* Spacer */}
-        <div className="flex-1"></div>
+          {/* Spacer */}
+          <div className="flex-1"></div>
 
-        <ToolbarButton 
-          onClick={onToggleHelp}
-          label="Keyboard Shortcuts"
-          icon={<HelpCircle size={18} />}
-          preventFocus={true}
-          height={TOP_ROW_HEIGHT}
-          variant="ghost"
-        />
-      </div>
+          <ToolbarButton
+            onClick={onToggleHelp}
+            label="Keyboard Shortcuts"
+            icon={<HelpCircle size={18} />}
+            preventFocus={true}
+            height={TOP_ROW_HEIGHT}
+            variant="ghost"
+          />
+        </div>
 
-      <Divider orientation="horizontal" />
+        <Divider orientation="horizontal" />
 
-      {/* -----------------------------------------------------------
+        {/* -----------------------------------------------------------
           ROW 2: Notation / Editing Controls
       ------------------------------------------------------------ */}
-      <div className="row flex items-center gap-4 flex-wrap">
-        <StaffControls
-          ref={staffControlsRef}
-          clef={score.staves.length >= 2 ? 'grand' : (activeStaff.clef || 'treble')}
-          onClefChange={handleClefChange}
-          keySignature={score.keySignature || activeStaff.keySignature}
-          onKeySignatureChange={handleKeySignatureChange}
-          timeSignature={score.timeSignature}
-          onTimeSignatureChange={handleTimeSignatureChange}
-          variant="ghost"
-        />
+        <div className="row flex items-center gap-4 flex-wrap">
+          <StaffControls
+            ref={staffControlsRef}
+            clef={score.staves.length >= 2 ? 'grand' : activeStaff.clef || 'treble'}
+            onClefChange={handleClefChange}
+            keySignature={score.keySignature || activeStaff.keySignature}
+            onKeySignatureChange={handleKeySignatureChange}
+            timeSignature={score.timeSignature}
+            onTimeSignatureChange={handleTimeSignatureChange}
+            variant="ghost"
+          />
 
-        <Divider />
+          <Divider />
 
-        <InputModeToggle 
-          mode={inputMode} 
-          onToggle={handleInputModeClick} 
-          variant="ghost"
-        />
+          <InputModeToggle mode={inputMode} onToggle={handleInputModeClick} variant="ghost" />
 
-        <DurationControls 
-          activeDuration={activeDuration}
-          onDurationChange={handleDurationChange}
-          isDurationValid={checkDurationValidity}
-          selectedDurations={selectedDurations}
-          editorState={editorState}
-          inputMode={inputMode}
-          variant="ghost"
-        />
+          <DurationControls
+            activeDuration={activeDuration}
+            onDurationChange={handleDurationChange}
+            isDurationValid={checkDurationValidity}
+            selectedDurations={selectedDurations}
+            editorState={editorState}
+            inputMode={inputMode}
+            variant="ghost"
+          />
 
-        <Divider />
+          <Divider />
 
-        <ModifierControls 
-          isDotted={isDotted}
-          onDotToggle={handleDotToggle}
-          activeTie={activeTie}
-          onToggleTie={handleTieToggle}
-          isDotValid={checkDotValidity()}
-          selectedDots={selectedDots}
-          selectedTies={selectedTies}
-          editorState={editorState}
-          variant="ghost"
-        />
+          <ModifierControls
+            isDotted={isDotted}
+            onDotToggle={handleDotToggle}
+            activeTie={activeTie}
+            onToggleTie={handleTieToggle}
+            isDotValid={checkDotValidity()}
+            selectedDots={selectedDots}
+            selectedTies={selectedTies}
+            editorState={editorState}
+            variant="ghost"
+          />
 
-        <Divider />
+          <Divider />
 
-        <AccidentalControls 
-          activeAccidental={activeAccidental}
-          onToggleAccidental={handleAccidentalToggle}
-          selectedAccidentals={selectedAccidentals}
-          editorState={editorState}
-          variant="ghost"
-        />
+          <AccidentalControls
+            activeAccidental={activeAccidental}
+            onToggleAccidental={handleAccidentalToggle}
+            selectedAccidentals={selectedAccidentals}
+            editorState={editorState}
+            variant="ghost"
+          />
 
-        <Divider />
+          <Divider />
 
-        <TupletControls 
-          onApplyTuplet={applyTuplet}
-          onRemoveTuplet={removeTuplet}
-          canApplyTriplet={canApplyTuplet(3)}
-          canApplyQuintuplet={canApplyTuplet(5)}
-          activeTupletRatio={activeTupletRatio}
-          variant="ghost"
-        />
+          <TupletControls
+            onApplyTuplet={applyTuplet}
+            onRemoveTuplet={removeTuplet}
+            canApplyTriplet={canApplyTuplet(3)}
+            canApplyQuintuplet={canApplyTuplet(5)}
+            activeTupletRatio={activeTupletRatio}
+            variant="ghost"
+          />
 
-        {/* Spacer */}
-        {/* <div className="flex-1"></div> */}
+          {/* Spacer */}
+          {/* <div className="flex-1"></div> */}
 
-        <MeasureControls 
-          onAddMeasure={addMeasure}
-          onRemoveMeasure={removeMeasure}
-          onTogglePickup={togglePickup}
-          isPickup={activeStaff.measures[0]?.isPickup}
-          variant="ghost"
-        />
-      </div>
-      
-      {/* Error Message */}
-      {errorMsg && (
-        <div className="w-full text-red-600 text-xs mt-2 font-bold animate-pulse">
-          ⚠️ {errorMsg}
+          <MeasureControls
+            onAddMeasure={addMeasure}
+            onRemoveMeasure={removeMeasure}
+            onTogglePickup={togglePickup}
+            isPickup={activeStaff.measures[0]?.isPickup}
+            variant="ghost"
+          />
         </div>
-      )}
-    </div>
-  );
-});
+
+        {/* Error Message */}
+        {errorMsg && (
+          <div className="w-full text-red-600 text-xs mt-2 font-bold animate-pulse">
+            ⚠️ {errorMsg}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 Toolbar.displayName = 'Toolbar';
 

@@ -30,20 +30,25 @@ export const useMeasureActions = ({
   score,
   setSelection,
   setPreviewNote,
-  dispatch
+  dispatch,
 }: UseMeasureActionsProps): UseMeasureActionsReturn => {
-  
-  const handleTimeSignatureChange = useCallback((newSig: string) => {
-    if (newSig === score.timeSignature) return;
-    dispatch(new SetTimeSignatureCommand(newSig));
-    setSelection(createDefaultSelection());
-    setPreviewNote(null);
-  }, [score.timeSignature, dispatch, setSelection, setPreviewNote]);
+  const handleTimeSignatureChange = useCallback(
+    (newSig: string) => {
+      if (newSig === score.timeSignature) return;
+      dispatch(new SetTimeSignatureCommand(newSig));
+      setSelection(createDefaultSelection());
+      setPreviewNote(null);
+    },
+    [score.timeSignature, dispatch, setSelection, setPreviewNote]
+  );
 
-  const handleKeySignatureChange = useCallback((newKey: string) => {
-    if (newKey === score.keySignature) return;
-    dispatch(new SetKeySignatureCommand(newKey));
-  }, [score.keySignature, dispatch]);
+  const handleKeySignatureChange = useCallback(
+    (newKey: string) => {
+      if (newKey === score.keySignature) return;
+      dispatch(new SetKeySignatureCommand(newKey));
+    },
+    [score.keySignature, dispatch]
+  );
 
   const addMeasure = useCallback(() => {
     dispatch(new AddMeasureCommand());
@@ -59,11 +64,10 @@ export const useMeasureActions = ({
     addMeasure,
     removeMeasure,
     togglePickup: useCallback(() => {
-        dispatch(new TogglePickupCommand());
+      dispatch(new TogglePickupCommand());
     }, [dispatch]),
     setGrandStaff: useCallback(() => {
-        dispatch(new SetGrandStaffCommand());
-    }, [dispatch])
+      dispatch(new SetGrandStaffCommand());
+    }, [dispatch]),
   };
 };
-

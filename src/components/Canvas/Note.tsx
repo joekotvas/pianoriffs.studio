@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { NOTE_TYPES, LAYOUT } from '@/constants';
+import { LAYOUT } from '@/constants';
 import { CONFIG } from '@/config';
 import { useTheme } from '@/context/ThemeContext';
 import { getOffsetForPitch } from '@/engines/layout';
@@ -156,102 +156,107 @@ const HitArea = ({ x, y, cursor, onClick, onMouseDown, onDoubleClick, testId }) 
  * - Dot
  * - LedgerLines
  * - HitArea (interaction layer)
- * 
+ *
  * This is the primary building block used by ChordGroup.
  */
-const Note = React.memo(({
-  // Note data
-  note,
-  pitch, // Alternative to note.pitch for simpler use cases
-  duration,
-  dotted = false,
-  
-  // Positioning
-  x,
-  baseY,
-  clef,
-  xShift = 0,
-  dotShift = 0,
-  
-  // Appearance
-  isSelected = false,
-  isPreview = false,  // Lasso preview state (shows semi-transparent accent)
-  isGhost = false,
-  accidentalGlyph = null,
-  color: overrideColor = null,
-  
-  // Interaction handlers (optional for interactive notes)
-  handlers = null, // { onMouseEnter, onMouseLeave, onMouseDown, onDoubleClick }
-}) => {
-  const { theme } = useTheme();
-  
-  // Resolve pitch from either direct prop or note object
-  const effectivePitch = pitch || note?.pitch;
-  if (!effectivePitch) return null;
-  
-  // Calculate position
-  const noteX = x + xShift;
-  const noteY = baseY + getOffsetForPitch(effectivePitch, clef);
-  
-  // Determine color (preview uses accent color, same as selection)
-  const color = overrideColor || (
-    isGhost ? theme.accent :
-    isSelected ? theme.accent :
-    isPreview ? theme.accent :
-    theme.score.note
-  );
-  
-  // Dot Y position (move up if on a line)
-  const relativeY = noteY - baseY;
-  const dotY = relativeY % 12 === 0 ? noteY - 6 : noteY;
-  const dotX = noteX + dotShift + LAYOUT.DOT_OFFSET_X;
-  
-  // Accidental position
-  const accidentalX = noteX + LAYOUT.ACCIDENTAL.OFFSET_X;
-  const accidentalY = noteY + LAYOUT.ACCIDENTAL.OFFSET_Y;
-  
-  // Hit area position
-  const hitX = noteX + LAYOUT.HIT_AREA.OFFSET_X;
-  const hitY = noteY + LAYOUT.HIT_AREA.OFFSET_Y;
-  
-  // Note ID for hit area test ID
-  const noteId = note?.id || 'note';
-  
-  return (
-    <g
-      className={!isGhost ? "note-group-container" : ""}
-      onMouseEnter={() => handlers?.onMouseEnter?.(note?.id)}
-      onMouseLeave={handlers?.onMouseLeave}
-    >
-      {/* 1. Ledger Lines (behind everything) */}
-      <LedgerLines x={noteX} y={noteY} baseY={baseY} color={color} />
-      
-      {/* 2. Accidental */}
-      <Accidental x={accidentalX} y={accidentalY} symbol={accidentalGlyph} color={color} />
-      
-      {/* 3. Note Head */}
-      <g style={{ pointerEvents: 'none' }}>
-        <NoteHead x={noteX} y={noteY} duration={duration} color={color} />
+const Note = React.memo(
+  ({
+    // Note data
+    note,
+    pitch, // Alternative to note.pitch for simpler use cases
+    duration,
+    dotted = false,
+
+    // Positioning
+    x,
+    baseY,
+    clef,
+    xShift = 0,
+    dotShift = 0,
+
+    // Appearance
+    isSelected = false,
+    isPreview = false, // Lasso preview state (shows semi-transparent accent)
+    isGhost = false,
+    accidentalGlyph = null,
+    color: overrideColor = null,
+
+    // Interaction handlers (optional for interactive notes)
+    handlers = null, // { onMouseEnter, onMouseLeave, onMouseDown, onDoubleClick }
+  }) => {
+    const { theme } = useTheme();
+
+    // Resolve pitch from either direct prop or note object
+    const effectivePitch = pitch || note?.pitch;
+    if (!effectivePitch) return null;
+
+    // Calculate position
+    const noteX = x + xShift;
+    const noteY = baseY + getOffsetForPitch(effectivePitch, clef);
+
+    // Determine color (preview uses accent color, same as selection)
+    const color =
+      overrideColor ||
+      (isGhost
+        ? theme.accent
+        : isSelected
+          ? theme.accent
+          : isPreview
+            ? theme.accent
+            : theme.score.note);
+
+    // Dot Y position (move up if on a line)
+    const relativeY = noteY - baseY;
+    const dotY = relativeY % 12 === 0 ? noteY - 6 : noteY;
+    const dotX = noteX + dotShift + LAYOUT.DOT_OFFSET_X;
+
+    // Accidental position
+    const accidentalX = noteX + LAYOUT.ACCIDENTAL.OFFSET_X;
+    const accidentalY = noteY + LAYOUT.ACCIDENTAL.OFFSET_Y;
+
+    // Hit area position
+    const hitX = noteX + LAYOUT.HIT_AREA.OFFSET_X;
+    const hitY = noteY + LAYOUT.HIT_AREA.OFFSET_Y;
+
+    // Note ID for hit area test ID
+    const noteId = note?.id || 'note';
+
+    return (
+      <g
+        className={!isGhost ? 'note-group-container' : ''}
+        onMouseEnter={() => handlers?.onMouseEnter?.(note?.id)}
+        onMouseLeave={handlers?.onMouseLeave}
+      >
+        {/* 1. Ledger Lines (behind everything) */}
+        <LedgerLines x={noteX} y={noteY} baseY={baseY} color={color} />
+
+        {/* 2. Accidental */}
+        <Accidental x={accidentalX} y={accidentalY} symbol={accidentalGlyph} color={color} />
+
+        {/* 3. Note Head */}
+        <g style={{ pointerEvents: 'none' }}>
+          <NoteHead x={noteX} y={noteY} duration={duration} color={color} />
+        </g>
+
+        {/* 4. Dot */}
+        {dotted && <Dot x={dotX} y={dotY} color={color} />}
+
+        {/* 5. Hit Area (on top for interaction) */}
+        {handlers && (
+          <HitArea
+            x={hitX}
+            y={hitY}
+            cursor={!isGhost ? 'pointer' : 'default'}
+            onClick={(e) => !isGhost && e.stopPropagation()}
+            onMouseDown={(e) => handlers.onMouseDown?.(e, note)}
+            onDoubleClick={(e) => handlers.onDoubleClick?.(e, note)}
+            testId={`note-${noteId}`}
+          />
+        )}
       </g>
-      
-      {/* 4. Dot */}
-      {dotted && <Dot x={dotX} y={dotY} color={color} />}
-      
-      {/* 5. Hit Area (on top for interaction) */}
-      {handlers && (
-        <HitArea
-          x={hitX}
-          y={hitY}
-          cursor={!isGhost ? 'pointer' : 'default'}
-          onClick={(e) => !isGhost && e.stopPropagation()}
-          onMouseDown={(e) => handlers.onMouseDown?.(e, note)}
-          onDoubleClick={(e) => handlers.onDoubleClick?.(e, note)}
-          testId={`note-${noteId}`}
-        />
-      )}
-    </g>
-  );
-});
+    );
+  }
+);
 
 // Also export sub-components for special use cases
 export { NoteHead, Accidental, Dot, LedgerLines, HitArea };

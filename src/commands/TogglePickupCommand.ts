@@ -15,19 +15,19 @@ export class TogglePickupCommand implements Command {
     const newIsPickup = !firstMeasure.isPickup;
 
     // Update ALL staves
-    const newStaves = score.staves.map(staff => {
-        if (staff.measures.length === 0) return staff;
-        const newMeasures = [...staff.measures];
-        newMeasures[0] = {
-            ...newMeasures[0],
-            isPickup: newIsPickup
-        };
-        return { ...staff, measures: newMeasures };
+    const newStaves = score.staves.map((staff) => {
+      if (staff.measures.length === 0) return staff;
+      const newMeasures = [...staff.measures];
+      newMeasures[0] = {
+        ...newMeasures[0],
+        isPickup: newIsPickup,
+      };
+      return { ...staff, measures: newMeasures };
     });
 
     return {
       ...score,
-      staves: newStaves
+      staves: newStaves,
     };
   }
 
@@ -35,19 +35,19 @@ export class TogglePickupCommand implements Command {
     if (this.previousIsPickup === undefined) return score;
 
     // Restore ALL staves to previous state
-    const newStaves = score.staves.map(staff => {
-        if (staff.measures.length === 0) return staff;
-        const newMeasures = [...staff.measures];
-        newMeasures[0] = {
-            ...newMeasures[0],
-            isPickup: this.previousIsPickup
-        };
-        return { ...staff, measures: newMeasures };
+    const newStaves = score.staves.map((staff) => {
+      if (staff.measures.length === 0) return staff;
+      const newMeasures = [...staff.measures];
+      newMeasures[0] = {
+        ...newMeasures[0],
+        isPickup: this.previousIsPickup,
+      };
+      return { ...staff, measures: newMeasures };
     });
 
     return {
       ...score,
-      staves: newStaves
+      staves: newStaves,
     };
   }
 }

@@ -24,43 +24,42 @@ const ModifierControls: React.FC<ModifierControlsProps> = ({
   selectedDots = [],
   selectedTies = [],
   editorState = 'IDLE',
-  variant = 'default'
+  variant = 'default',
 }) => {
-    
-    // Calculate visual states
-    let dotActive = isDotted;
-    let dotDashed = false;
-    let dotEmphasized = false;
-    
-    if (editorState === 'SELECTION_READY') {
-        if (selectedDots.length > 1) {
-            // Mixed state
-            dotActive = false;
-            dotDashed = true;
-            dotEmphasized = true;
-        } else if (selectedDots.length === 1 && selectedDots[0] === true) {
-            dotActive = true;
-        } else {
-            dotActive = false;
-        }
-    }
+  // Calculate visual states
+  let dotActive = isDotted;
+  let dotDashed = false;
+  let dotEmphasized = false;
 
-    let tieActive = activeTie;
-    let tieDashed = false;
-    let tieEmphasized = false;
-
-    if (editorState === 'SELECTION_READY') {
-        if (selectedTies.length > 1) {
-            // Mixed state
-            tieActive = false;
-            tieDashed = true;
-            tieEmphasized = true;
-        } else if (selectedTies.length === 1 && selectedTies[0] === true) {
-            tieActive = true;
-        } else {
-            tieActive = false;
-        }
+  if (editorState === 'SELECTION_READY') {
+    if (selectedDots.length > 1) {
+      // Mixed state
+      dotActive = false;
+      dotDashed = true;
+      dotEmphasized = true;
+    } else if (selectedDots.length === 1 && selectedDots[0] === true) {
+      dotActive = true;
+    } else {
+      dotActive = false;
     }
+  }
+
+  let tieActive = activeTie;
+  let tieDashed = false;
+  let tieEmphasized = false;
+
+  if (editorState === 'SELECTION_READY') {
+    if (selectedTies.length > 1) {
+      // Mixed state
+      tieActive = false;
+      tieDashed = true;
+      tieEmphasized = true;
+    } else if (selectedTies.length === 1 && selectedTies[0] === true) {
+      tieActive = true;
+    } else {
+      tieActive = false;
+    }
+  }
 
   return (
     <div className="flex gap-1">

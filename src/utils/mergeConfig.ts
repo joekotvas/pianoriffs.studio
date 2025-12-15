@@ -1,6 +1,6 @@
 /**
  * Config Merging Utility
- * 
+ *
  * Deep merge utility for merging partial RiffScore configs with defaults.
  */
 
@@ -22,18 +22,18 @@ function mergeObjects<T>(target: T, source: Partial<T>): T {
   }
 
   const result = { ...target } as T;
-  
+
   for (const key of Object.keys(source)) {
     const sourceVal = (source as Record<string, unknown>)[key];
     const targetVal = (result as Record<string, unknown>)[key];
-    
+
     if (isPlainObject(sourceVal) && isPlainObject(targetVal)) {
       (result as Record<string, unknown>)[key] = mergeObjects(targetVal, sourceVal);
     } else if (sourceVal !== undefined) {
       (result as Record<string, unknown>)[key] = sourceVal;
     }
   }
-  
+
   return result;
 }
 
@@ -41,11 +41,9 @@ function mergeObjects<T>(target: T, source: Partial<T>): T {
  * Merges a partial RiffScore config with the default config.
  * Handles nested objects (ui, interaction, score) correctly.
  */
-export const mergeRiffConfig = (
-  userConfig: DeepPartial<RiffScoreConfig> = {}
-): RiffScoreConfig => {
+export const mergeRiffConfig = (userConfig: DeepPartial<RiffScoreConfig> = {}): RiffScoreConfig => {
   const base = { ...DEFAULT_RIFF_CONFIG };
-  
+
   // Merge each top-level section individually for type safety
   return {
     ui: mergeObjects(base.ui, userConfig.ui ?? {}),

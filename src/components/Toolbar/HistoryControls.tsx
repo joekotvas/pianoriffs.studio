@@ -16,8 +16,8 @@ const HistoryControls: React.FC<HistoryControlsProps> = ({
   onUndo,
   canRedo,
   onRedo,
-  height = "h-9",
-  variant = "default"
+  height = 'h-9',
+  variant = 'default',
 }) => {
   return (
     <div className="flex gap-1">
@@ -42,4 +42,3 @@ const HistoryControls: React.FC<HistoryControlsProps> = ({
 };
 
 export default HistoryControls;
-

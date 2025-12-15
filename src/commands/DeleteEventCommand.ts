@@ -15,11 +15,11 @@ export class DeleteEventCommand implements Command {
   execute(score: Score): Score {
     const activeStaff = getActiveStaff(score, this.staffIndex);
     const newMeasures = [...activeStaff.measures];
-    
+
     if (!newMeasures[this.measureIndex]) return score;
 
     const measure = { ...newMeasures[this.measureIndex] };
-    const eventIndex = measure.events.findIndex(e => e.id === this.eventId);
+    const eventIndex = measure.events.findIndex((e) => e.id === this.eventId);
 
     if (eventIndex === -1) return score;
 
@@ -42,14 +42,14 @@ export class DeleteEventCommand implements Command {
 
     const activeStaff = getActiveStaff(score, this.staffIndex);
     const newMeasures = [...activeStaff.measures];
-    
+
     if (!newMeasures[this.measureIndex]) return score;
 
     const measure = { ...newMeasures[this.measureIndex] };
     const newEvents = [...measure.events];
 
     newEvents.splice(this.deletedEventIndex, 0, this.deletedEvent);
-    
+
     measure.events = newEvents;
     newMeasures[this.measureIndex] = measure;
 

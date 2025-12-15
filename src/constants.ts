@@ -1,6 +1,6 @@
 /**
  * Constants for Sheet Music Editor
- * 
+ *
  * This file contains:
  * - Music theory constants (note types, time/key signatures)
  * - Derived layout constants (from CONFIG)
@@ -14,8 +14,8 @@ import { Key } from 'tonal';
 // DERIVED LAYOUT VALUES (from CONFIG.lineHeight)
 // =============================================================================
 
-const SPACE = CONFIG.lineHeight;      // 12px - distance between staff lines
-const HALF_SPACE = 0.5 * SPACE;       // 6px
+const SPACE = CONFIG.lineHeight; // 12px - distance between staff lines
+const HALF_SPACE = 0.5 * SPACE; // 6px
 
 // Staff positions (Y offset from baseY/top line of staff)
 const STAFF_POSITION = {
@@ -42,7 +42,7 @@ export const TIME_SIGNATURES: Record<string, number> = {
   '4/4': 64,
   '3/4': 48,
   '2/4': 32,
-  '6/8': 48
+  '6/8': 48,
 };
 
 // =============================================================================
@@ -59,99 +59,109 @@ export interface KeySignature {
 }
 
 const SHARPS_ORDER = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
-const FLATS_ORDER  = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
+const FLATS_ORDER = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
 
 // All 15 key signature groups: C (no accidentals), 7 sharps, 7 flats
 // Each major key has a relative minor with the same accidentals
 // Keys are named distinctly: 'C' = C Major, 'Am' = A minor
 const MAJOR_ROOTS = [
-  'C',                                       // No accidentals
-  'G', 'D', 'A', 'E', 'B', 'F#', 'C#',       // Sharp Keys
-  'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'   // Flat Keys
+  'C', // No accidentals
+  'G',
+  'D',
+  'A',
+  'E',
+  'B',
+  'F#',
+  'C#', // Sharp Keys
+  'F',
+  'Bb',
+  'Eb',
+  'Ab',
+  'Db',
+  'Gb',
+  'Cb', // Flat Keys
 ];
 
 export const KEY_SIGNATURES: Record<string, KeySignature> = {};
 
 // Generate all key signatures using Tonal.js
-MAJOR_ROOTS.forEach(majorRoot => {
+MAJOR_ROOTS.forEach((majorRoot) => {
   const majorInfo = Key.majorKey(majorRoot);
   const count = Math.abs(majorInfo.alteration);
   const type: 'sharp' | 'flat' = majorInfo.alteration < 0 ? 'flat' : 'sharp';
-  const accidentals = type === 'flat' 
-    ? FLATS_ORDER.slice(0, count) 
-    : SHARPS_ORDER.slice(0, count);
+  const accidentals = type === 'flat' ? FLATS_ORDER.slice(0, count) : SHARPS_ORDER.slice(0, count);
 
   // Major key: stored as root name (e.g., 'G', 'Bb')
-  KEY_SIGNATURES[majorRoot] = { 
-    label: `${majorRoot} Major`, 
-    type, 
-    count, 
+  KEY_SIGNATURES[majorRoot] = {
+    label: `${majorRoot} Major`,
+    type,
+    count,
     accidentals,
     mode: 'major',
-    tonic: majorRoot
+    tonic: majorRoot,
   };
-  
+
   // Minor key: stored with 'm' suffix (e.g., 'Em', 'Gm')
   // Use the relative minor from Tonal.js
   const minorRoot = majorInfo.minorRelative;
   const minorKey = `${minorRoot}m`;
-  KEY_SIGNATURES[minorKey] = { 
-    label: `${minorRoot} minor`, 
-    type, 
-    count, 
+  KEY_SIGNATURES[minorKey] = {
+    label: `${minorRoot} minor`,
+    type,
+    count,
     accidentals,
     mode: 'minor',
-    tonic: minorRoot
+    tonic: minorRoot,
   };
 });
 
 // Key signature accidental positions on staff
 export interface KeySignatureOffsets {
-  treble: { sharp: Record<string, number>; flat: Record<string, number>; };
-  bass: { sharp: Record<string, number>; flat: Record<string, number>; };
+  treble: { sharp: Record<string, number>; flat: Record<string, number> };
+  bass: { sharp: Record<string, number>; flat: Record<string, number> };
 }
 
 export const KEY_SIGNATURE_OFFSETS: KeySignatureOffsets = {
   treble: {
     sharp: {
-      'F': STAFF_POSITION.line5,
-      'C': STAFF_POSITION.space3,
-      'G': STAFF_POSITION.aboveStaff,
-      'D': STAFF_POSITION.line4,
-      'A': STAFF_POSITION.space2,
-      'E': STAFF_POSITION.space4,
-      'B': STAFF_POSITION.line3
+      F: STAFF_POSITION.line5,
+      C: STAFF_POSITION.space3,
+      G: STAFF_POSITION.aboveStaff,
+      D: STAFF_POSITION.line4,
+      A: STAFF_POSITION.space2,
+      E: STAFF_POSITION.space4,
+      B: STAFF_POSITION.line3,
     },
     flat: {
-      'B': STAFF_POSITION.line3,
-      'E': STAFF_POSITION.space4,
-      'A': STAFF_POSITION.space2,
-      'D': STAFF_POSITION.line4,
-      'G': STAFF_POSITION.line2,
-      'C': STAFF_POSITION.space3,
-      'F': STAFF_POSITION.space1
-    }
+      B: STAFF_POSITION.line3,
+      E: STAFF_POSITION.space4,
+      A: STAFF_POSITION.space2,
+      D: STAFF_POSITION.line4,
+      G: STAFF_POSITION.line2,
+      C: STAFF_POSITION.space3,
+      F: STAFF_POSITION.space1,
+    },
   },
   bass: {
     sharp: {
-      'F': STAFF_POSITION.line4,
-      'C': STAFF_POSITION.space2,
-      'G': STAFF_POSITION.space4,
-      'D': STAFF_POSITION.line3,
-      'A': STAFF_POSITION.line5,
-      'E': STAFF_POSITION.space3,
-      'B': STAFF_POSITION.aboveStaff
+      F: STAFF_POSITION.line4,
+      C: STAFF_POSITION.space2,
+      G: STAFF_POSITION.space4,
+      D: STAFF_POSITION.line3,
+      A: STAFF_POSITION.line5,
+      E: STAFF_POSITION.space3,
+      B: STAFF_POSITION.aboveStaff,
     },
     flat: {
-      'B': STAFF_POSITION.line2,
-      'E': STAFF_POSITION.space3,
-      'A': STAFF_POSITION.space1,
-      'D': STAFF_POSITION.line3,
-      'G': STAFF_POSITION.line1,
-      'C': STAFF_POSITION.space2,
-      'F': STAFF_POSITION.belowStaff
-    }
-  }
+      B: STAFF_POSITION.line2,
+      E: STAFF_POSITION.space3,
+      A: STAFF_POSITION.space1,
+      D: STAFF_POSITION.line3,
+      G: STAFF_POSITION.line1,
+      C: STAFF_POSITION.space2,
+      F: STAFF_POSITION.belowStaff,
+    },
+  },
 };
 
 // =============================================================================
@@ -166,7 +176,7 @@ export interface ClefType {
 export const CLEF_TYPES: Record<string, ClefType> = {
   treble: { label: 'Treble' },
   bass: { label: 'Bass' },
-  grand: { label: 'Grand', isGrand: true }
+  grand: { label: 'Grand', isGrand: true },
 };
 
 // =============================================================================
@@ -185,13 +195,73 @@ export interface NoteType {
 }
 
 export const NOTE_TYPES: Record<string, NoteType> = {
-  whole: { duration: 64, label: 'Whole', fill: 'transparent', stroke: 'black', stem: false, abcDuration: '4', xmlType: 'whole' },
-  half: { duration: 32, label: 'Half', fill: 'transparent', stroke: 'black', stem: true, abcDuration: '2', xmlType: 'half' },
-  quarter: { duration: 16, label: 'Quarter', fill: 'black', stroke: 'black', stem: true, abcDuration: '', xmlType: 'quarter' },
-  eighth: { duration: 8, label: 'Eighth', fill: 'black', stroke: 'black', stem: true, flag: 1, abcDuration: '/2', xmlType: 'eighth' },
-  sixteenth: { duration: 4, label: '16th', fill: 'black', stroke: 'black', stem: true, flag: 2, abcDuration: '/4', xmlType: '16th' },
-  thirtysecond: { duration: 2, label: '32nd', fill: 'black', stroke: 'black', stem: true, flag: 3, abcDuration: '/8', xmlType: '32nd' },
-  sixtyfourth: { duration: 1, label: '64th', fill: 'black', stroke: 'black', stem: true, flag: 4, abcDuration: '/16', xmlType: '64th' },
+  whole: {
+    duration: 64,
+    label: 'Whole',
+    fill: 'transparent',
+    stroke: 'black',
+    stem: false,
+    abcDuration: '4',
+    xmlType: 'whole',
+  },
+  half: {
+    duration: 32,
+    label: 'Half',
+    fill: 'transparent',
+    stroke: 'black',
+    stem: true,
+    abcDuration: '2',
+    xmlType: 'half',
+  },
+  quarter: {
+    duration: 16,
+    label: 'Quarter',
+    fill: 'black',
+    stroke: 'black',
+    stem: true,
+    abcDuration: '',
+    xmlType: 'quarter',
+  },
+  eighth: {
+    duration: 8,
+    label: 'Eighth',
+    fill: 'black',
+    stroke: 'black',
+    stem: true,
+    flag: 1,
+    abcDuration: '/2',
+    xmlType: 'eighth',
+  },
+  sixteenth: {
+    duration: 4,
+    label: '16th',
+    fill: 'black',
+    stroke: 'black',
+    stem: true,
+    flag: 2,
+    abcDuration: '/4',
+    xmlType: '16th',
+  },
+  thirtysecond: {
+    duration: 2,
+    label: '32nd',
+    fill: 'black',
+    stroke: 'black',
+    stem: true,
+    flag: 3,
+    abcDuration: '/8',
+    xmlType: '32nd',
+  },
+  sixtyfourth: {
+    duration: 1,
+    label: '64th',
+    fill: 'black',
+    stroke: 'black',
+    stem: true,
+    flag: 4,
+    abcDuration: '/16',
+    xmlType: '64th',
+  },
 };
 
 // =============================================================================
@@ -208,21 +278,21 @@ export const LAYOUT = {
   NOTE_RX: 6,
   NOTE_RY: 4,
   DOT_RADIUS: 3,
-  
+
   // Derived from lineHeight
   SECOND_INTERVAL_SHIFT: SPACE - 1,
   SECOND_INTERVAL_SPACE: HALF_SPACE,
   DOT_OFFSET_X: SPACE,
   LEDGER_LINE_EXTENSION: SPACE - 2,
-  
+
   // Accidentals
   ACCIDENTAL: {
     OFFSET_X: -16,
     OFFSET_Y: 0,
-    FONT_SIZE: 22,  // Legacy, now using getFontSize() from SMuFL
+    FONT_SIZE: 22, // Legacy, now using getFontSize() from SMuFL
     SPACING: HALF_SPACE + 2,
   },
-  
+
   // Hit Detection
   HIT_AREA: {
     WIDTH: 20,
@@ -232,7 +302,7 @@ export const LAYOUT = {
   },
   HIT_ZONE_RADIUS: 14,
   APPEND_ZONE_WIDTH: 2000,
-  
+
   // Min widths for short notes
   MIN_WIDTH_FACTORS: {
     sixtyfourth: 1.2,
@@ -240,7 +310,7 @@ export const LAYOUT = {
     sixteenth: 1.8,
     eighth: 2.2,
   } as Record<string, number>,
-  
+
   LOOKAHEAD_PADDING_FACTOR: 0.3,
 };
 
@@ -325,18 +395,18 @@ export const OUTER_ZONE_LINES = 4.6; // Lines allowed outside the system
 export const CLAMP_LIMITS = {
   // Inner zone (gap) limit: 2 ledger lines (24px)
   INNER_OFFSET: INNER_ZONE_LINES * LEDGER_LINE_STEP,
-  
+
   // Outer zone (top of system) limit: 4 ledger lines up (-48px)
   OUTER_TOP: -(OUTER_ZONE_LINES * LEDGER_LINE_STEP),
-  
+
   // Outer zone (bottom of system) limit: User preference (90px)
   // Accommodates 4 ledger lines down + breathing room
-  OUTER_BOTTOM: 90 
+  OUTER_BOTTOM: 90,
 };
 
 export const MOUSE_OFFSET_SNAP = HALF_SPACE; // 6px
 
 export const PIANO_RANGE = {
-  min: 'A0',  // MIDI 21
-  max: 'C8'   // MIDI 108
+  min: 'A0', // MIDI 21
+  max: 'C8', // MIDI 108
 };

@@ -14,7 +14,7 @@ interface UseTitleEditorResult {
  * Manages title editing logic including focus, buffer state, and commit.
  */
 export function useTitleEditor(
-  currentTitle: string, 
+  currentTitle: string,
   dispatch: (command: any) => void
 ): UseTitleEditorResult {
   const [isEditing, setIsEditing] = useState(false);

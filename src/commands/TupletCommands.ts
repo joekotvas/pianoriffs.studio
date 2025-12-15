@@ -9,20 +9,20 @@ export class ApplyTupletCommand implements Command {
   public readonly type = 'APPLY_TUPLET';
   private previousStates: Array<{
     eventId: string | number;
-    tuplet?: { ratio: [number, number]; groupSize: number; position: number; };
+    tuplet?: { ratio: [number, number]; groupSize: number; position: number };
   }> = [];
 
   constructor(
     private measureIndex: number,
     private startEventIndex: number,
     private groupSize: number,
-    private ratio: [number, number]  // e.g., [3, 2] for triplet
+    private ratio: [number, number] // e.g., [3, 2] for triplet
   ) {}
 
   execute(score: Score): Score {
     const activeStaff = getActiveStaff(score);
     const newMeasures = [...activeStaff.measures];
-    
+
     if (!newMeasures[this.measureIndex]) {
       return score; // Measure not found
     }
@@ -44,17 +44,17 @@ export class ApplyTupletCommand implements Command {
     // Apply tuplet metadata to the group of events
     for (let i = 0; i < this.groupSize; i++) {
       const eventIndex = this.startEventIndex + i;
-      
+
       if (eventIndex >= newEvents.length) {
         break; // Not enough events
       }
 
       const event = newEvents[eventIndex];
-      
+
       // Store previous state
       this.previousStates.push({
         eventId: event.id,
-        tuplet: event.tuplet ? { ...event.tuplet } : undefined
+        tuplet: event.tuplet ? { ...event.tuplet } : undefined,
       });
 
       // Apply tuplet metadata
@@ -67,10 +67,8 @@ export class ApplyTupletCommand implements Command {
       // e.g. "Eighth Note Triplet".
       // Usually the user selects notes of the same duration to make a tuplet.
       // So taking the duration of the first note is a safe bet for creation.
-      
-      const baseDuration = newEvents[this.startEventIndex].duration;
-      
 
+      const baseDuration = newEvents[this.startEventIndex].duration;
 
       newEvents[eventIndex] = {
         ...event,
@@ -79,8 +77,8 @@ export class ApplyTupletCommand implements Command {
           groupSize: this.groupSize,
           position: i,
           baseDuration,
-          id: tupletId
-        }
+          id: tupletId,
+        },
       };
     }
 
@@ -96,7 +94,7 @@ export class ApplyTupletCommand implements Command {
   undo(score: Score): Score {
     const activeStaff = getActiveStaff(score);
     const newMeasures = [...activeStaff.measures];
-    
+
     if (!newMeasures[this.measureIndex]) {
       return score;
     }
@@ -106,12 +104,12 @@ export class ApplyTupletCommand implements Command {
 
     // Restore previous states
     this.previousStates.forEach(({ eventId, tuplet }) => {
-      const eventIndex = newEvents.findIndex(e => e.id === eventId);
+      const eventIndex = newEvents.findIndex((e) => e.id === eventId);
       if (eventIndex !== -1) {
         const event = newEvents[eventIndex];
         newEvents[eventIndex] = {
           ...event,
-          tuplet
+          tuplet,
         };
       }
     });

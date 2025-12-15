@@ -1,6 +1,10 @@
 import React, { useCallback, RefObject } from 'react';
 import { Selection, Score, getActiveStaff } from '@/types';
-import { calculateNextSelection, calculateTranspositionWithPreview, calculateCrossStaffSelection } from '@/utils/interaction';
+import {
+  calculateNextSelection,
+  calculateTranspositionWithPreview,
+  calculateCrossStaffSelection,
+} from '@/utils/interaction';
 import { playNote } from '@/engines/toneEngine';
 import { Command } from '@/commands/types';
 import { AddMeasureCommand } from '@/commands/MeasureCommands';
@@ -11,7 +15,13 @@ interface UseNavigationProps {
   selection: Selection;
   lastSelection?: Selection | null;
   setSelection: React.Dispatch<React.SetStateAction<Selection>>;
-  select: (measureIndex: number | null, eventId: string | number | null, noteId: string | number | null, staffIndex?: number, options?: any) => void;
+  select: (
+    measureIndex: number | null,
+    eventId: string | number | null,
+    noteId: string | number | null,
+    staffIndex?: number,
+    options?: any
+  ) => void;
   previewNote: any;
   setPreviewNote: (note: any) => void;
   activeDuration: string;
@@ -22,7 +32,15 @@ interface UseNavigationProps {
 }
 
 interface UseNavigationReturn {
-  handleNoteSelection: (measureIndex: number, eventId: string | number, noteId: string | number | null, staffIndex?: number, isMulti?: boolean, selectAllInEvent?: boolean, isShift?: boolean) => void;
+  handleNoteSelection: (
+    measureIndex: number,
+    eventId: string | number,
+    noteId: string | number | null,
+    staffIndex?: number,
+    isMulti?: boolean,
+    selectAllInEvent?: boolean,
+    isShift?: boolean
+  ) => void;
   moveSelection: (direction: string, isShift: boolean) => void;
   transposeSelection: (direction: string, isShift: boolean) => void;
   switchStaff: (direction: 'up' | 'down') => void;
@@ -39,61 +57,71 @@ export const useNavigation = ({
   isDotted,
   currentQuantsPerMeasure,
   dispatch,
-  inputMode
+  inputMode,
 }: UseNavigationProps): UseNavigationReturn => {
-
   // --- Internal Helpers ---
 
   const playAudioFeedback = useCallback((notes: any[]) => {
     if (!notes || notes.length === 0) return;
-    notes.forEach(n => playNote(n.pitch));
+    notes.forEach((n) => playNote(n.pitch));
   }, []);
 
   // --- Public Handlers ---
 
-  const handleNoteSelection = useCallback((
-    measureIndex: number, 
-    eventId: string | number, 
-    noteId: string | number | null, 
-    staffIndex: number = 0, 
-    isMulti: boolean = false, 
-    selectAllInEvent: boolean = false,
-    isShift: boolean = false
-  ) => {
-    select(measureIndex, eventId, noteId, staffIndex, { isMulti, isShift, selectAllInEvent });
-  }, [select]);
+  const handleNoteSelection = useCallback(
+    (
+      measureIndex: number,
+      eventId: string | number,
+      noteId: string | number | null,
+      staffIndex: number = 0,
+      isMulti: boolean = false,
+      selectAllInEvent: boolean = false,
+      isShift: boolean = false
+    ) => {
+      select(measureIndex, eventId, noteId, staffIndex, { isMulti, isShift, selectAllInEvent });
+    },
+    [select]
+  );
 
-  const moveSelection = useCallback((direction: string, isShift: boolean = false) => {
-    const isAtGhostPosition = !selection.eventId || selection.measureIndex === null;
-    
-    // --- 1. Resume from Ghost State (UX Fix) ---
-    // If user is at a ghost note (preview) and presses LEFT, we assume they want to 
-    // edit the note they just placed (or the last valid selection).
-    if (isAtGhostPosition && direction === 'left' && lastSelection && lastSelection.eventId && lastSelection.measureIndex !== null) {
+  const moveSelection = useCallback(
+    (direction: string, isShift: boolean = false) => {
+      const isAtGhostPosition = !selection.eventId || selection.measureIndex === null;
+
+      // --- 1. Resume from Ghost State (UX Fix) ---
+      // If user is at a ghost note (preview) and presses LEFT, we assume they want to
+      // edit the note they just placed (or the last valid selection).
+      if (
+        isAtGhostPosition &&
+        direction === 'left' &&
+        lastSelection &&
+        lastSelection.eventId &&
+        lastSelection.measureIndex !== null
+      ) {
         select(
-            lastSelection.measureIndex, 
-            lastSelection.eventId, 
-            lastSelection.noteId, 
-            lastSelection.staffIndex
+          lastSelection.measureIndex,
+          lastSelection.eventId,
+          lastSelection.noteId,
+          lastSelection.staffIndex
         );
         setPreviewNote(null);
-        
+
         // Audio Feedback for the resumed selection
         const staff = getActiveStaff(scoreRef.current, lastSelection.staffIndex || 0);
-        const event = staff.measures[lastSelection.measureIndex]?.events.find((e: any) => e.id === lastSelection.eventId);
+        const event = staff.measures[lastSelection.measureIndex]?.events.find(
+          (e: any) => e.id === lastSelection.eventId
+        );
         if (event && event.notes) playAudioFeedback(event.notes);
         return;
-    }
-    
-    // Determine the "starting point" for calculation
-    const activeSel = (isAtGhostPosition && lastSelection && lastSelection.eventId) 
-      ? lastSelection 
-      : selection;
+      }
 
-    const activeStaff = getActiveStaff(scoreRef.current, activeSel.staffIndex || 0);
+      // Determine the "starting point" for calculation
+      const activeSel =
+        isAtGhostPosition && lastSelection && lastSelection.eventId ? lastSelection : selection;
 
-    // --- 2. Calculate Next Position ---
-    const navResult = calculateNextSelection(
+      const activeStaff = getActiveStaff(scoreRef.current, activeSel.staffIndex || 0);
+
+      // --- 2. Calculate Next Position ---
+      const navResult = calculateNextSelection(
         activeStaff.measures,
         activeSel,
         direction,
@@ -104,127 +132,152 @@ export const useNavigation = ({
         activeStaff.clef,
         activeSel.staffIndex || 0,
         inputMode
-    );
+      );
 
-    if (!navResult) return;
+      if (!navResult) return;
 
-    // --- 3. Apply Selection Update ---
-    if (navResult.selection) {
+      // --- 3. Apply Selection Update ---
+      if (navResult.selection) {
         const { measureIndex, eventId, noteId, staffIndex } = navResult.selection;
-        
-        // Simply pass the calculated target to select(). 
+
+        // Simply pass the calculated target to select().
         // We assume select() handles a null noteId (selecting the whole event/rest) correctly.
-        select(
-             measureIndex,
-             eventId,
-             noteId || null, 
-             staffIndex,
-             { isShift } 
-         );
-    }
-    
-    // --- 4. Handle Side Effects ---
-    if (navResult.previewNote !== undefined) {
+        select(measureIndex, eventId, noteId || null, staffIndex, { isShift });
+      }
+
+      // --- 4. Handle Side Effects ---
+      if (navResult.previewNote !== undefined) {
         // Mark as keyboard-triggered so auto-scroll follows it
-        setPreviewNote(navResult.previewNote ? { ...navResult.previewNote, source: 'keyboard' } : null);
-    }
-
-    if (navResult.shouldCreateMeasure) {
-         dispatch(new AddMeasureCommand());
-    }
-
-    if (navResult.audio) {
-        playAudioFeedback(navResult.audio.notes);
-    }
-  }, [selection, lastSelection, previewNote, activeDuration, isDotted, currentQuantsPerMeasure, scoreRef, dispatch, select, setPreviewNote, playAudioFeedback, inputMode]);
-
-
-  const transposeSelection = useCallback((direction: string, isShift: boolean) => {
-    // 1. Determine Semitone Shift
-    let semitones = 0;
-    if (direction === 'up') semitones = isShift ? 12 : 1;
-    if (direction === 'down') semitones = isShift ? -12 : -1;
-    if (semitones === 0) return;
-
-    const activeStaff = getActiveStaff(scoreRef.current, selection.staffIndex || 0);
-
-    // 2. Scenario A: Transposing Ghost Note (Preview)
-    if (selection.eventId === null && previewNote) {
-        const previewResult = calculateTranspositionWithPreview(
-            activeStaff.measures,
-            selection,
-            previewNote,
-            direction,
-            isShift,
-            activeStaff.keySignature || 'C'
+        setPreviewNote(
+          navResult.previewNote ? { ...navResult.previewNote, source: 'keyboard' } : null
         );
-        
+      }
+
+      if (navResult.shouldCreateMeasure) {
+        dispatch(new AddMeasureCommand());
+      }
+
+      if (navResult.audio) {
+        playAudioFeedback(navResult.audio.notes);
+      }
+    },
+    [
+      selection,
+      lastSelection,
+      previewNote,
+      activeDuration,
+      isDotted,
+      currentQuantsPerMeasure,
+      scoreRef,
+      dispatch,
+      select,
+      setPreviewNote,
+      playAudioFeedback,
+      inputMode,
+    ]
+  );
+
+  const transposeSelection = useCallback(
+    (direction: string, isShift: boolean) => {
+      // 1. Determine Semitone Shift
+      let semitones = 0;
+      if (direction === 'up') semitones = isShift ? 12 : 1;
+      if (direction === 'down') semitones = isShift ? -12 : -1;
+      if (semitones === 0) return;
+
+      const activeStaff = getActiveStaff(scoreRef.current, selection.staffIndex || 0);
+
+      // 2. Scenario A: Transposing Ghost Note (Preview)
+      if (selection.eventId === null && previewNote) {
+        const previewResult = calculateTranspositionWithPreview(
+          activeStaff.measures,
+          selection,
+          previewNote,
+          direction,
+          isShift,
+          activeStaff.keySignature || 'C'
+        );
+
         if (previewResult?.previewNote) {
-            setPreviewNote({ ...previewResult.previewNote, source: 'keyboard' });
-            if (previewResult.audio) playAudioFeedback(previewResult.audio.notes);
+          setPreviewNote({ ...previewResult.previewNote, source: 'keyboard' });
+          if (previewResult.audio) playAudioFeedback(previewResult.audio.notes);
         }
         return;
-    }
+      }
 
-    // 3. Scenario B: Transposing Real Selection
-    const keySignature = activeStaff.keySignature || 'C';
-    dispatch(new TransposeSelectionCommand(selection, semitones, keySignature));
+      // 3. Scenario B: Transposing Real Selection
+      const keySignature = activeStaff.keySignature || 'C';
+      dispatch(new TransposeSelectionCommand(selection, semitones, keySignature));
 
-    // Audio Preview for the change
-    if (selection.measureIndex !== null && selection.eventId) {
-         const audioResult = calculateTranspositionWithPreview(
-            activeStaff.measures,
-            selection,
-            previewNote,
-            direction,
-            isShift,
-            keySignature
+      // Audio Preview for the change
+      if (selection.measureIndex !== null && selection.eventId) {
+        const audioResult = calculateTranspositionWithPreview(
+          activeStaff.measures,
+          selection,
+          previewNote,
+          direction,
+          isShift,
+          keySignature
         );
-        
+
         if (audioResult?.audio) playAudioFeedback(audioResult.audio.notes);
-    }
-  }, [selection, previewNote, scoreRef, dispatch, setPreviewNote, playAudioFeedback]);
+      }
+    },
+    [selection, previewNote, scoreRef, dispatch, setPreviewNote, playAudioFeedback]
+  );
 
+  const switchStaff = useCallback(
+    (direction: 'up' | 'down') => {
+      const numStaves = scoreRef.current.staves?.length || 1;
+      if (numStaves <= 1) return;
 
-  const switchStaff = useCallback((direction: 'up' | 'down') => {
-    const numStaves = scoreRef.current.staves?.length || 1;
-    if (numStaves <= 1) return;
-    
-    // 1. Smart Cross-Staff Selection
-    if (selection.eventId) {
-        const crossResult = calculateCrossStaffSelection(scoreRef.current, selection, direction, activeDuration, isDotted);
-        
+      // 1. Smart Cross-Staff Selection
+      if (selection.eventId) {
+        const crossResult = calculateCrossStaffSelection(
+          scoreRef.current,
+          selection,
+          direction,
+          activeDuration,
+          isDotted
+        );
+
         if (crossResult?.selection) {
-            select(
-                crossResult.selection.measureIndex, 
-                crossResult.selection.eventId, 
-                crossResult.selection.noteId, 
-                crossResult.selection.staffIndex
+          select(
+            crossResult.selection.measureIndex,
+            crossResult.selection.eventId,
+            crossResult.selection.noteId,
+            crossResult.selection.staffIndex
+          );
+
+          setPreviewNote(
+            crossResult.previewNote ? { ...crossResult.previewNote, source: 'keyboard' } : null
+          );
+
+          // Play audio if we landed on a real note
+          if (crossResult.selection.eventId) {
+            const staff = getActiveStaff(scoreRef.current, crossResult.selection.staffIndex);
+            const event = staff.measures[crossResult.selection.measureIndex!]?.events.find(
+              (e) => e.id === crossResult.selection.eventId
             );
-            
-            setPreviewNote(crossResult.previewNote ? { ...crossResult.previewNote, source: 'keyboard' } : null);
-
-            // Play audio if we landed on a real note
-            if (crossResult.selection.eventId) {
-                const staff = getActiveStaff(scoreRef.current, crossResult.selection.staffIndex);
-                const event = staff.measures[crossResult.selection.measureIndex!]?.events.find(e => e.id === crossResult.selection.eventId);
-                if (event) playAudioFeedback(event.notes);
-            }
-            return;
+            if (event) playAudioFeedback(event.notes);
+          }
+          return;
         }
-    }
+      }
 
-    // 2. Fallback: Simple Index Switch
-    const currentIdx = selection.staffIndex || 0;
-    let newIdx = currentIdx;
-    
-    if (direction === 'up' && currentIdx > 0) newIdx--;
-    else if (direction === 'down' && currentIdx < numStaves - 1) newIdx++;
-    
-    if (newIdx !== currentIdx) {
-      select(null, null, null, newIdx);
-    }
-  }, [selection, scoreRef, select, activeDuration, isDotted, playAudioFeedback, setPreviewNote]);
+      // 2. Fallback: Simple Index Switch
+      const currentIdx = selection.staffIndex || 0;
+      let newIdx = currentIdx;
+
+      if (direction === 'up' && currentIdx > 0) newIdx--;
+      else if (direction === 'down' && currentIdx < numStaves - 1) newIdx++;
+
+      if (newIdx !== currentIdx) {
+        select(null, null, null, newIdx);
+      }
+    },
+    [selection, scoreRef, select, activeDuration, isDotted, playAudioFeedback, setPreviewNote]
+  );
 
   return {
     handleNoteSelection,

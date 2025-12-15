@@ -14,8 +14,8 @@ interface MidiControlsProps {
 
 const MidiControls: React.FC<MidiControlsProps> = ({
   midiStatus,
-  height = "h-9",
-  variant = "default"
+  height = 'h-9',
+  variant = 'default',
 }) => {
   const { theme } = useTheme();
   const [isMidiHovered, setIsMidiHovered] = useState(false);
@@ -24,26 +24,36 @@ const MidiControls: React.FC<MidiControlsProps> = ({
   return (
     <div className="flex items-center gap-2">
       {/* MIDI Status Indicator */}
-      <div 
+      <div
         className={`flex items-center gap-1.5 px-3 ${height} rounded border text-xs font-medium ${
-          midiStatus.connected 
-            ? 'bg-[#0ac5b20f] border-[#507d7d] text-[#4f9e9e]' 
+          midiStatus.connected
+            ? 'bg-[#0ac5b20f] border-[#507d7d] text-[#4f9e9e]'
             : 'bg-slate-800/50 border-white/10 text-slate-400'
         }`}
         style={{
-          borderColor: (isGhost && !isMidiHovered && !midiStatus.connected) 
-            ? 'transparent' 
-            : (midiStatus.connected ? '#507d7d' : (isMidiHovered ? theme.border : (isGhost ? 'transparent' : theme.border))),
-          backgroundColor: (isGhost && !midiStatus.connected) ? 'transparent' : undefined
+          borderColor:
+            isGhost && !isMidiHovered && !midiStatus.connected
+              ? 'transparent'
+              : midiStatus.connected
+                ? '#507d7d'
+                : isMidiHovered
+                  ? theme.border
+                  : isGhost
+                    ? 'transparent'
+                    : theme.border,
+          backgroundColor: isGhost && !midiStatus.connected ? 'transparent' : undefined,
         }}
         onMouseEnter={() => setIsMidiHovered(true)}
         onMouseLeave={() => setIsMidiHovered(false)}
-        title={midiStatus.connected ? `MIDI: ${midiStatus.deviceName}` : (midiStatus.error || 'No MIDI device connected')}
+        title={
+          midiStatus.connected
+            ? `MIDI: ${midiStatus.deviceName}`
+            : midiStatus.error || 'No MIDI device connected'
+        }
       >
         <Piano size={12} />
         <span>{midiStatus.connected ? 'MIDI' : 'No MIDI'}</span>
       </div>
-
     </div>
   );
 };

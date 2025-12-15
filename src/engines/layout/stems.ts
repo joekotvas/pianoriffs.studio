@@ -19,13 +19,20 @@ export const STEM_BEAMED_LENGTHS = STEM.BEAMED_LENGTHS;
  * @param {string} params.duration - Note duration type
  * @returns {{startY: number, endY: number}} Start and end Y coordinates for the stem
  */
-export const calculateStemGeometry = ({ beamSpec, stemX, direction, minY, maxY, duration }: {
-    beamSpec?: { startY: number, endY: number, startX: number, endX: number },
-    stemX: number,
-    direction: 'up' | 'down',
-    minY: number,
-    maxY: number,
-    duration: string
+export const calculateStemGeometry = ({
+  beamSpec,
+  stemX,
+  direction,
+  minY,
+  maxY,
+  duration,
+}: {
+  beamSpec?: { startY: number; endY: number; startX: number; endX: number };
+  stemX: number;
+  direction: 'up' | 'down';
+  minY: number;
+  maxY: number;
+  duration: string;
 }) => {
   if (beamSpec) {
     // y = m*x + b derivation

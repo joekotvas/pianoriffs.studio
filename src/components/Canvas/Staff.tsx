@@ -1,7 +1,12 @@
 import React from 'react';
 import { CONFIG } from '@/config';
 import { useTheme } from '@/context/ThemeContext';
-import { calculateMeasureWidth, calculateMeasureLayout, getOffsetForPitch, calculateHeaderLayout } from '@/engines/layout';
+import {
+  calculateMeasureWidth,
+  calculateMeasureLayout,
+  getOffsetForPitch,
+  calculateHeaderLayout,
+} from '@/engines/layout';
 import { getNoteDuration } from '@/utils/core';
 import { isNoteSelected } from '@/utils/selection';
 import Measure from './Measure';
@@ -22,20 +27,20 @@ export interface StaffProps {
   keySignature: string;
   timeSignature: string;
   measures: MeasureData[];
-  
+
   // Layout
   baseY?: number; // Y offset for stacking staves (default: CONFIG.baseY)
-  measureLayouts?: { width: number, forcedPositions: Record<number, number> }[]; // Synchronized layouts
+  measureLayouts?: { width: number; forcedPositions: Record<number, number> }[]; // Synchronized layouts
   scale: number;
 
   // Interaction (Grouped)
   interaction: InteractionState;
-  
+
   // Playback
   playbackPosition: { measureIndex: number | null; quant: number | null; duration: number };
   hidePlaybackCursor?: boolean; // Hide cursor when rendered by parent (Grand Staff)
   mouseLimits?: { min: number; max: number }; // For Grand Staff clamping
-  
+
   // Header click callbacks (Panel/Menu interactions)
   onClefClick?: () => void;
   onKeySigClick?: () => void;
@@ -47,7 +52,7 @@ export interface StaffProps {
  * - Header (clef, key signature, time signature)
  * - Measures with notes
  * - Ties between notes
- * 
+ *
  * Designed to be stacked for Grand Staff support.
  */
 const Staff: React.FC<StaffProps> = ({
@@ -68,34 +73,39 @@ const Staff: React.FC<StaffProps> = ({
   onTimeSigClick,
 }) => {
   const { theme } = useTheme();
-  
+
   // Calculate vertical offset for this staff relative to the standard position
   // This is used for the SVG transform and passed to children for hit detection
   const verticalOffset = baseY - CONFIG.baseY;
-  
+
   // Use centralized layout calculation (SSOT)
   const { startOfMeasures } = calculateHeaderLayout(keySignature);
-  
+
   // Calculate measure positions and render
   let currentX = startOfMeasures;
-  
+
   const measureComponents = measures.map((measure, index: number) => {
     // Use synchronized layout if available, otherwise calculate
     const layoutData = measureLayouts?.[index];
-    const width = layoutData ? layoutData.width : calculateMeasureWidth(measure.events, measure.isPickup);
+    const width = layoutData
+      ? layoutData.width
+      : calculateMeasureWidth(measure.events, measure.isPickup);
     const forcedPositions = layoutData?.forcedPositions;
-    
+
     // Only show preview note if it belongs to this staff
     // We create a DERIVED InteractionState for this scope
-    const staffPreviewNote = (interaction.previewNote && interaction.previewNote.staffIndex === staffIndex) ? interaction.previewNote : null;
-    
+    const staffPreviewNote =
+      interaction.previewNote && interaction.previewNote.staffIndex === staffIndex
+        ? interaction.previewNote
+        : null;
+
     const scopedInteraction = {
-        ...interaction,
-        previewNote: staffPreviewNote
+      ...interaction,
+      previewNote: staffPreviewNote,
     };
 
     const component = (
-      <Measure 
+      <Measure
         key={measure.id}
         startX={currentX}
         measureIndex={index}
@@ -110,7 +120,7 @@ const Staff: React.FC<StaffProps> = ({
           keySignature,
           staffIndex,
           verticalOffset: 0, // Staff is at 0 relative to itself (positioned by parent)
-          mouseLimits // Pass clamping limits
+          mouseLimits, // Pass clamping limits
         }}
         interaction={scopedInteraction}
       />
@@ -129,7 +139,7 @@ const Staff: React.FC<StaffProps> = ({
 
     let currentMeasureX = tieStartX;
     const allNotes: any[] = [];
-    
+
     measures.forEach((measure, mIndex: number) => {
       const layout = calculateMeasureLayout(measure.events, undefined, clef, false);
       measure.events.forEach((event, eIndex: number) => {
@@ -137,7 +147,7 @@ const Staff: React.FC<StaffProps> = ({
         event.notes.forEach((note: any, nIndex: number) => {
           // Skip rest notes (which have null pitch) - they can't have ties
           if (note.pitch === null) return;
-          
+
           allNotes.push({
             measureIndex: mIndex,
             eventIndex: eIndex,
@@ -145,25 +155,25 @@ const Staff: React.FC<StaffProps> = ({
             pitch: note.pitch,
             tied: note.tied,
             x: eventX,
-            y: CONFIG.baseY + getOffsetForPitch(note.pitch, clef),  // Use CONFIG.baseY for normalized coords
-            id: note.id
+            y: CONFIG.baseY + getOffsetForPitch(note.pitch, clef), // Use CONFIG.baseY for normalized coords
+            id: note.id,
           });
         });
       });
       currentMeasureX += layout.totalWidth;
     });
-    
+
     allNotes.forEach((note) => {
       if (note.tied) {
         let nextNote = null;
-        
+
         // Check Selection using global staffIndex
         const eventId = measures[note.measureIndex]?.events[note.eventIndex]?.id;
         const isSelected = isNoteSelected(interaction.selection, {
-            staffIndex, // Staff prop
-            measureIndex: note.measureIndex,
-            eventId,
-            noteId: note.id
+          staffIndex, // Staff prop
+          measureIndex: note.measureIndex,
+          eventId,
+          noteId: note.id,
         });
 
         // Use accent color if selected
@@ -172,19 +182,20 @@ const Staff: React.FC<StaffProps> = ({
 
         let targetMIndex = note.measureIndex;
         let targetEIndex = note.eventIndex + 1;
-        
+
         // Handle measure overflow
         if (targetEIndex >= measures[targetMIndex].events.length) {
           targetMIndex++;
           targetEIndex = 0;
         }
-        
+
         // Check if valid event exists
         if (targetMIndex < measures.length && targetEIndex < measures[targetMIndex].events.length) {
-          nextNote = allNotes.find(n => 
-            n.measureIndex === targetMIndex && 
-            n.eventIndex === targetEIndex && 
-            n.pitch === note.pitch
+          nextNote = allNotes.find(
+            (n) =>
+              n.measureIndex === targetMIndex &&
+              n.eventIndex === targetEIndex &&
+              n.pitch === note.pitch
           );
         }
 
@@ -192,11 +203,11 @@ const Staff: React.FC<StaffProps> = ({
 
         if (nextNote) {
           ties.push(
-            <Tie 
+            <Tie
               key={`tie-${note.id}`}
-              startX={note.x + 10} 
+              startX={note.x + 10}
               startY={note.y}
-              endX={nextNote.x} 
+              endX={nextNote.x}
               endY={nextNote.y}
               direction={direction}
               color={tieColor}
@@ -205,9 +216,9 @@ const Staff: React.FC<StaffProps> = ({
         } else {
           // Hanging Tie
           ties.push(
-            <Tie 
+            <Tie
               key={`tie-hanging-${note.id}`}
-              startX={note.x + 10} 
+              startX={note.x + 10}
               startY={note.y}
               endX={note.x + 35}
               endY={note.y}
@@ -218,7 +229,7 @@ const Staff: React.FC<StaffProps> = ({
         }
       }
     });
-    
+
     return ties;
   };
 
@@ -227,50 +238,50 @@ const Staff: React.FC<StaffProps> = ({
     if (playbackPosition.measureIndex === null || playbackPosition.quant === null) {
       return null;
     }
-    
+
     const { startOfMeasures: cursorStartX } = calculateHeaderLayout(keySignature);
 
     let absX = cursorStartX;
-    
+
     for (let i = 0; i < playbackPosition.measureIndex; i++) {
       if (measures[i]) {
         absX += calculateMeasureWidth(measures[i].events, measures[i].isPickup);
       }
     }
-    
+
     // Find event corresponding to the current quant
     const measure = measures[playbackPosition.measureIndex];
     if (measure) {
       const layout = calculateMeasureLayout(measure.events, undefined, clef, false);
       const targetQuant = playbackPosition.quant;
-      
+
       // Find event covering this quant
       // Note: layout.processedEvents includes x and quant
       const targetEvent = layout.processedEvents.find((e: any) => {
-          const dur = getNoteDuration(e.duration, e.dotted, e.tuplet);
-          return e.quant <= targetQuant && (e.quant + dur) > targetQuant;
+        const dur = getNoteDuration(e.duration, e.dotted, e.tuplet);
+        return e.quant <= targetQuant && e.quant + dur > targetQuant;
       });
-      
+
       if (targetEvent) {
-          absX += (targetEvent as any).x;
+        absX += (targetEvent as any).x;
       } else {
-          // If no note found at this quant (e.g. within a rest or beyond), use fallback
-          // Try to find closest previous event? Or just use padding if at start.
-          absX += CONFIG.measurePaddingLeft;
+        // If no note found at this quant (e.g. within a rest or beyond), use fallback
+        // Try to find closest previous event? Or just use padding if at start.
+        absX += CONFIG.measurePaddingLeft;
       }
     }
-    
+
     return absX;
   }, [playbackPosition, measures, keySignature, clef]);
 
   return (
     <g className="staff" transform={`translate(0, ${verticalOffset})`}>
       {/* Staff Header (Clef, Key Sig, Time Sig) */}
-      <ScoreHeader 
+      <ScoreHeader
         clef={clef}
         keySignature={keySignature}
         timeSignature={timeSignature}
-        baseY={CONFIG.baseY}  // Use normalized baseY
+        baseY={CONFIG.baseY} // Use normalized baseY
         onClefClick={(e) => {
           e.stopPropagation();
           if (onClefClick) onClefClick();
@@ -284,7 +295,7 @@ const Staff: React.FC<StaffProps> = ({
           if (onTimeSigClick) onTimeSigClick();
         }}
       />
-      
+
       {/* Measures */}
       {measureComponents}
 
@@ -293,11 +304,11 @@ const Staff: React.FC<StaffProps> = ({
 
       {/* Playback Cursor */}
       {!hidePlaybackCursor && playbackCursorX !== null && (
-        <g 
-          style={{ 
+        <g
+          style={{
             transform: `translateX(${playbackCursorX}px)`,
             transition: `transform ${playbackPosition.duration || 0.1}s linear`,
-            pointerEvents: 'none'
+            pointerEvents: 'none',
           }}
         >
           <line

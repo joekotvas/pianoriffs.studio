@@ -15,7 +15,7 @@ describe('useScoreLogic Integration', () => {
 
   test('should initialize with default score', () => {
     const { result } = renderHook(() => useScoreLogic(initialScore));
-    
+
     expect(result.current.score).toBeDefined();
     expect(result.current.score.staves).toHaveLength(2);
     // Default score has 2 measures
@@ -24,12 +24,12 @@ describe('useScoreLogic Integration', () => {
 
   test('should add a note to the score', () => {
     const { result } = renderHook(() => useScoreLogic(initialScore));
-    
+
     const newNote = { pitch: 'C4', duration: 'quarter', dotted: false };
-    
+
     act(() => {
-        // Add note to first measure
-        result.current.addNoteToMeasure(0, newNote);
+      // Add note to first measure
+      result.current.addNoteToMeasure(0, newNote);
     });
 
     const measure = result.current.score.staves[0].measures[0];
@@ -40,26 +40,26 @@ describe('useScoreLogic Integration', () => {
 
   test('should delete a selected note', () => {
     const { result } = renderHook(() => useScoreLogic(initialScore));
-    
+
     // 1. Add a note
     const newNote = { pitch: 'C4', duration: 'quarter', dotted: false };
     act(() => {
-        result.current.addNoteToMeasure(0, newNote);
+      result.current.addNoteToMeasure(0, newNote);
     });
 
     // Verify addition
     let measure = result.current.score.staves[0].measures[0];
     const eventId = measure.events[0].id;
     const noteId = measure.events[0].notes[0].id;
-    
+
     // 2. Select the note (addNoteToMeasure auto-selects, but let's be explicit)
     act(() => {
-        result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
+      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
     });
 
     // 3. Delete it
     act(() => {
-        result.current.deleteSelected();
+      result.current.deleteSelected();
     });
 
     // Verify deletion
@@ -69,11 +69,11 @@ describe('useScoreLogic Integration', () => {
 
   test('should modify note duration', () => {
     const { result } = renderHook(() => useScoreLogic(initialScore));
-    
+
     // 1. Add a note
     const newNote = { pitch: 'C4', duration: 'quarter', dotted: false };
     act(() => {
-        result.current.addNoteToMeasure(0, newNote);
+      result.current.addNoteToMeasure(0, newNote);
     });
 
     const measure = result.current.score.staves[0].measures[0];
@@ -82,12 +82,12 @@ describe('useScoreLogic Integration', () => {
 
     // 2. Select it
     act(() => {
-        result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
+      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
     });
 
     // 3. Change duration to eighth
     act(() => {
-        result.current.handleDurationChange('eighth', true);
+      result.current.handleDurationChange('eighth', true);
     });
 
     // Verify change
@@ -97,11 +97,11 @@ describe('useScoreLogic Integration', () => {
 
   test('should toggle accidental (modifies pitch)', () => {
     const { result } = renderHook(() => useScoreLogic(initialScore));
-    
+
     // 1. Add a note
     const newNote = { pitch: 'C4', duration: 'quarter', dotted: false };
     act(() => {
-        result.current.addNoteToMeasure(0, newNote);
+      result.current.addNoteToMeasure(0, newNote);
     });
 
     const measure = result.current.score.staves[0].measures[0];
@@ -110,12 +110,12 @@ describe('useScoreLogic Integration', () => {
 
     // 2. Select it
     act(() => {
-        result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
+      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
     });
 
     // 3. Toggle Sharp - should raise pitch by semitone
     act(() => {
-        result.current.handleAccidentalToggle('sharp');
+      result.current.handleAccidentalToggle('sharp');
     });
 
     // Verify pitch changed from C4 to C#4 (preserves letter name)

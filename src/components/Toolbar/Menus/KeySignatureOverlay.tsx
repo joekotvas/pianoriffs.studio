@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Music } from 'lucide-react';
 import { Key } from 'tonal';
-import { KEY_SIGNATURES, KEY_SIGNATURE_OFFSETS, KeySignatureOffsets, KeySignature } from '@/constants';
+import {
+  KEY_SIGNATURES,
+  KEY_SIGNATURE_OFFSETS,
+  KeySignatureOffsets,
+  KeySignature,
+} from '@/constants';
 import { useTheme } from '@/context/ThemeContext';
 import { ACCIDENTALS, BRAVURA_FONT } from '@/constants/SMuFL';
 
@@ -26,8 +31,12 @@ const FLAT_ROOTS = ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
 const SHARP_ROOTS = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
 
 const CIRCLE_OF_FIFTHS = {
-  flats: FLAT_ROOTS.map(root => [root, `${Key.majorKey(root).minorRelative}m`] as [string, string]),
-  sharps: SHARP_ROOTS.map(root => [root, `${Key.majorKey(root).minorRelative}m`] as [string, string]),
+  flats: FLAT_ROOTS.map(
+    (root) => [root, `${Key.majorKey(root).minorRelative}m`] as [string, string]
+  ),
+  sharps: SHARP_ROOTS.map(
+    (root) => [root, `${Key.majorKey(root).minorRelative}m`] as [string, string]
+  ),
 };
 
 // ==========================================
@@ -37,42 +46,42 @@ const CIRCLE_OF_FIFTHS = {
 /**
  * StaffPreview: Handles the SVG rendering of the staff lines and accidentals
  */
-const StaffPreview = ({ 
-  data, 
-  clef, 
-  theme 
-}: { 
-  data: KeySignature, 
-  clef: string, 
-  theme: any 
-}) => {
+const StaffPreview = ({ data, clef, theme }: { data: KeySignature; clef: string; theme: any }) => {
   const { type, count, accidentals } = data;
-  const accWidth = Math.max(40, (count * 10) + 20);
+  const accWidth = Math.max(40, count * 10 + 20);
 
   return (
     <div className="h-16 flex items-center justify-center w-full">
-      <svg width={accWidth} height="60" viewBox={`0 0 ${accWidth} 60`} style={{ overflow: 'visible' }}>
+      <svg
+        width={accWidth}
+        height="60"
+        viewBox={`0 0 ${accWidth} 60`}
+        style={{ overflow: 'visible' }}
+      >
         {/* Staff Lines */}
-        {[0, 1, 2, 3, 4].map(i => (
+        {[0, 1, 2, 3, 4].map((i) => (
           <line
             key={i}
-            x1="0" y1={10 + (i * 10)}
-            x2={accWidth} y2={10 + (i * 10)}
+            x1="0"
+            y1={10 + i * 10}
+            x2={accWidth}
+            y2={10 + i * 10}
             stroke={theme.secondaryText}
             strokeWidth="1"
             opacity="0.5"
           />
         ))}
-        
+
         {/* Accidentals */}
         {accidentals.map((acc, i) => {
-          const validClef = (clef in KEY_SIGNATURE_OFFSETS) ? (clef as keyof KeySignatureOffsets) : 'treble';
+          const validClef =
+            clef in KEY_SIGNATURE_OFFSETS ? (clef as keyof KeySignatureOffsets) : 'treble';
           const offset = KEY_SIGNATURE_OFFSETS[validClef][type][acc];
-          
+
           return (
             <text
               key={i}
-              x={10 + (i * 10)}
+              x={10 + i * 10}
               y={10 + offset}
               fontSize="32"
               fontFamily={BRAVURA_FONT}
@@ -105,9 +114,9 @@ const KeyOptionButton = ({
 }) => {
   const data = KEY_SIGNATURES[keyId];
   if (!data) return null;
-  
+
   const isSelected = current === keyId;
-  
+
   return (
     <button
       onClick={() => onSelect(keyId)}
@@ -121,14 +130,14 @@ const KeyOptionButton = ({
         if (!isSelected) e.currentTarget.style.backgroundColor = theme.buttonHoverBackground;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = isSelected ? theme.buttonHoverBackground : 'transparent';
+        e.currentTarget.style.backgroundColor = isSelected
+          ? theme.buttonHoverBackground
+          : 'transparent';
       }}
     >
       <StaffPreview data={data} clef={clef} theme={theme} />
-      
-      <span className="text-xs font-medium text-center">
-        {data.label}
-      </span>
+
+      <span className="text-xs font-medium text-center">{data.label}</span>
     </button>
   );
 };
@@ -145,10 +154,7 @@ const ModeToggle = ({
   setMode: (mode: 'major' | 'minor') => void;
   theme: any;
 }) => (
-  <div 
-    className="flex rounded-lg p-1 mb-4"
-    style={{ backgroundColor: theme.buttonBackground }}
-  >
+  <div className="flex rounded-lg p-1 mb-4" style={{ backgroundColor: theme.buttonBackground }}>
     <button
       onClick={() => setMode('major')}
       className="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors"
@@ -175,12 +181,12 @@ const ModeToggle = ({
 /**
  * KeySection: Renders a titled grid of key options
  */
-const KeySection = ({ 
-  title, 
-  keys, 
-  current, 
-  clef, 
-  theme, 
+const KeySection = ({
+  title,
+  keys,
+  current,
+  clef,
+  theme,
   onSelect,
   mode,
 }: {
@@ -193,7 +199,7 @@ const KeySection = ({
   mode: 'major' | 'minor';
 }) => (
   <div className="mb-4">
-    <h3 
+    <h3
       className="text-xs font-semibold uppercase tracking-wide mb-2 px-1"
       style={{ color: theme.secondaryText }}
     >
@@ -225,7 +231,7 @@ const KeySignatureOverlay: React.FC<KeySignatureOverlayProps> = ({
   onClose,
 }) => {
   const { theme } = useTheme();
-  
+
   // Determine initial mode from current key
   const currentData = KEY_SIGNATURES[current];
   const initialMode = currentData?.mode || 'major';
@@ -241,18 +247,18 @@ const KeySignatureOverlay: React.FC<KeySignatureOverlayProps> = ({
   }, [onClose]);
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" 
+    <div
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
-        className="rounded-xl shadow-2xl w-full max-w-xl overflow-hidden" 
-        style={{ backgroundColor: theme.panelBackground }} 
-        onClick={e => e.stopPropagation()}
+      <div
+        className="rounded-xl shadow-2xl w-full max-w-xl overflow-hidden"
+        style={{ backgroundColor: theme.panelBackground }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div 
-          className="p-4 border-b flex items-center justify-between" 
+        <div
+          className="p-4 border-b flex items-center justify-between"
           style={{ backgroundColor: theme.background, borderColor: theme.border }}
         >
           <div className="flex items-center gap-2">
@@ -261,9 +267,9 @@ const KeySignatureOverlay: React.FC<KeySignatureOverlayProps> = ({
               Key Signature
             </h2>
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-1 rounded-full transition-colors hover:bg-white/10" 
+          <button
+            onClick={onClose}
+            className="p-1 rounded-full transition-colors hover:bg-white/10"
             style={{ color: theme.secondaryText }}
           >
             <X size={20} />
@@ -300,14 +306,26 @@ const KeySignatureOverlay: React.FC<KeySignatureOverlayProps> = ({
         </div>
 
         {/* Footer */}
-        <div 
-          className="p-3 border-t text-center text-xs" 
-          style={{ backgroundColor: theme.background, borderColor: theme.border, color: theme.secondaryText }}
+        <div
+          className="p-3 border-t text-center text-xs"
+          style={{
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+            color: theme.secondaryText,
+          }}
         >
-          Press <kbd 
-            className="px-1 py-0.5 rounded border font-mono" 
-            style={{ backgroundColor: theme.buttonBackground, borderColor: theme.border, color: theme.text }}
-          >Esc</kbd> to close
+          Press{' '}
+          <kbd
+            className="px-1 py-0.5 rounded border font-mono"
+            style={{
+              backgroundColor: theme.buttonBackground,
+              borderColor: theme.border,
+              color: theme.text,
+            }}
+          >
+            Esc
+          </kbd>{' '}
+          to close
         </div>
       </div>
     </div>

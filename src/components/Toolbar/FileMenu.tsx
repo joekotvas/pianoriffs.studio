@@ -22,12 +22,12 @@ interface ExportButtonProps {
   isSuccess?: boolean;
 }
 
-const ExportButton: React.FC<ExportButtonProps> = ({ 
-  onClick, 
-  icon, 
+const ExportButton: React.FC<ExportButtonProps> = ({
+  onClick,
+  icon,
   successIcon = <Check size={14} />,
-  label, 
-  isSuccess = false 
+  label,
+  isSuccess = false,
 }) => {
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -38,12 +38,14 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="p-1.5 rounded transition-colors"
-      style={{ 
-        backgroundColor: isSuccess 
-          ? 'transparent' 
-          : (isHovered ? theme.buttonHoverBackground : theme.buttonBackground),
+      style={{
+        backgroundColor: isSuccess
+          ? 'transparent'
+          : isHovered
+            ? theme.buttonHoverBackground
+            : theme.buttonBackground,
         color: isSuccess ? '#4ade80' : theme.text,
-        borderColor: theme.border
+        borderColor: theme.border,
       }}
       title={label}
     >
@@ -61,20 +63,20 @@ interface ExportRowProps {
   feedback: string | null;
 }
 
-const ExportRow: React.FC<ExportRowProps> = ({ 
-  label, 
-  icon, 
-  format, 
-  onCopy, 
-  onDownload, 
-  feedback 
+const ExportRow: React.FC<ExportRowProps> = ({
+  label,
+  icon,
+  format,
+  onCopy,
+  onDownload,
+  feedback,
 }) => {
   const { theme } = useTheme();
   const isCopied = feedback === `${format}-copy`;
   const isDownloaded = feedback === `${format}-download`;
 
   return (
-    <div 
+    <div
       className="flex items-center justify-between px-4 py-2 border-b last:border-b-0"
       style={{ borderColor: theme.border }}
     >
@@ -100,7 +102,7 @@ const ExportRow: React.FC<ExportRowProps> = ({
   );
 };
 
-const FileMenu: React.FC<FileMenuProps> = ({ score, bpm, height = "h-9", variant = "default" }) => {
+const FileMenu: React.FC<FileMenuProps> = ({ score, bpm, height = 'h-9', variant = 'default' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -141,29 +143,29 @@ const FileMenu: React.FC<FileMenuProps> = ({ score, bpm, height = "h-9", variant
         height={height}
         variant={variant}
       />
-      
+
       {isOpen && (
         <DropdownOverlay
           onClose={handleClose}
           triggerRef={buttonRef as React.RefObject<HTMLElement>}
           position={{
             x: buttonRef.current?.getBoundingClientRect().left || 0,
-            y: (buttonRef.current?.getBoundingClientRect().bottom || 0) + 5
+            y: (buttonRef.current?.getBoundingClientRect().bottom || 0) + 5,
           }}
           width={220}
         >
-          <div 
+          <div
             className="px-4 py-2 border-b"
-            style={{ 
+            style={{
               backgroundColor: theme.buttonHoverBackground,
-              borderColor: theme.border
+              borderColor: theme.border,
             }}
           >
             <h3 className="font-semibold text-sm" style={{ color: theme.text }}>
               Export
             </h3>
           </div>
-          
+
           <ExportRow
             label="JSON"
             icon={<FileJson size={14} />}

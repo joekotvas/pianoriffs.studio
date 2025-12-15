@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, getActiveStaff, Measure } from '@/types';
+import { Score, Measure } from '@/types';
 
 export class AddMeasureCommand implements Command {
   public readonly type = 'ADD_MEASURE';
@@ -7,16 +7,16 @@ export class AddMeasureCommand implements Command {
 
   execute(score: Score): Score {
     const newStaves = score.staves.map((staff, index) => {
-        const newMeasures = [...staff.measures];
-        const newId = Date.now().toString() + '-' + index;
-        this.addedMeasureIds[index] = newId;
-        
-        const newMeasure: Measure = {
-            id: newId,
-            events: []
-        };
-        newMeasures.push(newMeasure);
-        return { ...staff, measures: newMeasures };
+      const newMeasures = [...staff.measures];
+      const newId = Date.now().toString() + '-' + index;
+      this.addedMeasureIds[index] = newId;
+
+      const newMeasure: Measure = {
+        id: newId,
+        events: [],
+      };
+      newMeasures.push(newMeasure);
+      return { ...staff, measures: newMeasures };
     });
 
     return { ...score, staves: newStaves };
@@ -24,18 +24,18 @@ export class AddMeasureCommand implements Command {
 
   undo(score: Score): Score {
     const newStaves = score.staves.map((staff, index) => {
-        const newMeasures = [...staff.measures];
-        if (newMeasures.length > 0) {
-             const lastMeasure = newMeasures[newMeasures.length - 1];
-             // Verify ID matches if we have it recorded
-             if (this.addedMeasureIds[index] && lastMeasure.id === this.addedMeasureIds[index]) {
-                 newMeasures.pop();
-             } else if (!this.addedMeasureIds[index]) {
-                 // Fallback if no ID recorded (legacy?)
-                 newMeasures.pop();
-             }
+      const newMeasures = [...staff.measures];
+      if (newMeasures.length > 0) {
+        const lastMeasure = newMeasures[newMeasures.length - 1];
+        // Verify ID matches if we have it recorded
+        if (this.addedMeasureIds[index] && lastMeasure.id === this.addedMeasureIds[index]) {
+          newMeasures.pop();
+        } else if (!this.addedMeasureIds[index]) {
+          // Fallback if no ID recorded (legacy?)
+          newMeasures.pop();
         }
-        return { ...staff, measures: newMeasures };
+      }
+      return { ...staff, measures: newMeasures };
     });
 
     return { ...score, staves: newStaves };
@@ -60,13 +60,13 @@ export class DeleteMeasureCommand implements Command {
     this.deletedIndex = targetIndex;
     this.deletedMeasures = [];
 
-    const newStaves = score.staves.map(staff => {
-        const newMeasures = [...staff.measures];
-        if (targetIndex < newMeasures.length) {
-            this.deletedMeasures.push(newMeasures[targetIndex]);
-            newMeasures.splice(targetIndex, 1);
-        }
-        return { ...staff, measures: newMeasures };
+    const newStaves = score.staves.map((staff) => {
+      const newMeasures = [...staff.measures];
+      if (targetIndex < newMeasures.length) {
+        this.deletedMeasures.push(newMeasures[targetIndex]);
+        newMeasures.splice(targetIndex, 1);
+      }
+      return { ...staff, measures: newMeasures };
     });
 
     return { ...score, staves: newStaves };
@@ -76,12 +76,12 @@ export class DeleteMeasureCommand implements Command {
     if (this.deletedIndex === -1 || this.deletedMeasures.length === 0) return score;
 
     const newStaves = score.staves.map((staff, index) => {
-        const newMeasures = [...staff.measures];
-        const deletedMeasure = this.deletedMeasures[index]; // Assuming staves order preserved
-        if (deletedMeasure) {
-            newMeasures.splice(this.deletedIndex, 0, deletedMeasure);
-        }
-        return { ...staff, measures: newMeasures };
+      const newMeasures = [...staff.measures];
+      const deletedMeasure = this.deletedMeasures[index]; // Assuming staves order preserved
+      if (deletedMeasure) {
+        newMeasures.splice(this.deletedIndex, 0, deletedMeasure);
+      }
+      return { ...staff, measures: newMeasures };
     });
 
     return { ...score, staves: newStaves };

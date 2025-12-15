@@ -1,27 +1,37 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { initTone, scheduleTonePlayback, stopTonePlayback, getState, InstrumentState } from '@/engines/toneEngine';
+import {
+  initTone,
+  scheduleTonePlayback,
+  stopTonePlayback,
+  getState,
+  InstrumentState,
+} from '@/engines/toneEngine';
 import { createTimeline } from '@/services/TimelineService';
 
 export const usePlayback = (score: any, bpm: number) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackPosition, setPlaybackPosition] = useState<{ measureIndex: number | null; quant: number | null; duration: number }>({ measureIndex: null, quant: null, duration: 0 });
+  const [playbackPosition, setPlaybackPosition] = useState<{
+    measureIndex: number | null;
+    quant: number | null;
+    duration: number;
+  }>({ measureIndex: null, quant: null, duration: 0 });
   const [lastPlayStart, setLastPlayStart] = useState({ measureIndex: 0, quant: 0 });
   const [instrumentState, setInstrumentState] = useState<InstrumentState>('initializing');
-  
+
   const isInitialized = useRef(false);
 
   // Initialize Tone.js on first user interaction
   const ensureInit = useCallback(async () => {
     if (isInitialized.current) return;
-    
+
     await initTone((state) => {
       setInstrumentState(state.instrumentState);
     });
-    
+
     isInitialized.current = true;
   }, []);
 
-  /* 
+  /*
    * Stop playback and reset position (Stop Button behavior)
    */
   const stopPlayback = useCallback(() => {
@@ -39,43 +49,47 @@ export const usePlayback = (score: any, bpm: number) => {
     // Do NOT reset playbackPosition, so cursor stays visible and we can resume
   }, []);
 
-  const playScore = useCallback(async (startMeasureIndex = 0, startQuant = 0) => {
-    await ensureInit();
-    
-    // Stop any existing playback (clears position state if we called stopPlayback, 
-    // but here we are about to overwrite it anyway)
-    stopTonePlayback(); 
+  const playScore = useCallback(
+    async (startMeasureIndex = 0, startQuant = 0) => {
+      await ensureInit();
 
-    setLastPlayStart({ measureIndex: startMeasureIndex, quant: startQuant });
-    setIsPlaying(true);
-    
-    // Generate timeline
-    const timeline = createTimeline(score, bpm);
-    
-    // Find start offset time
-    let startTimeOffset = 0;
-    const startEvent = timeline.find(e => 
-      e.measureIndex >= startMeasureIndex && 
-      (e.measureIndex > startMeasureIndex || e.quant >= startQuant)
-    );
-    
-    if (startEvent) {
-      startTimeOffset = startEvent.time;
-    }
+      // Stop any existing playback (clears position state if we called stopPlayback,
+      // but here we are about to overwrite it anyway)
+      stopTonePlayback();
 
-    scheduleTonePlayback(
-      timeline,
-      bpm,
-      startTimeOffset,
-      (measureIndex, quant, duration) => {
-        setPlaybackPosition({ measureIndex, quant, duration: duration || 0 });
-      },
-      () => {
-        setIsPlaying(false);
-        setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
+      setLastPlayStart({ measureIndex: startMeasureIndex, quant: startQuant });
+      setIsPlaying(true);
+
+      // Generate timeline
+      const timeline = createTimeline(score, bpm);
+
+      // Find start offset time
+      let startTimeOffset = 0;
+      const startEvent = timeline.find(
+        (e) =>
+          e.measureIndex >= startMeasureIndex &&
+          (e.measureIndex > startMeasureIndex || e.quant >= startQuant)
+      );
+
+      if (startEvent) {
+        startTimeOffset = startEvent.time;
       }
-    );
-  }, [score, bpm, ensureInit]);
+
+      scheduleTonePlayback(
+        timeline,
+        bpm,
+        startTimeOffset,
+        (measureIndex, quant, duration) => {
+          setPlaybackPosition({ measureIndex, quant, duration: duration || 0 });
+        },
+        () => {
+          setIsPlaying(false);
+          setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
+        }
+      );
+    },
+    [score, bpm, ensureInit]
+  );
 
   const handlePlayToggle = useCallback(() => {
     if (isPlaying) {
@@ -96,6 +110,6 @@ export const usePlayback = (score: any, bpm: number) => {
     pausePlayback,
     handlePlayToggle,
     lastPlayStart,
-    instrumentState // Expose for UI (e.g., "Loading piano samples...")
+    instrumentState, // Expose for UI (e.g., "Loading piano samples...")
   };
 };

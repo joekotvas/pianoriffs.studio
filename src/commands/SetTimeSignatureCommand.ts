@@ -17,15 +17,15 @@ export class SetTimeSignatureCommand implements Command {
       return score;
     }
 
-    const newStaves = score.staves.map(staff => ({
+    const newStaves = score.staves.map((staff) => ({
       ...staff,
-      measures: reflowScore(staff.measures, this.newSignature)
+      measures: reflowScore(staff.measures, this.newSignature),
     }));
 
     return {
       ...score,
       timeSignature: this.newSignature,
-      staves: newStaves
+      staves: newStaves,
     };
   }
 
@@ -35,7 +35,7 @@ export class SetTimeSignatureCommand implements Command {
     return {
       ...score,
       timeSignature: this.previousTimeSignature,
-      staves: this.previousStaves
+      staves: this.previousStaves,
     };
   }
 }

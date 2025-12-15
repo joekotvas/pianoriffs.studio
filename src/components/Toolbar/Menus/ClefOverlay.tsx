@@ -12,7 +12,13 @@ interface ClefOverlayProps {
   triggerRef: React.RefObject<HTMLElement>;
 }
 
-const ClefOverlay: React.FC<ClefOverlayProps> = ({ current, onSelect, onClose, position, triggerRef }) => {
+const ClefOverlay: React.FC<ClefOverlayProps> = ({
+  current,
+  onSelect,
+  onClose,
+  position,
+  triggerRef,
+}) => {
   const { theme } = useTheme();
 
   return (
@@ -42,11 +48,12 @@ const ClefOverlay: React.FC<ClefOverlayProps> = ({ current, onSelect, onClose, p
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = current === key ? theme.buttonHoverBackground : 'transparent';
+                e.currentTarget.style.backgroundColor =
+                  current === key ? theme.buttonHoverBackground : 'transparent';
               }}
             >
               <div className="mb-1 h-16 flex items-center justify-center w-full relative">
-                  <ClefIcon clef={key} width="60" height="60" />
+                <ClefIcon clef={key} width="60" height="60" />
               </div>
               <span className="text-xs font-medium">{data.label}</span>
             </button>

@@ -14,14 +14,7 @@ interface StemProps {
 }
 
 const Stem: React.FC<StemProps> = ({ x, startY, endY, color }) => (
-  <line 
-    x1={x} 
-    y1={startY} 
-    x2={x} 
-    y2={endY} 
-    stroke={color} 
-    strokeWidth={LAYOUT.LINE_STROKE_WIDTH} 
-  />
+  <line x1={x} y1={startY} x2={x} y2={endY} stroke={color} strokeWidth={LAYOUT.LINE_STROKE_WIDTH} />
 );
 
 export default Stem;

@@ -7,7 +7,7 @@ import { isSamplerLoaded } from '@/engines/toneEngine';
  */
 export function useSamplerStatus() {
   const [loaded, setLoaded] = useState(false);
-  
+
   useEffect(() => {
     const checkSampler = () => setLoaded(isSamplerLoaded());
     checkSampler();

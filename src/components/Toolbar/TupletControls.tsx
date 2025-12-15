@@ -21,7 +21,7 @@ const TupletControls: React.FC<TupletControlsProps> = ({
   canApplyTriplet,
   canApplyQuintuplet,
   activeTupletRatio,
-  variant = 'default'
+  variant = 'default',
 }) => {
   const { theme } = useTheme();
 
@@ -54,12 +54,24 @@ const TupletControls: React.FC<TupletControlsProps> = ({
         disabled={!canApplyTriplet && !isTripletActive}
         preventFocus={true}
         icon={
-          <div className="flex flex-col items-center justify-center" style={{ fontSize: '10px', lineHeight: '1' }}>
+          <div
+            className="flex flex-col items-center justify-center"
+            style={{ fontSize: '10px', lineHeight: '1' }}
+          >
             <span style={{ fontWeight: 'bold', fontSize: '11px' }}>3</span>
             <div className="flex gap-0.5 mt-0.5">
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
             </div>
           </div>
         }
@@ -74,14 +86,32 @@ const TupletControls: React.FC<TupletControlsProps> = ({
         disabled={!canApplyQuintuplet && !isQuintupletActive}
         preventFocus={true}
         icon={
-          <div className="flex flex-col items-center justify-center" style={{ fontSize: '10px', lineHeight: '1' }}>
+          <div
+            className="flex flex-col items-center justify-center"
+            style={{ fontSize: '10px', lineHeight: '1' }}
+          >
             <span style={{ fontWeight: 'bold', fontSize: '11px' }}>5</span>
             <div className="flex gap-0.5 mt-0.5">
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'currentColor' }}></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
+              <div
+                className="w-1 h-1 rounded-full"
+                style={{ backgroundColor: 'currentColor' }}
+              ></div>
             </div>
           </div>
         }
@@ -89,7 +119,6 @@ const TupletControls: React.FC<TupletControlsProps> = ({
       />
 
       {/* Remove Tuplet Button */}
-
     </div>
   );
 };

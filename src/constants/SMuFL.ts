@@ -1,9 +1,9 @@
 /**
  * SMuFL (Standard Music Font Layout) Constants
- * 
+ *
  * This file contains Unicode codepoints for music symbols as defined by SMuFL.
  * These codepoints are used with the Bravura font to render high-quality music notation.
- * 
+ *
  * Reference: https://w3c.github.io/smufl/latest/tables/
  */
 
@@ -12,8 +12,8 @@ export const NOTEHEADS = {
   doubleWhole: '\uE0A0',
   whole: '\uE0A2',
   half: '\uE0A3',
-  black: '\uE0A4',       // Quarter note and shorter
-  
+  black: '\uE0A4', // Quarter note and shorter
+
   // Parenthesized noteheads
   parenthesisLeft: '\uE0F5',
   parenthesisRight: '\uE0F6',
@@ -47,13 +47,13 @@ export const REST_GLYPHS: Record<string, string> = {
 
 // ========== CLEFS ==========
 export const CLEFS = {
-  gClef: '\uE050',           // Treble clef
-  gClef8vb: '\uE052',        // Treble clef with 8 below
-  gClef8va: '\uE053',        // Treble clef with 8 above
-  fClef: '\uE062',           // Bass clef
-  fClef8vb: '\uE064',        // Bass clef with 8 below
-  fClef8va: '\uE065',        // Bass clef with 8 above
-  cClef: '\uE05C',           // Alto/Tenor clef
+  gClef: '\uE050', // Treble clef
+  gClef8vb: '\uE052', // Treble clef with 8 below
+  gClef8va: '\uE053', // Treble clef with 8 above
+  fClef: '\uE062', // Bass clef
+  fClef8vb: '\uE064', // Bass clef with 8 below
+  fClef8va: '\uE065', // Bass clef with 8 above
+  cClef: '\uE05C', // Alto/Tenor clef
 } as const;
 
 // ========== ACCIDENTALS ==========
@@ -63,7 +63,7 @@ export const ACCIDENTALS = {
   sharp: '\uE262',
   doubleSharp: '\uE263',
   doubleFlat: '\uE264',
-  
+
   // Parenthesized
   parenthesisLeft: '\uE26A',
   parenthesisRight: '\uE26B',
@@ -77,7 +77,7 @@ export const FLAGS = {
   thirtysecondUp: '\uE244',
   sixtyfourthUp: '\uE246',
   oneHundredTwentyEighthUp: '\uE248',
-  
+
   // Down flags
   eighthDown: '\uE241',
   sixteenthDown: '\uE243',
@@ -89,24 +89,24 @@ export const FLAGS = {
 // ========== PRECOMPOSED NOTES (notehead + stem + flags) ==========
 // Stem up versions - keys match duration names for direct lookup
 export const PRECOMPOSED_NOTES_UP = {
-  whole: '\uE1D2',        // noteWhole (no stem)
-  half: '\uE1D3',         // noteHalfUp
-  quarter: '\uE1D5',      // noteQuarterUp
-  eighth: '\uE1D7',       // note8thUp
-  sixteenth: '\uE1D9',    // note16thUp
+  whole: '\uE1D2', // noteWhole (no stem)
+  half: '\uE1D3', // noteHalfUp
+  quarter: '\uE1D5', // noteQuarterUp
+  eighth: '\uE1D7', // note8thUp
+  sixteenth: '\uE1D9', // note16thUp
   thirtysecond: '\uE1DB', // note32ndUp
-  sixtyfourth: '\uE1DD',  // note64thUp
+  sixtyfourth: '\uE1DD', // note64thUp
 } as const;
 
 // Stem down versions
 export const PRECOMPOSED_NOTES_DOWN = {
-  whole: '\uE1D2',        // noteWhole (same, no stem)
-  half: '\uE1D4',         // noteHalfDown
-  quarter: '\uE1D6',      // noteQuarterDown
-  eighth: '\uE1D8',       // note8thDown
-  sixteenth: '\uE1DA',    // note16thDown
+  whole: '\uE1D2', // noteWhole (same, no stem)
+  half: '\uE1D4', // noteHalfDown
+  quarter: '\uE1D6', // noteQuarterDown
+  eighth: '\uE1D8', // note8thDown
+  sixteenth: '\uE1DA', // note16thDown
   thirtysecond: '\uE1DC', // note32ndDown
-  sixtyfourth: '\uE1DE',  // note64thDown
+  sixtyfourth: '\uE1DE', // note64thDown
 } as const;
 
 // ========== TIME SIGNATURES ==========
@@ -121,8 +121,8 @@ export const TIME_SIG_DIGITS = {
   7: '\uE087',
   8: '\uE088',
   9: '\uE089',
-  common: '\uE08A',     // C (common time)
-  cutCommon: '\uE08B',  // Cut C (alla breve)
+  common: '\uE08A', // C (common time)
+  cutCommon: '\uE08B', // Cut C (alla breve)
 } as const;
 
 // ========== AUGMENTATION DOT ==========
@@ -139,7 +139,7 @@ export const DYNAMICS = {
   sforzando: '\uE524',
   z: '\uE525',
   niente: '\uE526',
-  
+
   // Combined dynamics
   ppp: '\uE52A',
   pp: '\uE52B',
@@ -208,7 +208,7 @@ export const HOLDS = {
 /**
  * SMuFL fonts are designed with 1 staff space = 0.25em
  * For a given staff space in pixels, font size = staffSpace * 4
- * 
+ *
  * Example: For 12px staff spacing, use 48px font size
  */
 export const getFontSize = (staffSpace: number): number => staffSpace * 4;

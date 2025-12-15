@@ -12,7 +12,7 @@ describe('Tuplet Commands', () => {
       { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] },
       { id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }] },
       { id: 'e3', duration: 'quarter', dotted: false, notes: [{ id: 'n3', pitch: 'E4' }] },
-      { id: 'e4', duration: 'quarter', dotted: false, notes: [{ id: 'n4', pitch: 'F4' }] }
+      { id: 'e4', duration: 'quarter', dotted: false, notes: [{ id: 'n4', pitch: 'F4' }] },
     ];
   });
 
@@ -22,26 +22,32 @@ describe('Tuplet Commands', () => {
       const newScore = command.execute(baseScore);
 
       const events = newScore.staves[0].measures[0].events;
-      
+
       // Verify first 3 events have tuplet metadata
-      expect(events[0].tuplet).toEqual(expect.objectContaining({
-        ratio: [3, 2],
-        groupSize: 3,
-        position: 0,
-        baseDuration: 'quarter'
-      }));
-      expect(events[1].tuplet).toEqual(expect.objectContaining({
-        ratio: [3, 2],
-        groupSize: 3,
-        position: 1,
-        baseDuration: 'quarter'
-      }));
-      expect(events[2].tuplet).toEqual(expect.objectContaining({
-        ratio: [3, 2],
-        groupSize: 3,
-        position: 2,
-        baseDuration: 'quarter'
-      }));
+      expect(events[0].tuplet).toEqual(
+        expect.objectContaining({
+          ratio: [3, 2],
+          groupSize: 3,
+          position: 0,
+          baseDuration: 'quarter',
+        })
+      );
+      expect(events[1].tuplet).toEqual(
+        expect.objectContaining({
+          ratio: [3, 2],
+          groupSize: 3,
+          position: 1,
+          baseDuration: 'quarter',
+        })
+      );
+      expect(events[2].tuplet).toEqual(
+        expect.objectContaining({
+          ratio: [3, 2],
+          groupSize: 3,
+          position: 2,
+          baseDuration: 'quarter',
+        })
+      );
 
       // Verify all events share the same tuplet ID
       const tupletId = events[0].tuplet!.id;
@@ -59,7 +65,7 @@ describe('Tuplet Commands', () => {
       const restored = command.undo(withTuplet);
 
       const events = restored.staves[0].measures[0].events;
-      
+
       // All events should have no tuplet metadata
       expect(events[0].tuplet).toBeUndefined();
       expect(events[1].tuplet).toBeUndefined();
@@ -69,15 +75,18 @@ describe('Tuplet Commands', () => {
 
     test('should handle quintuplet (5:4 ratio)', () => {
       // Add one more event for quintuplet
-      baseScore.staves[0].measures[0].events.push(
-        { id: 'e5', duration: 'eighth', dotted: false, notes: [{ id: 'n5', pitch: 'G4' }] }
-      );
+      baseScore.staves[0].measures[0].events.push({
+        id: 'e5',
+        duration: 'eighth',
+        dotted: false,
+        notes: [{ id: 'n5', pitch: 'G4' }],
+      });
 
       const command = new ApplyTupletCommand(0, 0, 5, [5, 4]);
       const newScore = command.execute(baseScore);
 
       const events = newScore.staves[0].measures[0].events;
-      
+
       expect(events[0].tuplet?.ratio).toEqual([5, 4]);
       expect(events[0].tuplet?.groupSize).toBe(5);
       expect(events[4].tuplet?.position).toBe(4);
@@ -109,12 +118,14 @@ describe('Tuplet Commands', () => {
 
       // Undo second tuplet - should restore first tuplet
       const restored = cmd2.undo(withSecondTuplet);
-      
-      expect(restored.staves[0].measures[0].events[0].tuplet).toEqual(expect.objectContaining({
-        ratio: [2, 3],
-        groupSize: 2,
-        position: 0
-      }));
+
+      expect(restored.staves[0].measures[0].events[0].tuplet).toEqual(
+        expect.objectContaining({
+          ratio: [2, 3],
+          groupSize: 2,
+          position: 0,
+        })
+      );
     });
   });
 
@@ -133,7 +144,7 @@ describe('Tuplet Commands', () => {
       const newScore = command.execute(scoreWithTuplet);
 
       const events = newScore.staves[0].measures[0].events;
-      
+
       // All 3 events should have tuplet removed
       expect(events[0].tuplet).toBeUndefined();
       expect(events[1].tuplet).toBeUndefined();
@@ -169,23 +180,29 @@ describe('Tuplet Commands', () => {
       const restored = command.undo(withoutTuplet);
 
       const events = restored.staves[0].measures[0].events;
-      
+
       // Tuplet should be restored
-      expect(events[0].tuplet).toEqual(expect.objectContaining({
-        ratio: [3, 2],
-        groupSize: 3,
-        position: 0
-      }));
-      expect(events[1].tuplet).toEqual(expect.objectContaining({
-        ratio: [3, 2],
-        groupSize: 3,
-        position: 1
-      }));
-      expect(events[2].tuplet).toEqual(expect.objectContaining({
-        ratio: [3, 2],
-        groupSize: 3,
-        position: 2
-      }));
+      expect(events[0].tuplet).toEqual(
+        expect.objectContaining({
+          ratio: [3, 2],
+          groupSize: 3,
+          position: 0,
+        })
+      );
+      expect(events[1].tuplet).toEqual(
+        expect.objectContaining({
+          ratio: [3, 2],
+          groupSize: 3,
+          position: 1,
+        })
+      );
+      expect(events[2].tuplet).toEqual(
+        expect.objectContaining({
+          ratio: [3, 2],
+          groupSize: 3,
+          position: 2,
+        })
+      );
     });
 
     test('should return unchanged score if event not in tuplet', () => {

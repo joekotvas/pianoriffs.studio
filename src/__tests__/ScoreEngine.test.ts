@@ -43,7 +43,7 @@ describe('ScoreEngine', () => {
     // First add a note
     const addCommand = new AddEventCommand(0, false, note, 'quarter', false);
     engine.dispatch(addCommand);
-    
+
     // Get the event ID created (in a real app we'd get this from the state or command result)
     const stateAfterAdd = engine.getState();
     const eventId = stateAfterAdd.staves[0].measures[0].events[0].id;

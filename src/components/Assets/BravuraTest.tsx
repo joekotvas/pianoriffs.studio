@@ -113,12 +113,14 @@ const BravuraTest: React.FC = () => {
       <section style={sectionStyle}>
         <h2>Rests</h2>
         <div style={gridStyle}>
-          {['restWhole', 'restHalf', 'restQuarter', 'rest8th', 'rest16th', 'rest32nd'].map(name => (
-            <div key={name} style={glyphStyle}>
-              <span style={fontStyle}>{SMUFL[name]}</span>
-              <span style={labelStyle}>{name}</span>
-            </div>
-          ))}
+          {['restWhole', 'restHalf', 'restQuarter', 'rest8th', 'rest16th', 'rest32nd'].map(
+            (name) => (
+              <div key={name} style={glyphStyle}>
+                <span style={fontStyle}>{SMUFL[name]}</span>
+                <span style={labelStyle}>{name}</span>
+              </div>
+            )
+          )}
         </div>
       </section>
 
@@ -126,7 +128,7 @@ const BravuraTest: React.FC = () => {
       <section style={sectionStyle}>
         <h2>Noteheads</h2>
         <div style={gridStyle}>
-          {['noteheadDoubleWhole', 'noteheadWhole', 'noteheadHalf', 'noteheadBlack'].map(name => (
+          {['noteheadDoubleWhole', 'noteheadWhole', 'noteheadHalf', 'noteheadBlack'].map((name) => (
             <div key={name} style={glyphStyle}>
               <span style={fontStyle}>{SMUFL[name]}</span>
               <span style={labelStyle}>{name}</span>
@@ -139,7 +141,7 @@ const BravuraTest: React.FC = () => {
       <section style={sectionStyle}>
         <h2>Clefs</h2>
         <div style={gridStyle}>
-          {['gClef', 'fClef', 'cClef'].map(name => (
+          {['gClef', 'fClef', 'cClef'].map((name) => (
             <div key={name} style={glyphStyle}>
               <span style={{ ...fontStyle, fontSize: '64px' }}>{SMUFL[name]}</span>
               <span style={labelStyle}>{name}</span>
@@ -152,7 +154,13 @@ const BravuraTest: React.FC = () => {
       <section style={sectionStyle}>
         <h2>Accidentals</h2>
         <div style={gridStyle}>
-          {['accidentalDoubleFlat', 'accidentalFlat', 'accidentalNatural', 'accidentalSharp', 'accidentalDoubleSharp'].map(name => (
+          {[
+            'accidentalDoubleFlat',
+            'accidentalFlat',
+            'accidentalNatural',
+            'accidentalSharp',
+            'accidentalDoubleSharp',
+          ].map((name) => (
             <div key={name} style={glyphStyle}>
               <span style={fontStyle}>{SMUFL[name]}</span>
               <span style={labelStyle}>{name}</span>
@@ -165,7 +173,14 @@ const BravuraTest: React.FC = () => {
       <section style={sectionStyle}>
         <h2>Flags</h2>
         <div style={gridStyle}>
-          {['flag8thUp', 'flag8thDown', 'flag16thUp', 'flag16thDown', 'flag32ndUp', 'flag32ndDown'].map(name => (
+          {[
+            'flag8thUp',
+            'flag8thDown',
+            'flag16thUp',
+            'flag16thDown',
+            'flag32ndUp',
+            'flag32ndDown',
+          ].map((name) => (
             <div key={name} style={glyphStyle}>
               <span style={fontStyle}>{SMUFL[name]}</span>
               <span style={labelStyle}>{name}</span>
@@ -178,7 +193,18 @@ const BravuraTest: React.FC = () => {
       <section style={sectionStyle}>
         <h2>Time Signature Digits</h2>
         <div style={gridStyle}>
-          {['timeSig0', 'timeSig1', 'timeSig2', 'timeSig3', 'timeSig4', 'timeSig5', 'timeSig6', 'timeSig7', 'timeSig8', 'timeSig9'].map(name => (
+          {[
+            'timeSig0',
+            'timeSig1',
+            'timeSig2',
+            'timeSig3',
+            'timeSig4',
+            'timeSig5',
+            'timeSig6',
+            'timeSig7',
+            'timeSig8',
+            'timeSig9',
+          ].map((name) => (
             <div key={name} style={glyphStyle}>
               <span style={fontStyle}>{SMUFL[name]}</span>
               <span style={labelStyle}>{name}</span>
@@ -191,7 +217,13 @@ const BravuraTest: React.FC = () => {
       <section style={sectionStyle}>
         <h2>Dynamics</h2>
         <div style={gridStyle}>
-          {['dynamicPianissimo', 'dynamicPiano', 'dynamicMezzo', 'dynamicForte', 'dynamicFortissimo'].map(name => (
+          {[
+            'dynamicPianissimo',
+            'dynamicPiano',
+            'dynamicMezzo',
+            'dynamicForte',
+            'dynamicFortissimo',
+          ].map((name) => (
             <div key={name} style={glyphStyle}>
               <span style={fontStyle}>{SMUFL[name]}</span>
               <span style={labelStyle}>{name}</span>
@@ -205,24 +237,42 @@ const BravuraTest: React.FC = () => {
         <h2>SVG Rendering Test</h2>
         <svg width="400" height="120" style={{ border: '1px solid #ccc', background: '#fafafa' }}>
           {/* Staff lines */}
-          {[0, 1, 2, 3, 4].map(i => (
-            <line key={i} x1="20" y1={30 + i * 12} x2="380" y2={30 + i * 12} stroke="#000" strokeWidth="1" />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <line
+              key={i}
+              x1="20"
+              y1={30 + i * 12}
+              x2="380"
+              y2={30 + i * 12}
+              stroke="#000"
+              strokeWidth="1"
+            />
           ))}
-          
+
           {/* G Clef */}
-          <text x="30" y="78" style={{ fontFamily: 'Bravura', fontSize: '64px' }}>{SMUFL.gClef}</text>
-          
+          <text x="30" y="78" style={{ fontFamily: 'Bravura', fontSize: '64px' }}>
+            {SMUFL.gClef}
+          </text>
+
           {/* Quarter note head on middle line */}
-          <text x="120" y="54" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>{SMUFL.noteheadBlack}</text>
-          
+          <text x="120" y="54" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>
+            {SMUFL.noteheadBlack}
+          </text>
+
           {/* Quarter rest */}
-          <text x="180" y="66" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>{SMUFL.restQuarter}</text>
-          
+          <text x="180" y="66" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>
+            {SMUFL.restQuarter}
+          </text>
+
           {/* Eighth rest */}
-          <text x="240" y="54" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>{SMUFL.rest8th}</text>
-          
+          <text x="240" y="54" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>
+            {SMUFL.rest8th}
+          </text>
+
           {/* Half rest */}
-          <text x="300" y="54" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>{SMUFL.restHalf}</text>
+          <text x="300" y="54" style={{ fontFamily: 'Bravura', fontSize: '40px' }}>
+            {SMUFL.restHalf}
+          </text>
         </svg>
       </section>
     </div>

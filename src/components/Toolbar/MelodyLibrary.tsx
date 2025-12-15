@@ -12,7 +12,13 @@ interface MelodyLibraryProps {
   triggerRef?: React.RefObject<HTMLElement>;
 }
 
-const MelodyLibrary: React.FC<MelodyLibraryProps> = ({ melodies, onSelectMelody, onClose, position, triggerRef }) => {
+const MelodyLibrary: React.FC<MelodyLibraryProps> = ({
+  melodies,
+  onSelectMelody,
+  onClose,
+  position,
+  triggerRef,
+}) => {
   const { theme } = useTheme();
 
   return (
@@ -23,23 +29,22 @@ const MelodyLibrary: React.FC<MelodyLibraryProps> = ({ melodies, onSelectMelody,
       width={256} // w-64
       maxHeight={320} // max-h-80
     >
-      <div 
+      <div
         className="px-4 py-3 border-b flex items-center gap-2"
-        style={{ 
+        style={{
           backgroundColor: theme.buttonHoverBackground,
-          borderColor: theme.border
+          borderColor: theme.border,
         }}
       >
         <BookOpen size={16} style={{ color: theme.secondaryText }} />
-        <h3 className="font-semibold text-sm" style={{ color: theme.text }}>Melody Library</h3>
+        <h3 className="font-semibold text-sm" style={{ color: theme.text }}>
+          Melody Library
+        </h3>
       </div>
-      
+
       <div className="overflow-y-auto p-2 dropdown-scroll" style={{ maxHeight: '320px' }}>
         {melodies.map((melody) => (
-          <DropdownItem
-            key={melody.id}
-            onClick={() => onSelectMelody(melody)}
-          >
+          <DropdownItem key={melody.id} onClick={() => onSelectMelody(melody)}>
             {melody.title}
           </DropdownItem>
         ))}

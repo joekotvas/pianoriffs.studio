@@ -30,12 +30,12 @@ export interface Config {
 }
 
 export const CONFIG: Config = {
-  lineHeight: 12,     
-  topMargin: 20,      
-  baseY: 70,          
-  quantsPerMeasure: 64, 
-  measurePaddingLeft: 36,  
-  measurePaddingRight: 0, 
+  lineHeight: 12,
+  topMargin: 20,
+  baseY: 70,
+  quantsPerMeasure: 64,
+  measurePaddingLeft: 36,
+  measurePaddingRight: 0,
   scoreMarginLeft: 60,
   headerWidth: 60,
   staffSpacing: 120,
@@ -44,6 +44,6 @@ export const CONFIG: Config = {
     enabled: true,
     logCommands: true,
     logStateChanges: true,
-    logValidation: true
-  }
+    logValidation: true,
+  },
 };

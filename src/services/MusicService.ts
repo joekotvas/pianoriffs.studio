@@ -1,8 +1,8 @@
 /**
  * MusicService - Centralized Music Theory & Notation Logic
- * 
+ *
  * Adapts TonalJS to the specific needs of a score renderer,
- * distinguishing between "Musical Pitch" (Audio/Theory) and 
+ * distinguishing between "Musical Pitch" (Audio/Theory) and
  * "Visual Pitch" (Staff positioning).
  */
 
@@ -30,8 +30,8 @@ export const midiToPitch = (midi: number): string => Note.fromMidi(midi) ?? 'C4'
 export const getSemitones = (interval: string): number => Interval.semitones(interval) ?? 0;
 
 /** Returns interval distance between two pitches (e.g. "C4", "G4" -> "P5"). */
-export const getInterval = (from: string, to: string): string => Interval.distance(from, to) ?? 'P1';
-
+export const getInterval = (from: string, to: string): string =>
+  Interval.distance(from, to) ?? 'P1';
 
 // ============================================================================
 // 2. THEORY (Keys & Scales)
@@ -48,12 +48,11 @@ export const getScaleNotes = (root: string): string[] => [...Key.majorKey(root).
  * @example getScaleDegree("G4", "C") -> 5
  */
 export const getScaleDegree = (pitch: string, keyRoot: string): number => {
-    const pc = Note.pitchClass(pitch);
-    const scale = getScaleNotes(keyRoot);
-    const idx = scale.indexOf(pc);
-    return idx === -1 ? 0 : idx + 1; 
+  const pc = Note.pitchClass(pitch);
+  const scale = getScaleNotes(keyRoot);
+  const idx = scale.indexOf(pc);
+  return idx === -1 ? 0 : idx + 1;
 };
-
 
 // ============================================================================
 // 3. NOTATION (Rendering Logic)
@@ -66,19 +65,19 @@ export const getScaleDegree = (pitch: string, keyRoot: string): number => {
  */
 export const getStaffPitch = (pitch: string): string => {
   const n = Note.get(pitch);
-  return (n.letter && n.oct !== undefined) ? `${n.letter}${n.oct}` : pitch;
+  return n.letter && n.oct !== undefined ? `${n.letter}${n.oct}` : pitch;
 };
 
 /**
  * Decides if a note needs an accidental glyph based on the Key Signature.
- * 
+ *
  * Logic:
  * 1. If note is in the key scale -> No accidental.
  * 2. If note is Natural but key expects Sharp/Flat -> Show Natural.
  * 3. If note is Sharp/Flat and not in key -> Show Sharp/Flat.
  */
 export const needsAccidental = (
-  pitch: string, 
+  pitch: string,
   keyRoot: string
 ): { show: boolean; type: 'sharp' | 'flat' | 'natural' | null } => {
   const n = Note.get(pitch);
@@ -98,9 +97,9 @@ export const needsAccidental = (
   }
 
   // Otherwise, return the alteration type
-  return { 
-    show: true, 
-    type: n.alt > 0 ? 'sharp' : 'flat' 
+  return {
+    show: true,
+    type: n.alt > 0 ? 'sharp' : 'flat',
   };
 };
 
@@ -120,14 +119,13 @@ export const getAccidentalGlyph = (
   return show && type ? ACCIDENTALS[type] : null;
 };
 
-
 // ============================================================================
 // 4. INTERACTION (Drag & Drop Math)
 // ============================================================================
 
 /**
  * Snaps a "Visual Pitch" (derived from staff Y-position) to the Musical Key.
- * 
+ *
  * @example
  * // User clicks "F" line in G Major
  * applyKeySignature("F4", "G") // -> "F#4"
@@ -138,7 +136,7 @@ export const applyKeySignature = (visualPitch: string, keyRoot: string): string 
 
   // Find the pitch class in the scale that shares this letter
   const scale = Key.majorKey(keyRoot).scale;
-  const match = scale.find(pc => Note.get(pc).letter === n.letter);
+  const match = scale.find((pc) => Note.get(pc).letter === n.letter);
 
   // If found (e.g. found "F#" for letter "F"), combine with octave
   return match ? `${match}${n.oct}` : visualPitch;
@@ -165,17 +163,17 @@ export const clampPitch = (pitch: string, minPitch: string, maxPitch: string): s
 };
 
 /**
- * Calculates a new pitch by moving visually along staff lines, 
+ * Calculates a new pitch by moving visually along staff lines,
  * automatically applying the key signature to the destination.
- * 
+ *
  * @param pitch Starting pitch (e.g. "C4")
  * @param steps Visual steps to move (e.g. 1 = next line/space)
  * @param keyRoot Key context (e.g. "G")
  * @param pitchRange Optional pitch range for clamping (if provided, result will be clamped)
  */
 export const movePitchVisual = (
-  pitch: string, 
-  steps: number, 
+  pitch: string,
+  steps: number,
   keyRoot: string = 'C',
   pitchRange?: { min: string; max: string }
 ): string => {
@@ -185,11 +183,11 @@ export const movePitchVisual = (
   // 1. Calculate new Letter & Octave (Geometry)
   const currentIdx = STAFF_LETTERS.indexOf(n.letter);
   const totalIdx = currentIdx + steps;
-  
+
   // Handle wrapping (modulo with support for negative numbers)
   const wrappedIdx = ((totalIdx % 7) + 7) % 7;
   const octaveChange = Math.floor(totalIdx / 7);
-  
+
   const newLetter = STAFF_LETTERS[wrappedIdx];
   const newOctave = n.oct + octaveChange;
 

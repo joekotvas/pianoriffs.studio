@@ -4,12 +4,12 @@ export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
   WARN = 2,
-  ERROR = 3
+  ERROR = 3,
 }
 
 export class DebugLogger {
   private static instance: DebugLogger;
-  
+
   private constructor() {}
 
   public static getInstance(): DebugLogger {
@@ -19,7 +19,7 @@ export class DebugLogger {
     return DebugLogger.instance;
   }
 
-  private shouldLog(level: LogLevel): boolean {
+  private shouldLog(_level: LogLevel): boolean {
     if (!CONFIG.debug?.enabled) return false;
     // Could add level filtering here based on config if needed
     return true;
@@ -31,6 +31,7 @@ export class DebugLogger {
     const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
     const prefix = `[${timestamp}] [${LogLevel[level]}]`;
 
+    /* eslint-disable no-console */
     switch (level) {
       case LogLevel.ERROR:
         console.error(prefix, message, data || '');
@@ -69,11 +70,11 @@ export class DebugLogger {
       this.log(`STATE CHANGE: ${oldStateHash} -> ${newStateHash}`, undefined, LogLevel.DEBUG);
     }
   }
-  
+
   public logValidationFailure(reason: string, context?: any) {
-      if (CONFIG.debug?.logValidation) {
-          this.log(`VALIDATION FAILED: ${reason}`, context, LogLevel.ERROR);
-      }
+    if (CONFIG.debug?.logValidation) {
+      this.log(`VALIDATION FAILED: ${reason}`, context, LogLevel.ERROR);
+    }
   }
 }
 

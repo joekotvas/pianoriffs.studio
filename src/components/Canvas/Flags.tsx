@@ -18,19 +18,29 @@ interface FlagsProps {
 const getFlagGlyph = (duration: string, direction: 'up' | 'down'): string | null => {
   if (direction === 'up') {
     switch (duration) {
-      case 'eighth': return SMUFL_FLAGS.eighthUp;
-      case 'sixteenth': return SMUFL_FLAGS.sixteenthUp;
-      case 'thirtysecond': return SMUFL_FLAGS.thirtysecondUp;
-      case 'sixtyfourth': return SMUFL_FLAGS.sixtyfourthUp;
-      default: return null;
+      case 'eighth':
+        return SMUFL_FLAGS.eighthUp;
+      case 'sixteenth':
+        return SMUFL_FLAGS.sixteenthUp;
+      case 'thirtysecond':
+        return SMUFL_FLAGS.thirtysecondUp;
+      case 'sixtyfourth':
+        return SMUFL_FLAGS.sixtyfourthUp;
+      default:
+        return null;
     }
   } else {
     switch (duration) {
-      case 'eighth': return SMUFL_FLAGS.eighthDown;
-      case 'sixteenth': return SMUFL_FLAGS.sixteenthDown;
-      case 'thirtysecond': return SMUFL_FLAGS.thirtysecondDown;
-      case 'sixtyfourth': return SMUFL_FLAGS.sixtyfourthDown;
-      default: return null;
+      case 'eighth':
+        return SMUFL_FLAGS.eighthDown;
+      case 'sixteenth':
+        return SMUFL_FLAGS.sixteenthDown;
+      case 'thirtysecond':
+        return SMUFL_FLAGS.thirtysecondDown;
+      case 'sixtyfourth':
+        return SMUFL_FLAGS.sixtyfourthDown;
+      default:
+        return null;
     }
   }
 };

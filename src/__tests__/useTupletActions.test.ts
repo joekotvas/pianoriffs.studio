@@ -8,34 +8,39 @@ import { useTupletActions } from '@/hooks/useTupletActions';
 
 // Mock ApplyTupletCommand and RemoveTupletCommand
 jest.mock('../commands/TupletCommands', () => ({
-  ApplyTupletCommand: jest.fn().mockImplementation((measureIndex, eventIndex, groupSize, ratio) => ({
-    type: 'APPLY_TUPLET',
-    measureIndex,
-    eventIndex,
-    groupSize,
-    ratio
-  }))
+  ApplyTupletCommand: jest
+    .fn()
+    .mockImplementation((measureIndex, eventIndex, groupSize, ratio) => ({
+      type: 'APPLY_TUPLET',
+      measureIndex,
+      eventIndex,
+      groupSize,
+      ratio,
+    })),
 }));
 
 jest.mock('../commands/RemoveTupletCommand', () => ({
   RemoveTupletCommand: jest.fn().mockImplementation((measureIndex, eventIndex) => ({
     type: 'REMOVE_TUPLET',
     measureIndex,
-    eventIndex
-  }))
+    eventIndex,
+  })),
 }));
 
 describe('useTupletActions', () => {
-  
   // Helper to create a mock score
   const createMockScore = (events: any[] = []) => ({
-    staves: [{
-      clef: 'treble',
-      measures: [{
-        id: 1,
-        events
-      }]
-    }]
+    staves: [
+      {
+        clef: 'treble',
+        measures: [
+          {
+            id: 1,
+            events,
+          },
+        ],
+      },
+    ],
   });
 
   // Helper to create events
@@ -43,7 +48,7 @@ describe('useTupletActions', () => {
     id,
     duration: 'quarter',
     notes: [{ id: `${id}-note`, pitch: 'C4' }],
-    tuplet: hasTuplet ? { ratio: [3, 2], groupIndex: 0, groupSize: 3 } : undefined
+    tuplet: hasTuplet ? { ratio: [3, 2], groupIndex: 0, groupSize: 3 } : undefined,
   });
 
   describe('applyTuplet', () => {
@@ -60,13 +65,15 @@ describe('useTupletActions', () => {
         expect(success).toBe(true);
       });
 
-      expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'APPLY_TUPLET',
-        measureIndex: 0,
-        eventIndex: 0,
-        groupSize: 3,
-        ratio: [3, 2]
-      }));
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'APPLY_TUPLET',
+          measureIndex: 0,
+          eventIndex: 0,
+          groupSize: 3,
+          ratio: [3, 2],
+        })
+      );
     });
 
     it('should return false if score is not initialized', () => {
@@ -129,7 +136,9 @@ describe('useTupletActions', () => {
     });
 
     it('should apply quintuplet (5:4) correctly', () => {
-      const events = Array(5).fill(null).map((_, i) => createEvent(`e${i}`));
+      const events = Array(5)
+        .fill(null)
+        .map((_, i) => createEvent(`e${i}`));
       const scoreRef = { current: createMockScore(events) };
       const selection = { measureIndex: 0, eventId: 'e0', noteId: 'e0-note', staffIndex: 0 };
       const dispatch = jest.fn();
@@ -140,10 +149,12 @@ describe('useTupletActions', () => {
         result.current.applyTuplet([5, 4], 5);
       });
 
-      expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-        ratio: [5, 4],
-        groupSize: 5
-      }));
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ratio: [5, 4],
+          groupSize: 5,
+        })
+      );
     });
   });
 
@@ -161,11 +172,13 @@ describe('useTupletActions', () => {
         expect(success).toBe(true);
       });
 
-      expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'REMOVE_TUPLET',
-        measureIndex: 0,
-        eventIndex: 0
-      }));
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'REMOVE_TUPLET',
+          measureIndex: 0,
+          eventIndex: 0,
+        })
+      );
     });
 
     it('should return false if event has no tuplet', () => {

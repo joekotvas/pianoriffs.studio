@@ -13,7 +13,7 @@ jest.mock('../components/Canvas/Staff', () => {
     return (
       <g data-testid={`staff-${staffIndex}`}>
         {measures.map((m: any, i: number) => (
-          <rect 
+          <rect
             key={m.id}
             data-testid={`measure-${i}-staff-${staffIndex}`}
             onClick={() => onSelectNote?.(i, undefined, undefined)} // Simulate interaction with separate args
@@ -25,29 +25,29 @@ jest.mock('../components/Canvas/Staff', () => {
   return {
     __esModule: true,
     default: MockStaff,
-    calculateStaffWidth: jest.fn(() => 1000)
+    calculateStaffWidth: jest.fn(() => 1000),
   };
 });
 
 describe('ScoreCanvas', () => {
   const mockScore = createDefaultScore();
-  
+
   const mockContextValue: any = {
-      score: mockScore,
-      selection: { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 },
-      setSelection: jest.fn(),
-      handleNoteSelection: jest.fn(),
-      handleMeasureHover: jest.fn(),
-      addNoteToMeasure: jest.fn(),
-      activeDuration: 'quarter',
-      isDotted: false,
-      previewNote: null,
-      setPreviewNote: jest.fn(),
-      handleTimeSignatureChange: jest.fn(),
-      handleKeySignatureChange: jest.fn(),
-      handleClefChange: jest.fn(),
-      scoreRef: { current: mockScore },
-      updateNotePitch: jest.fn()
+    score: mockScore,
+    selection: { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 },
+    setSelection: jest.fn(),
+    handleNoteSelection: jest.fn(),
+    handleMeasureHover: jest.fn(),
+    addNoteToMeasure: jest.fn(),
+    activeDuration: 'quarter',
+    isDotted: false,
+    previewNote: null,
+    setPreviewNote: jest.fn(),
+    handleTimeSignatureChange: jest.fn(),
+    handleKeySignatureChange: jest.fn(),
+    handleClefChange: jest.fn(),
+    scoreRef: { current: mockScore },
+    updateNotePitch: jest.fn(),
   };
 
   const mockHandlers = {
@@ -59,7 +59,7 @@ describe('ScoreCanvas', () => {
     onKeySigClick: jest.fn(),
     onTimeSigClick: jest.fn(),
     onClefClick: jest.fn(),
-    onBackgroundClick: jest.fn()
+    onBackgroundClick: jest.fn(),
   };
 
   beforeEach(() => {
@@ -70,9 +70,7 @@ describe('ScoreCanvas', () => {
     render(
       <ThemeProvider>
         <ScoreContext.Provider value={mockContextValue}>
-            <ScoreCanvas 
-              {...mockHandlers}
-            />
+          <ScoreCanvas {...mockHandlers} />
         </ScoreContext.Provider>
       </ThemeProvider>
     );
@@ -86,17 +84,21 @@ describe('ScoreCanvas', () => {
     render(
       <ThemeProvider>
         <ScoreContext.Provider value={mockContextValue}>
-            <ScoreCanvas 
-              {...mockHandlers}
-            />
+          <ScoreCanvas {...mockHandlers} />
         </ScoreContext.Provider>
       </ThemeProvider>
     );
 
     fireEvent.click(screen.getByTestId('measure-0-staff-0'));
-    
+
     expect(mockContextValue.handleNoteSelection).toHaveBeenCalled();
     // Now uses separate args: (measureIndex, eventId, noteId, staffIndex)
-    expect(mockContextValue.handleNoteSelection).toHaveBeenCalledWith(0, undefined, undefined, 0, undefined);
+    expect(mockContextValue.handleNoteSelection).toHaveBeenCalledWith(
+      0,
+      undefined,
+      undefined,
+      0,
+      undefined
+    );
   });
 });

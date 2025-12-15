@@ -20,12 +20,12 @@ export class SetGrandStaffCommand implements Command {
 
     const existingStaff = score.staves[0];
     const isBassClef = existingStaff.clef === 'bass';
-    
+
     // Create empty measures matching existing staff structure
     const emptyMeasures: Measure[] = existingStaff.measures.map((m, index) => ({
       id: Date.now() + index + 1000,
       events: [],
-      isPickup: m.isPickup
+      isPickup: m.isPickup,
     }));
 
     if (isBassClef) {
@@ -34,18 +34,18 @@ export class SetGrandStaffCommand implements Command {
         id: Date.now() + 2000,
         clef: 'treble',
         keySignature: existingStaff.keySignature,
-        measures: emptyMeasures
+        measures: emptyMeasures,
       };
 
       // Keep existing staff as bass at index 1
       const bassStaff: Staff = {
         ...existingStaff,
-        clef: 'bass' // Ensure it's marked as bass
+        clef: 'bass', // Ensure it's marked as bass
       };
 
       return {
         ...score,
-        staves: [trebleStaff, bassStaff]
+        staves: [trebleStaff, bassStaff],
       };
     } else {
       // Source is treble clef: keep notes on treble (index 0), add empty bass (index 1)
@@ -53,28 +53,28 @@ export class SetGrandStaffCommand implements Command {
         id: Date.now() + 2000,
         clef: 'bass',
         keySignature: existingStaff.keySignature,
-        measures: emptyMeasures
+        measures: emptyMeasures,
       };
 
       // Ensure existing staff has treble clef
       const trebleStaff: Staff = {
         ...existingStaff,
-        clef: 'treble'
+        clef: 'treble',
       };
 
       return {
         ...score,
-        staves: [trebleStaff, bassStaff]
+        staves: [trebleStaff, bassStaff],
       };
     }
   }
 
   undo(score: Score): Score {
     if (!this.previousStaves) return score;
-    
+
     return {
       ...score,
-      staves: this.previousStaves
+      staves: this.previousStaves,
     };
   }
 }

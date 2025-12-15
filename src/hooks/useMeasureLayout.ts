@@ -1,22 +1,22 @@
 import { useMemo } from 'react';
 import { ScoreEvent } from '@/types';
-import { 
-  calculateMeasureLayout, 
-  calculateBeamingGroups, 
-  applyMeasureCentering 
+import {
+  calculateMeasureLayout,
+  calculateBeamingGroups,
+  applyMeasureCentering,
 } from '@/engines/layout';
 import { calculateTupletBrackets } from '@/engines/layout/tuplets';
 import { BeamGroup } from '@/engines/layout/types';
 
 /**
  * Hook to compute all layout-related data for a measure.
- * 
+ *
  * Consolidates:
  * - Measure layout (hit zones, event positions, total width)
  * - Event centering for Grand Staff alignment
  * - Beam grouping for 8th/16th notes
  * - Tuplet bracket positioning
- * 
+ *
  * @param events - The events in the measure
  * @param clef - The clef type ('treble' | 'bass')
  * @param isPickup - Whether this is a pickup measure
@@ -42,7 +42,11 @@ export function useMeasureLayout(
 
   // Re-center events if width is forced and we have a rest placeholder
   const centeredEvents = useMemo(() => {
-    if (forcedWidth && processedEvents.length === 1 && processedEvents[0].id === 'rest-placeholder') {
+    if (
+      forcedWidth &&
+      processedEvents.length === 1 &&
+      processedEvents[0].id === 'rest-placeholder'
+    ) {
       return applyMeasureCentering(processedEvents, effectiveWidth);
     }
     return processedEvents;
@@ -65,6 +69,6 @@ export function useMeasureLayout(
     effectiveWidth,
     centeredEvents,
     beamGroups,
-    tupletGroups
+    tupletGroups,
   };
 }
