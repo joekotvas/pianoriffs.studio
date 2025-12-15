@@ -33,13 +33,22 @@ export const handlePlayback = (
         } else if (e.shiftKey) {
              playScore(lastPlayStart.measureIndex, lastPlayStart.eventIndex);
         } else {
-             if (isPlaying) stopPlayback();
-             else {
-                 if (selection.measureIndex !== null && selection.eventId) {
+             if (isPlaying) {
+                 playback.pausePlayback();
+             } else {
+                 // RESUME from NEXT event if paused (position exists)
+                 if (playback.playbackPosition && playback.playbackPosition.measureIndex !== null) {
+                     const resumeQuant = (playback.playbackPosition.quant ?? -1) + 1;
+                     playScore(playback.playbackPosition.measureIndex, resumeQuant);
+                 } 
+                 // START from selection if stopped
+                 else if (selection.measureIndex !== null && selection.eventId) {
                     const m = measures[selection.measureIndex];
                     const eIdx = m.events.findIndex((evt: any) => evt.id === selection.eventId);
                     playScore(selection.measureIndex, eIdx !== -1 ? eIdx : 0);
-                 } else {
+                 } 
+                 // START from beginning
+                 else {
                     playScore(0, 0);
                  }
              }

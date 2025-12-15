@@ -21,15 +21,30 @@ export const usePlayback = (score: any, bpm: number) => {
     isInitialized.current = true;
   }, []);
 
+  /* 
+   * Stop playback and reset position (Stop Button behavior)
+   */
   const stopPlayback = useCallback(() => {
     stopTonePlayback();
     setIsPlaying(false);
     setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
   }, []);
 
+  /*
+   * Pause playback but retain position (Pause Button behavior)
+   */
+  const pausePlayback = useCallback(() => {
+    stopTonePlayback();
+    setIsPlaying(false);
+    // Do NOT reset playbackPosition, so cursor stays visible and we can resume
+  }, []);
+
   const playScore = useCallback(async (startMeasureIndex = 0, startQuant = 0) => {
     await ensureInit();
-    stopPlayback();
+    
+    // Stop any existing playback (clears position state if we called stopPlayback, 
+    // but here we are about to overwrite it anyway)
+    stopTonePlayback(); 
 
     setLastPlayStart({ measureIndex: startMeasureIndex, quant: startQuant });
     setIsPlaying(true);
@@ -60,21 +75,25 @@ export const usePlayback = (score: any, bpm: number) => {
         setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
       }
     );
-  }, [score, bpm, stopPlayback, ensureInit]);
+  }, [score, bpm, ensureInit]);
 
   const handlePlayToggle = useCallback(() => {
     if (isPlaying) {
-      stopPlayback();
+      pausePlayback();
     } else {
-      playScore();
+      // Resume from NEXT event (quant + 1) if valid, otherwise start from beginning
+      const resumeMeasure = playbackPosition.measureIndex ?? 0;
+      const resumeQuant = (playbackPosition.quant ?? -1) + 1; // +1 to skip to next event
+      playScore(resumeMeasure, resumeQuant);
     }
-  }, [isPlaying, playScore, stopPlayback]);
+  }, [isPlaying, playScore, pausePlayback, playbackPosition]);
 
   return {
     isPlaying,
     playbackPosition,
     playScore,
     stopPlayback,
+    pausePlayback,
     handlePlayToggle,
     lastPlayStart,
     instrumentState // Expose for UI (e.g., "Loading piano samples...")
