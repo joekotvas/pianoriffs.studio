@@ -9,7 +9,7 @@ Complete reference for configuring the `<RiffScore />` component.
 ## Basic Usage
 
 ```tsx
-import { RiffScore } from '@/components/SheetMusicEditor';
+import { RiffScore } from 'riffscore';
 
 // Default configuration
 <RiffScore />
@@ -29,6 +29,7 @@ interface RiffScoreConfig {
   ui: {
     showToolbar: boolean;  // Show/hide the toolbar
     scale: number;         // Zoom scale factor
+    theme?: ThemeName;     // 'dark' | 'cool' | 'warm' | 'light'
   };
   interaction: {
     isEnabled: boolean;      // Master switch for all interactions
@@ -53,6 +54,7 @@ interface RiffScoreConfig {
 |----------|---------|
 | `ui.showToolbar` | `true` |
 | `ui.scale` | `1` |
+| `ui.theme` | `'dark'` |
 | `interaction.isEnabled` | `true` |
 | `interaction.enableKeyboard` | `true` |
 | `interaction.enablePlayback` | `true` |
@@ -61,7 +63,7 @@ interface RiffScoreConfig {
 | `score.timeSignature` | `'4/4'` |
 | `score.keySignature` | `'C'` |
 | `score.staff` | `'grand'` |
-| `score.measureCount` | `2` |
+| `score.measureCount` | `4` |
 
 ---
 
@@ -131,6 +133,15 @@ const myComposition = {
 // 150% scale for detailed editing
 <RiffScore config={{
   ui: { scale: 1.5 }
+}} />
+```
+
+### Theme Selection
+
+```tsx
+// Available themes: 'dark', 'cool', 'warm', 'light'
+<RiffScore config={{
+  ui: { theme: 'cool' }
 }} />
 ```
 

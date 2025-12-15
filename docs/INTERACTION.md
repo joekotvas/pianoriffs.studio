@@ -47,6 +47,7 @@ Rests are treated as rhythmic events with interactions parallel to notes.
 | :--- | :--- | :--- |
 | **Ghost Event** | Semi-transparent (50% opacity) | **Prediction**. Indicates what will be added upon commit. Adapts to Note or Rest mode. |
 | **Selection** | **Highlighted** (Theme Accent) | **Target**. Indicates items affected by commands (transpose, delete, etc.). |
+| **Lasso** | Blue rectangle overlay | **Multi-select**. Drag to select multiple notes at once. |
 | **Input Mode** | Cursor Icon / Toolbar State | **Context**. Determines if the Ghost Event creates a Note or a Rest. |
 | **Hit Zone** | (Invisible) Vertical measure slices | **Fuzziness**. Allows clicking near a beat to select it, improving usability. |
 
@@ -94,18 +95,28 @@ The editor transitions between the following states:
     -   **Modifier**: `Cmd/Ctrl+Click` toggles multi-selection.
     -   **Modifier**: `Shift+Click` selects a range.
 
-### B. Keyboard Workflow
-*Designed for eficiency.*
+### B. Drag-to-Select (Lasso)
+*Designed for efficient multi-selection.*
+
+1.  **Initiate**: Click and drag on empty space within the score canvas.
+2.  **Drag**: A blue rectangle appears, tracking the selection area.
+3.  **Release**: All notes within the rectangle are selected.
+4.  **Modifier**: `Cmd/Ctrl+Drag` adds to existing selection.
+
+> **Design Rationale**: Lasso selection provides a fast way to select groups of notes for transposition, deletion, or duration changes without tedious Shift+clicking.
+
+### C. Keyboard Workflow
+*Designed for efficiency.*
 
 1.  **Navigation**: `Left/Right` arrows move the selection (or cursor) through the timeline.
 2.  **Entry (`Enter`)**:
     -   Inserts event at cursor position.
     -   **Auto-Advance**: Cursor moves to the next rhythmic slot.
     -   **Pitch Memory**: Cursor retains the previous pitch (Note Mode) or stays neutral (Rest Mode).
-3.  **Pitch Adjustment**: `Up/Down` arrows move the ghost (in Entry) or transposed selection (during Selection).
-4.  **Duration**: Number keys `1-8` set duration for *next* entry (Entry) or *transform* current selection (Selection).
+3.  **Pitch Adjustment**: `Up/Down` arrows move the ghost (in Entry) or transpose selection (during Selection).
+4.  **Duration**: Number keys `1-7` set duration for *next* entry (Entry) or *transform* current selection (Selection).
 
-### C. Rest Entry System
+### D. Rest Entry System
 *Treating silence as a core structural element.*
 
 -   **Toggle**: Press `R` to switch Input Mode (Note ↔ Rest).
@@ -124,22 +135,29 @@ The editor transitions between the following states:
 | :--- | :--- | :--- |
 | `R` | **Toggle Note/Rest Mode** | Entry |
 | `R` | **Convert Selection** | Selection |
-| `Esc` | Clear Selection / Menu | Global |
+| `Esc` | Clear Selection / Pause / Close Menu | Global |
 | `Space` | Play / Pause | Global |
 | `Shift + Space` | Play from Last Start | Global |
 | `Cmd + Z` | Undo | Global |
 | `Cmd + Shift + Z` | Redo | Global |
+| `Cmd + Y` | Redo (alternative) | Global |
 
 ### 🎵 Pitch & Duration
 | Key | Action | Notes |
 | :--- | :--- | :--- |
-| `1` - `8` | Set Duration | 1=32nd ... 5=Quarter ... 8=Whole |
+| `1` | 64th note | |
+| `2` | 32nd note | |
+| `3` | 16th note | |
+| `4` | 8th note | |
+| `5` | Quarter note | |
+| `6` | Half note | |
+| `7` | Whole note | |
 | `.` | Toggle Dotted | Adds 50% duration |
 | `T` | Toggle Tie | Connects note to next |
-| `↑` / `↓` | Transpose (Step) | Semitone shift |
+| `↑` / `↓` | Transpose (Step) | Diatonic step |
 | `Shift + ↑` / `↓` | Transpose (Octave) | Octave shift |
-| `-` / `_` | Flat (b) | |
-| `=` / `+` | Sharp (#) | |
+| `-` / `_` | Flat (♭) | |
+| `=` / `+` | Sharp (♯) | |
 | `0` | Natural (♮) | |
 
 ### 🧭 Navigation & Editing
@@ -149,7 +167,8 @@ The editor transitions between the following states:
 | `←` / `→` | Previous/Next | Navigates through timeline |
 | `Shift + ←` / `→` | Extend Selection | Multi-select range |
 | `Cmd + ↑` / `↓` | Intra-chord | Navigates notes within a single chord |
-| `Delete` | Remove | Deletes selection |
+| `Alt + ↑` / `↓` | **Switch Staff** | Grand Staff only: move between staves |
+| `Delete` / `Backspace` | Remove | Deletes selection |
 
 ---
 
@@ -176,7 +195,7 @@ When a dropdown menu opens (File Menu, Melody Library, etc.):
 
 ---
 
-### 7. Glossary of Key Terms
+## 7. Glossary of Key Terms
 
 | Term | Definition |
 | :--- | :--- |
@@ -185,5 +204,6 @@ When a dropdown menu opens (File Menu, Melody Library, etc.):
 | **Cursor** | In keyboard navigation, the specific *position* on the staff where the Ghost Event is located. |
 | **Hit Zone** | Invisible vertical slices of a measure used to calculate quantized rhythmic placement from mouse coordinates. |
 | **Smart Snap** | Logic enforcing alignment with valid rhythmic intervals and staff positions. |
-| **Commit** | action (Click or Enter) that converts a Ghost Event into a permanent Score Event. |
+| **Commit** | Action (Click or Enter) that converts a Ghost Event into a permanent Score Event. |
 | **Input Mode** | Global switch (toggled by `R`) determining creation of Notes or Rests. |
+| **Lasso Selection** | Drag-based multi-selection using a rectangular area. |

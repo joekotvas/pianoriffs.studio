@@ -76,17 +76,16 @@ import { RiffScore } from 'riffscore';
 
 ### How config is resolved
 
-```
-RiffScoreConfig (partial)
-    ↓
-useRiffScore()
-    ├── mergeConfig() → fill in defaults
-    ├── staves provided? → use them
-    └── else → generateStaves() from template
-    ↓
-ScoreProvider
-    ↓
-ScoreEditorContent
+```mermaid
+flowchart TD
+    A["RiffScoreConfig (partial)"] --> B[useRiffScore]
+    B --> C[mergeConfig - fill in defaults]
+    B --> D{staves provided?}
+    D -->|Yes| E[use them]
+    D -->|No| F[generateStaves from template]
+    E --> G[ScoreProvider]
+    F --> G
+    G --> H[ScoreEditorContent]
 ```
 
 See [Configuration Guide](./CONFIGURATION.md) for details.
@@ -107,19 +106,23 @@ riffscore/
 ├── src/                      # Library source
 │   ├── index.tsx             # Exports RiffScore
 │   ├── RiffScore.tsx         # Config wrapper
-│   ├── types.ts              # Score, RiffScoreConfig, DeepPartial
+│   ├── types.ts              # Score, Selection, RiffScoreConfig
+│   ├── componentTypes.ts     # Component prop types
 │   ├── config.ts             # Layout constants
 │   ├── themes.ts             # Theme definitions
 │   ├── constants.ts          # Music constants
 │
 │   ├── components/
-│   │   ├── Assets/           # Visual assets
+│   │   ├── Assets/           # Visual assets (7 files)
+│   │   │   ├── BravuraTest.tsx
 │   │   │   ├── ClefIcon.tsx
 │   │   │   ├── GrandStaffBracket.tsx
 │   │   │   ├── NoteIcon.tsx
-│   │   │   └── RestIcon.tsx
+│   │   │   ├── RestIcon.tsx
+│   │   │   ├── TieIcon.tsx
+│   │   │   └── semiBreve.svg
 │   │   │
-│   │   ├── Canvas/           # SVG rendering
+│   │   ├── Canvas/           # SVG rendering (13 files)
 │   │   │   ├── ScoreCanvas.tsx
 │   │   │   ├── ScoreHeader.tsx
 │   │   │   ├── Staff.tsx
@@ -142,7 +145,7 @@ riffscore/
 │   │   │       ├── ConfirmDialog.tsx
 │   │   │       └── ShortcutsOverlay.tsx
 │   │   │
-│   │   └── Toolbar/          # Toolbar controls
+│   │   └── Toolbar/          # Toolbar controls (17 files)
 │   │       ├── Toolbar.tsx
 │   │       ├── ToolbarButton.tsx
 │   │       ├── Divider.tsx
@@ -164,53 +167,107 @@ riffscore/
 │   │           ├── ClefOverlay.tsx
 │   │           ├── KeySignatureOverlay.tsx
 │   │           └── TimeSignatureOverlay.tsx
-│   │
+│
 │   ├── services/             # Business logic
 │   │   ├── MusicService.ts   # TonalJS wrapper
 │   │   └── TimelineService.ts# Playback timing
-│   │
+│
 │   ├── engines/
 │   │   ├── ScoreEngine.ts    # Command dispatch
-│   │   ├── toneEngine.ts     # Audio
+│   │   ├── toneEngine.ts     # Audio (Tone.js)
 │   │   ├── midiEngine.ts     # MIDI input
-│   │   └── layout/           # Layout calculation
+│   │   └── layout/           # Layout calculation (8 files)
+│   │       ├── index.ts      # Re-exports
+│   │       ├── types.ts      # Layout types
 │   │       ├── positioning.ts# Pitch → Y
 │   │       ├── measure.ts    # Event positions, hit zones
 │   │       ├── beaming.ts    # Beam groups
 │   │       ├── tuplets.ts    # Tuplet brackets
 │   │       ├── stems.ts      # Stem lengths
 │   │       └── system.ts     # Multi-staff sync
-│   │
-│   ├── commands/             # Undo/redo commands
+│
+│   ├── commands/             # Undo/redo commands (20 files)
+│   │   ├── types.ts
 │   │   ├── AddEventCommand.ts
+│   │   ├── AddNoteToEventCommand.ts
 │   │   ├── ChangePitchCommand.ts
+│   │   ├── DeleteEventCommand.ts
+│   │   ├── DeleteNoteCommand.ts
+│   │   ├── LoadScoreCommand.ts
 │   │   ├── MeasureCommands.ts
-│   │   └── ...
-│   │
-│   ├── hooks/
-│   │   ├── useRiffScore.ts   # Config → initial score
-│   │   ├── useScoreLogic.ts  # Main state
-│   │   ├── useSelection.ts   # Selection
-│   │   ├── useNavigation.ts  # Arrow keys
-│   │   ├── usePlayback.ts    # Play/pause
-│   │   └── handlers/         # Event handlers
-│   │
+│   │   ├── RemoveTupletCommand.ts
+│   │   ├── SetGrandStaffCommand.ts
+│   │   ├── SetKeySignatureCommand.ts
+│   │   ├── SetSingleStaffCommand.ts
+│   │   ├── SetTimeSignatureCommand.ts
+│   │   ├── TogglePickupCommand.ts
+│   │   ├── ToggleRestCommand.ts
+│   │   ├── TransposeSelectionCommand.ts
+│   │   ├── TupletCommands.ts
+│   │   ├── UpdateEventCommand.ts
+│   │   ├── UpdateNoteCommand.ts
+│   │   └── UpdateTitleCommand.ts
+│
+│   ├── hooks/                # React hooks (29 files)
+│   │   ├── handlers/         # Event handler modules
+│   │   │   ├── handleMutation.ts
+│   │   │   ├── handleNavigation.ts
+│   │   │   └── handlePlayback.ts
+│   │   │
+│   │   ├── useRiffScore.ts
+│   │   ├── useScoreLogic.ts
+│   │   ├── useScoreEngine.ts
+│   │   ├── useScoreInteraction.ts
+│   │   ├── useSelection.ts
+│   │   ├── useHistory.ts
+│   │   ├── useNavigation.ts
+│   │   ├── useNoteActions.ts
+│   │   ├── useMeasureActions.ts
+│   │   ├── useModifiers.ts
+│   │   ├── usePlayback.ts
+│   │   ├── useMIDI.ts
+│   │   ├── useKeyboardShortcuts.ts
+│   │   ├── useAutoScroll.ts
+│   │   ├── useDragToSelect.ts
+│   │   ├── useEditorMode.ts
+│   │   ├── useEditorTools.ts
+│   │   ├── useExport.ts
+│   │   ├── useFocusTrap.ts
+│   │   ├── useGrandStaffLayout.ts
+│   │   ├── useMeasureInteraction.ts
+│   │   ├── useMeasureLayout.ts
+│   │   ├── useModifierKeys.ts
+│   │   ├── usePreviewRender.ts
+│   │   ├── useSamplerStatus.ts
+│   │   ├── useTitleEditor.ts
+│   │   ├── useTupletActions.ts
+│   │   └── useAccidentalContext.ts
+│
 │   ├── exporters/
 │   │   ├── musicXmlExporter.ts
 │   │   ├── abcExporter.ts
 │   │   └── jsonExporter.ts
-│   │
+│
 │   ├── context/
 │   │   ├── ScoreContext.tsx
 │   │   └── ThemeContext.tsx
-│   │
-│   ├── utils/
+│
+│   ├── utils/                # Utility functions (10 files)
 │   │   ├── core.ts           # Duration math
 │   │   ├── generateScore.ts  # Template → staves
 │   │   ├── mergeConfig.ts    # Deep merge
-│   │   └── ...
-│   │
-│   └── __tests__/            # All tests
+│   │   ├── selection.ts      # Selection utilities
+│   │   ├── interaction.ts    # Interaction utilities
+│   │   ├── validation.ts     # Score validation
+│   │   ├── accidentalContext.ts
+│   │   ├── commandHelpers.ts
+│   │   ├── debug.ts          # Debug logging
+│   │   └── focusScore.ts     # Focus management
+│
+│   ├── data/                 # Static data
+│   │   └── melodies.ts       # Sample melodies
+│
+│   └── __tests__/            # All tests (34 files)
 │
 ├── demo/                     # Demo Next.js app
 │   ├── app/
@@ -239,18 +296,47 @@ Score
   ├── keySignature: "G"
   ├── bpm: number
   └── staves: Staff[]
-        ├── clef: 'treble' | 'bass'
+        ├── id: string | number
+        ├── clef: 'treble' | 'bass' | 'grand'
+        ├── keySignature: string
         └── measures: Measure[]
+              ├── id: string | number
               ├── isPickup?: boolean
               └── events: ScoreEvent[]
+                    ├── id: string | number
                     ├── duration: "quarter"
                     ├── dotted: boolean
                     ├── isRest?: boolean
                     ├── tuplet?: TupletInfo
                     └── notes: Note[]
-                          ├── pitch: "F#4"
+                          ├── id: string | number
+                          ├── pitch: "F#4" | null
                           ├── accidental?: 'sharp' | 'flat' | 'natural'
-                          └── tied?: boolean
+                          ├── tied?: boolean
+                          └── isRest?: boolean
+```
+
+### Selection Model
+
+```typescript
+Selection
+  ├── staffIndex: number          // 0 for single, 0-1 for Grand Staff
+  ├── measureIndex: number | null
+  ├── eventId: string | number | null
+  ├── noteId: string | number | null
+  ├── selectedNotes: Array<{      // Multi-selection support
+  │     staffIndex, measureIndex, eventId, noteId
+  │   }>
+  └── anchor?: { ... } | null     // Range selection anchor
+```
+
+### Configuration
+
+```typescript
+RiffScoreConfig
+  ├── ui: { showToolbar, scale, theme? }
+  ├── interaction: { isEnabled, enableKeyboard, enablePlayback }
+  └── score: { title, bpm, timeSignature, keySignature, staff?, measureCount?, staves? }
 ```
 
 </details>
@@ -277,13 +363,15 @@ All tests live in `__tests__/`. Current coverage: Services 98%, Utils 87%, Comma
 
 ## 6. Layout Engine
 
-Six modules handle positioning and engraving.
+Eight modules handle positioning and engraving.
 
 <details>
 <summary><strong>View modules</strong></summary>
 
-| Module | Does |
-|--------|------|
+| Module | Purpose |
+|--------|---------|
+| `index.ts` | Re-exports all layout functions |
+| `types.ts` | Layout type definitions |
 | `measure.ts` | Event positions, hit zones |
 | `system.ts` | Multi-staff sync |
 | `positioning.ts` | Pitch → Y coordinate |
@@ -293,26 +381,31 @@ Six modules handle positioning and engraving.
 
 ### Pipeline
 
-```
-State update
-    ↓
-Measure.tsx
-    ├── calculateMeasureLayout()
-    ├── calculateBeamingGroups()
-    ├── calculateChordLayout()
-    └── Render: ChordGroup, Beam, Rest, TupletBracket
+```mermaid
+flowchart TD
+    A[State update] --> B[Measure.tsx]
+    B --> C[calculateMeasureLayout]
+    B --> D[calculateBeamingGroups]
+    B --> E[calculateChordLayout]
+    C --> F[Render]
+    D --> F
+    E --> F
+    F --> G[ChordGroup]
+    F --> H[Beam]
+    F --> I[Rest]
+    F --> J[TupletBracket]
 ```
 
 </details>
 
 ---
 
-## 7. Hooks
+## 7. Hooks Reference
 
 <details>
 <summary><strong>View hook list</strong></summary>
 
-### State
+### State Management
 
 | Hook | Purpose |
 |------|---------|
@@ -320,7 +413,7 @@ Measure.tsx
 | `useScoreLogic` | Main state orchestration |
 | `useScoreEngine` | Command dispatch |
 | `useSelection` | Selection state |
-| `useHistory` | Undo/redo |
+| `useHistory` | Undo/redo stack |
 
 ### Interaction
 
@@ -329,15 +422,86 @@ Measure.tsx
 | `useNavigation` | Arrow key handling |
 | `useNoteActions` | Add/delete notes |
 | `useMeasureActions` | Add/delete measures |
-| `useModifiers` | Duration, accidentals |
-| `usePlayback` | Play/pause |
-| `useMIDI` | MIDI input |
+| `useModifiers` | Duration, accidentals, ties |
+| `useTupletActions` | Tuplet creation/removal |
+| `useKeyboardShortcuts` | Global keyboard handler |
+| `useScoreInteraction` | Drag/pitch operations |
+| `useMeasureInteraction` | Hit zone detection |
+| `useDragToSelect` | Lasso selection |
+
+### Playback & Input
+
+| Hook | Purpose |
+|------|---------|
+| `usePlayback` | Play/pause control |
+| `useMIDI` | MIDI input handling |
+| `useSamplerStatus` | Piano sample loading |
+
+### Layout & Rendering
+
+| Hook | Purpose |
+|------|---------|
+| `useAutoScroll` | Auto-scroll during playback |
+| `useGrandStaffLayout` | Grand staff sync |
+| `useMeasureLayout` | Measure layout calculation |
+| `usePreviewRender` | Ghost note rendering |
+| `useAccidentalContext` | Accidental visibility |
+
+### UI Support
+
+| Hook | Purpose |
+|------|---------|
+| `useEditorMode` | Note/rest mode toggle |
+| `useEditorTools` | Tool orchestration |
+| `useExport` | Export functionality |
+| `useFocusTrap` | Toolbar focus management |
+| `useModifierKeys` | Cmd/Ctrl key tracking |
+| `useTitleEditor` | Title editing |
+
+### Handler Modules (`hooks/handlers/`)
+
+| Handler | Purpose |
+|---------|---------|
+| `handleMutation` | Accidentals, ties, transposition, delete |
+| `handleNavigation` | Arrow key navigation |
+| `handlePlayback` | Space bar playback toggle |
 
 </details>
 
 ---
 
-## 8. Dependencies
+## 8. Command Reference
+
+<details>
+<summary><strong>View commands</strong></summary>
+
+| Command | Purpose |
+|---------|---------|
+| `AddEventCommand` | Insert note/rest at position |
+| `AddNoteToEventCommand` | Add note to chord |
+| `ChangePitchCommand` | Change single note pitch |
+| `DeleteEventCommand` | Remove entire event |
+| `DeleteNoteCommand` | Remove note from chord |
+| `LoadScoreCommand` | Load complete score |
+| `MeasureCommands` | Add/delete measures |
+| `RemoveTupletCommand` | Remove tuplet grouping |
+| `SetGrandStaffCommand` | Switch to grand staff |
+| `SetSingleStaffCommand` | Switch to single staff |
+| `SetKeySignatureCommand` | Change key signature |
+| `SetTimeSignatureCommand` | Change time signature |
+| `TogglePickupCommand` | Toggle pickup measure |
+| `ToggleRestCommand` | Convert note↔rest |
+| `TransposeSelectionCommand` | Transpose selected notes |
+| `TupletCommands` | Create tuplet groups |
+| `UpdateEventCommand` | Update event properties |
+| `UpdateNoteCommand` | Update note properties |
+| `UpdateTitleCommand` | Change score title |
+
+</details>
+
+---
+
+## 9. Dependencies
 
 <details>
 <summary><strong>View packages</strong></summary>
@@ -345,8 +509,8 @@ Measure.tsx
 | Package | Purpose |
 |---------|---------|
 | [tonal](https://github.com/tonaljs/tonal) | Music theory |
-| [tone](https://tonejs.github.io/) | Audio |
-| react | UI |
+| [tone](https://tonejs.github.io/) | Audio synthesis |
+| react | UI framework |
 | lucide-react | Icons |
 | Bravura | SMuFL font |
 
