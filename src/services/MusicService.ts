@@ -6,7 +6,7 @@
  * "Visual Pitch" (Staff positioning).
  */
 
-import { Note, Key, Interval } from 'tonal';
+import { Note, Key } from 'tonal';
 import { ACCIDENTALS } from '@/constants/SMuFL';
 
 // --- Constants ---
@@ -25,13 +25,6 @@ export const getMidi = (pitch: string): number => Note.midi(pitch) ?? 60;
 
 /** Returns scientific notation from MIDI (e.g. 60 -> "C4"). */
 export const midiToPitch = (midi: number): string => Note.fromMidi(midi) ?? 'C4';
-
-/** Returns semitones for an interval (e.g., "P5" -> 7). */
-export const getSemitones = (interval: string): number => Interval.semitones(interval) ?? 0;
-
-/** Returns interval distance between two pitches (e.g. "C4", "G4" -> "P5"). */
-export const getInterval = (from: string, to: string): string =>
-  Interval.distance(from, to) ?? 'P1';
 
 // ============================================================================
 // 2. THEORY (Keys & Scales)

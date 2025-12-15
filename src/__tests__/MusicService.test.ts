@@ -3,14 +3,11 @@ import {
   getMidi,
   midiToPitch,
   getStaffPitch,
-  getKeyInfo,
   getScaleNotes,
   getKeyAlteration,
   needsAccidental,
   applyKeySignature,
   movePitchVisual,
-  getInterval,
-  getSemitones,
   getAccidentalGlyph,
   getScaleDegree,
 } from '@/services/MusicService';
@@ -72,35 +69,6 @@ describe('MusicService', () => {
       it('round-trips correctly', () => {
         const pitch = 'E5';
         expect(midiToPitch(getMidi(pitch))).toBe(pitch);
-      });
-    });
-
-    describe('getInterval', () => {
-      it('calculates perfect fifth', () => {
-        expect(getInterval('C4', 'G4')).toBe('5P');
-      });
-
-      it('calculates major third', () => {
-        expect(getInterval('C4', 'E4')).toBe('3M');
-      });
-
-      it('calculates descending intervals', () => {
-        expect(getInterval('G4', 'C4')).toBe('-5P');
-      });
-    });
-
-    describe('getSemitones', () => {
-      it('returns 7 semitones for perfect fifth', () => {
-        expect(getSemitones('5P')).toBe(7);
-      });
-
-      it('returns 4 semitones for major third', () => {
-        expect(getSemitones('3M')).toBe(4);
-      });
-
-      it('returns 0 for invalid interval', () => {
-        const result = getSemitones('invalid');
-        expect(result === 0 || isNaN(result)).toBe(true);
       });
     });
   });
