@@ -22,13 +22,6 @@ jest.mock('../components/Toolbar/Toolbar', () => {
   });
 });
 
-// Mock OutputPanel
-jest.mock('../components/Panels/OutputPanel', () => {
-  return function MockOutputPanel() {
-    return <div data-testid="output-panel">Mock Output Panel</div>;
-  };
-});
-
 // Mock hooks
 jest.mock('../hooks/usePlayback', () => ({
   usePlayback: () => ({

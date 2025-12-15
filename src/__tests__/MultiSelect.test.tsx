@@ -9,7 +9,6 @@ import { createDefaultScore } from '@/types';
 jest.mock('../components/Toolbar/Toolbar', () => (props: any) => (
   <div data-testid="score-toolbar" />
 ));
-jest.mock('../components/Panels/OutputPanel', () => () => <div data-testid="output-panel" />);
 jest.mock('../hooks/usePlayback', () => ({
   usePlayback: () => ({
     isPlaying: false,

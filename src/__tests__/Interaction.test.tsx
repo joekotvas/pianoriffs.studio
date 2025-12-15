@@ -24,10 +24,6 @@ jest.mock('../components/Toolbar/Toolbar', () => {
   });
 });
 
-jest.mock('../components/Panels/OutputPanel', () => () => (
-  <div data-testid="output-panel">Mock Output Panel</div>
-));
-
 // Mock Tone.js
 jest.mock('../engines/toneEngine', () => ({
   playNote: jest.fn(),

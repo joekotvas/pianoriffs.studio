@@ -9,8 +9,10 @@ describe('handlePlayback', () => {
     mockPlayback = {
       playScore: jest.fn(),
       stopPlayback: jest.fn(),
+      pausePlayback: jest.fn(),
       isPlaying: false,
       lastPlayStart: { measureIndex: 0, eventIndex: 0 },
+      playbackPosition: { measureIndex: null, quant: null },
     };
     mockScore = {
       staves: [
@@ -55,7 +57,7 @@ describe('handlePlayback', () => {
     // Stop playback
     mockPlayback.isPlaying = true;
     handlePlayback(mockEvent, mockPlayback, selection, mockScore);
-    expect(mockPlayback.stopPlayback).toHaveBeenCalled();
+    expect(mockPlayback.pausePlayback).toHaveBeenCalled();
   });
 
   test('should ignore other keys', () => {
