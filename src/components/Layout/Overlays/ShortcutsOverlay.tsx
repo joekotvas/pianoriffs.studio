@@ -53,7 +53,9 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
   const shortcuts = {
     selection: [
       { label: 'Move Selection', keys: ['←', '→'] },
+      { label: 'Extend Selection', keys: ['Shift', '←/→'] },
       { label: 'Chord Navigation', keys: ['Cmd/Ctrl', '↑/↓'] },
+      { label: 'Switch Staff (Grand)', keys: ['Alt', '↑/↓'] },
       { label: 'Select Note', keys: ['Cmd/Ctrl', 'Click'] },
       { label: 'Clear Selection', keys: ['Esc'] },
     ],
@@ -66,10 +68,15 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
     editing: [
       { label: 'Add Note', keys: ['Enter'] },
       { label: 'Remove Note', keys: ['Backspace'] },
+      { label: 'Toggle Rest Mode', keys: ['R'] },
       { label: 'Undo', keys: ['Cmd/Ctrl', 'Z'] },
       { label: 'Redo', keys: ['Cmd/Ctrl', 'Shift', 'Z'] },
       { label: 'Pitch Up/Down', keys: ['↑', '↓'] },
       { label: 'Octave Jump', keys: ['Shift', '↑/↓'] },
+    ],
+    modifiers: [
+      { label: 'Toggle Dot', keys: ['.'] },
+      { label: 'Toggle Tie', keys: ['T'] },
       { label: 'Flat', keys: ['-'] },
       { label: 'Sharp', keys: ['='] },
       { label: 'Natural', keys: ['0'] },
@@ -100,11 +107,11 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-6 max-h-[70vh] overflow-y-auto shortcuts-scroll">
           
           {/* Welcome & Instructions */}
           <div className="mb-8 p-4 rounded-lg border" style={{ backgroundColor: `${theme.accent}10`, borderColor: `${theme.accent}30` }}>
-             <h3 className="font-bold mb-2" style={{ color: theme.accent }}>Welcome to PianoRiffs Studio!</h3>
+             <h3 className="font-bold mb-2" style={{ color: theme.accent }}>Welcome to RiffScore!</h3>
              <p className="text-sm mb-4" style={{ color: theme.text }}>
                This editor allows you to create sheet music using both mouse and keyboard. 
                Use the toolbar above to change note duration, add dots, or manage measures.
@@ -137,9 +144,26 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
             </div>
             <div>
               <ShortcutGroup title="Editing" shortcuts={shortcuts.editing} theme={theme} />
+              <ShortcutGroup title="Modifiers" shortcuts={shortcuts.modifiers} theme={theme} />
               <ShortcutGroup title="Durations" shortcuts={shortcuts.durations} theme={theme} />
             </div>
           </div>
+
+          <style>{`
+            .shortcuts-scroll::-webkit-scrollbar {
+              width: 8px;
+            }
+            .shortcuts-scroll::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .shortcuts-scroll::-webkit-scrollbar-thumb {
+              background-color: ${theme.border};
+              border-radius: 4px;
+            }
+            .shortcuts-scroll::-webkit-scrollbar-thumb:hover {
+              background-color: ${theme.secondaryText};
+            }
+          `}</style>
         </div>
 
         {/* Footer */}
