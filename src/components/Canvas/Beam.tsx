@@ -15,8 +15,6 @@ import { BEAMING } from '@/constants';
 const Beam = ({ beam, color }) => {
   const { startX, endX, startY, endY, type, direction } = beam;
   const { theme } = useTheme();
-  const beamWidth = BEAMING.THICKNESS;
-  const secondaryOffset = BEAMING.SPACING;
 
   const renderBeam = (y1, y2, key, thickness = 5) => {
     // To get vertical ends, we draw a polygon.

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { CONFIG } from '@/config';
 import { useTheme } from '@/context/ThemeContext';
-import { calculateHeaderLayout, getNoteWidth, getOffsetForPitch } from '@/engines/layout';
+import { calculateHeaderLayout, getOffsetForPitch } from '@/engines/layout';
 import { isRestEvent, getFirstNoteId } from '@/utils/core';
 import Staff, { calculateStaffWidth } from './Staff';
 import { getActiveStaff, createDefaultSelection } from '@/types';

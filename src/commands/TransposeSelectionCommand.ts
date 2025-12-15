@@ -1,7 +1,6 @@
 import { Command } from './types';
 import { Score, getActiveStaff, Selection, Staff } from '@/types';
 import { movePitchVisual } from '@/services/MusicService';
-import { CONFIG } from '@/config';
 import { PIANO_RANGE } from '@/constants';
 
 export class TransposeSelectionCommand implements Command {

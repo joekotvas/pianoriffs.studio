@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, Note, ScoreEvent, Selection, getActiveStaff } from '@/types';
+import { Score, Note, Selection, getActiveStaff } from '@/types';
 import { updateEvent } from '@/utils/commandHelpers';
 
 /**

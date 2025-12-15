@@ -29,7 +29,6 @@ import Flags from './Flags';
 const ChordGroup = ({
   // Data
   notes,
-  quant,
   duration,
   dotted,
   measureIndex,

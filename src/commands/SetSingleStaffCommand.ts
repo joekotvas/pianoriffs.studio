@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, Staff, Measure, ScoreEvent } from '@/types';
+import { Score, Staff } from '@/types';
 
 /**
  * Command to reduce a Grand Staff to a single staff.

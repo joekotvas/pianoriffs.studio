@@ -19,7 +19,7 @@ export class DebugLogger {
     return DebugLogger.instance;
   }
 
-  private shouldLog(level: LogLevel): boolean {
+  private shouldLog(_level: LogLevel): boolean {
     if (!CONFIG.debug?.enabled) return false;
     // Could add level filtering here based on config if needed
     return true;
@@ -31,9 +31,11 @@ export class DebugLogger {
     const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
     const prefix = `[${timestamp}] [${LogLevel[level]}]`;
 
+    /* eslint-disable no-console */
     switch (level) {
       case LogLevel.ERROR:
         console.error(prefix, message, data || '');
+        break;
         break;
       case LogLevel.WARN:
         console.warn(prefix, message, data || '');

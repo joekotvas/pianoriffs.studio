@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { NOTE_TYPES, LAYOUT } from '@/constants';
+import { LAYOUT } from '@/constants';
 import { CONFIG } from '@/config';
 import { useTheme } from '@/context/ThemeContext';
 import { getOffsetForPitch } from '@/engines/layout';

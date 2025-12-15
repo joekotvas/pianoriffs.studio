@@ -1,6 +1,5 @@
 import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
-import { CONFIG } from '@/config';
-import { getMidi, movePitchVisual } from '@/services/MusicService';
+import { getMidi } from '@/services/MusicService';
 
 /**
  * Calculates the duration of a note in quants.
@@ -139,9 +138,7 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
     // We need to know which events belonged to the pickup.
     // But we flattened them.
 
-    // Let's just take the events from the original first measure.
-    const originalPickupEvents = measures[0].events;
-    const pickupQuants = calculateTotalQuants(originalPickupEvents);
+    // Note: originalPickupEvents was removed as dead code (only used for unused pickupQuants)
 
     // We consume events from `allEvents` that match the original pickup's duration (or as much as fits in new time sig)
     // Actually, since we flattened `allEvents`, the first N events are from the pickup.
@@ -149,12 +146,8 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
     // We iterate `allEvents`. We fill the first measure until we reach the duration of the original pickup,
     // BUT constrained by `maxQuants` of the new time signature.
 
-    const pickupFilled = 0;
-    // We need to consume events from the start of allEvents
-    // But we are inside a loop below.
-
-    // Let's handle pickup separately before the main loop?
-    // No, the main loop handles splitting.
+    // TODO: pickupQuants and pickupFilled were removed as dead code.
+    // The actual pickup handling uses targetPickupDuration calculated below.
 
     // Let's set a "target duration" for the first measure.
     // If isPickup, target = min(originalPickupDuration, maxQuants).
@@ -182,21 +175,20 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
     // We fill the new first measure up to that duration.
     // Then we close it and mark it as pickup.
 
-    const originalPickupDuration = calculateTotalQuants(measures[0].events);
-    const targetPickupDuration = Math.min(originalPickupDuration, maxQuants);
-
     // We need to pull events from `allEvents` until we hit `targetPickupDuration`.
     // Since `allEvents` is ordered, we just process them.
 
     // We need a flag in the loop to know we are filling the pickup.
-
-    // Let's modify the loop state.
-    var isFillingPickup = true;
-    var pickupTarget = targetPickupDuration;
-  } else {
-    var isFillingPickup = false;
-    var pickupTarget = 0;
   }
+
+  // Calculate target pickup duration (0 if not a pickup)
+  const targetPickupDuration = isPickup
+    ? Math.min(calculateTotalQuants(measures[0].events), maxQuants)
+    : 0;
+
+  // Initialize loop state based on whether we're filling a pickup
+  let isFillingPickup = isPickup;
+  const pickupTarget = targetPickupDuration;
 
   // 2. Redistribute events
   allEvents.forEach((event) => {
@@ -315,7 +307,7 @@ export const navigateSelection = (
   measures: any[],
   selection: any,
   direction: string,
-  clef: string = 'treble'
+  _clef: string = 'treble'
 ) => {
   const { measureIndex, eventId, noteId } = selection;
   if (measureIndex === null || !eventId) return selection;

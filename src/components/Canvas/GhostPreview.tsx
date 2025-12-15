@@ -55,7 +55,6 @@ const GhostPreview: React.FC<GhostPreviewProps> = ({
   return (
     <ChordGroup
       notes={chordNotes}
-      quant={quant}
       duration={previewNote.duration}
       dotted={previewNote.dotted}
       eventId="preview"

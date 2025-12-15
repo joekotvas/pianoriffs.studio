@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { CONFIG } from '@/config';
 import { useTheme } from '@/context/ThemeContext';
 import { REST_GLYPHS, BRAVURA_FONT, getFontSize, DOTS } from '@/constants/SMuFL';
-import { LAYOUT } from '@/constants';
 
 interface RestProps {
   duration: string;

@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, getActiveStaff, ScoreEvent } from '@/types';
+import { Score, ScoreEvent } from '@/types';
 
 export class UpdateEventCommand implements Command {
   public readonly type = 'UPDATE_EVENT';
