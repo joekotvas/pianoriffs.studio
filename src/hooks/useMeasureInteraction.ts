@@ -75,7 +75,7 @@ export function useMeasureInteraction({
     // Original working logic was y - 50.
     // 50 = CONFIG.baseY (70) - CONFIG.topMargin (20).
     // So currentY (relative to box) needs to be adjusted by (baseY - topMargin).
-    let yOffset = Math.round((y - (baseY - topMargin)) / MOUSE_OFFSET_SNAP) * MOUSE_OFFSET_SNAP;
+    const yOffset = Math.round((y - (baseY - topMargin)) / MOUSE_OFFSET_SNAP) * MOUSE_OFFSET_SNAP;
 
     // Check visual limits
     // Default: 4 ledger lines above/below. 

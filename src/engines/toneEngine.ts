@@ -76,7 +76,7 @@ const SYNTH_PRESETS = {
 
 // --- STATE ---
 
-let synths: Record<string, Tone.PolySynth> = {};
+const synths: Record<string, Tone.PolySynth> = {};
 let sampler: Tone.Sampler | null = null;
 let currentPart: Tone.Part | null = null;
 let state: ToneEngineState = {

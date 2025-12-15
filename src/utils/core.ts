@@ -155,7 +155,7 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
         // We iterate `allEvents`. We fill the first measure until we reach the duration of the original pickup,
         // BUT constrained by `maxQuants` of the new time signature.
         
-        let pickupFilled = 0;
+        const pickupFilled = 0;
         // We need to consume events from the start of allEvents
         // But we are inside a loop below.
         
