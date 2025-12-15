@@ -36,7 +36,6 @@ export class DebugLogger {
       case LogLevel.ERROR:
         console.error(prefix, message, data || '');
         break;
-        break;
       case LogLevel.WARN:
         console.warn(prefix, message, data || '');
         break;
