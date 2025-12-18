@@ -124,10 +124,11 @@ export const getAdjustedDuration = (
 const createGhostResult = (
   staffIndex: number,
   previewNote: any
-): { selection: any; previewNote: any; audio: null } => ({
+): { selection: any; previewNote: any; audio: null; shouldCreateMeasure: false } => ({
   selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
   previewNote,
   audio: null,
+  shouldCreateMeasure: false,
 });
 
 /**
@@ -137,7 +138,7 @@ const createEventResult = (
   staffIndex: number,
   measureIndex: number,
   event: any
-): { selection: any; previewNote: null; audio: any } => {
+): { selection: any; previewNote: null; audio: any; shouldCreateMeasure: false } => {
   const noteId = event.isRest || !event.notes?.length ? null : event.notes[0].id;
   const audio = event.isRest
     ? null
@@ -146,6 +147,7 @@ const createEventResult = (
     selection: { staffIndex, measureIndex, eventId: event.id, noteId },
     previewNote: null,
     audio,
+    shouldCreateMeasure: false,
   };
 };
 
@@ -213,6 +215,7 @@ export const calculateNextSelection = (
           selection: { staffIndex, measureIndex, eventId: lastEventBeforeGhost.id, noteId },
           previewNote: null,
           audio,
+          shouldCreateMeasure: false,
         };
       }
     }
@@ -242,6 +245,7 @@ export const calculateNextSelection = (
             inputMode === 'REST'
           ),
           audio: null,
+          shouldCreateMeasure: false,
         };
       } else if (prevMeasure.events.length > 0) {
         // No space - select last event in previous measure
@@ -254,6 +258,7 @@ export const calculateNextSelection = (
           selection: { staffIndex, measureIndex: measureIndex - 1, eventId: lastEvent.id, noteId },
           previewNote: null,
           audio,
+          shouldCreateMeasure: false,
         };
       }
     }
@@ -291,6 +296,7 @@ export const calculateNextSelection = (
             inputMode === 'REST'
           ),
           audio: null,
+          shouldCreateMeasure: false,
         };
       }
     }
@@ -326,6 +332,7 @@ export const calculateNextSelection = (
             inputMode === 'REST'
           ),
           audio: null,
+          shouldCreateMeasure: false,
         };
       }
       // If no space or empty measure with no space, fall through to standard navigation
@@ -366,6 +373,7 @@ export const calculateNextSelection = (
               inputMode === 'REST'
             ),
             audio: null,
+            shouldCreateMeasure: false,
           };
         }
       }
@@ -391,7 +399,7 @@ export const calculateNextSelection = (
         }
       }
     }
-    return { selection: { ...newSelection, staffIndex }, previewNote: null, audio };
+    return { selection: { ...newSelection, staffIndex }, previewNote: null, audio, shouldCreateMeasure: false };
   }
 
   // 3. Handle Navigation Beyond Last Event (to Ghost Note or New Measure)
@@ -434,6 +442,7 @@ export const calculateNextSelection = (
               inputMode === 'REST'
             ),
             audio: null,
+            shouldCreateMeasure: false,
           };
         }
         // If no duration fits, fall through to next measure below
