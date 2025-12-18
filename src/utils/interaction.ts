@@ -502,8 +502,35 @@ export const calculateVerticalNavigation = (
             },
             previewNote: null,
           };
+        } else if (targetMeasure.events.length > 0) {
+          // No overlapping event, but measure has events - select first event
+          const firstEvent = targetMeasure.events[0];
+          const sortedNotes = firstEvent.notes?.length
+            ? [...firstEvent.notes].sort((a: any, b: any) =>
+                getMidi(a.pitch) - getMidi(b.pitch)
+              )
+            : [];
+
+          const noteId =
+            sortedNotes.length > 0
+              ? direction === 'down'
+                ? sortedNotes[sortedNotes.length - 1].id
+                : sortedNotes[0].id
+              : null;
+
+          return {
+            selection: {
+              staffIndex: targetStaffIndex,
+              measureIndex: ghostMeasureIndex,
+              eventId: firstEvent.id,
+              noteId,
+              selectedNotes: [],
+              anchor: null,
+            },
+            previewNote: null,
+          };
         } else {
-          // No event - move ghost cursor to target staff
+          // No events - move ghost cursor to target staff
           const clef = targetStaff.clef || 'treble';
           const defaultPitch = clef === 'bass' ? 'C3' : 'C4';
 
