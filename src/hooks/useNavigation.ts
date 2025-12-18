@@ -116,19 +116,28 @@ export const useNavigation = ({
       }
 
       // Determine the "starting point" for calculation
-      const activeSel =
-        isAtGhostPosition && lastSelection && lastSelection.eventId ? lastSelection : selection;
+      // For vertical nav with ghost cursor, use current selection + previewNote
+      // For horizontal nav, resume from lastSelection if available
+      const isVerticalNav = direction === 'up' || direction === 'down';
+      const useGhostPosition = isAtGhostPosition && isVerticalNav && previewNote;
+
+      const activeSel = useGhostPosition
+        ? selection
+        : isAtGhostPosition && lastSelection && lastSelection.eventId
+          ? lastSelection
+          : selection;
 
       const activeStaff = getActiveStaff(scoreRef.current, activeSel.staffIndex || 0);
 
       // --- 2. Handle Vertical Navigation (CMD+Up/Down) ---
-      if (direction === 'up' || direction === 'down') {
+      if (isVerticalNav) {
         const vertResult = calculateVerticalNavigation(
           scoreRef.current,
           activeSel,
           direction as 'up' | 'down',
           activeDuration,
-          isDotted
+          isDotted,
+          previewNote
         );
 
         if (vertResult) {

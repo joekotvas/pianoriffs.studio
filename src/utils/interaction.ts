@@ -426,12 +426,14 @@ export const calculateCrossStaffSelection = (
 /**
  * Unified vertical navigation for CMD+Up/Down.
  * Handles: 1) Chord traversal, 2) Cross-staff switching, 3) Cycling at boundaries.
+ * Also supports ghost cursor navigation.
  *
  * @param score - The complete score object
  * @param selection - The current selection state
  * @param direction - 'up' or 'down'
  * @param activeDuration - Active note duration for ghost cursor
  * @param isDotted - Whether note is dotted
+ * @param previewNote - Optional preview note (ghost cursor state)
  * @returns Navigation result with selection/previewNote, or null if no change
  */
 export const calculateVerticalNavigation = (
@@ -439,9 +441,120 @@ export const calculateVerticalNavigation = (
   selection: any,
   direction: 'up' | 'down',
   activeDuration: string = 'quarter',
-  isDotted: boolean = false
+  isDotted: boolean = false,
+  previewNote: any = null
 ) => {
   const { staffIndex = 0, measureIndex, eventId } = selection;
+
+  // Handle ghost cursor navigation (no eventId)
+  if (!eventId && previewNote) {
+    const ghostMeasureIndex = previewNote.measureIndex;
+    const ghostStaffIndex = previewNote.staffIndex ?? staffIndex;
+    const currentQuantStart = previewNote.quant ?? 0;
+
+    // Determine target staff for ghost cursor
+    const targetStaffIndex = direction === 'up' ? ghostStaffIndex - 1 : ghostStaffIndex + 1;
+
+    // Check if we can switch staff
+    if (targetStaffIndex >= 0 && targetStaffIndex < score.staves.length) {
+      const targetStaff = score.staves[targetStaffIndex];
+      const targetMeasure = targetStaff?.measures[ghostMeasureIndex];
+
+      if (targetMeasure) {
+        // Find event that overlaps with ghost cursor's quant position
+        let targetEvent = null;
+        let targetQuant = 0;
+
+        for (const e of targetMeasure.events) {
+          const duration = getNoteDuration(e.duration, e.dotted, e.tuplet);
+          const start = targetQuant;
+          const end = targetQuant + duration;
+
+          if (currentQuantStart >= start && currentQuantStart < end) {
+            targetEvent = e;
+            break;
+          }
+          targetQuant += duration;
+        }
+
+        if (targetEvent) {
+          const targetSortedNotes = targetEvent.notes?.length
+            ? [...targetEvent.notes].sort((a: any, b: any) =>
+                getMidi(a.pitch) - getMidi(b.pitch)
+              )
+            : [];
+
+          const noteId =
+            targetSortedNotes.length > 0
+              ? direction === 'down'
+                ? targetSortedNotes[targetSortedNotes.length - 1].id
+                : targetSortedNotes[0].id
+              : null;
+
+          return {
+            selection: {
+              staffIndex: targetStaffIndex,
+              measureIndex: ghostMeasureIndex,
+              eventId: targetEvent.id,
+              noteId,
+              selectedNotes: [],
+              anchor: null,
+            },
+            previewNote: null,
+          };
+        } else {
+          // No event - move ghost cursor to target staff
+          const clef = targetStaff.clef || 'treble';
+          const defaultPitch = clef === 'bass' ? 'C3' : 'C4';
+
+          return {
+            selection: {
+              staffIndex: targetStaffIndex,
+              measureIndex: ghostMeasureIndex,
+              eventId: null,
+              noteId: null,
+              selectedNotes: [],
+              anchor: null,
+            },
+            previewNote: {
+              ...previewNote,
+              staffIndex: targetStaffIndex,
+              pitch: defaultPitch,
+            },
+          };
+        }
+      }
+    }
+
+    // At boundary - cycle to opposite staff (ghost cursor)
+    const cycleStaffIndex = direction === 'up' ? score.staves.length - 1 : 0;
+    const cycleStaff = score.staves[cycleStaffIndex];
+    const cycleMeasure = cycleStaff?.measures[ghostMeasureIndex];
+
+    if (cycleMeasure && cycleStaffIndex !== ghostStaffIndex) {
+      const clef = cycleStaff.clef || 'treble';
+      const defaultPitch = clef === 'bass' ? 'C3' : 'C4';
+
+      return {
+        selection: {
+          staffIndex: cycleStaffIndex,
+          measureIndex: ghostMeasureIndex,
+          eventId: null,
+          noteId: null,
+          selectedNotes: [],
+          anchor: null,
+        },
+        previewNote: {
+          ...previewNote,
+          staffIndex: cycleStaffIndex,
+          pitch: defaultPitch,
+        },
+      };
+    }
+
+    return null;
+  }
+
   if (measureIndex === null || !eventId) return null;
 
   const currentStaff = score.staves[staffIndex];
