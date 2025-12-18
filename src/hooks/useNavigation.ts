@@ -94,7 +94,7 @@ export const useNavigation = ({
       // Determine the "starting point" for calculation
       // For horizontal nav from ghost cursor, use current selection (previewNote has the position)
       // For vertical nav with ghost cursor, use current selection + previewNote
-      // Only fall back to lastSelection if NOT at ghost position
+      // All navigation now uses the current selection; previewNote provides ghost cursor context instead of lastSelection.
       const isVerticalNav = direction === 'up' || direction === 'down';
 
       // For all navigation, use the current selection
