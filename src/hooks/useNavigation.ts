@@ -116,16 +116,14 @@ export const useNavigation = ({
       }
 
       // Determine the "starting point" for calculation
+      // For horizontal nav from ghost cursor, use current selection (previewNote has the position)
       // For vertical nav with ghost cursor, use current selection + previewNote
-      // For horizontal nav, resume from lastSelection if available
+      // Only fall back to lastSelection if NOT at ghost position
       const isVerticalNav = direction === 'up' || direction === 'down';
-      const useGhostPosition = isAtGhostPosition && isVerticalNav && previewNote;
 
-      const activeSel = useGhostPosition
-        ? selection
-        : isAtGhostPosition && lastSelection && lastSelection.eventId
-          ? lastSelection
-          : selection;
+      // For ghost cursor navigation, always use current selection + previewNote
+      // calculateNextSelection will use previewNote.quant for proper positioning
+      const activeSel = isAtGhostPosition ? selection : selection;
 
       const activeStaff = getActiveStaff(scoreRef.current, activeSel.staffIndex || 0);
 
