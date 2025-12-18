@@ -88,32 +88,8 @@ export const useNavigation = ({
     (direction: string, isShift: boolean = false) => {
       const isAtGhostPosition = !selection.eventId || selection.measureIndex === null;
 
-      // --- 1. Resume from Ghost State (UX Fix) ---
-      // If user is at a ghost note (preview) and presses LEFT, we assume they want to
-      // edit the note they just placed (or the last valid selection).
-      if (
-        isAtGhostPosition &&
-        direction === 'left' &&
-        lastSelection &&
-        lastSelection.eventId &&
-        lastSelection.measureIndex !== null
-      ) {
-        select(
-          lastSelection.measureIndex,
-          lastSelection.eventId,
-          lastSelection.noteId,
-          lastSelection.staffIndex
-        );
-        setPreviewNote(null);
-
-        // Audio Feedback for the resumed selection
-        const staff = getActiveStaff(scoreRef.current, lastSelection.staffIndex || 0);
-        const event = staff.measures[lastSelection.measureIndex]?.events.find(
-          (e: any) => e.id === lastSelection.eventId
-        );
-        if (event && event.notes) playAudioFeedback(event.notes);
-        return;
-      }
+      // Navigation from ghost position now uses calculateNextSelection
+      // which finds the actual event to the left using previewNote.quant
 
       // Determine the "starting point" for calculation
       // For horizontal nav from ghost cursor, use current selection (previewNote has the position)
@@ -210,7 +186,6 @@ export const useNavigation = ({
     },
     [
       selection,
-      lastSelection,
       previewNote,
       activeDuration,
       isDotted,
