@@ -117,6 +117,37 @@ export const getAdjustedDuration = (
   return null; // No duration fits
 };
 
+/**
+ * Creates a navigation result for selecting a ghost cursor position.
+ */
+const createGhostResult = (
+  staffIndex: number,
+  previewNote: any
+): { selection: any; previewNote: any; audio: null } => ({
+  selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
+  previewNote,
+  audio: null,
+});
+
+/**
+ * Creates a navigation result for selecting an event.
+ */
+const createEventResult = (
+  staffIndex: number,
+  measureIndex: number,
+  event: any
+): { selection: any; previewNote: null; audio: any } => {
+  const noteId = event.isRest || !event.notes?.length ? null : event.notes[0].id;
+  const audio = event.isRest
+    ? null
+    : { notes: event.notes, duration: event.duration, dotted: event.dotted };
+  return {
+    selection: { staffIndex, measureIndex, eventId: event.id, noteId },
+    previewNote: null,
+    audio,
+  };
+};
+
 export const calculateNextSelection = (
   measures: any[],
   selection: any,

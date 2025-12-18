@@ -97,9 +97,9 @@ export const useNavigation = ({
       // Only fall back to lastSelection if NOT at ghost position
       const isVerticalNav = direction === 'up' || direction === 'down';
 
-      // For ghost cursor navigation, always use current selection + previewNote
-      // calculateNextSelection will use previewNote.quant for proper positioning
-      const activeSel = isAtGhostPosition ? selection : selection;
+      // For all navigation, use the current selection
+      // (previewNote provides ghost cursor context when needed)
+      const activeSel = selection;
 
       // For ghost cursor, get staff from previewNote (may be on different staff after vertical nav)
       const activeStaffIndex =
