@@ -353,20 +353,26 @@ export const calculateNextSelection = (
           : defaultPitch;
 
       if (totalQuants < currentQuantsPerMeasure) {
-        // Move to ghost note in current measure
-        return {
-          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-          previewNote: getAppendPreviewNote(
-            currentMeasure,
-            selection.measureIndex,
-            staffIndex,
-            activeDuration,
-            isDotted,
-            pitch,
-            inputMode === 'REST'
-          ),
-          audio: null,
-        };
+        // Move to ghost note in current measure with adjusted duration
+        const availableQuants = currentQuantsPerMeasure - totalQuants;
+        const adjusted = getAdjustedDuration(availableQuants, activeDuration, isDotted);
+
+        if (adjusted) {
+          return {
+            selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
+            previewNote: getAppendPreviewNote(
+              currentMeasure,
+              selection.measureIndex,
+              staffIndex,
+              adjusted.duration,
+              adjusted.dotted,
+              pitch,
+              inputMode === 'REST'
+            ),
+            audio: null,
+          };
+        }
+        // If no duration fits, fall through to next measure
       } else {
         // Move to next measure
         const nextMeasureIndex = selection.measureIndex + 1;
