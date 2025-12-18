@@ -4,6 +4,7 @@ import {
   calculateNextSelection,
   calculateTranspositionWithPreview,
   calculateCrossStaffSelection,
+  calculateVerticalNavigation,
 } from '@/utils/interaction';
 import { playNote } from '@/engines/toneEngine';
 import { Command } from '@/commands/types';
@@ -87,40 +88,68 @@ export const useNavigation = ({
     (direction: string, isShift: boolean = false) => {
       const isAtGhostPosition = !selection.eventId || selection.measureIndex === null;
 
-      // --- 1. Resume from Ghost State (UX Fix) ---
-      // If user is at a ghost note (preview) and presses LEFT, we assume they want to
-      // edit the note they just placed (or the last valid selection).
-      if (
-        isAtGhostPosition &&
-        direction === 'left' &&
-        lastSelection &&
-        lastSelection.eventId &&
-        lastSelection.measureIndex !== null
-      ) {
-        select(
-          lastSelection.measureIndex,
-          lastSelection.eventId,
-          lastSelection.noteId,
-          lastSelection.staffIndex
-        );
-        setPreviewNote(null);
+      // Navigation from ghost position now uses calculateNextSelection
+      // which finds the actual event to the left using previewNote.quant
 
-        // Audio Feedback for the resumed selection
-        const staff = getActiveStaff(scoreRef.current, lastSelection.staffIndex || 0);
-        const event = staff.measures[lastSelection.measureIndex]?.events.find(
-          (e: any) => e.id === lastSelection.eventId
+      // Determine the "starting point" for calculation
+      // For horizontal nav from ghost cursor, use current selection (previewNote has the position)
+      // For vertical nav with ghost cursor, use current selection + previewNote
+      // All navigation now uses the current selection; previewNote provides ghost cursor context instead of lastSelection.
+      const isVerticalNav = direction === 'up' || direction === 'down';
+
+      // For all navigation, use the current selection
+      // (previewNote provides ghost cursor context when needed)
+      const activeSel = selection;
+
+      // For ghost cursor, get staff from previewNote (may be on different staff after vertical nav)
+      const activeStaffIndex =
+        isAtGhostPosition && previewNote?.staffIndex != null
+          ? previewNote.staffIndex
+          : activeSel.staffIndex || 0;
+      const activeStaff = getActiveStaff(scoreRef.current, activeStaffIndex);
+
+      // --- 2. Handle Vertical Navigation (CMD+Up/Down) ---
+      if (isVerticalNav) {
+        const vertResult = calculateVerticalNavigation(
+          scoreRef.current,
+          activeSel,
+          direction as 'up' | 'down',
+          activeDuration,
+          isDotted,
+          previewNote,
+          currentQuantsPerMeasure
         );
-        if (event && event.notes) playAudioFeedback(event.notes);
+
+        if (vertResult) {
+          if (vertResult.selection) {
+            const { measureIndex, eventId, noteId, staffIndex } = vertResult.selection;
+            select(measureIndex, eventId, noteId || null, staffIndex, { isShift });
+          }
+
+          if (vertResult.previewNote !== undefined) {
+            setPreviewNote(
+              vertResult.previewNote ? { ...vertResult.previewNote, source: 'keyboard' } : null
+            );
+          }
+
+          // Play audio for the newly selected note
+          if (vertResult.selection?.eventId && vertResult.selection?.measureIndex !== null) {
+            const staff = getActiveStaff(scoreRef.current, vertResult.selection.staffIndex || 0);
+            const event = staff.measures[vertResult.selection.measureIndex]?.events.find(
+              (e: any) => e.id === vertResult.selection.eventId
+            );
+            if (event && !event.isRest) {
+              const noteToPlay = vertResult.selection.noteId
+                ? event.notes?.find((n: any) => n.id === vertResult.selection.noteId)
+                : event.notes?.[0];
+              if (noteToPlay) playAudioFeedback([noteToPlay]);
+            }
+          }
+        }
         return;
       }
 
-      // Determine the "starting point" for calculation
-      const activeSel =
-        isAtGhostPosition && lastSelection && lastSelection.eventId ? lastSelection : selection;
-
-      const activeStaff = getActiveStaff(scoreRef.current, activeSel.staffIndex || 0);
-
-      // --- 2. Calculate Next Position ---
+      // --- 3. Horizontal Navigation (Left/Right) ---
       const navResult = calculateNextSelection(
         activeStaff.measures,
         activeSel,
@@ -130,13 +159,13 @@ export const useNavigation = ({
         isDotted,
         currentQuantsPerMeasure,
         activeStaff.clef,
-        activeSel.staffIndex || 0,
+        activeStaffIndex,
         inputMode
       );
 
       if (!navResult) return;
 
-      // --- 3. Apply Selection Update ---
+      // --- 4. Apply Selection Update ---
       if (navResult.selection) {
         const { measureIndex, eventId, noteId, staffIndex } = navResult.selection;
 
@@ -145,7 +174,7 @@ export const useNavigation = ({
         select(measureIndex, eventId, noteId || null, staffIndex, { isShift });
       }
 
-      // --- 4. Handle Side Effects ---
+      // --- 5. Handle Side Effects ---
       if (navResult.previewNote !== undefined) {
         // Mark as keyboard-triggered so auto-scroll follows it
         setPreviewNote(
@@ -163,7 +192,6 @@ export const useNavigation = ({
     },
     [
       selection,
-      lastSelection,
       previewNote,
       activeDuration,
       isDotted,

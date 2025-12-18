@@ -258,73 +258,8 @@ describe('core.ts utilities', () => {
       expect(result).toEqual(selection);
     });
 
-    describe('chord navigation (up/down)', () => {
-      it('should navigate up within chord', () => {
-        const measures = [
-          {
-            events: [
-              {
-                id: 'chord1',
-                notes: [
-                  { id: 'low', pitch: 'C4' },
-                  { id: 'mid', pitch: 'E4' },
-                  { id: 'high', pitch: 'G4' },
-                ],
-              },
-            ],
-          },
-        ];
-        const selection = { measureIndex: 0, eventId: 'chord1', noteId: 'low' };
-        const result = navigateSelection(measures, selection, 'up');
-        expect(result.noteId).toBe('mid');
-      });
-
-      it('should navigate down within chord', () => {
-        const measures = [
-          {
-            events: [
-              {
-                id: 'chord1',
-                notes: [
-                  { id: 'low', pitch: 'C4' },
-                  { id: 'mid', pitch: 'E4' },
-                  { id: 'high', pitch: 'G4' },
-                ],
-              },
-            ],
-          },
-        ];
-        const selection = { measureIndex: 0, eventId: 'chord1', noteId: 'high' };
-        const result = navigateSelection(measures, selection, 'down');
-        expect(result.noteId).toBe('mid');
-      });
-
-      it('should not navigate past top of chord', () => {
-        const measures = [
-          {
-            events: [
-              {
-                id: 'chord1',
-                notes: [
-                  { id: 'low', pitch: 'C4' },
-                  { id: 'high', pitch: 'G4' },
-                ],
-              },
-            ],
-          },
-        ];
-        const selection = { measureIndex: 0, eventId: 'chord1', noteId: 'high' };
-        const result = navigateSelection(measures, selection, 'up');
-        expect(result.noteId).toBe('high'); // unchanged
-      });
-
-      it('should not affect single-note events on up/down', () => {
-        const measures = createMeasures();
-        const selection = { measureIndex: 0, eventId: 'e1', noteId: 'n1' };
-        const result = navigateSelection(measures, selection, 'up');
-        expect(result).toEqual(selection);
-      });
-    });
+    // Note: Chord navigation (up/down) tests are in keyboardNavigation.test.ts
+    // since that functionality moved to calculateVerticalNavigation in interaction.ts
   });
 
   // ---------------------------------------------------

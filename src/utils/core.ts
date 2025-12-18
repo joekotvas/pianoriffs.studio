@@ -1,5 +1,4 @@
 import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
-import { getMidi } from '@/services/MusicService';
 
 /**
  * Calculates the duration of a note in quants.
@@ -303,13 +302,16 @@ export const getFirstNoteId = (event: any): string | number | null => {
   return event.notes[0].id; // Rests now have notes, so this works for both
 };
 
+/**
+ * Navigates the selection horizontally (left/right).
+ * Vertical navigation (up/down) is handled by calculateVerticalNavigation in interaction.ts.
+ */
 export const navigateSelection = (
   measures: any[],
   selection: any,
-  direction: string,
-  _clef: string = 'treble'
+  direction: string
 ) => {
-  const { measureIndex, eventId, noteId } = selection;
+  const { measureIndex, eventId } = selection;
   if (measureIndex === null || !eventId) return selection;
 
   const measure = measures[measureIndex];
@@ -350,27 +352,8 @@ export const navigateSelection = (
         };
       }
     }
-  } else if (direction === 'up' || direction === 'down') {
-    const event = measure.events[eventIdx];
-    // Only navigate within chord if event has multiple notes
-    if (event.notes?.length > 1 && noteId) {
-      // Sort notes by pitch to ensure consistent up/down navigation
-      const sortedNotes = [...event.notes].sort((a: any, b: any) => {
-        const midiA = getMidi(a.pitch);
-        const midiB = getMidi(b.pitch);
-        return midiA - midiB;
-      });
-
-      const currentNoteIdx = sortedNotes.findIndex((n: any) => n.id === noteId);
-      if (currentNoteIdx !== -1) {
-        // Up = Higher pitch (higher index), Down = Lower pitch (lower index)
-        const newIdx = direction === 'up' ? currentNoteIdx + 1 : currentNoteIdx - 1;
-        if (newIdx >= 0 && newIdx < sortedNotes.length) {
-          return { ...selection, noteId: sortedNotes[newIdx].id };
-        }
-      }
-    }
   }
+  // Note: up/down is handled by calculateVerticalNavigation in interaction.ts
 
   return selection;
 };

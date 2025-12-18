@@ -41,8 +41,10 @@ describe('interactionUtils', () => {
       });
     });
 
-    test('should navigate right to next measure', () => {
+    test('should show ghost cursor when navigating right from last event with space available', () => {
       const selection = { measureIndex: 0, eventId: 'e2', noteId: 'n2' };
+      // Mock measure has 2 quarter notes = 8 quants, 4/4 measure = 16 quants
+      // So there's 8 quants of space available
       const result = calculateNextSelection(
         mockMeasures,
         selection,
@@ -52,12 +54,16 @@ describe('interactionUtils', () => {
         false
       );
 
+      // Should show ghost cursor in same measure, not jump to next measure
       expect(result?.selection).toEqual({
-        measureIndex: 1,
-        eventId: 'e3',
-        noteId: 'n3',
+        measureIndex: null,
+        eventId: null,
+        noteId: null,
         staffIndex: 0,
       });
+      expect(result?.previewNote).toBeDefined();
+      expect(result?.previewNote?.measureIndex).toBe(0);
+      expect(result?.previewNote?.mode).toBe('APPEND');
     });
 
     test('should move to ghost note when navigating right from last event', () => {
