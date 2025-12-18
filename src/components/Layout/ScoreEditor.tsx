@@ -240,6 +240,7 @@ const ScoreEditorContent = ({
             commit={titleEditor.commit}
             inputRef={titleEditor.inputRef}
             theme={theme}
+            scale={scale}
           />
         </div>
 
