@@ -309,8 +309,7 @@ export const getFirstNoteId = (event: any): string | number | null => {
 export const navigateSelection = (
   measures: any[],
   selection: any,
-  direction: string,
-  _clef: string = 'treble'
+  direction: string
 ) => {
   const { measureIndex, eventId } = selection;
   if (measureIndex === null || !eventId) return selection;

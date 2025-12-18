@@ -84,11 +84,12 @@ export const findEventAtQuantPosition = (measure: any, targetQuant: number): any
 };
 
 /**
- * Selects the appropriate note ID from an event based on direction.
- * Up = lowest note (bottom of chord), Down = highest note (top of chord).
+ * Selects the entry-point note when landing on a chord during cross-staff navigation.
+ * When moving UP to a higher staff, selects the lowest note (to continue upward).
+ * When moving DOWN to a lower staff, selects the highest note (to continue downward).
  */
 export const selectNoteInEventByDirection = (event: any, direction: 'up' | 'down'): string | null => {
-  if (!event?.notes?.length) return null;
+  if (!event?.notes?.length || event.isRest) return null;
   const sorted = [...event.notes].sort((a: any, b: any) => getMidi(a.pitch) - getMidi(b.pitch));
   return direction === 'down' ? sorted[sorted.length - 1].id : sorted[0].id;
 };
@@ -373,7 +374,7 @@ export const calculateNextSelection = (
   }
 
   // 3. Standard Navigation
-  const newSelection = navigateSelection(measures, selection, direction, clef);
+  const newSelection = navigateSelection(measures, selection, direction);
 
   if (newSelection !== selection) {
     // Find the event to play audio
@@ -773,7 +774,7 @@ export const calculateVerticalNavigation = (
           return {
             selection: {
               staffIndex: targetStaffIndex,
-              measureIndex: ghostMeasureIndex,
+              measureIndex: null, // Ghost cursor: measure is in previewNote
               eventId: null,
               noteId: null,
               selectedNotes: [],
@@ -803,7 +804,7 @@ export const calculateVerticalNavigation = (
       return {
         selection: {
           staffIndex: cycleStaffIndex,
-          measureIndex: ghostMeasureIndex,
+          measureIndex: null, // Ghost cursor: measure is in previewNote
           eventId: null,
           noteId: null,
           selectedNotes: [],
@@ -899,8 +900,9 @@ export const calculateVerticalNavigation = (
       } else {
         // No event at this quant - show ghost cursor with adjusted duration
         const totalQuants = calculateTotalQuants(targetMeasure.events);
+        // TODO: Pass currentQuantsPerMeasure to handle non-4/4 time signatures
         const availableQuants =
-          getNoteDuration('whole', false) * (4 / 4) - totalQuants; // Approximate for now
+          getNoteDuration('whole', false) * (4 / 4) - totalQuants;
         const adjusted = getAdjustedDuration(
           Math.max(1, availableQuants),
           activeDuration,
@@ -966,6 +968,7 @@ export const calculateVerticalNavigation = (
     } else {
       // No event - show ghost cursor with adjusted duration
       const totalQuants = calculateTotalQuants(cycleMeasure.events);
+      // TODO: Pass currentQuantsPerMeasure to handle non-4/4 time signatures
       const availableQuants =
         getNoteDuration('whole', false) * (4 / 4) - totalQuants;
       const adjusted = getAdjustedDuration(

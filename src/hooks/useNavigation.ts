@@ -137,7 +137,7 @@ export const useNavigation = ({
             const event = staff.measures[vertResult.selection.measureIndex]?.events.find(
               (e: any) => e.id === vertResult.selection.eventId
             );
-            if (event) {
+            if (event && !event.isRest) {
               const noteToPlay = vertResult.selection.noteId
                 ? event.notes?.find((n: any) => n.id === vertResult.selection.noteId)
                 : event.notes?.[0];
