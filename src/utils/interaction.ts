@@ -239,7 +239,44 @@ export const calculateNextSelection = (
     }
   }
 
-  // 2. Standard Navigation
+  // 2. Handle Left from First Event (selected note → ghost cursor in previous measure)
+  if (direction === 'left' && selection.measureIndex !== null && selection.measureIndex > 0) {
+    const currentMeasure = measures[selection.measureIndex];
+    const eventIdx = currentMeasure?.events.findIndex((e: any) => e.id === selection.eventId);
+
+    if (eventIdx === 0) {
+      // At first event - check if previous measure has space for ghost cursor
+      const prevMeasure = measures[selection.measureIndex - 1];
+      const totalQuants = calculateTotalQuants(prevMeasure.events);
+      const availableQuants = currentQuantsPerMeasure - totalQuants;
+
+      // Get adjusted duration that fits
+      const adjusted = getAdjustedDuration(availableQuants, activeDuration, isDotted);
+
+      if (adjusted && availableQuants > 0) {
+        // Move ghost cursor to append position in previous measure
+        const currentEvent = currentMeasure.events[eventIdx];
+        const pitch = currentEvent?.notes?.[0]?.pitch || getDefaultPitchForClef(clef);
+        return {
+          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
+          previewNote: getAppendPreviewNote(
+            prevMeasure,
+            selection.measureIndex - 1,
+            staffIndex,
+            adjusted.duration,
+            adjusted.dotted,
+            pitch,
+            inputMode === 'REST'
+          ),
+          audio: null,
+        };
+      }
+      // If no space or empty measure with no space, fall through to standard navigation
+      // (which selects last note of previous measure)
+    }
+  }
+
+  // 3. Standard Navigation
   const newSelection = navigateSelection(measures, selection, direction, clef);
 
   if (newSelection !== selection) {
