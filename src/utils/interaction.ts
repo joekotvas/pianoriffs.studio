@@ -268,16 +268,7 @@ export const calculateNextSelection = (
 
       // First, check if next measure has events - select first event
       if (nextMeasure.events.length > 0) {
-        const firstEvent = nextMeasure.events[0];
-        const noteId = firstEvent.isRest || !firstEvent.notes?.length ? null : firstEvent.notes[0].id;
-        const audio = firstEvent.isRest
-          ? null
-          : { notes: firstEvent.notes, duration: firstEvent.duration, dotted: firstEvent.dotted };
-        return {
-          selection: { staffIndex, measureIndex: nextMeasureIndex, eventId: firstEvent.id, noteId },
-          previewNote: null,
-          audio,
-        };
+        return createEventResult(staffIndex, nextMeasureIndex, nextMeasure.events[0]);
       }
 
       // Next measure is empty - show ghost cursor with adjusted duration
