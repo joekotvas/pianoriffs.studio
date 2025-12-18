@@ -101,7 +101,12 @@ export const useNavigation = ({
       // calculateNextSelection will use previewNote.quant for proper positioning
       const activeSel = isAtGhostPosition ? selection : selection;
 
-      const activeStaff = getActiveStaff(scoreRef.current, activeSel.staffIndex || 0);
+      // For ghost cursor, get staff from previewNote (may be on different staff after vertical nav)
+      const activeStaffIndex =
+        isAtGhostPosition && previewNote?.staffIndex != null
+          ? previewNote.staffIndex
+          : activeSel.staffIndex || 0;
+      const activeStaff = getActiveStaff(scoreRef.current, activeStaffIndex);
 
       // --- 2. Handle Vertical Navigation (CMD+Up/Down) ---
       if (isVerticalNav) {
@@ -153,7 +158,7 @@ export const useNavigation = ({
         isDotted,
         currentQuantsPerMeasure,
         activeStaff.clef,
-        activeSel.staffIndex || 0,
+        activeStaffIndex,
         inputMode
       );
 

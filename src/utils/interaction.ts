@@ -875,27 +875,42 @@ export const calculateVerticalNavigation = (
           previewNote: null,
         };
       } else {
-        // No event at this quant - show ghost cursor
-        const defaultPitch = getDefaultPitchForClef(targetStaff.clef || 'treble');
+        // No event at this quant - show ghost cursor with adjusted duration
+        const totalQuants = calculateTotalQuants(targetMeasure.events);
+        const availableQuants =
+          getNoteDuration('whole', false) * (4 / 4) - totalQuants; // Approximate for now
+        const adjusted = getAdjustedDuration(
+          Math.max(1, availableQuants),
+          activeDuration,
+          isDotted
+        );
 
-        return {
-          selection: {
-            staffIndex: targetStaffIndex,
-            measureIndex,
-            eventId: null,
-            noteId: null,
-            selectedNotes: [],
-            anchor: null,
-          },
-          previewNote: getAppendPreviewNote(
-            targetMeasure,
-            measureIndex,
-            targetStaffIndex,
-            activeDuration,
-            isDotted,
-            defaultPitch
-          ),
-        };
+        if (adjusted) {
+          const defaultPitch = getDefaultPitchForClef(targetStaff.clef || 'treble');
+
+          return {
+            selection: {
+              staffIndex: targetStaffIndex,
+              measureIndex: null, // Clear measureIndex for ghost cursor state
+              eventId: null,
+              noteId: null,
+              selectedNotes: [],
+              anchor: null,
+            },
+            previewNote: {
+              measureIndex,
+              staffIndex: targetStaffIndex,
+              quant: totalQuants, // Position where ghost would be added
+              visualQuant: totalQuants,
+              pitch: defaultPitch,
+              duration: adjusted.duration,
+              dotted: adjusted.dotted,
+              mode: 'APPEND',
+              index: targetMeasure.events.length,
+              isRest: false,
+            },
+          };
+        }
       }
     }
   }
@@ -927,27 +942,42 @@ export const calculateVerticalNavigation = (
         previewNote: null,
       };
     } else {
-      // No event - show ghost cursor
-      const defaultPitch = getDefaultPitchForClef(cycleStaff.clef || 'treble');
+      // No event - show ghost cursor with adjusted duration
+      const totalQuants = calculateTotalQuants(cycleMeasure.events);
+      const availableQuants =
+        getNoteDuration('whole', false) * (4 / 4) - totalQuants;
+      const adjusted = getAdjustedDuration(
+        Math.max(1, availableQuants),
+        activeDuration,
+        isDotted
+      );
 
-      return {
-        selection: {
-          staffIndex: cycleStaffIndex,
-          measureIndex,
-          eventId: null,
-          noteId: null,
-          selectedNotes: [],
-          anchor: null,
-        },
-        previewNote: getAppendPreviewNote(
-          cycleMeasure,
-          measureIndex,
-          cycleStaffIndex,
-          activeDuration,
-          isDotted,
-          defaultPitch
-        ),
-      };
+      if (adjusted) {
+        const defaultPitch = getDefaultPitchForClef(cycleStaff.clef || 'treble');
+
+        return {
+          selection: {
+            staffIndex: cycleStaffIndex,
+            measureIndex: null, // Clear for ghost cursor state
+            eventId: null,
+            noteId: null,
+            selectedNotes: [],
+            anchor: null,
+          },
+          previewNote: {
+            measureIndex,
+            staffIndex: cycleStaffIndex,
+            quant: totalQuants,
+            visualQuant: totalQuants,
+            pitch: defaultPitch,
+            duration: adjusted.duration,
+            dotted: adjusted.dotted,
+            mode: 'APPEND',
+            index: cycleMeasure.events.length,
+            isRest: false,
+          },
+        };
+      }
     }
   }
 
