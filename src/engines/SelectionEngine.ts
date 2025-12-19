@@ -34,7 +34,13 @@ export class SelectionEngine {
   ) {
     this.state = initialSelection || createDefaultSelection();
     // Default score getter returns empty score (for testing)
-    this.scoreRef = scoreGetter || (() => ({ staves: [], metadata: { title: '' } } as Score));
+    this.scoreRef = scoreGetter || (() => ({
+      title: '',
+      timeSignature: '4/4',
+      keySignature: 'C',
+      bpm: 120,
+      staves: [],
+    }));
   }
 
   /**

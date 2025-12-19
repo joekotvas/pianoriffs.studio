@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Selection, createDefaultSelection, Score, getActiveStaff } from '@/types';
 import { toggleNoteInSelection, calculateNoteRange, getLinearizedNotes } from '@/utils/selection';
 import { playNote } from '@/engines/toneEngine';
@@ -6,16 +6,15 @@ import { SelectionEngine } from '@/engines/SelectionEngine';
 
 interface UseSelectionProps {
   score: Score;
-  dispatch?: any;
+  dispatch?: (command: unknown) => void;
 }
 
 export const useSelection = ({ score }: UseSelectionProps) => {
-  // Create SelectionEngine instance (stable across renders)
-  const engineRef = useRef<SelectionEngine | null>(null);
-  if (!engineRef.current) {
-    engineRef.current = new SelectionEngine(createDefaultSelection(), () => score);
-  }
-  const engine = engineRef.current;
+  // Create SelectionEngine instance using useState with lazy initializer
+  // This avoids React Compiler errors about accessing refs during render
+  const [engine] = useState(
+    () => new SelectionEngine(createDefaultSelection(), () => score)
+  );
 
   // Keep engine's score reference in sync
   useEffect(() => {
@@ -23,7 +22,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
   }, [score, engine]);
 
   // React state syncs from engine
-  const [selection, setSelectionState] = useState<Selection>(engine.getState());
+  const [selection, setSelectionState] = useState<Selection>(() => engine.getState());
   const [lastSelection, setLastSelection] = useState<Selection | null>(null);
 
   // Subscribe React state to engine changes
@@ -60,7 +59,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         staffIndex: prev.staffIndex, // Maintain current staff focus
       };
     });
-  }, []);
+  }, [setSelection]);
 
   const select = useCallback(
     (
@@ -282,12 +281,12 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         playAudioFeedback(event?.notes || []);
       }
     },
-    [selection, score, playAudioFeedback, clearSelection]
+    [selection, score, playAudioFeedback, clearSelection, setSelection]
   );
 
   const updateSelection = useCallback((partial: Partial<Selection>) => {
     setSelection((prev) => ({ ...prev, ...partial }));
-  }, []);
+  }, [setSelection]);
 
   const selectAllInMeasure = useCallback(
     (measureIndex: number, staffIndex: number = 0) => {
@@ -320,7 +319,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         });
       }
     },
-    [score]
+    [score, setSelection]
   );
 
   return {
