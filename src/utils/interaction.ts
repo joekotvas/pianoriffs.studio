@@ -152,6 +152,30 @@ export const getAdjustedDuration = (
 };
 
 /**
+ * Creates AudioFeedback from an event.
+ * Returns null for rests or events with no valid pitches.
+ */
+const createAudioFeedback = (event: ScoreEvent): AudioFeedback | null => {
+  if (event.isRest) return null;
+  const audioNotes = notesToAudioNotes(event.notes);
+  if (audioNotes.length === 0) return null;
+  return { notes: audioNotes, duration: event.duration, dotted: event.dotted };
+};
+
+/**
+ * Creates a ghost cursor result (null selection + previewNote).
+ */
+const createGhostCursorResult = (
+  staffIndex: number,
+  previewNote: PreviewNote
+): HorizontalNavigationResult => ({
+  selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
+  previewNote,
+  audio: null,
+  shouldCreateMeasure: false,
+});
+
+/**
  * Creates a navigation result for selecting an event.
  */
 const createEventResult = (
@@ -160,17 +184,10 @@ const createEventResult = (
   event: ScoreEvent
 ): HorizontalNavigationResult => {
   const noteId = event.isRest || !event.notes?.length ? null : event.notes[0].id;
-  // Map notes to AudioFeedback format, filtering out notes with null pitches
-  const audioNotes = event.notes
-    ?.filter((n: Note) => n.pitch !== null)
-    .map((n: Note) => ({ pitch: n.pitch as string, id: n.id })) || [];
-  const audio: AudioFeedback | null = event.isRest || audioNotes.length === 0
-    ? null
-    : { notes: audioNotes, duration: event.duration, dotted: event.dotted };
   return {
     selection: { staffIndex, measureIndex, eventId: event.id, noteId },
     previewNote: null,
-    audio,
+    audio: createAudioFeedback(event),
     shouldCreateMeasure: false,
   };
 };
@@ -257,9 +274,9 @@ export const calculateNextSelection = (
       if (adjusted && availableQuants > 0) {
         // Move ghost cursor to append position in previous measure
         const pitch = previewNote.pitch || getDefaultPitchForClef(clef);
-        return {
-          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-          previewNote: getAppendPreviewNote(
+        return createGhostCursorResult(
+          staffIndex,
+          getAppendPreviewNote(
             prevMeasure,
             measureIndex - 1,
             staffIndex,
@@ -267,10 +284,8 @@ export const calculateNextSelection = (
             adjusted.dotted,
             pitch,
             inputMode === 'REST'
-          ),
-          audio: null,
-          shouldCreateMeasure: false,
-        };
+          )
+        );
       } else if (prevMeasure.events.length > 0) {
         // No space - select last event in previous measure
         const lastEvent = prevMeasure.events[prevMeasure.events.length - 1];
@@ -309,9 +324,9 @@ export const calculateNextSelection = (
 
       if (adjusted) {
         const pitch = previewNote.pitch || getDefaultPitchForClef(clef);
-        return {
-          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-          previewNote: getAppendPreviewNote(
+        return createGhostCursorResult(
+          staffIndex,
+          getAppendPreviewNote(
             nextMeasure,
             nextMeasureIndex,
             staffIndex,
@@ -319,10 +334,8 @@ export const calculateNextSelection = (
             adjusted.dotted,
             pitch,
             inputMode === 'REST'
-          ),
-          audio: null,
-          shouldCreateMeasure: false,
-        };
+          )
+        );
       }
     }
   }
@@ -345,9 +358,9 @@ export const calculateNextSelection = (
         // Move ghost cursor to append position in previous measure
         const currentEvent = currentMeasure.events[eventIdx];
         const pitch = currentEvent?.notes?.[0]?.pitch || getDefaultPitchForClef(clef);
-        return {
-          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-          previewNote: getAppendPreviewNote(
+        return createGhostCursorResult(
+          staffIndex,
+          getAppendPreviewNote(
             prevMeasure,
             selection.measureIndex - 1,
             staffIndex,
@@ -355,10 +368,8 @@ export const calculateNextSelection = (
             adjusted.dotted,
             pitch,
             inputMode === 'REST'
-          ),
-          audio: null,
-          shouldCreateMeasure: false,
-        };
+          )
+        );
       }
       // If no space or empty measure with no space, fall through to standard navigation
       // (which selects last note of previous measure)
@@ -386,9 +397,9 @@ export const calculateNextSelection = (
               ? currentEvent.notes[0].pitch
               : getDefaultPitchForClef(clef);
 
-          return {
-            selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-            previewNote: getAppendPreviewNote(
+          return createGhostCursorResult(
+            staffIndex,
+            getAppendPreviewNote(
               currentMeasure,
               selection.measureIndex,
               staffIndex,
@@ -396,10 +407,8 @@ export const calculateNextSelection = (
               adjusted.dotted,
               pitch || getDefaultPitchForClef(clef),
               inputMode === 'REST'
-            ),
-            audio: null,
-            shouldCreateMeasure: false,
-          };
+            )
+          );
         }
       }
       // No space or no fitting duration - fall through to standard navigation
@@ -460,9 +469,9 @@ export const calculateNextSelection = (
         const adjusted = getAdjustedDuration(availableQuants, activeDuration, isDotted);
 
         if (adjusted) {
-          return {
-            selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-            previewNote: getAppendPreviewNote(
+          return createGhostCursorResult(
+            staffIndex,
+            getAppendPreviewNote(
               currentMeasure,
               selection.measureIndex,
               staffIndex,
@@ -470,10 +479,8 @@ export const calculateNextSelection = (
               adjusted.dotted,
               pitch,
               inputMode === 'REST'
-            ),
-            audio: null,
-            shouldCreateMeasure: false,
-          };
+            )
+          );
         }
         // If no duration fits, fall through to next measure below
       }
