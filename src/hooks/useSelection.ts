@@ -1,21 +1,53 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Selection, createDefaultSelection, Score, getActiveStaff } from '@/types';
+import { useState, useCallback, useEffect } from 'react';
+import { Selection, createDefaultSelection, Score, getActiveStaff, Note, ScoreEvent, SelectedNote } from '@/types';
 import { toggleNoteInSelection, calculateNoteRange, getLinearizedNotes } from '@/utils/selection';
 import { playNote } from '@/engines/toneEngine';
+import { SelectionEngine } from '@/engines/SelectionEngine';
 
 interface UseSelectionProps {
   score: Score;
-  dispatch?: any;
 }
 
 export const useSelection = ({ score }: UseSelectionProps) => {
-  const [selection, setSelection] = useState<Selection>(createDefaultSelection());
+  // Create SelectionEngine instance using useState with lazy initializer
+  // This avoids React Compiler errors about accessing refs during render
+  const [engine] = useState(
+    () => new SelectionEngine(createDefaultSelection(), () => score)
+  );
+
+  // Keep engine's score reference in sync
+  useEffect(() => {
+    engine.setScoreGetter(() => score);
+  }, [score, engine]);
+
+  // React state syncs from engine
+  const [selection, setSelectionState] = useState<Selection>(() => engine.getState());
   const [lastSelection, setLastSelection] = useState<Selection | null>(null);
+
+  // Subscribe React state to engine changes
+  useEffect(() => {
+    const unsubscribe = engine.subscribe((newSelection) => {
+      setSelectionState(newSelection);
+    });
+    return unsubscribe;
+  }, [engine]);
+
+  // Expose setSelection that updates engine (for backward compatibility)
+  const setSelection = useCallback((newSelection: Selection | ((prev: Selection) => Selection)) => {
+    if (typeof newSelection === 'function') {
+      const updated = newSelection(engine.getState());
+      engine.setState(updated);
+    } else {
+      engine.setState(newSelection);
+    }
+  }, [engine]);
 
   // --- Helpers ---
 
-  const playAudioFeedback = useCallback((notes: any[]) => {
-    notes.filter((n) => n.pitch !== null).forEach((n) => playNote(n.pitch));
+  const playAudioFeedback = useCallback((notes: Note[]) => {
+    notes.forEach((n) => {
+      if (n.pitch !== null) playNote(n.pitch);
+    });
   }, []);
 
   // --- Actions ---
@@ -28,8 +60,27 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         staffIndex: prev.staffIndex, // Maintain current staff focus
       };
     });
-  }, []);
+  }, [setSelection]);
 
+  /**
+   * Selects an event or note in the score.
+   *
+   * Handles multiple selection modes:
+   * - **Standard selection**: Replaces current selection with target
+   * - **Multi-select (isMulti)**: Adds target to selection without removing others
+   * - **Range select (isShift)**: Selects all notes between anchor and target
+   * - **Select all in event (selectAllInEvent)**: Selects all notes in the target event
+   * - **History only (onlyHistory)**: Updates lastSelection without visual selection
+   *
+   * @param measureIndex - Index of measure containing the target (null to clear)
+   * @param eventId - ID of target event (null to clear)
+   * @param noteId - ID of target note, or null to select entire event
+   * @param staffIndex - Staff index (default: 0)
+   * @param options.isMulti - Add to selection instead of replacing
+   * @param options.isShift - Range select from anchor to target
+   * @param options.selectAllInEvent - Select all notes in the event
+   * @param options.onlyHistory - Only update lastSelection, not visual selection
+   */
   const select = useCallback(
     (
       measureIndex: number | null,
@@ -57,9 +108,8 @@ export const useSelection = ({ score }: UseSelectionProps) => {
 
       const startStaffIndex = staffIndex !== undefined ? staffIndex : selection.staffIndex || 0;
 
-      // 1. Handle Shift+Click (Range Selection)
+      // Handle Shift+Click (Range Selection)
       if (isShift && !onlyHistory) {
-        // ... (Logic from useNavigation)
         const anchor = selection.anchor || {
           staffIndex: selection.staffIndex || 0,
           measureIndex: selection.measureIndex!,
@@ -78,24 +128,20 @@ export const useSelection = ({ score }: UseSelectionProps) => {
             noteId,
           };
 
-          // Note: We need linearization logic here.
-          // We can import calculateNoteRange from utils/selection
+          // Calculate range selection using linearized notes
           const linearNotes = getLinearizedNotes(score);
-          // We need to make sure 'noteId' is not null for calculation.
-          // If noteId is null (event selection), pick first note of event.
+
+          // If noteId is null (event selection), pick first note of event
           let targetNoteId = noteId;
           if (!targetNoteId) {
             const measure = getActiveStaff(score, startStaffIndex).measures[measureIndex];
-            const event = measure?.events.find((e: any) => e.id === eventId);
+            const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
             if (event && event.notes.length > 0) targetNoteId = event.notes[0].id;
           }
 
           if (targetNoteId) {
             const focus = { ...context, noteId: targetNoteId };
-            // Ensure anchor has noteId too
-            // ... (Assumption: anchor always has noteId if set correctly)
-
-            const selectedNotes = calculateNoteRange(anchor as any, focus, linearNotes);
+            const selectedNotes = calculateNoteRange(anchor as SelectedNote, focus, linearNotes);
 
             setSelection((prev) => ({
               ...prev,
@@ -115,10 +161,10 @@ export const useSelection = ({ score }: UseSelectionProps) => {
       // If selectAllInEvent is TRUE, OR if noteId is NULL (clicking stem/body), we select all notes.
       // "Events cannot be independently selected."
       let targetNoteId = noteId;
-      let notesToSelect: any[] = [];
+      let notesToSelect: SelectedNote[] = [];
 
       const measure = getActiveStaff(score, startStaffIndex).measures[measureIndex];
-      const event = measure?.events.find((e: any) => e.id === eventId);
+      const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
 
       // Handle REST selection
       // Previously, we treated rests as having NO notes (noteId: null).
@@ -131,7 +177,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
       if (hasNotes) {
         // Standard handling for both Notes and Rests (pitchless notes)
         if (selectAllInEvent || !noteId) {
-          notesToSelect = event.notes.map((n: any) => ({
+          notesToSelect = event.notes.map((n: Note) => ({
             staffIndex: startStaffIndex,
             measureIndex,
             eventId,
@@ -230,7 +276,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
 
           // Audio Feedback (Early return for toggle path)
           if (targetNoteId) {
-            const note = event?.notes.find((n: any) => n.id === targetNoteId);
+            const note = event?.notes.find((n: Note) => n.id === targetNoteId);
             if (note) playAudioFeedback([note]);
           }
           return;
@@ -241,7 +287,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
       if (onlyHistory && nextSelection) {
         setLastSelection(nextSelection);
         // Ensure visual selection is cleared
-        setSelection((prev) => ({
+        setSelection((_prev) => ({
           ...createDefaultSelection(),
           staffIndex: startStaffIndex,
         }));
@@ -250,22 +296,22 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         playAudioFeedback(event?.notes || []);
       }
     },
-    [selection, score, playAudioFeedback, clearSelection]
+    [selection, score, playAudioFeedback, clearSelection, setSelection]
   );
 
   const updateSelection = useCallback((partial: Partial<Selection>) => {
     setSelection((prev) => ({ ...prev, ...partial }));
-  }, []);
+  }, [setSelection]);
 
   const selectAllInMeasure = useCallback(
     (measureIndex: number, staffIndex: number = 0) => {
       const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
       if (!measure) return;
 
-      const allNotes: any[] = [];
-      measure.events.forEach((event: any) => {
+      const allNotes: SelectedNote[] = [];
+      measure.events.forEach((event: ScoreEvent) => {
         if (event.notes) {
-          event.notes.forEach((note: any) => {
+          event.notes.forEach((note: Note) => {
             allNotes.push({
               staffIndex,
               measureIndex,
@@ -288,7 +334,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         });
       }
     },
-    [score]
+    [score, setSelection]
   );
 
   return {
