@@ -83,7 +83,7 @@ JSDoc: Required for all exported functions/hooks.
 
 @see: Link related functions.
 
-@tested in: Reference the specific test file covering this logic.
+@tested: Reference the specific test file covering this logic.
 
 3. AntiGravity Tooling & Safety
 Tool Usage: Prefer using AntiGravity's native integrations for git operations and running tests over raw shell commands where possible, unless directed otherwise.
