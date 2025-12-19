@@ -88,8 +88,9 @@ describe('interactionUtils', () => {
       expect(result?.previewNote?.mode).toBe('APPEND');
     });
 
-    test('should navigate left from ghost note', () => {
-      const previewNote = { measureIndex: 1, staffIndex: 0, quant: 0, visualQuant: 0, pitch: 'E4', duration: 'quarter', dotted: false, mode: 'APPEND' as const, index: 1, isRest: false };
+    test('should navigate left from ghost note to select last event in same measure', () => {
+      // Ghost cursor in measure 1 at quant 16 (APPEND position after the quarter note e3)
+      const previewNote = { measureIndex: 1, staffIndex: 0, quant: 16, visualQuant: 16, pitch: 'E4', duration: 'quarter', dotted: false, mode: 'APPEND' as const, index: 1, isRest: false };
       const selection = { staffIndex: 0, measureIndex: null, eventId: null, noteId: null };
       const result = calculateNextSelection(
         mockMeasures,
@@ -100,6 +101,7 @@ describe('interactionUtils', () => {
         false
       );
 
+      // Pressing left from append position should select the last event (e3) in the measure
       expect(result?.selection).toEqual({
         staffIndex: 0,
         measureIndex: 1,
