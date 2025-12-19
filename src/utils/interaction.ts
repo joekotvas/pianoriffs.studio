@@ -453,7 +453,7 @@ export const calculateNextSelection = (
         if (adjusted) {
           const currentEvent = currentMeasure.events[eventIdx];
           const pitch =
-            !currentEvent?.isRest && currentEvent?.notes?.length > 0
+            !currentEvent?.isRest && currentEvent?.notes?.length > 0 && currentEvent.notes[0].pitch
               ? currentEvent.notes[0].pitch
               : getDefaultPitchForClef(clef);
 
@@ -465,7 +465,7 @@ export const calculateNextSelection = (
               staffIndex,
               adjusted.duration,
               adjusted.dotted,
-              pitch || getDefaultPitchForClef(clef),
+              pitch,
               inputMode === 'REST'
             )
           );

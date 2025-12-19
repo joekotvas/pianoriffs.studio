@@ -286,7 +286,7 @@ export interface VerticalNavigationResult {
  * Result of transposition operations.
  */
 export interface TranspositionResult {
-  measures?: any[]; // Updated measures (for real note transposition)
+  measures?: Measure[]; // Updated measures (for real note transposition)
   previewNote?: PreviewNote; // Updated preview (for ghost cursor transposition)
   audio: AudioFeedback | null;
 }
