@@ -11,20 +11,27 @@
  */
 
 import { useRef, useMemo } from 'react';
-import type {
-  MusicEditorAPI,
-  Unsubscribe,
-  APIEventType,
-} from '../api.types';
-import type { Score, Selection, RiffScoreConfig, ScoreEvent } from '../types';
+import type { MusicEditorAPI, Unsubscribe } from '../api.types';
+import type { Score, Selection, RiffScoreConfig, ScoreEvent, Note } from '../types';
+import { AddEventCommand } from '../commands/AddEventCommand';
+import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
+import { navigateSelection } from '../utils/core';
 
 /**
- * Internal helpers
+ * Internal helper to generate unique IDs
  */
-const _generateId = (): string =>
+const generateId = (): string =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+/**
+ * Get first note ID from an event
+ */
+const getFirstNoteId = (event: ScoreEvent | undefined): string | number | null => {
+  if (!event || !event.notes || event.notes.length === 0) return null;
+  return event.notes[0].id;
+};
 
 /**
  * Props for the useScoreAPI hook
@@ -55,7 +62,7 @@ export function useScoreAPI({
   score,
   selection,
   config,
-  dispatch: _dispatch, // Unused in skeleton - will be used when implementing commands
+  dispatch,
   setSelection,
 }: UseScoreAPIProps): MusicEditorAPI {
   // Synchronous state refs (authoritative for chaining)
@@ -71,12 +78,85 @@ export function useScoreAPI({
     const instance: MusicEditorAPI = {
       // ========== NAVIGATION ==========
       move(direction) {
-        // TODO: Implement navigation
+        const sel = selectionRef.current;
+        const staff = scoreRef.current.staves[sel.staffIndex];
+        if (!staff) return this;
+
+        const measures = staff.measures;
+
+        if (direction === 'left' || direction === 'right') {
+          // Use existing navigateSelection utility for horizontal movement
+          const newSel = navigateSelection(measures, sel, direction);
+          setSelection({
+            ...newSel,
+            selectedNotes: newSel.eventId
+              ? [
+                  {
+                    staffIndex: newSel.staffIndex,
+                    measureIndex: newSel.measureIndex,
+                    eventId: newSel.eventId,
+                    noteId: newSel.noteId,
+                  },
+                ]
+              : [],
+            anchor: null,
+          });
+        } else if (direction === 'up' || direction === 'down') {
+          // Vertical navigation (cross-staff) - for single staff, cycle within notes
+          // TODO: Handle cross-staff navigation properly in Phase 2
+          // For now, just stay on current selection
+        }
         return this;
       },
 
       jump(target) {
-        // TODO: Implement jump
+        const sel = selectionRef.current;
+        const staff = scoreRef.current.staves[sel.staffIndex];
+        if (!staff || staff.measures.length === 0) return this;
+
+        const measures = staff.measures;
+        let targetMeasureIndex: number;
+        let targetEventIndex: number;
+
+        switch (target) {
+          case 'start-score':
+            targetMeasureIndex = 0;
+            targetEventIndex = 0;
+            break;
+          case 'end-score':
+            targetMeasureIndex = measures.length - 1;
+            targetEventIndex = Math.max(0, measures[targetMeasureIndex].events.length - 1);
+            break;
+          case 'start-measure':
+            targetMeasureIndex = sel.measureIndex ?? 0;
+            targetEventIndex = 0;
+            break;
+          case 'end-measure':
+            targetMeasureIndex = sel.measureIndex ?? 0;
+            targetEventIndex = Math.max(0, measures[targetMeasureIndex]?.events.length - 1);
+            break;
+          default:
+            return this;
+        }
+
+        const measure = measures[targetMeasureIndex];
+        if (!measure) return this;
+
+        const event = measure.events[targetEventIndex];
+        const eventId = event?.id ?? null;
+        const noteId = getFirstNoteId(event);
+
+        setSelection({
+          staffIndex: sel.staffIndex,
+          measureIndex: targetMeasureIndex,
+          eventId,
+          noteId,
+          selectedNotes: eventId
+            ? [{ staffIndex: sel.staffIndex, measureIndex: targetMeasureIndex, eventId, noteId }]
+            : [],
+          anchor: null,
+        });
+
         return this;
       },
 
@@ -91,7 +171,7 @@ export function useScoreAPI({
 
         const event = measure.events[eventIndex];
         const eventId = event?.id ?? null;
-        const noteId = event?.notes?.[0]?.id ?? null;
+        const noteId = getFirstNoteId(event);
 
         setSelection({
           staffIndex,
@@ -107,28 +187,28 @@ export function useScoreAPI({
         return this;
       },
 
-      selectAtQuant(measureNum, quant, staffIndex = 0) {
+      selectAtQuant(_measureNum, _quant, _staffIndex = 0) {
         // TODO: Implement quant-based selection
         return this;
       },
 
-      selectById(eventId, noteId) {
+      selectById(_eventId, _noteId) {
         // TODO: Implement ID-based selection
         return this;
       },
 
       // ========== SELECTION (MULTI-SELECT) ==========
-      addToSelection(measureNum, staffIndex, eventIndex) {
+      addToSelection(_measureNum, _staffIndex, _eventIndex) {
         // TODO: Implement
         return this;
       },
 
-      selectRangeTo(measureNum, staffIndex, eventIndex) {
+      selectRangeTo(_measureNum, _staffIndex, _eventIndex) {
         // TODO: Implement
         return this;
       },
 
-      selectAll(scope = 'score') {
+      selectAll(_scope = 'score') {
         // TODO: Implement
         return this;
       },
@@ -147,22 +227,95 @@ export function useScoreAPI({
 
       // ========== ENTRY (CREATE) ==========
       addNote(pitch, duration = 'quarter', dotted = false) {
-        // TODO: Dispatch AddEventCommand
-        // Skeleton: log and return for chaining test
+        const sel = selectionRef.current;
+        const staffIndex = sel.staffIndex;
+        const measureIndex = sel.measureIndex ?? 0;
+
+        // Create note payload
+        const noteId = generateId();
+        const note: Note = {
+          id: noteId,
+          pitch,
+          accidental: null,
+          tied: false,
+        };
+
+        // Dispatch AddEventCommand
+        const eventId = generateId();
+        dispatch(new AddEventCommand(measureIndex, false, note, duration, dotted, undefined, eventId, staffIndex));
+
+        // Advance cursor to the new event
+        // We need to wait for state update, but for chainability we update selection immediately
+        // The event will be at the end of the measure
+        const staff = scoreRef.current.staves[staffIndex];
+        const newEventIndex = staff?.measures[measureIndex]?.events.length ?? 0;
+
+        setSelection({
+          staffIndex,
+          measureIndex,
+          eventId,
+          noteId,
+          selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
+          anchor: null,
+        });
+
         return this;
       },
 
       addRest(duration = 'quarter', dotted = false) {
-        // TODO: Dispatch AddEventCommand with isRest
+        const sel = selectionRef.current;
+        const staffIndex = sel.staffIndex;
+        const measureIndex = sel.measureIndex ?? 0;
+
+        // Dispatch AddEventCommand with isRest=true
+        const eventId = generateId();
+        dispatch(new AddEventCommand(measureIndex, true, null, duration, dotted, undefined, eventId, staffIndex));
+
+        // Advance cursor
+        const restNoteId = `${eventId}-rest`;
+        setSelection({
+          staffIndex,
+          measureIndex,
+          eventId,
+          noteId: restNoteId,
+          selectedNotes: [{ staffIndex, measureIndex, eventId, noteId: restNoteId }],
+          anchor: null,
+        });
+
         return this;
       },
 
       addTone(pitch) {
-        // TODO: Dispatch AddToneCommand
+        const sel = selectionRef.current;
+        if (sel.measureIndex === null || sel.eventId === null) return this;
+
+        const staffIndex = sel.staffIndex;
+        const measureIndex = sel.measureIndex;
+        const eventId = sel.eventId;
+
+        // Create note to add to chord
+        const noteId = generateId();
+        const note: Note = {
+          id: noteId,
+          pitch,
+          accidental: null,
+          tied: false,
+        };
+
+        // Dispatch AddNoteToEventCommand
+        dispatch(new AddNoteToEventCommand(measureIndex, eventId, note, staffIndex));
+
+        // Update selection to include new note
+        setSelection({
+          ...sel,
+          noteId,
+          selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
+        });
+
         return this;
       },
 
-      makeTuplet(numNotes, inSpaceOf) {
+      makeTuplet(_numNotes, _inSpaceOf) {
         // TODO: Implement
         return this;
       },
@@ -177,28 +330,28 @@ export function useScoreAPI({
         return this;
       },
 
-      setTie(tied) {
+      setTie(_tied) {
         // TODO: Implement
         return this;
       },
 
-      setInputMode(mode) {
+      setInputMode(_mode) {
         // TODO: Implement
         return this;
       },
 
       // ========== MODIFICATION (UPDATE) ==========
-      setPitch(pitch) {
+      setPitch(_pitch) {
         // TODO: Dispatch ChangePitchCommand
         return this;
       },
 
-      setDuration(duration, dotted) {
+      setDuration(_duration, _dotted) {
         // TODO: Dispatch ChangeRhythmCommand
         return this;
       },
 
-      setAccidental(type) {
+      setAccidental(_type) {
         // TODO: Implement
         return this;
       },
@@ -208,28 +361,28 @@ export function useScoreAPI({
         return this;
       },
 
-      transpose(semitones) {
+      transpose(_semitones) {
         // TODO: Dispatch TransposeCommand
         return this;
       },
 
-      transposeDiatonic(steps) {
+      transposeDiatonic(_steps) {
         // TODO: Implement
         return this;
       },
 
-      updateEvent(props: Partial<ScoreEvent>) {
+      updateEvent(_props: Partial<ScoreEvent>) {
         // TODO: Generic update
         return this;
       },
 
       // ========== STRUCTURE ==========
-      addMeasure(atIndex) {
+      addMeasure(_atIndex) {
         // TODO: Dispatch AddMeasureCommand
         return this;
       },
 
-      deleteMeasure(measureIndex) {
+      deleteMeasure(_measureIndex) {
         // TODO: Dispatch DeleteMeasureCommand
         return this;
       },
@@ -239,59 +392,59 @@ export function useScoreAPI({
         return this;
       },
 
-      setKeySignature(key) {
+      setKeySignature(_key) {
         // TODO: Implement
         return this;
       },
 
-      setTimeSignature(sig) {
+      setTimeSignature(_sig) {
         // TODO: Implement
         return this;
       },
 
-      setMeasurePickup(isPickup) {
+      setMeasurePickup(_isPickup) {
         // TODO: Implement
         return this;
       },
 
       // ========== CONFIGURATION ==========
-      setClef(clef) {
+      setClef(_clef) {
         // TODO: Dispatch SetClefCommand
         return this;
       },
 
-      setScoreTitle(title) {
+      setScoreTitle(_title) {
         // TODO: Implement
         return this;
       },
 
-      setBpm(bpm) {
+      setBpm(_bpm) {
         // TODO: Implement
         return this;
       },
 
-      setTheme(theme) {
+      setTheme(_theme) {
         // TODO: Implement
         return this;
       },
 
-      setScale(scale) {
+      setScale(_scale) {
         // TODO: Implement
         return this;
       },
 
-      setStaffLayout(type) {
+      setStaffLayout(_type) {
         // TODO: Implement
         return this;
       },
 
       // ========== LIFECYCLE & IO ==========
-      loadScore(newScore) {
+      loadScore(_newScore) {
         // TODO: Implement
         return this;
       },
 
-      reset(template = 'grand', measures = 4) {
+      reset(_template = 'grand', _measures = 4) {
         // TODO: Implement
         return this;
       },
@@ -320,12 +473,12 @@ export function useScoreAPI({
         return this;
       },
 
-      rewind(measureNum) {
+      rewind(_measureNum) {
         // TODO: Implement
         return this;
       },
 
-      setInstrument(instrumentId) {
+      setInstrument(_instrumentId) {
         // TODO: Implement
         return this;
       },
@@ -389,7 +542,7 @@ export function useScoreAPI({
     };
 
     return instance;
-  }, [config, setSelection]);
+  }, [config, dispatch, setSelection]);
 
   return api;
 }
