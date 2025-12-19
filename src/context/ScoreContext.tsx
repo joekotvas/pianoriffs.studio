@@ -48,7 +48,7 @@ export const ScoreProvider: React.FC<ScoreProviderProps> = ({ children, initialS
         logic.dispatch(new SetClefCommand(newClef as 'treble' | 'bass'));
       }
     },
-    [logic]
+    [logic.score.staves.length, logic.setGrandStaff, logic.dispatch]
   );
 
   const contextValue = React.useMemo(
