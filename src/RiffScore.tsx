@@ -12,7 +12,7 @@
 import React, { useMemo, useId } from 'react';
 import { DeepPartial, RiffScoreConfig } from './types';
 import { useRiffScore } from './hooks/useRiffScore';
-import { ScoreProvider, useScoreContext } from './context/ScoreContext';
+import { ScoreProvider } from './context/ScoreContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ScoreEditorContent } from './components/Layout/ScoreEditor';
 import { useScoreAPI } from './hooks/useScoreAPI';
@@ -24,25 +24,17 @@ interface RiffScoreProps {
 }
 
 /**
- * Bridge component that connects ScoreContext to the API hook.
- * The API hook handles registry registration internally.
+ * Bridge component that connects the API hook to the ScoreContext.
+ * The useScoreAPI hook consumes ScoreContext internally and handles
+ * registry registration/cleanup.
  */
 const RiffScoreAPIBridge: React.FC<{
   instanceId: string;
   config: RiffScoreConfig;
   children: React.ReactNode;
 }> = ({ instanceId, config, children }) => {
-  const { score, selection, dispatch, setSelection } = useScoreContext();
-
-  // API hook handles registry registration/cleanup internally
-  useScoreAPI({
-    instanceId,
-    score,
-    selection,
-    config,
-    dispatch,
-    setSelection,
-  });
+  // useScoreAPI consumes ScoreContext internally
+  useScoreAPI({ instanceId, config });
 
   return <>{children}</>;
 };

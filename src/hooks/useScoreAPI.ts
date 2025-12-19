@@ -4,16 +4,19 @@
  * Machine-addressable API hook that provides external script control
  * of RiffScore instances via `window.riffScore`.
  *
- * This is the "Glue Layer" that translates high-level API calls
- * into internal commands and state updates.
+ * DESIGN NOTE:
+ * This hook consumes the ScoreContext directly. It maintains internal Refs
+ * to the latest state to ensure that imperative calls (which don't follow
+ * React's render cycle) always have access to the latest data without
+ * closure staleness.
  *
  * @see docs/migration/api_reference_draft.md
  */
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
+import { useScoreContext } from '../context/ScoreContext';
 import type { MusicEditorAPI, RiffScoreRegistry, Unsubscribe } from '../api.types';
-import type { Score, Selection, RiffScoreConfig, Note } from '../types';
-import type { Command } from '../commands/types';
+import type { RiffScoreConfig, Note, Score, Selection } from '../types';
 import { AddEventCommand } from '../commands/AddEventCommand';
 import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
 import { navigateSelection, getFirstNoteId } from '../utils/core';
@@ -32,24 +35,6 @@ const generateId = (): string =>
     : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 /**
- * Props for the useScoreAPI hook
- */
-export interface UseScoreAPIProps {
-  /** Unique instance ID for registry */
-  instanceId: string;
-  /** Current score state */
-  score: Score;
-  /** Current selection state */
-  selection: Selection;
-  /** Current config */
-  config: RiffScoreConfig;
-  /** Dispatch function for score commands */
-  dispatch: (command: Command) => void;
-  /** Selection setter */
-  setSelection: (selection: Selection) => void;
-}
-
-/**
  * Initialize the global registry if it doesn't exist
  */
 const initRegistry = (): void => {
@@ -64,36 +49,48 @@ const initRegistry = (): void => {
 };
 
 /**
+ * Props for the useScoreAPI hook
+ */
+export interface UseScoreAPIProps {
+  /** Unique instance ID for registry */
+  instanceId: string;
+  /** Current config */
+  config: RiffScoreConfig;
+}
+
+/**
  * Creates a MusicEditorAPI instance for external script control.
+ *
+ * This hook consumes ScoreContext internally, so it must be used within
+ * a ScoreProvider. It only needs instanceId and config from props.
  *
  * @example
  * ```typescript
- * const api = useScoreAPI({ score, selection, config, dispatch, setSelection });
- * // Expose via ref or window.riffScore
+ * const api = useScoreAPI({ instanceId: 'my-score', config });
+ * // API is automatically registered to window.riffScore
  * ```
  */
-export function useScoreAPI({
-  instanceId,
-  score,
-  selection,
-  config,
-  dispatch,
-  setSelection,
-}: UseScoreAPIProps): MusicEditorAPI {
-  // Synchronous state refs (authoritative for chaining)
+export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEditorAPI {
+  // 1. Consume Context Directly
+  const { score, selection, dispatch, setSelection } = useScoreContext();
+
+  // 2. Synchronous State Refs (authoritative for API methods to avoid stale closures)
   const scoreRef = useRef(score);
   const selectionRef = useRef(selection);
   const apiRef = useRef<MusicEditorAPI | null>(null);
 
-  // Keep refs in sync with React state
+  // Keep refs in sync with React state on every render
   scoreRef.current = score;
   selectionRef.current = selection;
 
-  // Helper to update selection both synchronously (for chaining) and via React state
-  const syncSelection = useCallback((newSelection: Selection) => {
-    selectionRef.current = newSelection; // Synchronous update for chained calls
-    setSelection(newSelection); // Async update for React re-render
+  // 3. Selection Sync Helper
+  // Updates both the authoritative Ref (for immediate chaining) and React State (for UI)
+  const syncSelection = useCallback((newSelection: typeof selection) => {
+    selectionRef.current = newSelection;
+    setSelection(newSelection);
   }, [setSelection]);
+
+  // 4. Build API Object (memoized to maintain stable reference)
 
   // Build API object (memoized to maintain stable reference)
   const api: MusicEditorAPI = useMemo(() => {
