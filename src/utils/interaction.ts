@@ -403,7 +403,7 @@ export const calculateNextSelection = (
   // 2. Handle Left from First Event (selected note → ghost cursor in previous measure)
   if (direction === 'left' && selection.measureIndex !== null && selection.measureIndex > 0) {
     const currentMeasure = measures[selection.measureIndex];
-    const eventIdx = currentMeasure?.events.findIndex((e: any) => e.id === selection.eventId);
+    const eventIdx = currentMeasure?.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
 
     if (eventIdx === 0) {
       // At first event - check if previous measure has space for ghost cursor
@@ -440,7 +440,7 @@ export const calculateNextSelection = (
   // This MUST come before navigateSelection so we don't skip to next measure
   if (direction === 'right' && selection.measureIndex !== null && selection.eventId) {
     const currentMeasure = measures[selection.measureIndex];
-    const eventIdx = currentMeasure?.events.findIndex((e: any) => e.id === selection.eventId);
+    const eventIdx = currentMeasure?.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
 
     if (eventIdx === currentMeasure?.events.length - 1) {
       // At last event - check if current measure has space for ghost cursor
@@ -601,19 +601,19 @@ export const calculateTransposition = (
   const event = { ...events[eventIdx] };
   const notes = [...event.notes];
 
-  const modifyNote = (note: any) => {
+  const modifyNote = (note: Note): Note => {
     // Use movePitchVisual with piano range for clamping
-    const newPitch = movePitchVisual(note.pitch, steps, keySignature, PIANO_RANGE);
+    const newPitch = movePitchVisual(note.pitch ?? 'C4', steps, keySignature, PIANO_RANGE);
     return { ...note, pitch: newPitch };
   };
 
   if (noteId) {
-    const noteIdx = notes.findIndex((n: any) => n.id === noteId);
+    const noteIdx = notes.findIndex((n: Note) => n.id === noteId);
     if (noteIdx !== -1) {
       notes[noteIdx] = modifyNote(notes[noteIdx]);
     }
   } else {
-    notes.forEach((n: any, i: number) => {
+    notes.forEach((n: Note, i: number) => {
       notes[i] = modifyNote(n);
     });
   }
@@ -730,7 +730,7 @@ export const calculateCrossStaffSelection = (
   if (!currentMeasure) return null;
 
   let currentQuantStart = 0;
-  const currentEvent = currentMeasure.events.find((e: any) => {
+  const currentEvent = currentMeasure.events.find((e: ScoreEvent) => {
     if (e.id === eventId) return true;
     currentQuantStart += getNoteDuration(e.duration, e.dotted, e.tuplet);
     return false;
@@ -959,7 +959,7 @@ export const calculateVerticalNavigation = (
 
   // Find current event and its quant position
   let currentQuantStart = 0;
-  const eventIdx = measure.events.findIndex((e: any) => {
+  const eventIdx = measure.events.findIndex((e: ScoreEvent) => {
     if (e.id === eventId) return true;
     currentQuantStart += getNoteDuration(e.duration, e.dotted, e.tuplet);
     return false;
@@ -969,12 +969,12 @@ export const calculateVerticalNavigation = (
 
   const currentEvent = measure.events[eventIdx];
   const sortedNotes = currentEvent.notes?.length
-    ? [...currentEvent.notes].sort((a: any, b: any) => getMidi(a.pitch) - getMidi(b.pitch))
+    ? [...currentEvent.notes].sort((a: Note, b: Note) => getMidi(a.pitch ?? 'C4') - getMidi(b.pitch ?? 'C4'))
     : [];
 
   // 1. Try chord navigation first
   if (sortedNotes.length > 1 && selection.noteId) {
-    const currentNoteIdx = sortedNotes.findIndex((n: any) => n.id === selection.noteId);
+    const currentNoteIdx = sortedNotes.findIndex((n: Note) => n.id === selection.noteId);
     if (currentNoteIdx !== -1) {
       const newIdx = direction === 'up' ? currentNoteIdx + 1 : currentNoteIdx - 1;
       if (newIdx >= 0 && newIdx < sortedNotes.length) {
