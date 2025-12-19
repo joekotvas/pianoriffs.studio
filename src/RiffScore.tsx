@@ -10,7 +10,7 @@
  * Exposes an imperative API via `window.riffScore` registry for external script control.
  */
 
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, useId } from 'react';
 import { DeepPartial, RiffScoreConfig } from './types';
 import { useRiffScore } from './hooks/useRiffScore';
 import { ScoreProvider, useScoreContext } from './context/ScoreContext';
@@ -32,13 +32,7 @@ declare global {
   }
 }
 
-/**
- * Generate a unique ID for instances without explicit id prop
- */
-const generateInstanceId = (): string =>
-  typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `riff-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+// Note: generateInstanceId is no longer used - we use React's useId() for SSR compatibility
 
 /**
  * Inner component that has access to ScoreContext and sets up the API
@@ -59,9 +53,12 @@ const RiffScoreAPIBridge: React.FC<{
     setSelection,
   });
 
-  // Store stable reference
-  const apiRef = useRef<MusicEditorAPI>(api);
-  apiRef.current = api;
+  // Store stable reference - use useEffect to avoid updating ref during render
+  const apiRef = useRef<MusicEditorAPI | null>(null);
+
+  useEffect(() => {
+    apiRef.current = api;
+  }, [api]);
 
   // Register/unregister with global registry
   useEffect(() => {
@@ -106,9 +103,9 @@ const RiffScoreInner: React.FC<RiffScoreProps> = ({ id, config: userConfig }) =>
   const { config, initialScore } = useRiffScore(userConfig);
   const { theme } = useTheme();
 
-  // Generate stable instance ID
-  const instanceIdRef = useRef<string>(id || generateInstanceId());
-  const instanceId = id || instanceIdRef.current;
+  // Use React's useId() for SSR-compatible auto-generated IDs
+  const reactId = useId();
+  const instanceId = id || `riffScore${reactId}`;
 
   // Container style for interaction master switch
   const containerStyle = useMemo(
