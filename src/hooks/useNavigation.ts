@@ -153,7 +153,7 @@ export const useNavigation = ({
       const navResult = calculateNextSelection(
         activeStaff.measures,
         activeSel,
-        direction,
+        direction as 'left' | 'right',
         previewNote,
         activeDuration,
         isDotted,
@@ -221,7 +221,7 @@ export const useNavigation = ({
           activeStaff.measures,
           selection,
           previewNote,
-          direction,
+          direction as 'up' | 'down',
           isShift,
           activeStaff.keySignature || 'C'
         );
@@ -243,7 +243,7 @@ export const useNavigation = ({
           activeStaff.measures,
           selection,
           previewNote,
-          direction,
+          direction as 'up' | 'down',
           isShift,
           keySignature
         );

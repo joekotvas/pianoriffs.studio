@@ -43,6 +43,7 @@ describe('Grand Staff Bass Clef Transposition', () => {
       measureIndex: 0,
       eventId: bassStaff.measures[0].events[0].id,
       noteId: originalNote.id,
+      selectedNotes: [],
     };
 
     // Transpose up by 1 diatonic step (E3 -> F3)
@@ -96,6 +97,7 @@ describe('Grand Staff Bass Clef Transposition', () => {
       measureIndex: 0,
       eventId: bassEvent.id,
       noteId: bassEvent.notes[0].id,
+      selectedNotes: [],
     };
 
     // Transpose bass note up by 1 diatonic step (C3 -> D3)
@@ -136,6 +138,7 @@ describe('Grand Staff Bass Clef Transposition', () => {
       measureIndex: 0,
       eventId: bassEvent.id,
       noteId: bassEvent.notes[0].id,
+      selectedNotes: [],
     };
 
     // Transpose down by 7 diatonic steps (approximately one octave: G3 -> G2)

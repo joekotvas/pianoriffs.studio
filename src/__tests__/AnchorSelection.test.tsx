@@ -3,41 +3,46 @@ import { Score } from '@/types';
 
 // Mock Score Factory
 const createMockScore = (): Score => ({
-  name: 'Test Score',
+  title: 'Test Score',
+  timeSignature: '4/4',
+  keySignature: 'C',
+  bpm: 120,
   staves: [
     {
+      id: 'staff-1',
       clef: 'treble',
       keySignature: 'C',
-      timeSignature: '4/4',
       measures: [
         {
+          id: 'm1',
           events: [
             {
               id: 'e1',
-              duration: '4n',
-              notes: [{ id: 'n1', pitch: 'C4', duration: '4n' }],
+              duration: 'quarter',
+              notes: [{ id: 'n1', pitch: 'C4' }],
               dotted: false,
             },
             {
               id: 'e2',
-              duration: '4n',
-              notes: [{ id: 'n2', pitch: 'D4', duration: '4n' }],
+              duration: 'quarter',
+              notes: [{ id: 'n2', pitch: 'D4' }],
               dotted: false,
             },
           ],
         },
         {
+          id: 'm2',
           events: [
             {
               id: 'e3',
-              duration: '4n',
-              notes: [{ id: 'n3', pitch: 'E4', duration: '4n' }],
+              duration: 'quarter',
+              notes: [{ id: 'n3', pitch: 'E4' }],
               dotted: false,
             },
             {
               id: 'e4',
-              duration: '4n',
-              notes: [{ id: 'n4', pitch: 'F4', duration: '4n' }],
+              duration: 'quarter',
+              notes: [{ id: 'n4', pitch: 'F4' }],
               dotted: false,
             },
           ],

@@ -3,8 +3,7 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ThemeProvider } from '@/context/ThemeContext';
 import ScoreEditor from '@components/Layout/ScoreEditor';
-import { ScoreEvent, Note } from '@/engines/layout/types';
-import { Score } from '@/types'; // Correct Score type import for the Editor props
+import { Score, ScoreEvent } from '@/types';
 import { CONFIG } from '@/config';
 
 // Create a score with Beams, Tuplets, and Rests to force rendering of all Measure sub-components
@@ -16,16 +15,14 @@ const createComplexScore = (): Score => {
       duration: 'eighth',
       isRest: false,
       dotted: false,
-      notes: [{ id: 'n1', pitch: 'C4', accidental: undefined }],
-      quant: 0,
+      notes: [{ id: 'n1', pitch: 'C4' }],
     },
     {
       id: 'e2',
       duration: 'eighth',
       isRest: false,
       dotted: false,
-      notes: [{ id: 'n2', pitch: 'D4', accidental: undefined }],
-      quant: 8, // 8th note spacing
+      notes: [{ id: 'n2', pitch: 'D4' }],
     },
   ];
 
@@ -38,7 +35,6 @@ const createComplexScore = (): Score => {
       isRest: false,
       notes: [{ id: 'tn1', pitch: 'E4' }],
       tuplet: { ratio: [3, 2], groupSize: 3, position: 0 },
-      quant: 16,
     },
     {
       id: 't2',
@@ -47,7 +43,6 @@ const createComplexScore = (): Score => {
       isRest: false,
       notes: [{ id: 'tn2', pitch: 'F4' }],
       tuplet: { ratio: [3, 2], groupSize: 3, position: 1 },
-      quant: 21.33,
     },
     {
       id: 't3',
@@ -56,7 +51,6 @@ const createComplexScore = (): Score => {
       isRest: false,
       notes: [{ id: 'tn3', pitch: 'G4' }],
       tuplet: { ratio: [3, 2], groupSize: 3, position: 2 },
-      quant: 26.66,
     },
   ];
 
@@ -65,22 +59,23 @@ const createComplexScore = (): Score => {
     id: 'r1',
     duration: 'quarter',
     isRest: true,
-    dotted: false, // Added missing required property
+    dotted: false,
     notes: [],
-    quant: 32,
   };
 
   return {
     title: 'Complex Render Test',
-    composer: 'Test',
+    bpm: 120,
     timeSignature: '4/4',
     keySignature: 'C',
     staves: [
       {
+        id: 'staff-1',
         clef: 'treble',
+        keySignature: 'C',
         measures: [
           {
-            timeSignature: '4/4',
+            id: 'm1',
             events: [...beamedNotes, ...tupletNotes, restEvent],
           },
         ],

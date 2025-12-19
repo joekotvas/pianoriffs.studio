@@ -54,7 +54,7 @@ describe('useScoreLogic Integration', () => {
 
     // 2. Select the note (addNoteToMeasure auto-selects, but let's be explicit)
     act(() => {
-      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
+      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId, selectedNotes: [] });
     });
 
     // 3. Delete it
@@ -82,12 +82,12 @@ describe('useScoreLogic Integration', () => {
 
     // 2. Select it
     act(() => {
-      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
+      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId, selectedNotes: [] });
     });
 
     // 3. Change duration to eighth
     act(() => {
-      result.current.handleDurationChange('eighth', true);
+      result.current.handleDurationChange('eighth');
     });
 
     // Verify change
@@ -110,7 +110,7 @@ describe('useScoreLogic Integration', () => {
 
     // 2. Select it
     act(() => {
-      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId });
+      result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId, selectedNotes: [] });
     });
 
     // 3. Toggle Sharp - should raise pitch by semitone

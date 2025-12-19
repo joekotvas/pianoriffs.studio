@@ -18,10 +18,6 @@ const createMockScore = (): Score => {
   const createNote = (pitch: string, id: number) => ({
     id,
     pitch,
-    velocity: 80,
-    duration: 'quarter',
-    dotted: false,
-    tied: false,
   });
   const createEvent = (id: string, notes: any[], duration: string = 'quarter', dotted: false) => ({
     id,
@@ -59,14 +55,13 @@ const createMockScore = (): Score => {
   );
 
   return {
-    id: 'score-1',
     title: 'Test Score',
-    composer: 'Tester',
+    bpm: 120,
     timeSignature: '4/4',
     keySignature: 'C',
     staves: [
-      { id: 's1', name: 'Treble', clef: 'treble', measures: staff0Measures, keySignature: 'C' },
-      { id: 's2', name: 'Bass', clef: 'bass', measures: staff1Measures, keySignature: 'C' },
+      { id: 's1', clef: 'treble', measures: staff0Measures, keySignature: 'C' },
+      { id: 's2', clef: 'bass', measures: staff1Measures, keySignature: 'C' },
     ],
   };
 };
@@ -283,7 +278,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       events: [
         {
           id: 'late-event',
-          notes: [{ id: 998, pitch: 'C4', duration: 'quarter' }],
+          notes: [{ id: 998, pitch: 'C4' }],
           duration: 'quarter',
           dotted: false,
           tuplet: undefined,

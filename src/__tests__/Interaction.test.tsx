@@ -310,9 +310,6 @@ describe('ScoreEditor Interactions', () => {
     const bassNote = {
       id: 'bass-note-1',
       pitch: 'C3',
-      duration: 'quarter',
-      dotted: false,
-      velocity: 80,
     };
     const bassEvent = {
       id: 'bass-event-1',
@@ -325,16 +322,13 @@ describe('ScoreEditor Interactions', () => {
     // Ensure staff 1 exists
     if (score.staves.length < 2) {
       score.staves.push({
+        id: 'bass-staff',
         clef: 'bass',
         keySignature: 'C',
-        timeSignature: '4/4',
-        measures: Array(score.staves[0].measures.length)
-          .fill(null)
-          .map((_, i) => ({
-            index: i,
-            timeSignature: '4/4',
-            events: [],
-          })),
+        measures: score.staves[0].measures.map((_, i) => ({
+          id: `bass-m${i}`,
+          events: [],
+        })),
       });
     }
     score.staves[1].measures[0].events.push(bassEvent);

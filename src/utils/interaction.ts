@@ -2,33 +2,46 @@ import { navigateSelection, calculateTotalQuants, getNoteDuration } from './core
 import { movePitchVisual, getMidi } from '@/services/MusicService';
 import { CONFIG } from '@/config';
 import { PIANO_RANGE } from '@/constants';
+import {
+  Measure,
+  Note,
+  Score,
+  ScoreEvent,
+  PreviewNote,
+  AudioFeedback,
+  NavigationSelection,
+  HorizontalNavigationResult,
+  VerticalNavigationResult,
+  TranspositionResult,
+} from '@/types';
+
+// ========== PREVIEW NOTE HELPERS ==========
 
 /**
- * Calculates the next selection state based on navigation direction.
- * Handles standard navigation, ghost note navigation, and boundary checks.
+ * Generates preview note state for appending to a measure (APPEND mode ghost cursor).
+ * Calculates the quant position based on total measure content and determines
+ * default pitch from the last event or falls back to 'C4'.
  *
- * @param measures - The current measures of the score
- * @param selection - The current selection state
- * @param direction - The direction of navigation ('left', 'right', 'up', 'down')
- * @param previewNote - The current preview note state (ghost cursor)
- * @param activeDuration - The currently active note duration
- * @param isDotted - Whether the currently active note is dotted
- * @param currentQuantsPerMeasure - The number of quants per measure
- * @returns An object containing the new selection, new previewNote, and optional audio feedback
- */
-
-/**
- * Helper to generate the preview note state for appending to a measure.
+ * @param measure - The target measure to append to
+ * @param measureIndex - Index of the measure in the staff
+ * @param staffIndex - Index of the staff in the score
+ * @param activeDuration - The duration to use for the preview
+ * @param isDotted - Whether the duration is dotted
+ * @param pitch - Optional explicit pitch (if not provided, derived from last event)
+ * @param isRest - Whether the preview is a rest
+ * @returns PreviewNote object for rendering the ghost cursor
+ *
+ * @internal Used by navigation functions to create preview states
  */
 export const getAppendPreviewNote = (
-  measure: any,
+  measure: Measure,
   measureIndex: number,
   staffIndex: number,
   activeDuration: string,
   isDotted: boolean,
   pitch?: string,
   isRest: boolean = false
-) => {
+): PreviewNote => {
   const totalQuants = calculateTotalQuants(measure.events || []);
   // Default pitch logic: try to use last event's pitch, or fallback
   let defaultPitch = pitch;
@@ -37,7 +50,7 @@ export const getAppendPreviewNote = (
       const lastEvent = measure.events[measure.events.length - 1];
       // Skip rests when determining pitch
       if (!lastEvent.isRest && lastEvent.notes?.length > 0) {
-        defaultPitch = lastEvent.notes[0].pitch;
+        defaultPitch = lastEvent.notes[0].pitch || 'C4';
       } else {
         defaultPitch = 'C4'; // Fallback for rests
       }
@@ -60,19 +73,49 @@ export const getAppendPreviewNote = (
   };
 };
 
-// ========== HELPER FUNCTIONS (Phase 1 DRY Refactoring) ==========
+// ========== HELPER FUNCTIONS ==========
 
 /**
- * Returns default pitch for a given clef.
+ * Returns the default pitch for a given clef.
+ * Used for initializing ghost cursors when no previous pitch context exists.
+ *
+ * @param clef - The clef type ('treble', 'bass', etc.)
+ * @returns 'C3' for bass clef, 'C4' for all others
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const getDefaultPitchForClef = (clef: string): string =>
   clef === 'bass' ? 'C3' : 'C4';
 
 /**
- * Finds an event at a specific quant position in a measure.
- * Returns the event that overlaps with the target quant, or null if none found.
+ * Converts Note[] to AudioFeedback-compatible notes array.
+ * Filters out notes with null pitches (rests shouldn't produce audio).
+ *
+ * @internal
  */
-export const findEventAtQuantPosition = (measure: any, targetQuant: number): any | null => {
+const notesToAudioNotes = (
+  notes: Note[] | undefined
+): Array<{ pitch: string; id?: string | number }> => {
+  if (!notes) return [];
+  return notes
+    .filter((n): n is Note & { pitch: string } => n.pitch !== null)
+    .map((n) => ({ pitch: n.pitch, id: n.id }));
+};
+
+/**
+ * Finds an event at a specific quant position in a measure.
+ * Used by cross-staff navigation to find aligned events.
+ *
+ * @param measure - The measure to search in
+ * @param targetQuant - The quant position to find (0 = start of measure)
+ * @returns The event that overlaps with the target quant, or null if none found
+ *
+ * @tested navigationHelpers.test.ts
+ */
+export const findEventAtQuantPosition = (
+  measure: Measure | null | undefined,
+  targetQuant: number
+): ScoreEvent | null => {
   if (!measure?.events?.length) return null;
   let quant = 0;
   for (const e of measure.events) {
@@ -87,16 +130,34 @@ export const findEventAtQuantPosition = (measure: any, targetQuant: number): any
  * Selects the entry-point note when landing on a chord during cross-staff navigation.
  * When moving UP to a higher staff, selects the lowest note (to continue upward).
  * When moving DOWN to a lower staff, selects the highest note (to continue downward).
+ *
+ * @param event - The event containing the chord
+ * @param direction - 'up' or 'down'
+ * @returns Note ID to select, or null if event is a rest/has no notes
+ *
+ * @tested navigationHelpers.test.ts
  */
-export const selectNoteInEventByDirection = (event: any, direction: 'up' | 'down'): string | null => {
+export const selectNoteInEventByDirection = (
+  event: ScoreEvent | null | undefined,
+  direction: 'up' | 'down'
+): string | number | null => {
   if (!event?.notes?.length || event.isRest) return null;
-  const sorted = [...event.notes].sort((a: any, b: any) => getMidi(a.pitch) - getMidi(b.pitch));
+  const sorted = [...event.notes].sort(
+    (a: Note, b: Note) => getMidi(a.pitch || 'C4') - getMidi(b.pitch || 'C4')
+  );
   return direction === 'down' ? sorted[sorted.length - 1].id : sorted[0].id;
 };
 
 /**
- * Adjusts duration to fit available space in a measure.
- * Returns the largest duration that fits, or null if no duration fits.
+ * Adjusts requested duration to fit available space in a measure.
+ * If the requested duration doesn't fit, returns the largest duration that does.
+ *
+ * @param availableQuants - Remaining quants in the measure
+ * @param requestedDuration - The duration the user requested
+ * @param isDotted - Whether the user requested a dotted duration
+ * @returns Adjusted duration/dotted pair, or null if nothing fits
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const getAdjustedDuration = (
   availableQuants: number,
@@ -119,39 +180,91 @@ export const getAdjustedDuration = (
 };
 
 /**
+ * Creates AudioFeedback from an event for playback.
+ * Returns null for rests or events with no valid pitches.
+ *
+ * @internal
+ */
+const createAudioFeedback = (event: ScoreEvent): AudioFeedback | null => {
+  if (event.isRest) return null;
+  const audioNotes = notesToAudioNotes(event.notes);
+  if (audioNotes.length === 0) return null;
+  return { notes: audioNotes, duration: event.duration, dotted: event.dotted };
+};
+
+/**
+ * Creates a navigation result for ghost cursor mode (no event selected).
+ * Used when user navigates into empty space within a measure.
+ *
+ * @internal
+ */
+const createGhostCursorResult = (
+  staffIndex: number,
+  previewNote: PreviewNote
+): HorizontalNavigationResult => ({
+  selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
+  previewNote,
+  audio: null,
+  shouldCreateMeasure: false,
+});
+
+/**
  * Creates a navigation result for selecting an event.
+ * Used when user navigates to an existing event in the score.
+ *
+ * @internal
  */
 const createEventResult = (
   staffIndex: number,
   measureIndex: number,
-  event: any
-): { selection: any; previewNote: null; audio: any; shouldCreateMeasure: false } => {
+  event: ScoreEvent
+): HorizontalNavigationResult => {
   const noteId = event.isRest || !event.notes?.length ? null : event.notes[0].id;
-  const audio = event.isRest
-    ? null
-    : { notes: event.notes, duration: event.duration, dotted: event.dotted };
   return {
     selection: { staffIndex, measureIndex, eventId: event.id, noteId },
     previewNote: null,
-    audio,
+    audio: createAudioFeedback(event),
     shouldCreateMeasure: false,
   };
 };
 
+// ========== MAIN NAVIGATION FUNCTIONS ==========
+
+/**
+ * Calculates the next selection state for horizontal (left/right) keyboard navigation.
+ * Handles multiple scenarios:
+ * - Standard navigation between events
+ * - Ghost cursor navigation (navigating while in preview/append mode)
+ * - Cross-measure navigation
+ * - Boundary checks (start/end of score)
+ *
+ * @param measures - The measures array for the current staff
+ * @param selection - Current selection state
+ * @param direction - 'left' or 'right'
+ * @param previewNote - Current ghost cursor state, or null if selecting an event
+ * @param activeDuration - The currently active note duration
+ * @param isDotted - Whether the active duration is dotted
+ * @param currentQuantsPerMeasure - Time signature quants (default: CONFIG.quantsPerMeasure)
+ * @param clef - Clef for default pitch selection ('treble' or 'bass')
+ * @param staffIndex - Index of the staff being navigated
+ * @param inputMode - Whether user is entering notes or rests
+ * @returns Navigation result with new selection/previewNote, or null if no change
+ *
+ * @tested interactionUtils.test.ts
+ */
 export const calculateNextSelection = (
-  measures: any[],
-  selection: any,
-  direction: string,
-  previewNote: any,
+  measures: Measure[],
+  selection: NavigationSelection,
+  direction: 'left' | 'right',
+  previewNote: PreviewNote | null,
   activeDuration: string,
   isDotted: boolean,
   currentQuantsPerMeasure: number = CONFIG.quantsPerMeasure,
   clef: string = 'treble',
-
   staffIndex: number = 0,
   inputMode: 'NOTE' | 'REST' = 'NOTE'
-) => {
-  // 1. Handle Navigation from Preview Note (Ghost Note)
+): HorizontalNavigationResult | null => {
+  // 1a. Ghost Left: Navigate left from ghost cursor
   if (selection.eventId === null && previewNote && direction === 'left') {
     const measureIndex = previewNote.measureIndex;
     const measure = measures[measureIndex];
@@ -191,10 +304,11 @@ export const calculateNextSelection = (
           lastEventBeforeGhost.isRest || !lastEventBeforeGhost.notes?.length
             ? null
             : lastEventBeforeGhost.notes[0].id;
-        const audio = lastEventBeforeGhost.isRest
+        const audioNotes = notesToAudioNotes(lastEventBeforeGhost.notes);
+        const audio: AudioFeedback | null = lastEventBeforeGhost.isRest || audioNotes.length === 0
           ? null
           : {
-              notes: lastEventBeforeGhost.notes,
+              notes: audioNotes,
               duration: lastEventBeforeGhost.duration,
               dotted: lastEventBeforeGhost.dotted,
             };
@@ -220,9 +334,9 @@ export const calculateNextSelection = (
       if (adjusted && availableQuants > 0) {
         // Move ghost cursor to append position in previous measure
         const pitch = previewNote.pitch || getDefaultPitchForClef(clef);
-        return {
-          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-          previewNote: getAppendPreviewNote(
+        return createGhostCursorResult(
+          staffIndex,
+          getAppendPreviewNote(
             prevMeasure,
             measureIndex - 1,
             staffIndex,
@@ -230,17 +344,16 @@ export const calculateNextSelection = (
             adjusted.dotted,
             pitch,
             inputMode === 'REST'
-          ),
-          audio: null,
-          shouldCreateMeasure: false,
-        };
+          )
+        );
       } else if (prevMeasure.events.length > 0) {
         // No space - select last event in previous measure
         const lastEvent = prevMeasure.events[prevMeasure.events.length - 1];
         const noteId = lastEvent.isRest || !lastEvent.notes?.length ? null : lastEvent.notes[0].id;
-        const audio = lastEvent.isRest
+        const audioNotes = notesToAudioNotes(lastEvent.notes);
+        const audio: AudioFeedback | null = lastEvent.isRest || audioNotes.length === 0
           ? null
-          : { notes: lastEvent.notes, duration: lastEvent.duration, dotted: lastEvent.dotted };
+          : { notes: audioNotes, duration: lastEvent.duration, dotted: lastEvent.dotted };
         return {
           selection: { staffIndex, measureIndex: measureIndex - 1, eventId: lastEvent.id, noteId },
           previewNote: null,
@@ -251,7 +364,7 @@ export const calculateNextSelection = (
     }
   }
 
-  // 1b. Handle Navigation from Ghost Note (Right Arrow - to next measure)
+  // 1b. Ghost Right: Navigate right from ghost cursor to next measure
   if (selection.eventId === null && previewNote && direction === 'right') {
     const currentMeasureIndex = previewNote.measureIndex;
     const nextMeasureIndex = currentMeasureIndex + 1;
@@ -271,9 +384,9 @@ export const calculateNextSelection = (
 
       if (adjusted) {
         const pitch = previewNote.pitch || getDefaultPitchForClef(clef);
-        return {
-          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-          previewNote: getAppendPreviewNote(
+        return createGhostCursorResult(
+          staffIndex,
+          getAppendPreviewNote(
             nextMeasure,
             nextMeasureIndex,
             staffIndex,
@@ -281,18 +394,16 @@ export const calculateNextSelection = (
             adjusted.dotted,
             pitch,
             inputMode === 'REST'
-          ),
-          audio: null,
-          shouldCreateMeasure: false,
-        };
+          )
+        );
       }
     }
   }
 
-  // 2. Handle Left from First Event (selected note → ghost cursor in previous measure)
+  // 2a. Boundary Left: At first event → ghost cursor in previous measure
   if (direction === 'left' && selection.measureIndex !== null && selection.measureIndex > 0) {
     const currentMeasure = measures[selection.measureIndex];
-    const eventIdx = currentMeasure?.events.findIndex((e: any) => e.id === selection.eventId);
+    const eventIdx = currentMeasure?.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
 
     if (eventIdx === 0) {
       // At first event - check if previous measure has space for ghost cursor
@@ -307,9 +418,9 @@ export const calculateNextSelection = (
         // Move ghost cursor to append position in previous measure
         const currentEvent = currentMeasure.events[eventIdx];
         const pitch = currentEvent?.notes?.[0]?.pitch || getDefaultPitchForClef(clef);
-        return {
-          selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-          previewNote: getAppendPreviewNote(
+        return createGhostCursorResult(
+          staffIndex,
+          getAppendPreviewNote(
             prevMeasure,
             selection.measureIndex - 1,
             staffIndex,
@@ -317,21 +428,19 @@ export const calculateNextSelection = (
             adjusted.dotted,
             pitch,
             inputMode === 'REST'
-          ),
-          audio: null,
-          shouldCreateMeasure: false,
-        };
+          )
+        );
       }
       // If no space or empty measure with no space, fall through to standard navigation
       // (which selects last note of previous measure)
     }
   }
 
-  // 2b. Handle Right from Last Event (selected note → ghost cursor in current measure)
+  // 2b. Boundary Right: At last event → ghost cursor in current measure
   // This MUST come before navigateSelection so we don't skip to next measure
   if (direction === 'right' && selection.measureIndex !== null && selection.eventId) {
     const currentMeasure = measures[selection.measureIndex];
-    const eventIdx = currentMeasure?.events.findIndex((e: any) => e.id === selection.eventId);
+    const eventIdx = currentMeasure?.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
 
     if (eventIdx === currentMeasure?.events.length - 1) {
       // At last event - check if current measure has space for ghost cursor
@@ -344,13 +453,13 @@ export const calculateNextSelection = (
         if (adjusted) {
           const currentEvent = currentMeasure.events[eventIdx];
           const pitch =
-            !currentEvent?.isRest && currentEvent?.notes?.length > 0
+            !currentEvent?.isRest && currentEvent?.notes?.length > 0 && currentEvent.notes[0].pitch
               ? currentEvent.notes[0].pitch
               : getDefaultPitchForClef(clef);
 
-          return {
-            selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-            previewNote: getAppendPreviewNote(
+          return createGhostCursorResult(
+            staffIndex,
+            getAppendPreviewNote(
               currentMeasure,
               selection.measureIndex,
               staffIndex,
@@ -358,10 +467,8 @@ export const calculateNextSelection = (
               adjusted.dotted,
               pitch,
               inputMode === 'REST'
-            ),
-            audio: null,
-            shouldCreateMeasure: false,
-          };
+            )
+          );
         }
       }
       // No space or no fitting duration - fall through to standard navigation
@@ -374,25 +481,30 @@ export const calculateNextSelection = (
   if (newSelection !== selection) {
     // Find the event to play audio
     const measure = measures[newSelection.measureIndex];
-    let audio = null;
+    let audio: AudioFeedback | null = null;
     if (measure) {
-      const event = measure.events.find((e: any) => e.id === newSelection.eventId);
+      const event = measure.events.find((e: ScoreEvent) => e.id === newSelection.eventId);
       if (event) {
         if (newSelection.noteId) {
-          const note = event.notes.find((n: any) => n.id === newSelection.noteId);
-          if (note) audio = { notes: [note], duration: event.duration, dotted: event.dotted };
+          const note = event.notes.find((n: Note) => n.id === newSelection.noteId);
+          if (note && note.pitch) {
+            audio = { notes: [{ pitch: note.pitch, id: note.id }], duration: event.duration, dotted: event.dotted };
+          }
         } else {
-          audio = { notes: event.notes, duration: event.duration, dotted: event.dotted };
+          const audioNotes = notesToAudioNotes(event.notes);
+          if (audioNotes.length > 0) {
+            audio = { notes: audioNotes, duration: event.duration, dotted: event.dotted };
+          }
         }
       }
     }
     return { selection: { ...newSelection, staffIndex }, previewNote: null, audio, shouldCreateMeasure: false };
   }
 
-  // 3. Handle Navigation Beyond Last Event (to Ghost Note or New Measure)
+  // 4. End of Score: Navigate right past last event → ghost or new measure
   if (direction === 'right' && selection.measureIndex !== null) {
     const currentMeasure = measures[selection.measureIndex];
-    const eventIdx = currentMeasure.events.findIndex((e: any) => e.id === selection.eventId);
+    const eventIdx = currentMeasure.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
 
     if (eventIdx === currentMeasure.events.length - 1) {
       // We are at the last event, try to move to ghost note
@@ -405,9 +517,9 @@ export const calculateNextSelection = (
       }
 
       // Get pitch: from note if available, else default based on clef
-      const defaultPitch = clef === 'bass' ? 'D3' : 'B4';
-      const pitch =
-        !currentEvent.isRest && currentEvent.notes?.length > 0
+      const defaultPitch = getDefaultPitchForClef(clef);
+      const pitch: string =
+        !currentEvent.isRest && currentEvent.notes?.length > 0 && currentEvent.notes[0].pitch
           ? currentEvent.notes[0].pitch
           : defaultPitch;
 
@@ -417,9 +529,9 @@ export const calculateNextSelection = (
         const adjusted = getAdjustedDuration(availableQuants, activeDuration, isDotted);
 
         if (adjusted) {
-          return {
-            selection: { staffIndex, measureIndex: null, eventId: null, noteId: null },
-            previewNote: getAppendPreviewNote(
+          return createGhostCursorResult(
+            staffIndex,
+            getAppendPreviewNote(
               currentMeasure,
               selection.measureIndex,
               staffIndex,
@@ -427,10 +539,8 @@ export const calculateNextSelection = (
               adjusted.dotted,
               pitch,
               inputMode === 'REST'
-            ),
-            audio: null,
-            shouldCreateMeasure: false,
-          };
+            )
+          );
         }
         // If no duration fits, fall through to next measure below
       }
@@ -464,45 +574,46 @@ export const calculateNextSelection = (
 
 /**
  * Calculates transposition for selected notes.
- * @param {Array} measures - List of measures
- * @param {Object} selection - Current selection
- * @param {number} steps - Visual steps to move (positive or negative)
- * @param {string} keySignature - Key signature root
- * @param {string} clef - Clef for pitch range clamping ('treble' or 'bass')
- * @returns {Object|null} Object containing new measures and the modified event, or null if no change
+ * Moves notes by visual steps (diatonic intervals) while respecting key signature.
+ *
+ * @param measures - Array of measures to modify
+ * @param selection - Current selection (must have valid measureIndex and eventId)
+ * @param steps - Visual steps to move (positive = up, negative = down)
+ * @param keySignature - Key signature root for diatonic movement (default: 'C')
+ * @returns Object with modified measures and event, or null if invalid selection
  */
 export const calculateTransposition = (
-  measures: any[],
-  selection: any,
+  measures: Measure[],
+  selection: NavigationSelection,
   steps: number,
   keySignature: string = 'C'
-) => {
+): { measures: Measure[]; event: ScoreEvent } | null => {
   const { measureIndex, eventId, noteId } = selection;
   if (measureIndex === null || !eventId) return null;
 
   const newMeasures = [...measures];
   const measure = { ...newMeasures[measureIndex] };
   const events = [...measure.events];
-  const eventIdx = events.findIndex((e: any) => e.id === eventId);
+  const eventIdx = events.findIndex((e: ScoreEvent) => e.id === eventId);
 
   if (eventIdx === -1) return null;
 
   const event = { ...events[eventIdx] };
   const notes = [...event.notes];
 
-  const modifyNote = (note: any) => {
+  const modifyNote = (note: Note): Note => {
     // Use movePitchVisual with piano range for clamping
-    const newPitch = movePitchVisual(note.pitch, steps, keySignature, PIANO_RANGE);
+    const newPitch = movePitchVisual(note.pitch ?? 'C4', steps, keySignature, PIANO_RANGE);
     return { ...note, pitch: newPitch };
   };
 
   if (noteId) {
-    const noteIdx = notes.findIndex((n: any) => n.id === noteId);
+    const noteIdx = notes.findIndex((n: Note) => n.id === noteId);
     if (noteIdx !== -1) {
       notes[noteIdx] = modifyNote(notes[noteIdx]);
     }
   } else {
-    notes.forEach((n: any, i: number) => {
+    notes.forEach((n: Note, i: number) => {
       notes[i] = modifyNote(n);
     });
   }
@@ -517,23 +628,26 @@ export const calculateTransposition = (
 
 /**
  * Calculates transposition for selected notes or the preview note.
+ * Handles both ghost cursor pitch changes and actual note transposition.
  *
  * @param measures - The current measures of the score
  * @param selection - The current selection state
- * @param previewNote - The current preview note state
- * @param direction - The direction of transposition ('up', 'down')
- * @param isShift - Whether shift key is pressed (octave jump)
+ * @param previewNote - The current preview note state (for ghost cursor)
+ * @param direction - 'up' or 'down'
+ * @param isShift - Whether shift key is pressed (octave jump: 7 steps)
  * @param keySignature - The current key signature (default 'C')
- * @returns An object containing the new measures (if changed), new previewNote (if changed), and audio feedback
+ * @returns New measures/previewNote with audio feedback, or null if no change
+ *
+ * @tested interactionUtils.test.ts
  */
 export const calculateTranspositionWithPreview = (
-  measures: any[],
-  selection: any,
-  previewNote: any,
-  direction: string,
+  measures: Measure[],
+  selection: NavigationSelection,
+  previewNote: PreviewNote | null,
+  direction: 'up' | 'down',
   isShift: boolean,
   keySignature: string = 'C'
-) => {
+): TranspositionResult | null => {
   // Determine steps (Visual Movement)
   // Up = 1, Down = -1. Shift = 7 (Octave)
   let steps = direction === 'up' ? 1 : -1;
@@ -560,12 +674,17 @@ export const calculateTranspositionWithPreview = (
 
   if (result) {
     const { measures: newMeasures, event } = result;
-    let audio = null;
+    let audio: AudioFeedback | null = null;
     if (selection.noteId) {
-      const note = event.notes.find((n: any) => n.id === selection.noteId);
-      if (note) audio = { notes: [note], duration: event.duration, dotted: event.dotted };
+      const note = event.notes.find((n: Note) => n.id === selection.noteId);
+      if (note && note.pitch) {
+        audio = { notes: [{ pitch: note.pitch, id: note.id }], duration: event.duration, dotted: event.dotted };
+      }
     } else {
-      audio = { notes: event.notes, duration: event.duration, dotted: event.dotted };
+      const audioNotes = notesToAudioNotes(event.notes);
+      if (audioNotes.length > 0) {
+        audio = { notes: audioNotes, duration: event.duration, dotted: event.dotted };
+      }
     }
     return { measures: newMeasures, audio };
   }
@@ -574,21 +693,26 @@ export const calculateTranspositionWithPreview = (
 };
 
 /**
- * Calculates the cross-staff selection based on quant alignment.
- * Finds the closest event in the target staff that overlaps with the current selection's absolute quant.
+ * Calculates cross-staff selection based on quant alignment.
+ * Finds the event in the target staff that overlaps with the current selection's
+ * absolute quant position within the measure.
  *
  * @param score - The complete score object
- * @param selection - The current selection state
+ * @param selection - Current selection (must have valid staffIndex, measureIndex, eventId)
  * @param direction - 'up' or 'down'
- * @returns {Object|null} New selection object or null if invalid move
+ * @param activeDuration - Duration for ghost cursor if no aligned event found
+ * @param isDotted - Whether duration is dotted
+ * @returns New selection with aligned event, or null if target staff doesn't exist
+ *
+ * @see calculateVerticalNavigation - Higher-level function that includes chord traversal
  */
 export const calculateCrossStaffSelection = (
-  score: any,
-  selection: any,
-  direction: string,
+  score: Score,
+  selection: NavigationSelection,
+  direction: 'up' | 'down',
   activeDuration: string = 'quarter',
   isDotted: boolean = false
-) => {
+): VerticalNavigationResult | null => {
   const { staffIndex, measureIndex, eventId } = selection;
   if (staffIndex === undefined || measureIndex === null || !eventId) return null;
 
@@ -606,7 +730,7 @@ export const calculateCrossStaffSelection = (
   if (!currentMeasure) return null;
 
   let currentQuantStart = 0;
-  const currentEvent = currentMeasure.events.find((e: any) => {
+  const currentEvent = currentMeasure.events.find((e: ScoreEvent) => {
     if (e.id === eventId) return true;
     currentQuantStart += getNoteDuration(e.duration, e.dotted, e.tuplet);
     return false;
@@ -656,9 +780,7 @@ export const calculateCrossStaffSelection = (
 
     // Determine Pitch: Default to a "middle" note for the staff clef.
     const clef = targetStaff.clef || 'treble';
-    let defaultPitch = 'C4';
-    if (clef === 'bass') defaultPitch = 'C3';
-    if (clef === 'alto') defaultPitch = 'C4';
+    const defaultPitch = getDefaultPitchForClef(clef);
 
     const previewNote = getAppendPreviewNote(
       targetMeasure,
@@ -684,27 +806,34 @@ export const calculateCrossStaffSelection = (
 };
 
 /**
- * Unified vertical navigation for CMD+Up/Down.
- * Handles: 1) Chord traversal, 2) Cross-staff switching, 3) Cycling at boundaries.
- * Also supports ghost cursor navigation.
+ * Unified vertical navigation for Cmd+Up/Down keyboard shortcuts.
+ * Handles three scenarios in priority order:
+ * 1. **Chord traversal**: Navigate between notes within a chord
+ * 2. **Cross-staff switching**: Move to aligned event in adjacent staff
+ * 3. **Staff cycling**: Wrap to opposite staff at boundaries
+ *
+ * Also supports ghost cursor navigation (moving preview between staves).
  *
  * @param score - The complete score object
- * @param selection - The current selection state
+ * @param selection - Current selection state
  * @param direction - 'up' or 'down'
- * @param activeDuration - Active note duration for ghost cursor
- * @param isDotted - Whether note is dotted
- * @param previewNote - Optional preview note (ghost cursor state)
- * @returns Navigation result with selection/previewNote, or null if no change
+ * @param activeDuration - Duration for ghost cursor if needed
+ * @param isDotted - Whether duration is dotted
+ * @param previewNote - Optional ghost cursor state
+ * @param currentQuantsPerMeasure - Time signature quants
+ * @returns Navigation result, or null if no change
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const calculateVerticalNavigation = (
-  score: any,
-  selection: any,
+  score: Score,
+  selection: NavigationSelection,
   direction: 'up' | 'down',
   activeDuration: string = 'quarter',
   isDotted: boolean = false,
-  previewNote: any = null,
+  previewNote: PreviewNote | null = null,
   currentQuantsPerMeasure: number = CONFIG.quantsPerMeasure
-) => {
+): VerticalNavigationResult | null => {
   const { staffIndex = 0, measureIndex, eventId } = selection;
 
   // Handle ghost cursor navigation (no eventId)
@@ -830,7 +959,7 @@ export const calculateVerticalNavigation = (
 
   // Find current event and its quant position
   let currentQuantStart = 0;
-  const eventIdx = measure.events.findIndex((e: any) => {
+  const eventIdx = measure.events.findIndex((e: ScoreEvent) => {
     if (e.id === eventId) return true;
     currentQuantStart += getNoteDuration(e.duration, e.dotted, e.tuplet);
     return false;
@@ -840,12 +969,12 @@ export const calculateVerticalNavigation = (
 
   const currentEvent = measure.events[eventIdx];
   const sortedNotes = currentEvent.notes?.length
-    ? [...currentEvent.notes].sort((a: any, b: any) => getMidi(a.pitch) - getMidi(b.pitch))
+    ? [...currentEvent.notes].sort((a: Note, b: Note) => getMidi(a.pitch ?? 'C4') - getMidi(b.pitch ?? 'C4'))
     : [];
 
   // 1. Try chord navigation first
   if (sortedNotes.length > 1 && selection.noteId) {
-    const currentNoteIdx = sortedNotes.findIndex((n: any) => n.id === selection.noteId);
+    const currentNoteIdx = sortedNotes.findIndex((n: Note) => n.id === selection.noteId);
     if (currentNoteIdx !== -1) {
       const newIdx = direction === 'up' ? currentNoteIdx + 1 : currentNoteIdx - 1;
       if (newIdx >= 0 && newIdx < sortedNotes.length) {

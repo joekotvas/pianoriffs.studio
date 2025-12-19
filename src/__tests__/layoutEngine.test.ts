@@ -5,7 +5,8 @@ import {
   getPitchForOffset,
   getOffsetForPitch,
 } from '@/engines/layout';
-import { Note } from '@/engines/layout/types'; // Note might be explicitly exported or not, check index
+import { Note } from '@/engines/layout/types';
+import { ScoreEvent } from '@/types';
 import { CONFIG } from '@/config';
 import { MIDDLE_LINE_Y } from '@/constants';
 

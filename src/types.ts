@@ -210,6 +210,87 @@ export const createDefaultSelection = (): Selection => ({
   anchor: null,
 });
 
+// ========== PREVIEW NOTE (GHOST CURSOR) ==========
+
+/**
+ * Represents the ghost cursor state for note preview.
+ * Used when navigating to empty space where a note could be placed.
+ */
+export interface PreviewNote {
+  measureIndex: number;
+  staffIndex: number;
+  quant: number; // Position in quants within measure
+  visualQuant: number; // Visual position (may differ for display)
+  pitch: string; // Preview pitch (e.g., "C4")
+  duration: string; // Duration name ('quarter', 'half', etc.)
+  dotted: boolean;
+  mode: 'APPEND' | 'INSERT'; // Append at end or insert at position
+  index: number; // Event index where this would be inserted
+  isRest: boolean;
+  source?: 'keyboard' | 'mouse'; // How the ghost cursor was triggered
+}
+
+// ========== NAVIGATION RESULT TYPES ==========
+
+/**
+ * Audio feedback data for playing notes after navigation.
+ */
+export interface AudioFeedback {
+  notes: Array<{ pitch: string; id?: string | number }>;
+  duration: string;
+  dotted: boolean;
+}
+
+/**
+ * Partial selection used in navigation results.
+ * Contains the core fields needed to update selection state.
+ */
+export interface NavigationSelection {
+  staffIndex: number;
+  measureIndex: number | null;
+  eventId: string | number | null;
+  noteId: string | number | null;
+  selectedNotes?: Array<{
+    staffIndex: number;
+    measureIndex: number;
+    eventId: string | number;
+    noteId: string | number | null;
+  }>;
+  anchor?: {
+    staffIndex: number;
+    measureIndex: number;
+    eventId: string | number;
+    noteId: string | number | null;
+  } | null;
+}
+
+/**
+ * Result of horizontal navigation (left/right arrows).
+ */
+export interface HorizontalNavigationResult {
+  selection: NavigationSelection;
+  previewNote: PreviewNote | null;
+  audio: AudioFeedback | null;
+  shouldCreateMeasure: boolean;
+}
+
+/**
+ * Result of vertical navigation (CMD+Up/Down).
+ */
+export interface VerticalNavigationResult {
+  selection: NavigationSelection;
+  previewNote: PreviewNote | null;
+}
+
+/**
+ * Result of transposition operations.
+ */
+export interface TranspositionResult {
+  measures?: Measure[]; // Updated measures (for real note transposition)
+  previewNote?: PreviewNote; // Updated preview (for ghost cursor transposition)
+  audio: AudioFeedback | null;
+}
+
 // ========== RIFFSCORE CONFIG ==========
 
 /**
