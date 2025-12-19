@@ -94,6 +94,48 @@ export function useScoreAPI({
         if (direction === 'left' || direction === 'right') {
           // Use existing navigateSelection utility for horizontal movement
           const newSel = navigateSelection(measures, sel, direction);
+
+          // Check if we're at the last event and trying to move right
+          // If navigateSelection returns unchanged selection and direction is right,
+          // we should move to append position (ghost cursor)
+          if (direction === 'right' && newSel.eventId === sel.eventId && sel.eventId !== null) {
+            const measure = measures[sel.measureIndex ?? 0];
+            if (measure) {
+              const eventIdx = measure.events.findIndex((e: ScoreEvent) => e.id === sel.eventId);
+              // At last event in measure?
+              if (eventIdx === measure.events.length - 1) {
+                // Check if there are more measures with events
+                const nextMeasureIdx = (sel.measureIndex ?? 0) + 1;
+                if (nextMeasureIdx < measures.length && measures[nextMeasureIdx]?.events?.length > 0) {
+                  // Move to first event of next measure
+                  const nextEvent = measures[nextMeasureIdx].events[0];
+                  const noteId = nextEvent.notes?.[0]?.id ?? null;
+                  syncSelection({
+                    ...sel,
+                    measureIndex: nextMeasureIdx,
+                    eventId: nextEvent.id,
+                    noteId,
+                    selectedNotes: nextEvent.id ? [{ staffIndex: sel.staffIndex, measureIndex: nextMeasureIdx, eventId: nextEvent.id, noteId }] : [],
+                    anchor: null,
+                  });
+                  return this;
+                } else {
+                  // At end of all events - create append position (ghost cursor)
+                  // Stay in current measure, clear eventId to indicate append mode
+                  syncSelection({
+                    staffIndex: sel.staffIndex,
+                    measureIndex: sel.measureIndex ?? 0,
+                    eventId: null,
+                    noteId: null,
+                    selectedNotes: [],
+                    anchor: null,
+                  });
+                  return this;
+                }
+              }
+            }
+          }
+
           syncSelection({
             ...newSel,
             selectedNotes: newSel.eventId
