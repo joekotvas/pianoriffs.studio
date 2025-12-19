@@ -175,28 +175,25 @@ export interface Melody {
 // ========== SELECTION ==========
 
 /**
- * Represents the current selection state in the editor.
- * Supports Grand Staff by tracking which staff is selected.
+ * Represents a note in the selection array
+ */
+export interface SelectedNote {
+  staffIndex: number;
+  measureIndex: number;
+  eventId: string | number;
+  noteId: string | number | null;
+}
+
+/**
+ * Selection State for the editor
  */
 export interface Selection {
   staffIndex: number; // Index of the selected staff (0 for single staff, 0 or 1 for Grand Staff)
   measureIndex: number | null; // Index of the selected measure
   eventId: string | number | null; // ID of the selected event
   noteId: string | number | null; // ID of the selected note (for chords)
-  selectedNotes: Array<{
-    // List of all selected notes (including the primary one above)
-    staffIndex: number;
-    measureIndex: number;
-    eventId: string | number;
-    noteId: string | number | null;
-  }>;
-  anchor?: {
-    // The static "anchor" point for range selection
-    staffIndex: number;
-    measureIndex: number;
-    eventId: string | number;
-    noteId: string | number | null;
-  } | null;
+  selectedNotes: SelectedNote[]; // List of all selected notes (including the primary one above)
+  anchor?: SelectedNote | null; // The static "anchor" point for range selection
 }
 
 /**
