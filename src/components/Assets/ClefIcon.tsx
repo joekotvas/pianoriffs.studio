@@ -56,7 +56,7 @@ const ClefIcon: React.FC<ClefIconProps> = ({ clef, ...props }) => {
             x={0}
             y={10}
             width={6}
-            height={40}
+            height={44}
             viewBox="0 0 13 159"
             preserveAspectRatio="none"
             overflow="visible"

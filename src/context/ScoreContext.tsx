@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useScoreLogic } from '@/hooks/useScoreLogic';
-
-import { SetSingleStaffCommand } from '@/commands/SetSingleStaffCommand';
+import { Score } from '@/types';
+import { SetClefCommand } from '@/commands/SetClefCommand';
 
 // Infers the return type of useScoreLogic and extends it with UI state
 type ScoreContextType = ReturnType<typeof useScoreLogic> & {
@@ -24,7 +24,7 @@ export const useScoreContext = () => {
 
 interface ScoreProviderProps {
   children: ReactNode;
-  initialScore?: any;
+  initialScore?: Partial<Score>;
 }
 
 export const ScoreProvider: React.FC<ScoreProviderProps> = ({ children, initialScore }) => {
@@ -44,11 +44,11 @@ export const ScoreProvider: React.FC<ScoreProviderProps> = ({ children, initialS
         // Switching from grand staff to single clef - show confirmation
         setPendingClefChange({ targetClef: newClef as 'treble' | 'bass' });
       } else {
-        // Single staff - just change the clef
-        logic.dispatch(new SetSingleStaffCommand(newClef as 'treble' | 'bass'));
+        // Single staff - use SetClefCommand to change the clef
+        logic.dispatch(new SetClefCommand(newClef as 'treble' | 'bass'));
       }
     },
-    [logic.score.staves.length, logic.setGrandStaff, logic.dispatch]
+    [logic]
   );
 
   const contextValue = React.useMemo(
