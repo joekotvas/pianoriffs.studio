@@ -51,42 +51,15 @@ export class NavigateCommand implements SelectionCommand {
         anchor: null,
       };
     } else if (this.direction === 'up' || this.direction === 'down') {
-      // Vertical navigation - for single staff, cycle within notes
-      // TODO: Wire to calculateVerticalNavigation in Phase 7
-
-      // For now, handle note cycling within a chord
-      if (state.eventId !== null && state.measureIndex !== null) {
-        const measure = measures[state.measureIndex];
-        const event = measure?.events?.find((e) => e.id === state.eventId);
-
-        if (event && event.notes && event.notes.length > 1) {
-          // Find current note index
-          const currentNoteIdx = event.notes.findIndex((n) => n.id === state.noteId);
-          let newNoteIdx: number;
-
-          if (this.direction === 'up') {
-            newNoteIdx = currentNoteIdx > 0 ? currentNoteIdx - 1 : event.notes.length - 1;
-          } else {
-            newNoteIdx = currentNoteIdx < event.notes.length - 1 ? currentNoteIdx + 1 : 0;
-          }
-
-          const newNoteId = event.notes[newNoteIdx].id;
-          return {
-            ...state,
-            noteId: newNoteId,
-            selectedNotes: [
-              {
-                staffIndex: state.staffIndex,
-                measureIndex: state.measureIndex,
-                eventId: state.eventId,
-                noteId: newNoteId,
-              },
-            ],
-          };
-        }
-      }
-
-      // No change for single-note events or empty selection
+      // TODO Phase 7: Wire to calculateVerticalNavigation from interaction.ts
+      // That function handles:
+      // - Cross-staff navigation with quant alignment
+      // - Ghost cursor handling
+      // - Staff cycling at boundaries
+      // - Entry-point note selection by direction
+      // 
+      // Currently, vertical navigation is a no-op until Phase 7 wiring.
+      // See: src/utils/interaction.ts calculateVerticalNavigation()
       return state;
     }
 

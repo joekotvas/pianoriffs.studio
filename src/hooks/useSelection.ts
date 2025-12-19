@@ -6,7 +6,6 @@ import { SelectionEngine } from '@/engines/SelectionEngine';
 
 interface UseSelectionProps {
   score: Score;
-  dispatch?: (command: unknown) => void;
 }
 
 export const useSelection = ({ score }: UseSelectionProps) => {

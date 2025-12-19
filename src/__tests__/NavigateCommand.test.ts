@@ -102,69 +102,29 @@ describe('NavigateCommand', () => {
     });
   });
 
-  describe('vertical navigation - chord cycling', () => {
-    test('moves down cycles through chord notes', () => {
-      engine.dispatch(new NavigateCommand('down'));
+  describe('vertical navigation - deferred to Phase 7', () => {
+    // NOTE: Vertical navigation is intentionally a no-op until Phase 7,
+    // when NavigateCommand will be wired to calculateVerticalNavigation
+    // from interaction.ts which handles:
+    // - Cross-staff navigation with quant alignment
+    // - Ghost cursor handling
+    // - Staff cycling at boundaries
+    // - Entry-point note selection by direction
 
-      const state = engine.getState();
-      expect(state.eventId).toBe('event-1');
-      expect(state.noteId).toBe('note-1b');
-    });
-
-    test('moves up cycles through chord notes', () => {
-      engine.setState({
-        staffIndex: 0,
-        measureIndex: 0,
-        eventId: 'event-1',
-        noteId: 'note-1b',
-        selectedNotes: [{ staffIndex: 0, measureIndex: 0, eventId: 'event-1', noteId: 'note-1b' }],
-        anchor: null,
-      });
-
+    test('up is no-op (deferred to Phase 7)', () => {
+      const stateBefore = engine.getState();
       engine.dispatch(new NavigateCommand('up'));
-
-      expect(engine.getState().noteId).toBe('note-1a');
+      expect(engine.getState()).toBe(stateBefore);
     });
 
-    test('down wraps from last note to first', () => {
-      engine.setState({
-        staffIndex: 0,
-        measureIndex: 0,
-        eventId: 'event-1',
-        noteId: 'note-1b',
-        selectedNotes: [{ staffIndex: 0, measureIndex: 0, eventId: 'event-1', noteId: 'note-1b' }],
-        anchor: null,
-      });
-
+    test('down is no-op (deferred to Phase 7)', () => {
+      const stateBefore = engine.getState();
       engine.dispatch(new NavigateCommand('down'));
-
-      expect(engine.getState().noteId).toBe('note-1a');
-    });
-
-    test('up wraps from first note to last', () => {
-      engine.dispatch(new NavigateCommand('up'));
-
-      expect(engine.getState().noteId).toBe('note-1b');
+      expect(engine.getState()).toBe(stateBefore);
     });
   });
 
   describe('edge cases', () => {
-    test('no change on single-note event for vertical navigation', () => {
-      engine.setState({
-        staffIndex: 0,
-        measureIndex: 0,
-        eventId: 'event-2',
-        noteId: 'note-2',
-        selectedNotes: [{ staffIndex: 0, measureIndex: 0, eventId: 'event-2', noteId: 'note-2' }],
-        anchor: null,
-      });
-
-      const stateBefore = engine.getState();
-      engine.dispatch(new NavigateCommand('down'));
-
-      expect(engine.getState().noteId).toBe(stateBefore.noteId);
-    });
-
     test('no change when staff is invalid', () => {
       const emptyScore = createEmptyScore();
       engine = new SelectionEngine(engine.getState(), () => emptyScore);
