@@ -11,11 +11,18 @@ import { createDefaultSelection, Selection, Score } from '../types';
 
 // Helper to create a test score
 const createTestScore = (): Score => ({
+  title: 'Test Score',
+  timeSignature: '4/4',
+  keySignature: 'C',
+  bpm: 120,
   staves: [
     {
+      id: 'staff-1',
       clef: 'treble',
+      keySignature: 'C',
       measures: [
         {
+          id: 'measure-1',
           events: [
             {
               id: 'event-1',
@@ -37,6 +44,7 @@ const createTestScore = (): Score => ({
           ],
         },
         {
+          id: 'measure-2',
           events: [
             {
               id: 'event-3',
@@ -50,7 +58,6 @@ const createTestScore = (): Score => ({
       ],
     },
   ],
-  metadata: { title: 'Test Score' },
 });
 
 describe('SelectionEngine', () => {

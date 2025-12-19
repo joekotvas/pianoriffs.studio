@@ -1,7 +1,8 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Selection, createDefaultSelection, Score, getActiveStaff } from '@/types';
 import { toggleNoteInSelection, calculateNoteRange, getLinearizedNotes } from '@/utils/selection';
 import { playNote } from '@/engines/toneEngine';
+import { SelectionEngine } from '@/engines/SelectionEngine';
 
 interface UseSelectionProps {
   score: Score;
@@ -9,8 +10,39 @@ interface UseSelectionProps {
 }
 
 export const useSelection = ({ score }: UseSelectionProps) => {
-  const [selection, setSelection] = useState<Selection>(createDefaultSelection());
+  // Create SelectionEngine instance (stable across renders)
+  const engineRef = useRef<SelectionEngine | null>(null);
+  if (!engineRef.current) {
+    engineRef.current = new SelectionEngine(createDefaultSelection(), () => score);
+  }
+  const engine = engineRef.current;
+
+  // Keep engine's score reference in sync
+  useEffect(() => {
+    engine.setScoreGetter(() => score);
+  }, [score, engine]);
+
+  // React state syncs from engine
+  const [selection, setSelectionState] = useState<Selection>(engine.getState());
   const [lastSelection, setLastSelection] = useState<Selection | null>(null);
+
+  // Subscribe React state to engine changes
+  useEffect(() => {
+    const unsubscribe = engine.subscribe((newSelection) => {
+      setSelectionState(newSelection);
+    });
+    return unsubscribe;
+  }, [engine]);
+
+  // Expose setSelection that updates engine (for backward compatibility)
+  const setSelection = useCallback((newSelection: Selection | ((prev: Selection) => Selection)) => {
+    if (typeof newSelection === 'function') {
+      const updated = newSelection(engine.getState());
+      engine.setState(updated);
+    } else {
+      engine.setState(newSelection);
+    }
+  }, [engine]);
 
   // --- Helpers ---
 
