@@ -15,22 +15,23 @@ import {
   TranspositionResult,
 } from '@/types';
 
-/**
- * Calculates the next selection state based on navigation direction.
- * Handles standard navigation, ghost note navigation, and boundary checks.
- *
- * @param measures - The current measures of the score
- * @param selection - The current selection state
- * @param direction - The direction of navigation ('left', 'right', 'up', 'down')
- * @param previewNote - The current preview note state (ghost cursor)
- * @param activeDuration - The currently active note duration
- * @param isDotted - Whether the currently active note is dotted
- * @param currentQuantsPerMeasure - The number of quants per measure
- * @returns An object containing the new selection, new previewNote, and optional audio feedback
- */
+// ========== PREVIEW NOTE HELPERS ==========
 
 /**
- * Helper to generate the preview note state for appending to a measure.
+ * Generates preview note state for appending to a measure (APPEND mode ghost cursor).
+ * Calculates the quant position based on total measure content and determines
+ * default pitch from the last event or falls back to 'C4'.
+ *
+ * @param measure - The target measure to append to
+ * @param measureIndex - Index of the measure in the staff
+ * @param staffIndex - Index of the staff in the score
+ * @param activeDuration - The duration to use for the preview
+ * @param isDotted - Whether the duration is dotted
+ * @param pitch - Optional explicit pitch (if not provided, derived from last event)
+ * @param isRest - Whether the preview is a rest
+ * @returns PreviewNote object for rendering the ghost cursor
+ *
+ * @internal Used by navigation functions to create preview states
  */
 export const getAppendPreviewNote = (
   measure: Measure,
@@ -72,17 +73,25 @@ export const getAppendPreviewNote = (
   };
 };
 
-// ========== HELPER FUNCTIONS (Phase 1 DRY Refactoring) ==========
+// ========== HELPER FUNCTIONS ==========
 
 /**
- * Returns default pitch for a given clef.
+ * Returns the default pitch for a given clef.
+ * Used for initializing ghost cursors when no previous pitch context exists.
+ *
+ * @param clef - The clef type ('treble', 'bass', etc.)
+ * @returns 'C3' for bass clef, 'C4' for all others
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const getDefaultPitchForClef = (clef: string): string =>
   clef === 'bass' ? 'C3' : 'C4';
 
 /**
  * Converts Note[] to AudioFeedback-compatible notes array.
- * Filters out notes with null pitches (rests shouldn't have audio).
+ * Filters out notes with null pitches (rests shouldn't produce audio).
+ *
+ * @internal
  */
 const notesToAudioNotes = (
   notes: Note[] | undefined
@@ -95,7 +104,13 @@ const notesToAudioNotes = (
 
 /**
  * Finds an event at a specific quant position in a measure.
- * Returns the event that overlaps with the target quant, or null if none found.
+ * Used by cross-staff navigation to find aligned events.
+ *
+ * @param measure - The measure to search in
+ * @param targetQuant - The quant position to find (0 = start of measure)
+ * @returns The event that overlaps with the target quant, or null if none found
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const findEventAtQuantPosition = (
   measure: Measure | null | undefined,
@@ -115,6 +130,12 @@ export const findEventAtQuantPosition = (
  * Selects the entry-point note when landing on a chord during cross-staff navigation.
  * When moving UP to a higher staff, selects the lowest note (to continue upward).
  * When moving DOWN to a lower staff, selects the highest note (to continue downward).
+ *
+ * @param event - The event containing the chord
+ * @param direction - 'up' or 'down'
+ * @returns Note ID to select, or null if event is a rest/has no notes
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const selectNoteInEventByDirection = (
   event: ScoreEvent | null | undefined,
@@ -128,8 +149,15 @@ export const selectNoteInEventByDirection = (
 };
 
 /**
- * Adjusts duration to fit available space in a measure.
- * Returns the largest duration that fits, or null if no duration fits.
+ * Adjusts requested duration to fit available space in a measure.
+ * If the requested duration doesn't fit, returns the largest duration that does.
+ *
+ * @param availableQuants - Remaining quants in the measure
+ * @param requestedDuration - The duration the user requested
+ * @param isDotted - Whether the user requested a dotted duration
+ * @returns Adjusted duration/dotted pair, or null if nothing fits
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const getAdjustedDuration = (
   availableQuants: number,
@@ -152,8 +180,10 @@ export const getAdjustedDuration = (
 };
 
 /**
- * Creates AudioFeedback from an event.
+ * Creates AudioFeedback from an event for playback.
  * Returns null for rests or events with no valid pitches.
+ *
+ * @internal
  */
 const createAudioFeedback = (event: ScoreEvent): AudioFeedback | null => {
   if (event.isRest) return null;
@@ -163,7 +193,10 @@ const createAudioFeedback = (event: ScoreEvent): AudioFeedback | null => {
 };
 
 /**
- * Creates a ghost cursor result (null selection + previewNote).
+ * Creates a navigation result for ghost cursor mode (no event selected).
+ * Used when user navigates into empty space within a measure.
+ *
+ * @internal
  */
 const createGhostCursorResult = (
   staffIndex: number,
@@ -177,6 +210,9 @@ const createGhostCursorResult = (
 
 /**
  * Creates a navigation result for selecting an event.
+ * Used when user navigates to an existing event in the score.
+ *
+ * @internal
  */
 const createEventResult = (
   staffIndex: number,
@@ -192,6 +228,30 @@ const createEventResult = (
   };
 };
 
+// ========== MAIN NAVIGATION FUNCTIONS ==========
+
+/**
+ * Calculates the next selection state for horizontal (left/right) keyboard navigation.
+ * Handles multiple scenarios:
+ * - Standard navigation between events
+ * - Ghost cursor navigation (navigating while in preview/append mode)
+ * - Cross-measure navigation
+ * - Boundary checks (start/end of score)
+ *
+ * @param measures - The measures array for the current staff
+ * @param selection - Current selection state
+ * @param direction - 'left' or 'right'
+ * @param previewNote - Current ghost cursor state, or null if selecting an event
+ * @param activeDuration - The currently active note duration
+ * @param isDotted - Whether the active duration is dotted
+ * @param currentQuantsPerMeasure - Time signature quants (default: CONFIG.quantsPerMeasure)
+ * @param clef - Clef for default pitch selection ('treble' or 'bass')
+ * @param staffIndex - Index of the staff being navigated
+ * @param inputMode - Whether user is entering notes or rests
+ * @returns Navigation result with new selection/previewNote, or null if no change
+ *
+ * @tested interactionUtils.test.ts
+ */
 export const calculateNextSelection = (
   measures: Measure[],
   selection: NavigationSelection,
@@ -514,12 +574,13 @@ export const calculateNextSelection = (
 
 /**
  * Calculates transposition for selected notes.
- * @param {Array} measures - List of measures
- * @param {Object} selection - Current selection
- * @param {number} steps - Visual steps to move (positive or negative)
- * @param {string} keySignature - Key signature root
- * @param {string} clef - Clef for pitch range clamping ('treble' or 'bass')
- * @returns {Object|null} Object containing new measures and the modified event, or null if no change
+ * Moves notes by visual steps (diatonic intervals) while respecting key signature.
+ *
+ * @param measures - Array of measures to modify
+ * @param selection - Current selection (must have valid measureIndex and eventId)
+ * @param steps - Visual steps to move (positive = up, negative = down)
+ * @param keySignature - Key signature root for diatonic movement (default: 'C')
+ * @returns Object with modified measures and event, or null if invalid selection
  */
 export const calculateTransposition = (
   measures: Measure[],
@@ -567,14 +628,17 @@ export const calculateTransposition = (
 
 /**
  * Calculates transposition for selected notes or the preview note.
+ * Handles both ghost cursor pitch changes and actual note transposition.
  *
  * @param measures - The current measures of the score
  * @param selection - The current selection state
- * @param previewNote - The current preview note state
- * @param direction - The direction of transposition ('up', 'down')
- * @param isShift - Whether shift key is pressed (octave jump)
+ * @param previewNote - The current preview note state (for ghost cursor)
+ * @param direction - 'up' or 'down'
+ * @param isShift - Whether shift key is pressed (octave jump: 7 steps)
  * @param keySignature - The current key signature (default 'C')
- * @returns An object containing the new measures (if changed), new previewNote (if changed), and audio feedback
+ * @returns New measures/previewNote with audio feedback, or null if no change
+ *
+ * @tested interactionUtils.test.ts
  */
 export const calculateTranspositionWithPreview = (
   measures: Measure[],
@@ -629,13 +693,18 @@ export const calculateTranspositionWithPreview = (
 };
 
 /**
- * Calculates the cross-staff selection based on quant alignment.
- * Finds the closest event in the target staff that overlaps with the current selection's absolute quant.
+ * Calculates cross-staff selection based on quant alignment.
+ * Finds the event in the target staff that overlaps with the current selection's
+ * absolute quant position within the measure.
  *
  * @param score - The complete score object
- * @param selection - The current selection state
+ * @param selection - Current selection (must have valid staffIndex, measureIndex, eventId)
  * @param direction - 'up' or 'down'
- * @returns {Object|null} New selection object or null if invalid move
+ * @param activeDuration - Duration for ghost cursor if no aligned event found
+ * @param isDotted - Whether duration is dotted
+ * @returns New selection with aligned event, or null if target staff doesn't exist
+ *
+ * @see calculateVerticalNavigation - Higher-level function that includes chord traversal
  */
 export const calculateCrossStaffSelection = (
   score: Score,
@@ -737,17 +806,24 @@ export const calculateCrossStaffSelection = (
 };
 
 /**
- * Unified vertical navigation for CMD+Up/Down.
- * Handles: 1) Chord traversal, 2) Cross-staff switching, 3) Cycling at boundaries.
- * Also supports ghost cursor navigation.
+ * Unified vertical navigation for Cmd+Up/Down keyboard shortcuts.
+ * Handles three scenarios in priority order:
+ * 1. **Chord traversal**: Navigate between notes within a chord
+ * 2. **Cross-staff switching**: Move to aligned event in adjacent staff
+ * 3. **Staff cycling**: Wrap to opposite staff at boundaries
+ *
+ * Also supports ghost cursor navigation (moving preview between staves).
  *
  * @param score - The complete score object
- * @param selection - The current selection state
+ * @param selection - Current selection state
  * @param direction - 'up' or 'down'
- * @param activeDuration - Active note duration for ghost cursor
- * @param isDotted - Whether note is dotted
- * @param previewNote - Optional preview note (ghost cursor state)
- * @returns Navigation result with selection/previewNote, or null if no change
+ * @param activeDuration - Duration for ghost cursor if needed
+ * @param isDotted - Whether duration is dotted
+ * @param previewNote - Optional ghost cursor state
+ * @param currentQuantsPerMeasure - Time signature quants
+ * @returns Navigation result, or null if no change
+ *
+ * @tested navigationHelpers.test.ts
  */
 export const calculateVerticalNavigation = (
   score: Score,
