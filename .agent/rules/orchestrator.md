@@ -67,7 +67,7 @@ git push origin <branch_name>
 Use AntiGravity tools to open a Pull Request (PR) with a summary of changes.
 
 2. Coding Standards (React/TS Focus)
-Strict Typing: Use strict TypeScript. any is strictly forbidden. Use Interfaces for public API shapes.
+Strict Typing: Use strict TypeScript. Avoid using any; it requires clear justification and should be documented. Prefer unknown or proper types over any. Use interfaces for public API shapes.
 
 Component Modularity:
 
