@@ -5,6 +5,30 @@ All notable changes to RiffScore will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-alpha.3] - 2025-12-19
+
+### New Features & Enhancements
+- **Unified Navigation**: Added seamless vertical navigation (CMD+Up/Down) with chord traversal, boundary cycling, and cross-staff switching ([#78](https://github.com/joekotvas/RiffScore/pull/78))
+- **Ghost Cursor**: Enhanced ghost cursor behavior with cross-measure navigation and smart duration adjustments ([#78](https://github.com/joekotvas/RiffScore/pull/78))
+- **Clef Handling**: Implemented `SetClefCommand` for robust single-staff clef changes and refactored staff control menu positioning ([#82](https://github.com/joekotvas/RiffScore/pull/82))
+- **Visual improvements**: Improved `ClefIcon` rendering (especially for grand staff) and sizing ([#82](https://github.com/joekotvas/RiffScore/pull/82))
+
+### Fixed
+- **Staff Switching**: Ghost cursor now properly tracks staff context and switches correctly with keyboard commands ([#78](https://github.com/joekotvas/RiffScore/pull/78))
+- **Clef Switching**: Fixed issue where switching single-staff clefs did not work ([#83](https://github.com/joekotvas/RiffScore/issues/83))
+- **UI**: Score title now scales correctly with zoom level ([#77](https://github.com/joekotvas/RiffScore/pull/77))
+- **Build**: Resolved various build warnings and cleaned up stale test mocks ([#73](https://github.com/joekotvas/RiffScore/issues/73), [#71](https://github.com/joekotvas/RiffScore/issues/71))
+
+### Refactoring
+- **Interaction Engine**: Major refactor of `interaction.ts` ([#79](https://github.com/joekotvas/RiffScore/issues/79), [#80](https://github.com/joekotvas/RiffScore/pull/80)):
+    - Standardized default pitch logic with `getDefaultPitchForClef`
+    - DRY extraction of ghost cursor and audio feedback helpers
+    - Comprehensive JSDoc and `@tested` annotations
+- **Type Safety**: Removed remaining `any` types in `types.ts` and `interaction.ts` for strict type checking ([#81](https://github.com/joekotvas/RiffScore/pull/81))
+
+### Documentation
+- **README**: Enhanced with status badges, new screenshots, and detailed feature list ([#76](https://github.com/joekotvas/RiffScore/pull/76))
+
 ## [1.0.0-alpha.2] - 2025-12-15
 
 ### Fixed
