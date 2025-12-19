@@ -298,7 +298,7 @@ export const isNoteEvent = (event: any): boolean => {
  * Returns ID for first note (pitch or rest).
  */
 export const getFirstNoteId = (event: any): string | number | null => {
-  if (!event.notes?.length) return null;
+  if (!event || !event.notes?.length) return null;
   return event.notes[0].id; // Rests now have notes, so this works for both
 };
 
