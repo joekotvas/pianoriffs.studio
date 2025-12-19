@@ -99,7 +99,7 @@ Analyze the error.
 
 Check if the test itself is outdated vs. the code is broken.
 
-Attempt two fixes.
+Make up to two distinct fix attempts based on your error analysis (e.g., adjusting code, tests, or configuration as appropriate).
 
 If it fails again, STOP and report the error details to the user for guidance.
 
