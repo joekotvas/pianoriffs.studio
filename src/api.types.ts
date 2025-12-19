@@ -147,7 +147,7 @@ export interface MusicEditorAPI {
   /** Jump playback to a specific measure */
   rewind(measureNum?: number): this;
   /** Change the playback instrument */
-  setInstrument(voiceId: string): this;
+  setInstrument(instrumentId: string): this;
 
   // --- Data (Queries) ---
   /** Get the current score state (read-only) */
