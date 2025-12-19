@@ -39,10 +39,23 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(
     const [showClefMenu, setShowClefMenu] = useState(false);
     const [showKeySig, setShowKeySig] = useState(false);
     const [showTimeSig, setShowTimeSig] = useState(false);
+    
+    // Store menu positions in state to avoid reading refs during render
+    const [clefMenuPos, setClefMenuPos] = useState({ x: 0, y: 0 });
+    const [timeSigMenuPos, setTimeSigMenuPos] = useState({ x: 0, y: 0 });
 
     const clefBtnRef = useRef<HTMLButtonElement>(null);
     const keySigBtnRef = useRef<HTMLButtonElement>(null);
     const timeSigBtnRef = useRef<HTMLButtonElement>(null);
+    
+    // Helper to calculate position from a ref (only called in event handlers)
+    const getPositionFromRef = (btnRef: React.RefObject<HTMLButtonElement | null>) => {
+      const rect = btnRef.current?.getBoundingClientRect();
+      return {
+        x: rect?.left || 0,
+        y: (rect?.bottom || 0) + 5,
+      };
+    };
 
     useImperativeHandle(
       ref,
@@ -64,8 +77,13 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(
           ref={clefBtnRef}
           label={currentClef.label}
           showLabel={false}
-          onClick={() => setShowClefMenu(!showClefMenu)}
-          icon={<ClefIcon clef={clef || 'treble'} className="w-6 h-6" />}
+          onClick={() => {
+            if (!showClefMenu) {
+              setClefMenuPos(getPositionFromRef(clefBtnRef));
+            }
+            setShowClefMenu(!showClefMenu);
+          }}
+          icon={<ClefIcon clef={clef || 'treble'} className="w-6 h-6 overflow-visible" />}
           variant={variant}
         />
         {showClefMenu && (
@@ -76,10 +94,7 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(
               setShowClefMenu(false);
             }}
             onClose={() => setShowClefMenu(false)}
-            position={{
-              x: clefBtnRef.current?.getBoundingClientRect().left || 0,
-              y: (clefBtnRef.current?.getBoundingClientRect().bottom || 0) + 5,
-            }}
+            position={clefMenuPos}
             triggerRef={clefBtnRef as React.RefObject<HTMLElement>}
           />
         )}
@@ -110,7 +125,12 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(
           ref={timeSigBtnRef}
           label={timeSignature}
           showLabel={true}
-          onClick={() => setShowTimeSig(!showTimeSig)}
+          onClick={() => {
+            if (!showTimeSig) {
+              setTimeSigMenuPos(getPositionFromRef(timeSigBtnRef));
+            }
+            setShowTimeSig(!showTimeSig);
+          }}
           className="text-xs font-bold"
           variant={variant}
         />
@@ -122,10 +142,7 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(
               setShowTimeSig(false);
             }}
             onClose={() => setShowTimeSig(false)}
-            position={{
-              x: timeSigBtnRef.current?.getBoundingClientRect().left || 0,
-              y: (timeSigBtnRef.current?.getBoundingClientRect().bottom || 0) + 5,
-            }}
+            position={timeSigMenuPos}
             triggerRef={timeSigBtnRef as React.RefObject<HTMLElement>}
           />
         )}

@@ -52,8 +52,8 @@ const ClefOverlay: React.FC<ClefOverlayProps> = ({
                   current === key ? theme.buttonHoverBackground : 'transparent';
               }}
             >
-              <div className="mb-1 h-16 flex items-center justify-center w-full relative">
-                <ClefIcon clef={key} width="60" height="60" />
+              <div className="mb-1 h-20 flex items-center justify-center w-full relative">
+                <ClefIcon clef={key} style={{ width: '56px', height: '56px', overflow: 'visible' }} />
               </div>
               <span className="text-xs font-medium">{data.label}</span>
             </button>

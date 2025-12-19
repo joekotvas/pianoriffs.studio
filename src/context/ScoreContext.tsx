@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useScoreLogic } from '@/hooks/useScoreLogic';
-
-import { SetSingleStaffCommand } from '@/commands/SetSingleStaffCommand';
+import { Score } from '@/types';
+import { SetClefCommand } from '@/commands/SetClefCommand';
 
 // Infers the return type of useScoreLogic and extends it with UI state
 type ScoreContextType = ReturnType<typeof useScoreLogic> & {
@@ -24,7 +24,7 @@ export const useScoreContext = () => {
 
 interface ScoreProviderProps {
   children: ReactNode;
-  initialScore?: any;
+  initialScore?: Partial<Score>;
 }
 
 export const ScoreProvider: React.FC<ScoreProviderProps> = ({ children, initialScore }) => {
@@ -35,20 +35,23 @@ export const ScoreProvider: React.FC<ScoreProviderProps> = ({ children, initialS
     targetClef: 'treble' | 'bass';
   } | null>(null);
 
+  const { setGrandStaff, dispatch, score } = logic;
+  const staffCount = score.staves.length;
+
   const handleClefChange = React.useCallback(
     (val: string) => {
       const newClef = String(val).trim();
       if (newClef === 'grand') {
-        logic.setGrandStaff();
-      } else if (logic.score.staves.length >= 2) {
+        setGrandStaff();
+      } else if (staffCount >= 2) {
         // Switching from grand staff to single clef - show confirmation
         setPendingClefChange({ targetClef: newClef as 'treble' | 'bass' });
       } else {
-        // Single staff - just change the clef
-        logic.dispatch(new SetSingleStaffCommand(newClef as 'treble' | 'bass'));
+        // Single staff - use SetClefCommand to change the clef
+        dispatch(new SetClefCommand(newClef as 'treble' | 'bass'));
       }
     },
-    [logic.score.staves.length, logic.setGrandStaff, logic.dispatch]
+    [staffCount, setGrandStaff, dispatch]
   );
 
   const contextValue = React.useMemo(
