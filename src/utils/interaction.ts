@@ -517,7 +517,7 @@ export const calculateNextSelection = (
       }
 
       // Get pitch: from note if available, else default based on clef
-      const defaultPitch = clef === 'bass' ? 'D3' : 'B4';
+      const defaultPitch = getDefaultPitchForClef(clef);
       const pitch: string =
         !currentEvent.isRest && currentEvent.notes?.length > 0 && currentEvent.notes[0].pitch
           ? currentEvent.notes[0].pitch
@@ -780,7 +780,7 @@ export const calculateCrossStaffSelection = (
 
     // Determine Pitch: Default to a "middle" note for the staff clef.
     const clef = targetStaff.clef || 'treble';
-    const defaultPitch = clef === 'bass' ? 'C3' : 'C4';
+    const defaultPitch = getDefaultPitchForClef(clef);
 
     const previewNote = getAppendPreviewNote(
       targetMeasure,
