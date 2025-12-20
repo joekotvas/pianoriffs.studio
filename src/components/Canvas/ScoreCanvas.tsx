@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { calculateHeaderLayout, getOffsetForPitch, calculateMeasureLayout } from '@/engines/layout';
 import { isRestEvent, getFirstNoteId } from '@/utils/core';
 import Staff, { calculateStaffWidth } from './Staff';
-import { getActiveStaff, createDefaultSelection } from '@/types';
+import { getActiveStaff } from '@/types';
 import { useScoreContext } from '@/context/ScoreContext';
 import { useScoreInteraction } from '@/hooks/useScoreInteraction';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
@@ -45,7 +45,6 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   const {
     score,
     selection,
-    setSelection,
     clearSelection,
     selectionEngine,
     handleNoteSelection,
@@ -279,7 +278,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     scale,
   });
 
-  const handleBackgroundClick = (e: React.MouseEvent) => {
+  const handleBackgroundClick = (_e: React.MouseEvent) => {
     // Don't deselect if we were dragging or just finished dragging
     if (isDragging || justFinishedDrag) return;
 
@@ -370,7 +369,6 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                   CONFIG.baseY +
                   (score.staves.length - 1) * CONFIG.staffSpacing +
                   CONFIG.lineHeight * 4;
-                const midY = (topY + bottomY) / 2;
                 return <GrandStaffBracket topY={topY} bottomY={bottomY} x={-20} />;
               })()}
             </>

@@ -10,7 +10,7 @@ import { SetKeySignatureCommand } from '@/commands/SetKeySignatureCommand';
 interface UseMeasureActionsProps {
   score: Score;
   clearSelection: () => void;
-  setPreviewNote: (note: any) => void;
+  setPreviewNote: (note: null) => void;
   dispatch: (command: Command) => void;
 }
 
