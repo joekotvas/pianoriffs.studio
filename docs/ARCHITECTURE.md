@@ -173,7 +173,8 @@ riffscore/
 │   │   └── TimelineService.ts# Playback timing
 │
 │   ├── engines/
-│   │   ├── ScoreEngine.ts    # Command dispatch
+│   │   ├── ScoreEngine.ts    # Score command dispatch
+│   │   ├── SelectionEngine.ts# Selection command dispatch
 │   │   ├── toneEngine.ts     # Audio (Tone.js)
 │   │   ├── midiEngine.ts     # MIDI input
 │   │   └── layout/           # Layout calculation (8 files)
@@ -186,7 +187,7 @@ riffscore/
 │   │       ├── stems.ts      # Stem lengths
 │   │       └── system.ts     # Multi-staff sync
 │
-│   ├── commands/             # Undo/redo commands (20 files)
+│   ├── commands/             # Undo/redo commands
 │   │   ├── types.ts
 │   │   ├── AddEventCommand.ts
 │   │   ├── AddNoteToEventCommand.ts
@@ -206,7 +207,17 @@ riffscore/
 │   │   ├── TupletCommands.ts
 │   │   ├── UpdateEventCommand.ts
 │   │   ├── UpdateNoteCommand.ts
-│   │   └── UpdateTitleCommand.ts
+│   │   ├── UpdateTitleCommand.ts
+│   │   └── selection/        # Selection commands
+│   │       ├── index.ts      # Exports
+│   │       ├── types.ts
+│   │       ├── SelectEventCommand.ts
+│   │       ├── SelectAllCommand.ts
+│   │       ├── SelectMeasureCommand.ts
+│   │       ├── RangeSelectCommand.ts
+│   │       ├── LassoSelectCommand.ts
+│   │       ├── NavigateCommand.ts
+│   │       └── SetSelectionCommand.ts
 │
 │   ├── hooks/                # React hooks (29 files)
 │   │   ├── handlers/         # Event handler modules
@@ -282,7 +293,147 @@ riffscore/
 
 ---
 
-## 4. Data Model
+## 4. Layer Architecture
+
+The codebase is organized in distinct layers with clear responsibilities and boundaries.
+
+<details>
+<summary><strong>View layer hierarchy</strong></summary>
+
+### Abstraction Layers
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ PRESENTATION LAYER                                                  │
+│   Components (ScoreCanvas, Measure, Note, Toolbar)                  │
+│   • Render SVG from layout data                                     │
+│   • Fire events (onClick, onDrag)                                   │
+│   • Consume context for state                                       │
+└──────────────────────────────────┬──────────────────────────────────┘
+                                   │
+┌──────────────────────────────────▼──────────────────────────────────┐
+│ ORCHESTRATION LAYER                                                 │
+│   useScoreLogic, useKeyboardShortcuts                               │
+│   • Coordinates engines, hooks, and state                           │
+│   • Owns engine instances                                           │
+│   • Provides callbacks to utility hooks                             │
+└──────────────────────────────────┬──────────────────────────────────┘
+                                   │
+┌──────────────────────────────────▼──────────────────────────────────┐
+│ UTILITY HOOKS                                                       │
+│   useNavigation, useNoteActions, useMeasureActions                  │
+│   • Receive callbacks as props (no engine access)                   │
+│   • Contain interaction logic                                       │
+│   • Remain testable and composable                                  │
+└──────────────────────────────────┬──────────────────────────────────┘
+                                   │
+┌──────────────────────────────────▼──────────────────────────────────┐
+│ ENGINE LAYER                                                        │
+│   ScoreEngine, SelectionEngine, toneEngine, midiEngine              │
+│   • Pure state machines (minimal React)                             │
+│   • Process commands                                                │
+│   • Emit state changes                                              │
+└──────────────────────────────────┬──────────────────────────────────┘
+                                   │
+┌──────────────────────────────────▼──────────────────────────────────┐
+│ SERVICES LAYER                                                      │
+│   MusicService, TimelineService, Layout modules                     │
+│   • Stateless pure functions                                        │
+│   • Music theory (tonal), timing, positioning                       │
+│   • No React dependencies                                           │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Engine Separation
+
+RiffScore uses separate engines for distinct concerns:
+
+| Engine | Purpose | State |
+|--------|---------|-------|
+| **ScoreEngine** | Score mutations (add/delete notes, transpose) | `Score` |
+| **SelectionEngine** | Selection state (cursor, multi-select, range) | `Selection` |
+| **toneEngine** | Audio playback | Sampler state |
+| **midiEngine** | MIDI input handling | Connection state |
+
+> **Design Principle**: Engines remain separate for single responsibility. Coordination happens in the orchestration layer (`useScoreLogic`), not through engine coupling.
+
+### Callback Abstraction Pattern
+
+Utility hooks receive behavior through callbacks, not engine access:
+
+```typescript
+// ✅ CORRECT: Utility hook uses callbacks
+useNavigation({
+  select,              // Callback to modify selection
+  setPreviewNote,      // Callback to update ghost cursor
+  dispatch,            // Callback to dispatch score commands
+  // NO engine props!
+});
+
+// ❌ AVOID: Passing engines directly to utility hooks
+useNavigation({
+  selectionEngine,     // Leaky abstraction!
+});
+```
+
+This ensures:
+- **Testability**: Mock callbacks easily in tests
+- **Composability**: Hooks work with any callback implementation
+- **Encapsulation**: Hooks don't know about engines or state management
+
+### Data Flow
+
+```mermaid
+flowchart TD
+    USER[User Action] --> HANDLER[Handler/Hook]
+    HANDLER --> COMMAND[Create Command]
+    COMMAND --> ENGINE[ScoreEngine.dispatch]
+    ENGINE --> STATE[New Score State]
+    STATE --> CONTEXT[ScoreContext]
+    CONTEXT --> RENDER[Re-render Components]
+    
+    HANDLER --> SEL_CMD[Selection Command]
+    SEL_CMD --> SEL_ENGINE[SelectionEngine.dispatch]
+    SEL_ENGINE --> SEL_STATE[New Selection State]
+    SEL_STATE --> CONTEXT
+```
+
+### Reactive Coordination
+
+When changes in one domain affect another (e.g., deleting a staff invalidates selection), use React's reactive model:
+
+```typescript
+// In useScoreLogic or useSelection
+useEffect(() => {
+  // If selected staff no longer exists, reset selection
+  if (selection.staffIndex >= score.staves.length) {
+    clearSelection();
+  }
+}, [score.staves.length]);
+```
+
+This keeps engines decoupled while ensuring consistency.
+
+### Selection Command Pattern
+
+Selection operations use the Command pattern just like score mutations:
+
+| Command | Purpose |
+|---------|---------|
+| `SelectEventCommand` | Select a note/event |
+| `SetSelectionCommand` | Raw state replacement |
+| `RangeSelectCommand` | Select range between anchor and focus |
+| `SelectAllInEventCommand` | Select all notes in a chord |
+| `SelectAllCommand` | Progressive scope expansion |
+| `SelectMeasureCommand` | Select all events in a measure |
+| `LassoSelectCommand` | Multi-select by bounding box |
+| `NavigateCommand` | Move cursor (arrow keys) |
+
+</details>
+
+---
+
+## 5. Data Model
 
 `Score` → `Staff[]` → `Measure[]` → `ScoreEvent[]` → `Note[]`
 
@@ -343,7 +494,7 @@ RiffScoreConfig
 
 ---
 
-## 5. Design Decisions
+## 6. Design Decisions
 
 <details>
 <summary><strong>View decisions</strong></summary>
@@ -361,7 +512,7 @@ All tests live in `__tests__/`. Current coverage: Services 98%, Utils 87%, Comma
 
 ---
 
-## 6. Layout Engine
+## 7. Layout Engine
 
 Eight modules handle positioning and engraving.
 
@@ -400,7 +551,7 @@ flowchart TD
 
 ---
 
-## 7. Hooks Reference
+## 8. Hooks Reference
 
 <details>
 <summary><strong>View hook list</strong></summary>
@@ -470,7 +621,7 @@ flowchart TD
 
 ---
 
-## 8. Command Reference
+## 9. Command Reference
 
 <details>
 <summary><strong>View commands</strong></summary>
@@ -501,7 +652,7 @@ flowchart TD
 
 ---
 
-## 9. Dependencies
+## 10. Dependencies
 
 <details>
 <summary><strong>View packages</strong></summary>
