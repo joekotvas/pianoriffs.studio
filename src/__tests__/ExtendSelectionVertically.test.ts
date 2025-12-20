@@ -326,6 +326,35 @@ describe('ExtendSelectionVerticallyCommand', () => {
     });
   });
 
+  describe('multi-event selection', () => {
+    test('extends each event independently', () => {
+      const score = createTestScore();
+      // Select top note from two different events: G4 from e0 and G4 from m1.e2
+      const state: Selection = {
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e0',
+        noteId: 'n2',
+        selectedNotes: [
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // G4 from e0 (3-note chord)
+          { staffIndex: 0, measureIndex: 1, eventId: 'e2', noteId: 'n5' }, // G4 from e2 (2-note chord)
+        ],
+        anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' },
+      };
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Both events should be extended: G4+E4 from e0, G4+E4 from e2
+      const e0Notes = result.selectedNotes.filter(n => n.eventId === 'e0');
+      const e2Notes = result.selectedNotes.filter(n => n.eventId === 'e2');
+      
+      expect(e0Notes.length).toBe(2); // G4 + E4
+      expect(e2Notes.length).toBe(2); // G4 + E4
+      expect(result.selectedNotes).toHaveLength(4);
+    });
+  });
+
   describe('edge cases', () => {
     test('empty selection returns unchanged', () => {
       const score = createTestScore();

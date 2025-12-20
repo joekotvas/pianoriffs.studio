@@ -68,35 +68,140 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
     // Initialize anchor if not set
     const anchor = state.anchor ?? state.selectedNotes[0];
 
-    // Find current cursor (the extreme point of selection in movement direction)
-    const currentCursor = this.findCurrentCursor(state, score, anchor);
-    if (!currentCursor) {
+    // Group selected notes by event
+    const notesByEvent = this.groupNotesByEvent(state.selectedNotes);
+    const newNotes: SelectedNote[] = [];
+
+    // For each event, find the cursor (extreme note in direction) and extend
+    for (const [eventKey, notes] of notesByEvent) {
+      const [staffIdx, measureIdx, eventId] = this.parseEventKey(eventKey);
+      
+      // Find this event's cursor (extreme note in direction)
+      const positions = notes
+        .map(n => this.toVerticalPosition(n, score))
+        .filter((p): p is VerticalPosition => p !== null);
+
+      if (positions.length === 0) continue;
+
+      const eventCursor = this.findCursorForEvent(positions);
+      if (!eventCursor) continue;
+
+      // Try to move cursor within this event's chord
+      const newCursor = this.moveCursor(eventCursor, score);
+      
+      if (newCursor && newCursor.staffIndex === eventCursor.staffIndex && newCursor.eventId === eventCursor.eventId) {
+        // Cursor moved within same event (chord extension)
+        // Select range from anchor note to new cursor within this event
+        const eventAnchor = this.findAnchorForEvent(positions);
+        if (eventAnchor) {
+          this.addNotesInMidiRange(
+            newNotes,
+            staffIdx,
+            measureIdx,
+            this.findEventById(score, staffIdx, measureIdx, eventId)!,
+            eventAnchor.midi,
+            newCursor.midi
+          );
+        }
+      } else if (newCursor) {
+        // Cursor moved to another staff (cross-staff extension)
+        // Add all notes from this event (fill the chord)
+        const event = this.findEventById(score, staffIdx, measureIdx, eventId);
+        if (event) {
+          this.addAllNotesInEvent(newNotes, staffIdx, measureIdx, event);
+        }
+        // Add the target staff note
+        newNotes.push({
+          staffIndex: newCursor.staffIndex,
+          measureIndex: newCursor.measureIndex,
+          eventId: newCursor.eventId,
+          noteId: newCursor.noteId,
+        });
+      } else {
+        // Can't move (at boundary) - keep existing selection for this event
+        for (const note of notes) {
+          newNotes.push(note);
+        }
+      }
+    }
+
+    // If no change, return original state
+    if (newNotes.length === state.selectedNotes.length &&
+        newNotes.every(n => state.selectedNotes.some(
+          s => s.staffIndex === n.staffIndex && s.measureIndex === n.measureIndex &&
+               s.eventId === n.eventId && s.noteId === n.noteId
+        ))) {
       return state;
     }
 
-    // Move cursor in direction
-    const newCursor = this.moveCursor(currentCursor, score);
-    if (!newCursor) {
-      // Can't move (at boundary)
-      return state;
-    }
-
-    // Calculate selection between anchor and new cursor
-    const anchorPos = this.toVerticalPosition(anchor, score);
-    if (!anchorPos) {
-      return state;
-    }
-
-    const selectedNotes = this.selectRangeBetween(anchorPos, newCursor, score);
+    // Determine the "primary" selection focus (last moved cursor)
+    const lastNote = newNotes[newNotes.length - 1] ?? state.selectedNotes[0];
 
     return {
-      staffIndex: newCursor.staffIndex,
-      measureIndex: newCursor.measureIndex,
-      eventId: newCursor.eventId,
-      noteId: newCursor.noteId,
-      selectedNotes,
+      staffIndex: lastNote.staffIndex,
+      measureIndex: lastNote.measureIndex,
+      eventId: lastNote.eventId,
+      noteId: lastNote.noteId,
+      selectedNotes: newNotes,
       anchor,
     };
+  }
+
+  /**
+   * Group selected notes by their event (staffIndex-measureIndex-eventId).
+   */
+  private groupNotesByEvent(notes: SelectedNote[]): Map<string, SelectedNote[]> {
+    const map = new Map<string, SelectedNote[]>();
+    for (const note of notes) {
+      const key = `${note.staffIndex}-${note.measureIndex}-${note.eventId}`;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key)!.push(note);
+    }
+    return map;
+  }
+
+  /**
+   * Parse event key back to components.
+   */
+  private parseEventKey(key: string): [number, number, string | number] {
+    const parts = key.split('-');
+    return [parseInt(parts[0]), parseInt(parts[1]), parts.slice(2).join('-')];
+  }
+
+  /**
+   * Find the cursor (extreme note in movement direction) for a single event.
+   */
+  private findCursorForEvent(positions: VerticalPosition[]): VerticalPosition | null {
+    if (positions.length === 0) return null;
+
+    if (this.direction === 'down') {
+      // Cursor is lowest pitch
+      return positions.reduce((lowest, p) => p.midi < lowest.midi ? p : lowest);
+    } else if (this.direction === 'up') {
+      // Cursor is highest pitch
+      return positions.reduce((highest, p) => p.midi > highest.midi ? p : highest);
+    } else {
+      return positions[0];
+    }
+  }
+
+  /**
+   * Find the anchor (opposite of cursor) for a single event.
+   */
+  private findAnchorForEvent(positions: VerticalPosition[]): VerticalPosition | null {
+    if (positions.length === 0) return null;
+
+    if (this.direction === 'down') {
+      // Anchor is highest pitch
+      return positions.reduce((highest, p) => p.midi > highest.midi ? p : highest);
+    } else if (this.direction === 'up') {
+      // Anchor is lowest pitch
+      return positions.reduce((lowest, p) => p.midi < lowest.midi ? p : lowest);
+    } else {
+      return positions[0];
+    }
   }
 
   /**
