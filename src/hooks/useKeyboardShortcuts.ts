@@ -3,6 +3,7 @@ import { handlePlayback } from './handlers/handlePlayback';
 import { handleNavigation } from './handlers/handleNavigation';
 import { handleMutation } from './handlers/handleMutation';
 import { getActiveStaff } from '@/types';
+import { SelectAllInEventCommand, ClearSelectionCommand } from '@/commands/selection';
 
 /**
  * Hook to handle global keyboard shortcuts.
@@ -22,7 +23,7 @@ interface UIState {
 }
 
 export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, handlers: any) => {
-  const { selection, score, moveSelection, setSelection, scoreRef, switchStaff } = logic;
+  const { selection, score, moveSelection, selectionEngine, scoreRef, switchStaff } = logic;
 
   const { isEditingTitle, isHoveringScore, scoreContainerRef, isAnyMenuOpen } = meta;
   const { handleTitleCommit } = handlers;
@@ -81,40 +82,21 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
             });
 
             if (!allSelected) {
-              // Select ALL notes in the chord
-              // We keep the current focus (noteId) but add everyone else to selectedNotes
-              const allNoteSelections = event.notes.map((n: any) => ({
+              // Select ALL notes in the chord via dispatch
+              selectionEngine.dispatch(new SelectAllInEventCommand({
                 staffIndex: selection.staffIndex || 0,
                 measureIndex: selection.measureIndex!,
                 eventId: selection.eventId!,
-                noteId: n.id,
               }));
-
-              setSelection({
-                ...selection,
-                selectedNotes: allNoteSelections,
-              });
               return;
             }
           }
 
-          // If all selected OR single note, clear selection
-          setSelection({
-            staffIndex: 0,
-            measureIndex: null,
-            eventId: null,
-            noteId: null,
-            selectedNotes: [],
-          });
+          // If all selected OR single note, clear selection via dispatch
+          selectionEngine.dispatch(new ClearSelectionCommand());
         } else if (selection.eventId) {
-          // If event is selected (fallback for rests), clear selection
-          setSelection({
-            staffIndex: 0,
-            measureIndex: null,
-            eventId: null,
-            noteId: null,
-            selectedNotes: [],
-          });
+          // If event is selected (fallback for rests), clear selection via dispatch
+          selectionEngine.dispatch(new ClearSelectionCommand());
         }
         return;
       }
@@ -137,6 +119,7 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
       score,
       moveSelection,
       switchStaff,
+      selectionEngine,
       isEditingTitle,
       handleTitleCommit,
       isHoveringScore,

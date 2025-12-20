@@ -36,6 +36,7 @@ describe('ScoreCanvas', () => {
     score: mockScore,
     selection: { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 },
     setSelection: jest.fn(),
+    clearSelection: jest.fn(), // Added for dispatch-based selection
     handleNoteSelection: jest.fn(),
     handleMeasureHover: jest.fn(),
     addNoteToMeasure: jest.fn(),

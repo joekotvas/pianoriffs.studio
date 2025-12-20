@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Score, getActiveStaff, createDefaultSelection, Selection } from '@/types';
+import { useCallback } from 'react';
+import { Score } from '@/types';
 import { Command } from '@/commands/types';
 import { AddMeasureCommand, DeleteMeasureCommand } from '@/commands/MeasureCommands';
 import { TogglePickupCommand } from '@/commands/TogglePickupCommand';
@@ -9,8 +9,8 @@ import { SetKeySignatureCommand } from '@/commands/SetKeySignatureCommand';
 
 interface UseMeasureActionsProps {
   score: Score;
-  setSelection: React.Dispatch<React.SetStateAction<Selection>>;
-  setPreviewNote: (note: any) => void;
+  clearSelection: () => void;
+  setPreviewNote: (note: null) => void;
   dispatch: (command: Command) => void;
 }
 
@@ -28,7 +28,7 @@ interface UseMeasureActionsReturn {
  */
 export const useMeasureActions = ({
   score,
-  setSelection,
+  clearSelection,
   setPreviewNote,
   dispatch,
 }: UseMeasureActionsProps): UseMeasureActionsReturn => {
@@ -36,10 +36,10 @@ export const useMeasureActions = ({
     (newSig: string) => {
       if (newSig === score.timeSignature) return;
       dispatch(new SetTimeSignatureCommand(newSig));
-      setSelection(createDefaultSelection());
+      clearSelection();
       setPreviewNote(null);
     },
-    [score.timeSignature, dispatch, setSelection, setPreviewNote]
+    [score.timeSignature, dispatch, clearSelection, setPreviewNote]
   );
 
   const handleKeySignatureChange = useCallback(

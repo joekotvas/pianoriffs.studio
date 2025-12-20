@@ -61,7 +61,7 @@ const ScoreEditorContent = ({
     pendingClefChange,
     setPendingClefChange,
     selection,
-    setSelection,
+    clearSelection,
     setPreviewNote,
     activeDuration,
     isDotted,
@@ -157,14 +157,8 @@ const ScoreEditorContent = ({
   }, [pendingClefChange, dispatch, setPendingClefChange]);
 
   const handleBackgroundClick = useCallback(() => {
-    setSelection({
-      staffIndex: 0,
-      measureIndex: null,
-      eventId: null,
-      noteId: null,
-      selectedNotes: [],
-    });
-  }, [setSelection]);
+    clearSelection();
+  }, [clearSelection]);
 
   const handleHoverChange = useCallback(
     (isHovering: boolean) => {

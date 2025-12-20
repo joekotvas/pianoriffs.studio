@@ -19,6 +19,7 @@ import type { MusicEditorAPI, RiffScoreRegistry, Unsubscribe } from '../api.type
 import type { RiffScoreConfig, Note, Score, Selection } from '../types';
 import { AddEventCommand } from '../commands/AddEventCommand';
 import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
+import { SetSelectionCommand } from '../commands/selection';
 import { navigateSelection, getFirstNoteId } from '../utils/core';
 import { canAddEventToMeasure } from '../utils/validation';
 
@@ -72,7 +73,7 @@ export interface UseScoreAPIProps {
  */
 export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEditorAPI {
   // 1. Consume Context Directly
-  const { score, selection, dispatch, setSelection } = useScoreContext();
+  const { score, selection, dispatch, selectionEngine } = useScoreContext();
 
   // 2. Synchronous State Refs (authoritative for API methods to avoid stale closures)
   const scoreRef = useRef(score);
@@ -83,11 +84,18 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
   selectionRef.current = selection;
 
   // 3. Selection Sync Helper
-  // Updates both the authoritative Ref (for immediate chaining) and React State (for UI)
+  // Updates both the authoritative Ref (for immediate chaining) and dispatches to engine (for UI)
   const syncSelection = useCallback((newSelection: typeof selection) => {
     selectionRef.current = newSelection;
-    setSelection(newSelection);
-  }, [setSelection]);
+    selectionEngine.dispatch(new SetSelectionCommand({
+      staffIndex: newSelection.staffIndex,
+      measureIndex: newSelection.measureIndex,
+      eventId: newSelection.eventId,
+      noteId: newSelection.noteId,
+      selectedNotes: newSelection.selectedNotes,
+      anchor: newSelection.anchor,
+    }));
+  }, [selectionEngine]);
 
   // 4. Build API Object (memoized to maintain stable reference)
   const api: MusicEditorAPI = useMemo(() => {

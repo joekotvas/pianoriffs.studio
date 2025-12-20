@@ -4,7 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { calculateHeaderLayout, getOffsetForPitch, calculateMeasureLayout } from '@/engines/layout';
 import { isRestEvent, getFirstNoteId } from '@/utils/core';
 import Staff, { calculateStaffWidth } from './Staff';
-import { getActiveStaff, createDefaultSelection } from '@/types';
+import { getActiveStaff, Staff as StaffType, Measure, ScoreEvent, Note } from '@/types';
 import { useScoreContext } from '@/context/ScoreContext';
 import { useScoreInteraction } from '@/hooks/useScoreInteraction';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
@@ -12,6 +12,7 @@ import { useGrandStaffLayout } from '@/hooks/useGrandStaffLayout';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
 import { LAYOUT, CLAMP_LIMITS, STAFF_HEIGHT } from '@/constants';
+import { LassoSelectCommand } from '@/commands/selection';
 
 interface ScoreCanvasProps {
   scale: number;
@@ -44,7 +45,8 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   const {
     score,
     selection,
-    setSelection,
+    clearSelection,
+    selectionEngine,
     handleNoteSelection,
     addNoteToMeasure,
     activeDuration,
@@ -156,7 +158,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
     if (synchronizedLayoutData) {
       const measuresWidth = synchronizedLayoutData.reduce(
-        (sum: any, layout: any) => sum + layout.width,
+        (sum: number, layout: { width: number }) => sum + layout.width,
         0
       );
       return startOfMeasures + measuresWidth + 50;
@@ -186,12 +188,12 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
     const { startOfMeasures } = calculateHeaderLayout(keySignature);
 
-    score.staves.forEach((staff: any, staffIdx: number) => {
+    score.staves.forEach((staff: StaffType, staffIdx: number) => {
       const staffBaseY = CONFIG.baseY + staffIdx * CONFIG.staffSpacing;
       const staffClef = staff.clef || (staffIdx === 0 ? 'treble' : 'bass');
       let measureX = startOfMeasures;
 
-      staff.measures.forEach((measure: any, measureIdx: number) => {
+      staff.measures.forEach((measure: Measure, measureIdx: number) => {
         // Get forced positions from synchronized layout if available
         const forcedPositions = synchronizedLayoutData?.[measureIdx]?.forcedPositions;
 
@@ -205,7 +207,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
           forcedPositions
         );
 
-        measure.events.forEach((event: any) => {
+        measure.events.forEach((event: ScoreEvent) => {
           const eventX = measureX + (layout.eventPositions?.[event.id] || 0);
 
           // Handle rest events (isRest flag set)
@@ -230,7 +232,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
             });
           } else {
             // Handle notes
-            event.notes?.forEach((note: any) => {
+            event.notes?.forEach((note: Note) => {
               const noteY = staffBaseY + getOffsetForPitch(note.pitch, staffClef);
 
               positions.push({
@@ -267,50 +269,22 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     onSelectionComplete: (notes, isAdditive) => {
       if (notes.length === 0) return;
 
-      if (isAdditive) {
-        // Add to existing selection
-        setSelection((prev) => ({
-          ...prev,
-          selectedNotes: [
-            ...prev.selectedNotes,
-            ...notes.filter(
-              (n) =>
-                !prev.selectedNotes.some((sn) => sn.noteId === n.noteId && sn.eventId === n.eventId)
-            ),
-          ],
-          // Update focus to first new note
-          measureIndex: notes[0].measureIndex,
-          eventId: notes[0].eventId,
-          noteId: notes[0].noteId,
-          staffIndex: notes[0].staffIndex,
-        }));
-      } else {
-        // Replace selection
-        setSelection({
-          staffIndex: notes[0].staffIndex,
-          measureIndex: notes[0].measureIndex,
-          eventId: notes[0].eventId,
-          noteId: notes[0].noteId,
-          selectedNotes: notes,
-          anchor: {
-            staffIndex: notes[0].staffIndex,
-            measureIndex: notes[0].measureIndex,
-            eventId: notes[0].eventId,
-            noteId: notes[0].noteId,
-          },
-        });
-      }
+      // Use dispatch for lasso selection
+      selectionEngine.dispatch(new LassoSelectCommand({
+        notes,
+        addToSelection: isAdditive,
+      }));
     },
     scale,
   });
 
-  const handleBackgroundClick = (e: React.MouseEvent) => {
+  const handleBackgroundClick = (_e: React.MouseEvent) => {
     // Don't deselect if we were dragging or just finished dragging
     if (isDragging || justFinishedDrag) return;
 
     onBackgroundClick?.();
-    // Default: deselect
-    setSelection(createDefaultSelection());
+    // Default: deselect via dispatch
+    clearSelection();
     containerRef.current?.focus();
   };
 
@@ -334,7 +308,17 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   );
 
   const memoizedOnDragStart = useCallback(
-    (args: any) => {
+    (args: {
+      measureIndex: number;
+      eventId: string | number;
+      noteId: string | number;
+      startPitch: string;
+      startY: number;
+      isMulti?: boolean;
+      isShift?: boolean;
+      selectAllInEvent?: boolean;
+      staffIndex?: number;
+    }) => {
       handleDragStart(args);
     },
     [handleDragStart]
@@ -348,7 +332,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
   // Cache per-staff onHover handlers to prevent recreation (stable identity for memoized children)
   const hoverHandlersRef = useRef<
-    Map<number, (measureIndex: number | null, hit: any, pitch: string | null) => void>
+    Map<number, (measureIndex: number | null, hit: { quant: number } | null, pitch: string | null) => void>
   >(new Map());
 
   const getHoverHandler = useCallback(
@@ -356,7 +340,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
       if (!hoverHandlersRef.current.has(staffIndex)) {
         hoverHandlersRef.current.set(
           staffIndex,
-          (measureIndex: number | null, hit: any, pitch: string | null) => {
+          (measureIndex: number | null, hit: { quant: number } | null, pitch: string | null) => {
             if (!dragState.active) {
               handleMeasureHoverRef.current(measureIndex, hit, pitch || '', staffIndex);
             }
@@ -395,13 +379,12 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                   CONFIG.baseY +
                   (score.staves.length - 1) * CONFIG.staffSpacing +
                   CONFIG.lineHeight * 4;
-                const midY = (topY + bottomY) / 2;
                 return <GrandStaffBracket topY={topY} bottomY={bottomY} x={-20} />;
               })()}
             </>
           )}
 
-          {score.staves?.map((staff: any, staffIndex: number) => {
+          {score.staves?.map((staff: StaffType, staffIndex: number) => {
             const staffBaseY = CONFIG.baseY + staffIndex * CONFIG.staffSpacing;
 
             // Construct Interaction State - using memoized callbacks for stable references

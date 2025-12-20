@@ -53,6 +53,7 @@ describe('Bass Clef Selection Reproduction', () => {
     score: grandStaffScore,
     selection: { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 },
     setSelection: jest.fn(),
+    clearSelection: jest.fn(), // Added for dispatch-based selection
     handleNoteSelection: jest.fn(), // This is what we want to spy on!
     handleMeasureHover: jest.fn(),
     addNoteToMeasure: jest.fn(),
