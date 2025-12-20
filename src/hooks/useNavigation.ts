@@ -10,6 +10,7 @@ import { playNote } from '@/engines/toneEngine';
 import { Command } from '@/commands/types';
 import { AddMeasureCommand } from '@/commands/MeasureCommands';
 import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand';
+import { SetSelectionCommand } from '@/commands/selection';
 
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;
@@ -170,11 +171,31 @@ export const useNavigation = ({
         const { measureIndex, eventId, noteId, staffIndex } = navResult.selection;
 
         // BUG FIX #100: When Shift+navigating to a ghost position (no event),
-        // preserve the existing selection instead of clearing it.
-        // The selection will be extended when we land on an actual note.
+        // we need to:
+        // 1. Update selection to ghost state (for next navigation to work correctly)
+        // 2. Preserve the anchor (for range extension when we land on a real note)
+        // 3. NOT clear the selectedNotes (keep what we had)
         if (isShift && !eventId) {
-          // Don't clear selection - just update preview note below
-          // The anchor remains intact for when we reach a real note
+          // Get current anchor before updating selection
+          const currentState = selectionEngine.getState();
+          const existingAnchor = currentState.anchor || (
+            currentState.eventId ? {
+              staffIndex: currentState.staffIndex || 0,
+              measureIndex: currentState.measureIndex!,
+              eventId: currentState.eventId!,
+              noteId: currentState.noteId,
+            } : null
+          );
+
+          // Update to ghost state but preserve anchor and selectedNotes
+          selectionEngine.dispatch(new SetSelectionCommand({
+            staffIndex,
+            measureIndex, // null for ghost
+            eventId: null,
+            noteId: null,
+            selectedNotes: currentState.selectedNotes, // preserve!
+            anchor: existingAnchor, // preserve!
+          }));
         } else {
           // Simply pass the calculated target to select().
           // We assume select() handles a null noteId (selecting the whole event/rest) correctly.
