@@ -1,11 +1,20 @@
 /**
  * SelectAllCommand
  *
- * Selects all notes in a specified scope with optional progressive expansion.
+ * Selects all notes following a hierarchical expansion pattern.
  *
- * Progressive expansion (Cmd+A behavior):
- * - If everything in current scope is already selected, expand to next level
- * - Single note → Event → Measure → Staff → Score
+ * Hierarchy: Note → Measure → Staff → Score
+ *
+ * Core Principle: The function always attempts to fill the lowest possible
+ * incomplete container level across all currently selected items. It only
+ * moves up the hierarchy if the current level is already fully selected
+ * for all touched items.
+ *
+ * Logic:
+ * 1. No selection → Select entire Score
+ * 2. Any touched measure partially selected → Fill those measures
+ * 3. All touched measures full, any touched staff partial → Fill those staves
+ * 4. All touched staves full → Select entire Score
  *
  * @see Issue #99
  */
@@ -18,7 +27,7 @@ export type SelectAllScope = 'event' | 'measure' | 'staff' | 'score';
 export interface SelectAllOptions {
   /** Explicit scope to select (bypasses progressive expansion) */
   scope?: SelectAllScope;
-  /** If true, auto-expand if current scope already fully selected (default: true for keyboard) */
+  /** If true, use progressive expansion logic (default: true for keyboard) */
   expandIfSelected?: boolean;
   /** Staff index (required for 'staff' or 'measure' scope, uses current if not provided) */
   staffIndex?: number;
@@ -27,7 +36,7 @@ export interface SelectAllOptions {
 }
 
 /**
- * Command to select all notes in a scope
+ * Command to select all notes following hierarchical expansion
  */
 export class SelectAllCommand implements SelectionCommand {
   readonly type = 'SELECT_ALL';
@@ -45,112 +54,214 @@ export class SelectAllCommand implements SelectionCommand {
       measureIndex = state.measureIndex,
     } = this.options;
 
-    // Determine target scope
-    let targetScope: SelectAllScope;
-    
+    // If explicit scope provided, use that directly
     if (scope) {
-      // Explicit scope provided
-      targetScope = scope;
-    } else if (expandIfSelected) {
-      // Progressive expansion: detect current scope and expand
-      const currentScope = this.detectCurrentScope(state, score);
-      targetScope = this.expandScope(currentScope);
-    } else {
-      // Default to score
-      targetScope = 'score';
+      return this.selectScope(state, score, scope, staffIndex, measureIndex ?? 0);
     }
 
-    // Collect all notes in the target scope
-    const selectedNotes = this.collectNotesInScope(
-      score,
-      targetScope,
-      staffIndex,
-      measureIndex ?? 0
-    );
+    // Progressive expansion mode
+    if (expandIfSelected) {
+      return this.progressiveExpansion(state, score);
+    }
 
+    // Default: select entire score
+    return this.selectScope(state, score, 'score', 0, 0);
+  }
+
+  /**
+   * Implements the hierarchical expansion logic from the specification
+   */
+  private progressiveExpansion(state: Selection, score: Score): Selection {
+    const { selectedNotes } = state;
+
+    // Case 1: No selection → Select entire Score
+    if (selectedNotes.length === 0) {
+      return this.selectScope(state, score, 'score', 0, 0);
+    }
+
+    // Get unique touched measures and staves
+    const touchedMeasures = this.getUniqueTouchedMeasures(selectedNotes);
+    const touchedStaves = this.getUniqueTouchedStaves(selectedNotes);
+
+    // Case 2: Check if any touched measure is partially selected
+    const hasPartialMeasures = touchedMeasures.some(({ staffIndex, measureIndex }) => {
+      const allNotesInMeasure = this.collectNotesInMeasure(score, staffIndex, measureIndex);
+      return !this.isFullySelected(selectedNotes, allNotesInMeasure);
+    });
+
+    if (hasPartialMeasures) {
+      // Fill all touched measures
+      const notesToSelect = this.collectNotesInTouchedMeasures(score, touchedMeasures);
+      return this.createSelectionFromNotes(notesToSelect);
+    }
+
+    // Case 3: All touched measures are full, check if any touched staff is partial
+    const hasPartialStaves = touchedStaves.some(staffIndex => {
+      const allNotesInStaff = this.collectNotesInStaff(score, staffIndex);
+      return !this.isFullySelected(selectedNotes, allNotesInStaff);
+    });
+
+    if (hasPartialStaves) {
+      // Fill all touched staves
+      const notesToSelect = this.collectNotesInTouchedStaves(score, touchedStaves);
+      return this.createSelectionFromNotes(notesToSelect);
+    }
+
+    // Case 4: Everything relevant is full → Select entire Score
+    return this.selectScope(state, score, 'score', 0, 0);
+  }
+
+  /**
+   * Select a specific scope
+   */
+  private selectScope(
+    state: Selection,
+    score: Score,
+    scope: SelectAllScope,
+    staffIndex: number,
+    measureIndex: number
+  ): Selection {
+    const selectedNotes = this.collectNotesInScope(score, scope, staffIndex, measureIndex);
+    
     if (selectedNotes.length === 0) {
       return state;
     }
 
-    // Set cursor to first selected note
-    const first = selectedNotes[0];
-
-    return {
-      staffIndex: first.staffIndex,
-      measureIndex: first.measureIndex,
-      eventId: first.eventId,
-      noteId: first.noteId,
-      selectedNotes,
-      anchor: first,
-    };
+    return this.createSelectionFromNotes(selectedNotes);
   }
 
   /**
-   * Detect what scope the current selection represents
+   * Get unique (staffIndex, measureIndex) pairs from selection
    */
-  private detectCurrentScope(state: Selection, score: Score): SelectAllScope {
-    const { selectedNotes, staffIndex, measureIndex } = state;
+  private getUniqueTouchedMeasures(
+    selectedNotes: SelectedNote[]
+  ): Array<{ staffIndex: number; measureIndex: number }> {
+    const seen = new Set<string>();
+    const result: Array<{ staffIndex: number; measureIndex: number }> = [];
 
-    if (selectedNotes.length === 0) {
-      return 'event'; // Start from smallest scope
-    }
-
-    // Check if all notes in score are selected
-    const allScoreNotes = this.collectNotesInScope(score, 'score', 0, 0);
-    if (this.selectionsMatch(selectedNotes, allScoreNotes)) {
-      return 'score';
-    }
-
-    // Check if all notes on current staff are selected
-    const allStaffNotes = this.collectNotesInScope(score, 'staff', staffIndex, 0);
-    if (this.selectionsMatch(selectedNotes, allStaffNotes)) {
-      return 'staff';
-    }
-
-    // Check if all notes in current measure are selected
-    if (measureIndex !== null) {
-      const allMeasureNotes = this.collectNotesInScope(score, 'measure', staffIndex, measureIndex);
-      if (this.selectionsMatch(selectedNotes, allMeasureNotes)) {
-        return 'measure';
+    for (const note of selectedNotes) {
+      const key = `${note.staffIndex}-${note.measureIndex}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push({ staffIndex: note.staffIndex, measureIndex: note.measureIndex });
       }
     }
 
-    // Check if all notes in current event are selected
-    if (state.eventId !== null && measureIndex !== null) {
-      const allEventNotes = this.collectNotesInEvent(score, staffIndex, measureIndex, state.eventId);
-      if (this.selectionsMatch(selectedNotes, allEventNotes)) {
-        return 'event';
+    return result;
+  }
+
+  /**
+   * Get unique staff indices from selection
+   */
+  private getUniqueTouchedStaves(selectedNotes: SelectedNote[]): number[] {
+    const seen = new Set<number>();
+    const result: number[] = [];
+
+    for (const note of selectedNotes) {
+      if (!seen.has(note.staffIndex)) {
+        seen.add(note.staffIndex);
+        result.push(note.staffIndex);
       }
     }
 
-    // Default: partial selection, treat as event level
-    return 'event';
+    return result;
   }
 
   /**
-   * Expand to the next scope level
+   * Check if a container is fully selected
    */
-  private expandScope(currentScope: SelectAllScope): SelectAllScope {
-    switch (currentScope) {
-      case 'event':
-        return 'measure';
-      case 'measure':
-        return 'staff';
-      case 'staff':
-        return 'score';
-      case 'score':
-        return 'score'; // Already at max
-    }
-  }
-
-  /**
-   * Check if two selection arrays contain the same notes
-   */
-  private selectionsMatch(a: SelectedNote[], b: SelectedNote[]): boolean {
-    if (a.length !== b.length) return false;
+  private isFullySelected(currentSelection: SelectedNote[], allNotes: SelectedNote[]): boolean {
+    if (allNotes.length === 0) return true;
     
-    const aIds = new Set(a.map(n => `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`));
-    return b.every(n => aIds.has(`${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`));
+    const selectedIds = new Set(
+      currentSelection.map(n => `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`)
+    );
+
+    return allNotes.every(n => 
+      selectedIds.has(`${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`)
+    );
+  }
+
+  /**
+   * Collect notes from multiple measures
+   */
+  private collectNotesInTouchedMeasures(
+    score: Score,
+    measures: Array<{ staffIndex: number; measureIndex: number }>
+  ): SelectedNote[] {
+    const notes: SelectedNote[] = [];
+    
+    for (const { staffIndex, measureIndex } of measures) {
+      notes.push(...this.collectNotesInMeasure(score, staffIndex, measureIndex));
+    }
+
+    return notes;
+  }
+
+  /**
+   * Collect notes from multiple staves
+   */
+  private collectNotesInTouchedStaves(score: Score, staves: number[]): SelectedNote[] {
+    const notes: SelectedNote[] = [];
+    
+    for (const staffIndex of staves) {
+      notes.push(...this.collectNotesInStaff(score, staffIndex));
+    }
+
+    return notes;
+  }
+
+  /**
+   * Collect all notes in a single measure
+   */
+  private collectNotesInMeasure(
+    score: Score,
+    staffIndex: number,
+    measureIndex: number
+  ): SelectedNote[] {
+    const notes: SelectedNote[] = [];
+    const staff = score.staves[staffIndex];
+    if (!staff) return notes;
+
+    const measure = staff.measures[measureIndex];
+    if (!measure) return notes;
+
+    for (const event of measure.events) {
+      for (const note of event.notes) {
+        notes.push({
+          staffIndex,
+          measureIndex,
+          eventId: event.id,
+          noteId: note.id,
+        });
+      }
+      // Include rests
+      if (event.isRest && event.notes.length === 0) {
+        notes.push({
+          staffIndex,
+          measureIndex,
+          eventId: event.id,
+          noteId: null,
+        });
+      }
+    }
+
+    return notes;
+  }
+
+  /**
+   * Collect all notes in a single staff
+   */
+  private collectNotesInStaff(score: Score, staffIndex: number): SelectedNote[] {
+    const notes: SelectedNote[] = [];
+    const staff = score.staves[staffIndex];
+    if (!staff) return notes;
+
+    for (let mIdx = 0; mIdx < staff.measures.length; mIdx++) {
+      notes.push(...this.collectNotesInMeasure(score, staffIndex, mIdx));
+    }
+
+    return notes;
   }
 
   /**
@@ -162,86 +273,92 @@ export class SelectAllCommand implements SelectionCommand {
     staffIndex: number,
     measureIndex: number
   ): SelectedNote[] {
-    const notes: SelectedNote[] = [];
-
-    const staffStart = scope === 'score' ? 0 : staffIndex;
-    const staffEnd = scope === 'score' ? score.staves.length : staffIndex + 1;
-
-    for (let sIdx = staffStart; sIdx < staffEnd; sIdx++) {
-      const staff = score.staves[sIdx];
-      if (!staff) continue;
-
-      const measureStart = (scope === 'score' || scope === 'staff') ? 0 : measureIndex;
-      const measureEnd = (scope === 'score' || scope === 'staff') ? staff.measures.length : measureIndex + 1;
-
-      for (let mIdx = measureStart; mIdx < measureEnd; mIdx++) {
-        const measure = staff.measures[mIdx];
-        if (!measure) continue;
-
-        for (const event of measure.events) {
-          // For 'event' scope, we'd need an eventId filter - but this method handles broader scopes
-          for (const note of event.notes) {
-            notes.push({
-              staffIndex: sIdx,
-              measureIndex: mIdx,
-              eventId: event.id,
-              noteId: note.id,
-            });
-          }
-          // Also include rests
-          if (event.isRest && event.notes.length === 0) {
-            notes.push({
-              staffIndex: sIdx,
-              measureIndex: mIdx,
-              eventId: event.id,
-              noteId: null,
-            });
-          }
-        }
-      }
+    switch (scope) {
+      case 'event':
+        return this.collectNotesInEvent(score, staffIndex, measureIndex);
+      case 'measure':
+        return this.collectNotesInMeasure(score, staffIndex, measureIndex);
+      case 'staff':
+        return this.collectNotesInStaff(score, staffIndex);
+      case 'score':
+        return this.collectAllNotes(score);
     }
-
-    return notes;
   }
 
   /**
-   * Collect all notes in a specific event
+   * Collect all notes in the first event at the given position
    */
   private collectNotesInEvent(
     score: Score,
     staffIndex: number,
-    measureIndex: number,
-    eventId: string | number
+    measureIndex: number
   ): SelectedNote[] {
     const notes: SelectedNote[] = [];
     const staff = score.staves[staffIndex];
     if (!staff) return notes;
 
     const measure = staff.measures[measureIndex];
-    if (!measure) return notes;
+    if (!measure || measure.events.length === 0) return notes;
 
-    const event = measure.events.find(e => e.id === eventId);
-    if (!event) return notes;
-
+    const event = measure.events[0];
     for (const note of event.notes) {
       notes.push({
         staffIndex,
         measureIndex,
-        eventId,
+        eventId: event.id,
         noteId: note.id,
       });
     }
 
-    // Include rest if applicable
     if (event.isRest && event.notes.length === 0) {
       notes.push({
         staffIndex,
         measureIndex,
-        eventId,
+        eventId: event.id,
         noteId: null,
       });
     }
 
     return notes;
+  }
+
+  /**
+   * Collect all notes in the score
+   */
+  private collectAllNotes(score: Score): SelectedNote[] {
+    const notes: SelectedNote[] = [];
+
+    for (let sIdx = 0; sIdx < score.staves.length; sIdx++) {
+      notes.push(...this.collectNotesInStaff(score, sIdx));
+    }
+
+    return notes;
+  }
+
+  /**
+   * Create selection state from collected notes
+   */
+  private createSelectionFromNotes(selectedNotes: SelectedNote[]): Selection {
+    if (selectedNotes.length === 0) {
+      return {
+        staffIndex: 0,
+        measureIndex: null,
+        eventId: null,
+        noteId: null,
+        selectedNotes: [],
+        anchor: null,
+      };
+    }
+
+    const first = selectedNotes[0];
+
+    return {
+      staffIndex: first.staffIndex,
+      measureIndex: first.measureIndex,
+      eventId: first.eventId,
+      noteId: first.noteId,
+      selectedNotes,
+      anchor: first,
+    };
   }
 }
