@@ -93,12 +93,13 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
         // Cursor moved within same event (chord extension)
         // Select range from anchor note to new cursor within this event
         const eventAnchor = this.findAnchorForEvent(positions);
-        if (eventAnchor) {
+        const event = this.findEventById(score, staffIdx, measureIdx, eventId);
+        if (eventAnchor && event) {
           this.addNotesInMidiRange(
             newNotes,
             staffIdx,
             measureIdx,
-            this.findEventById(score, staffIdx, measureIdx, eventId)!,
+            event,
             eventAnchor.midi,
             newCursor.midi
           );
