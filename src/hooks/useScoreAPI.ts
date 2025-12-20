@@ -19,7 +19,12 @@ import type { MusicEditorAPI, RiffScoreRegistry, Unsubscribe } from '../api.type
 import type { RiffScoreConfig, Note, Score, Selection } from '../types';
 import { AddEventCommand } from '../commands/AddEventCommand';
 import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
-import { SetSelectionCommand } from '../commands/selection';
+import {
+  SetSelectionCommand,
+  SelectAllCommand,
+  SelectAllInEventCommand,
+  SelectEventCommand,
+} from '../commands/selection';
 import { navigateSelection, getFirstNoteId } from '../utils/core';
 import { canAddEventToMeasure } from '../utils/validation';
 
@@ -185,29 +190,20 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
         return this;
       },
 
-      select(measureNum, staffIndex = 0, eventIndex = 0) {
+      select(measureNum, staffIndex = 0, eventIndex = 0, noteIndex = 0) {
         // Convert 1-based measureNum to 0-based index
         const measureIndex = measureNum - 1;
-        const staff = scoreRef.current.staves[staffIndex];
-        if (!staff) return this;
-
-        const measure = staff.measures[measureIndex];
-        if (!measure) return this;
-
-        const event = measure.events[eventIndex];
-        const eventId = event?.id ?? null;
-        const noteId = getFirstNoteId(event);
-
-        syncSelection({
+        
+        // Use SelectEventCommand for proper selection
+        selectionEngine.dispatch(new SelectEventCommand({
           staffIndex,
           measureIndex,
-          eventId,
-          noteId,
-          selectedNotes: eventId
-            ? [{ staffIndex, measureIndex, eventId, noteId }]
-            : [],
-          anchor: null,
-        });
+          eventIndex,
+          noteIndex,
+        }));
+
+        // Sync the ref for chaining
+        selectionRef.current = selectionEngine.getState();
 
         return this;
       },
@@ -217,8 +213,33 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
         return this;
       },
 
-      selectById(_eventId, _noteId) {
-        // TODO: Implement ID-based selection
+      selectById(eventId, noteId) {
+        const sel = selectionRef.current;
+        const staff = scoreRef.current.staves[sel.staffIndex];
+        if (!staff) return this;
+
+        // Find the event and measure containing this eventId
+        for (let mIdx = 0; mIdx < staff.measures.length; mIdx++) {
+          const measure = staff.measures[mIdx];
+          const eIdx = measure.events.findIndex(e => e.id === eventId);
+          if (eIdx !== -1) {
+            const event = measure.events[eIdx];
+            // Find note index if noteId provided
+            let noteIndex = 0;
+            if (noteId && event.notes) {
+              const nIdx = event.notes.findIndex(n => n.id === noteId);
+              if (nIdx !== -1) noteIndex = nIdx;
+            }
+            selectionEngine.dispatch(new SelectEventCommand({
+              staffIndex: sel.staffIndex,
+              measureIndex: mIdx,
+              eventIndex: eIdx,
+              noteIndex,
+            }));
+            selectionRef.current = selectionEngine.getState();
+            break;
+          }
+        }
         return this;
       },
 
@@ -233,8 +254,43 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
         return this;
       },
 
-      selectAll(_scope = 'score') {
-        // TODO: Implement
+      selectAll(scope = 'score') {
+        const sel = selectionRef.current;
+        selectionEngine.dispatch(new SelectAllCommand({
+          scope: scope as 'score' | 'staff' | 'measure' | 'event',
+          staffIndex: sel.staffIndex,
+          measureIndex: sel.measureIndex ?? undefined,
+          expandIfSelected: false, // API uses explicit scope
+        }));
+        selectionRef.current = selectionEngine.getState();
+        return this;
+      },
+
+      /** Select all notes in the current event (chord) */
+      selectEvent(measureNum?: number, staffIndex?: number, eventIndex?: number) {
+        const sel = selectionRef.current;
+        const sIdx = staffIndex ?? sel.staffIndex;
+        const mIdx = measureNum !== undefined ? measureNum - 1 : sel.measureIndex;
+        
+        if (mIdx === null) return this;
+        
+        const staff = scoreRef.current.staves[sIdx];
+        if (!staff) return this;
+        
+        const measure = staff.measures[mIdx];
+        if (!measure) return this;
+        
+        // Get event
+        const eIdx = eventIndex ?? measure.events.findIndex(e => e.id === sel.eventId);
+        const event = measure.events[eIdx];
+        if (!event) return this;
+
+        selectionEngine.dispatch(new SelectAllInEventCommand({
+          staffIndex: sIdx,
+          measureIndex: mIdx,
+          eventId: event.id,
+        }));
+        selectionRef.current = selectionEngine.getState();
         return this;
       },
 

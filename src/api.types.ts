@@ -51,7 +51,7 @@ export interface MusicEditorAPI {
   /** Jump to a specific position in the score */
   jump(target: 'start-score' | 'end-score' | 'start-measure' | 'end-measure'): this;
   /** Select an event by measure number (1-based) and optional indices */
-  select(measureNum: number, staffIndex?: number, eventIndex?: number): this;
+  select(measureNum: number, staffIndex?: number, eventIndex?: number, noteIndex?: number): this;
   /** Select by rhythmic position within a measure */
   selectAtQuant(measureNum: number, quant: number, staffIndex?: number): this;
   /** Select by internal event/note IDs */
@@ -63,7 +63,9 @@ export interface MusicEditorAPI {
   /** Extend selection from anchor to target (Shift+Click behavior) */
   selectRangeTo(measureNum: number, staffIndex: number, eventIndex: number): this;
   /** Select all events in the specified scope */
-  selectAll(scope?: 'score' | 'measure' | 'staff'): this;
+  selectAll(scope?: 'score' | 'measure' | 'staff' | 'event'): this;
+  /** Select all notes in an event (chord) */
+  selectEvent(measureNum?: number, staffIndex?: number, eventIndex?: number): this;
   /** Clear all selections */
   deselectAll(): this;
 
