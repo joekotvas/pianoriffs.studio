@@ -24,6 +24,8 @@ import {
   SelectAllCommand,
   SelectAllInEventCommand,
   SelectEventCommand,
+  SelectFullEventsCommand,
+  ExpandSelectionVerticallyCommand,
 } from '../commands/selection';
 import { navigateSelection, getFirstNoteId } from '../utils/core';
 import { canAddEventToMeasure } from '../utils/validation';
@@ -303,6 +305,46 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
           selectedNotes: [],
           anchor: null,
         });
+        return this;
+      },
+
+      /**
+       * Select all notes in all touched events (fill partial chords).
+       * "Touched" = any event that has at least one note selected.
+       */
+      selectFullEvents() {
+        selectionEngine.dispatch(new SelectFullEventsCommand());
+        selectionRef.current = selectionEngine.getState();
+        return this;
+      },
+
+      /**
+       * Extend selection to quant-aligned events in the staff above.
+       * Implicitly fills all touched events first, then expands upward.
+       */
+      expandSelectionUp() {
+        selectionEngine.dispatch(new ExpandSelectionVerticallyCommand({ direction: 'up' }));
+        selectionRef.current = selectionEngine.getState();
+        return this;
+      },
+
+      /**
+       * Extend selection to quant-aligned events in the staff below.
+       * Implicitly fills all touched events first, then expands downward.
+       */
+      expandSelectionDown() {
+        selectionEngine.dispatch(new ExpandSelectionVerticallyCommand({ direction: 'down' }));
+        selectionRef.current = selectionEngine.getState();
+        return this;
+      },
+
+      /**
+       * Extend selection to quant-aligned events across ALL staves.
+       * Implicitly fills all touched events first.
+       */
+      expandSelectionAllStaves() {
+        selectionEngine.dispatch(new ExpandSelectionVerticallyCommand({ direction: 'all' }));
+        selectionRef.current = selectionEngine.getState();
         return this;
       },
 

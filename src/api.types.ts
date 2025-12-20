@@ -68,6 +68,14 @@ export interface MusicEditorAPI {
   selectEvent(measureNum?: number, staffIndex?: number, eventIndex?: number): this;
   /** Clear all selections */
   deselectAll(): this;
+  /** Select all notes in all touched events (fill partial chords) */
+  selectFullEvents(): this;
+  /** Extend selection to quant-aligned events in the staff above */
+  expandSelectionUp(): this;
+  /** Extend selection to quant-aligned events in the staff below */
+  expandSelectionDown(): this;
+  /** Extend selection to quant-aligned events across all staves */
+  expandSelectionAllStaves(): this;
 
   // --- Entry (Create) ---
   /** Add a note at the cursor position */
