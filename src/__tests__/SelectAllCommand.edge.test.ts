@@ -46,6 +46,7 @@ describe('SelectAllCommand - edge cases', () => {
           {
             id: 'staff-0',
             clef: 'treble' as const,
+            keySignature: 'C',
             measures: [{ id: 'empty-measure', events: [] }],
           },
         ],

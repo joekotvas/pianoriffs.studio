@@ -21,6 +21,7 @@ export function createTestScore(): Score {
       {
         id: 'staff-0',
         clef: 'treble',
+        keySignature: 'C',
         measures: [
           {
             id: 'measure-0-0',
@@ -28,18 +29,18 @@ export function createTestScore(): Score {
               {
                 id: 'event-0-0-0',
                 notes: [
-                  { id: 'note-1', pitch: 'C4', duration: 'quarter' },
-                  { id: 'note-2', pitch: 'E4', duration: 'quarter' },
+                  { id: 'note-1', pitch: 'C4' },
+                  { id: 'note-2', pitch: 'E4' },
                 ],
                 duration: 'quarter',
-                quant: 0,
+                dotted: false,
                 isRest: false,
               },
               {
                 id: 'event-0-0-1',
-                notes: [{ id: 'note-3', pitch: 'D4', duration: 'quarter' }],
+                notes: [{ id: 'note-3', pitch: 'D4' }],
                 duration: 'quarter',
-                quant: 24,
+                dotted: false,
                 isRest: false,
               },
             ],
@@ -49,9 +50,9 @@ export function createTestScore(): Score {
             events: [
               {
                 id: 'event-0-1-0',
-                notes: [{ id: 'note-4', pitch: 'E4', duration: 'half' }],
+                notes: [{ id: 'note-4', pitch: 'E4' }],
                 duration: 'half',
-                quant: 0,
+                dotted: false,
                 isRest: false,
               },
             ],
@@ -61,15 +62,16 @@ export function createTestScore(): Score {
       {
         id: 'staff-1',
         clef: 'bass',
+        keySignature: 'C',
         measures: [
           {
             id: 'measure-1-0',
             events: [
               {
                 id: 'event-1-0-0',
-                notes: [{ id: 'note-5', pitch: 'C3', duration: 'quarter' }],
+                notes: [{ id: 'note-5', pitch: 'C3' }],
                 duration: 'quarter',
-                quant: 0,
+                dotted: false,
                 isRest: false,
               },
             ],
@@ -79,9 +81,9 @@ export function createTestScore(): Score {
             events: [
               {
                 id: 'event-1-1-0',
-                notes: [{ id: 'note-6', pitch: 'D3', duration: 'quarter' }],
+                notes: [{ id: 'note-6', pitch: 'D3' }],
                 duration: 'quarter',
-                quant: 0,
+                dotted: false,
                 isRest: false,
               },
             ],
@@ -103,22 +105,23 @@ export function createScoreWithRests(): Score {
       {
         id: 'staff-0',
         clef: 'treble',
+        keySignature: 'C',
         measures: [
           {
             id: 'measure-0-0',
             events: [
               {
                 id: 'event-note',
-                notes: [{ id: 'note-1', pitch: 'C4', duration: 'quarter' }],
+                notes: [{ id: 'note-1', pitch: 'C4' }],
                 duration: 'quarter',
-                quant: 0,
+                dotted: false,
                 isRest: false,
               },
               {
                 id: 'event-rest',
                 notes: [],
                 duration: 'quarter',
-                quant: 24,
+                dotted: false,
                 isRest: true,
               },
             ],
@@ -140,15 +143,16 @@ export function createSingleStaffScore(): Score {
       {
         id: 'staff-0',
         clef: 'treble',
+        keySignature: 'C',
         measures: [
           {
             id: 'measure-0-0',
             events: [
               {
                 id: 'event-0-0-0',
-                notes: [{ id: 'note-1', pitch: 'C4', duration: 'quarter' }],
+                notes: [{ id: 'note-1', pitch: 'C4' }],
                 duration: 'quarter',
-                quant: 0,
+                dotted: false,
                 isRest: false,
               },
             ],
@@ -158,9 +162,9 @@ export function createSingleStaffScore(): Score {
             events: [
               {
                 id: 'event-0-1-0',
-                notes: [{ id: 'note-2', pitch: 'D4', duration: 'quarter' }],
+                notes: [{ id: 'note-2', pitch: 'D4' }],
                 duration: 'quarter',
-                quant: 0,
+                dotted: false,
                 isRest: false,
               },
             ],
