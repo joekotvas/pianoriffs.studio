@@ -11,6 +11,7 @@ import { Command } from '@/commands/types';
 import { AddMeasureCommand } from '@/commands/MeasureCommands';
 import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand';
 import { SetSelectionCommand } from '@/commands/selection';
+import { SelectionEngine } from '@/engines/SelectionEngine';
 
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;
@@ -31,6 +32,7 @@ interface UseNavigationProps {
   currentQuantsPerMeasure: number;
   dispatch: (command: Command) => void;
   inputMode: 'NOTE' | 'REST';
+  selectionEngine: SelectionEngine;
 }
 
 interface UseNavigationReturn {
@@ -60,6 +62,7 @@ export const useNavigation = ({
   currentQuantsPerMeasure,
   dispatch,
   inputMode,
+  selectionEngine,
 }: UseNavigationProps): UseNavigationReturn => {
   // --- Internal Helpers ---
 

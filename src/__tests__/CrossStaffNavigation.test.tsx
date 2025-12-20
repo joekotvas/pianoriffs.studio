@@ -2,10 +2,22 @@ import { renderHook, act } from '@testing-library/react';
 import { useNavigation } from '@/hooks/useNavigation';
 import { Score, Staff, Measure, Selection } from '@/types';
 import { createDefaultSelection } from '@/types';
+import { SelectionEngine } from '@/engines/SelectionEngine';
 
 jest.mock('../engines/toneEngine', () => ({
   playNote: jest.fn(),
 }));
+
+// Mock SelectionEngine for tests
+const createMockSelectionEngine = (): SelectionEngine => {
+  const state = createDefaultSelection();
+  return {
+    getState: () => state,
+    dispatch: jest.fn(),
+    setState: jest.fn(),
+    subscribe: jest.fn(() => () => {}),
+  } as unknown as SelectionEngine;
+};
 
 // Mock Score Factory (Same as before)
 const createMockScore = (): Score => {
@@ -115,6 +127,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine(),
       })
     );
 
@@ -180,6 +193,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine(),
       })
     );
 
@@ -241,6 +255,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine(),
       })
     );
 
@@ -369,6 +384,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine(),
       })
     );
 
