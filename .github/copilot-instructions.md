@@ -108,8 +108,8 @@ npm run format:check
 ## Music Libraries
 
 **Always prefer existing music theory libraries:**
-- **Tonal.js** - For music theory operations (notes, scales, chords, intervals)
-- **Tone.js** - For audio playback and timing
+- **Tonal.js** (`tonal` package) - For music theory operations (notes, scales, chords, intervals)
+- **Tone.js** (`tone` package) - For audio playback and timing
 
 Don't reinvent music theory logic - these libraries are already integrated and tested.
 
@@ -136,7 +136,7 @@ const renderWithProviders = (component: React.ReactNode) => {
 ```
 
 ### Path Aliases in Tests
-Tests can use the same `@/` aliases as source code thanks to Jest configuration.
+Tests can use the same `@/` aliases as source code thanks to Jest configuration. Note that some newer aliases like `@config`, `@types`, and `@constants` may need to be added to `jest.config.js` if they are used in tests.
 
 ## Commit Message Format
 
