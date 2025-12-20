@@ -7,7 +7,7 @@ import {
   SelectAllInEventCommand,
   ClearSelectionCommand,
   SelectAllCommand,
-  ExpandSelectionVerticallyCommand,
+  ExtendSelectionVerticallyCommand,
 } from '@/commands/selection';
 
 /**
@@ -117,11 +117,11 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
         return;
       }
 
-      // Cmd/Ctrl+Shift+Up/Down: Expand selection vertically
+      // Cmd/Ctrl+Shift+Up/Down: Extend selection vertically
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         e.preventDefault();
         const direction = e.key === 'ArrowUp' ? 'up' : 'down';
-        selectionEngine.dispatch(new ExpandSelectionVerticallyCommand({ direction }));
+        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction }));
         return;
       }
 

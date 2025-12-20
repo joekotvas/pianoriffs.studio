@@ -25,7 +25,7 @@ import {
   SelectAllInEventCommand,
   SelectEventCommand,
   SelectFullEventsCommand,
-  ExpandSelectionVerticallyCommand,
+  ExtendSelectionVerticallyCommand,
 } from '../commands/selection';
 import { navigateSelection, getFirstNoteId } from '../utils/core';
 import { canAddEventToMeasure } from '../utils/validation';
@@ -320,33 +320,33 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
 
       /**
        * Extend selection to quant-aligned events in the staff above.
-       * Implicitly fills all touched events first, then expands upward.
+       * Uses anchor-based cursor model - can expand OR contract.
        */
-      expandSelectionUp() {
-        selectionEngine.dispatch(new ExpandSelectionVerticallyCommand({ direction: 'up' }));
+      extendSelectionUp() {
+        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction: 'up' }));
         selectionRef.current = selectionEngine.getState();
         return this;
       },
 
       /**
        * Extend selection to quant-aligned events in the staff below.
-       * Implicitly fills all touched events first, then expands downward.
+       * Uses anchor-based cursor model - can expand OR contract.
        */
-      expandSelectionDown() {
-        selectionEngine.dispatch(new ExpandSelectionVerticallyCommand({ direction: 'down' }));
+      extendSelectionDown() {
+        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction: 'down' }));
         selectionRef.current = selectionEngine.getState();
         return this;
       },
 
       /**
        * Extend selection to quant-aligned events across ALL staves.
-       * Implicitly fills all touched events first.
        */
-      expandSelectionAllStaves() {
-        selectionEngine.dispatch(new ExpandSelectionVerticallyCommand({ direction: 'all' }));
+      extendSelectionAllStaves() {
+        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction: 'all' }));
         selectionRef.current = selectionEngine.getState();
         return this;
       },
+
 
       // ========== ENTRY (CREATE) ==========
       addNote(pitch, duration = 'quarter', dotted = false) {

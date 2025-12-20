@@ -70,12 +70,12 @@ export interface MusicEditorAPI {
   deselectAll(): this;
   /** Select all notes in all touched events (fill partial chords) */
   selectFullEvents(): this;
-  /** Extend selection to quant-aligned events in the staff above */
-  expandSelectionUp(): this;
-  /** Extend selection to quant-aligned events in the staff below */
-  expandSelectionDown(): this;
-  /** Extend selection to quant-aligned events across all staves */
-  expandSelectionAllStaves(): this;
+  /** Extend selection vertically to staff above (anchor-based) */
+  extendSelectionUp(): this;
+  /** Extend selection vertically to staff below (anchor-based) */
+  extendSelectionDown(): this;
+  /** Extend selection vertically to all staves */
+  extendSelectionAllStaves(): this;
 
   // --- Entry (Create) ---
   /** Add a note at the cursor position */
