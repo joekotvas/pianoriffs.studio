@@ -14,6 +14,7 @@ import { useEditorMode } from './useEditorMode';
 import { Score, createDefaultScore, migrateScore, getActiveStaff } from '@/types';
 import { getAppendPreviewNote } from '@/utils/interaction';
 import { calculateFocusSelection } from '@/utils/focusScore';
+import { SetSelectionCommand } from '@/commands/selection';
 
 /**
  * Main score logic orchestrator hook.
@@ -131,7 +132,7 @@ export const useScoreLogic = (initialScore: any) => {
   // Measure Actions: time/key signature, add/remove measures
   const measureActions = useMeasureActions({
     score,
-    setSelection,
+    clearSelection,
     setPreviewNote,
     dispatch: engine.dispatch.bind(engine),
   });
@@ -379,7 +380,16 @@ export const useScoreLogic = (initialScore: any) => {
   // --- FOCUS SCORE ---
   const focusScore = useCallback(() => {
     const newSelection = calculateFocusSelection(score, selection);
-    setSelection(newSelection);
+    
+    // Use dispatch to set selection
+    selectionEngine.dispatch(new SetSelectionCommand({
+      staffIndex: newSelection.staffIndex,
+      measureIndex: newSelection.measureIndex,
+      eventId: newSelection.eventId,
+      noteId: newSelection.noteId,
+      selectedNotes: newSelection.selectedNotes,
+      anchor: newSelection.anchor,
+    }));
 
     // If focusing on an empty position (no eventId), create a preview note for ghost cursor
     if (!newSelection.eventId && newSelection.measureIndex !== null) {
@@ -400,7 +410,7 @@ export const useScoreLogic = (initialScore: any) => {
         setPreviewNote(preview);
       }
     }
-  }, [score, selection, setSelection, setPreviewNote, activeDuration, isDotted, inputMode]);
+  }, [score, selection, selectionEngine, setPreviewNote, activeDuration, isDotted, inputMode]);
 
   // --- EXPORTS ---
   return {

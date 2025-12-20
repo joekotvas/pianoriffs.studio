@@ -9,3 +9,6 @@ export * from './ClearSelectionCommand';
 export * from './SelectAllInEventCommand';
 export * from './ToggleNoteCommand';
 export * from './RangeSelectCommand';
+export * from './LassoSelectCommand';
+export * from './SetSelectionCommand';
+

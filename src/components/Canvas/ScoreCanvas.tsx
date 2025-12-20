@@ -12,6 +12,7 @@ import { useGrandStaffLayout } from '@/hooks/useGrandStaffLayout';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
 import { LAYOUT, CLAMP_LIMITS, STAFF_HEIGHT } from '@/constants';
+import { LassoSelectCommand } from '@/commands/selection';
 
 interface ScoreCanvasProps {
   scale: number;
@@ -46,6 +47,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     selection,
     setSelection,
     clearSelection,
+    selectionEngine,
     handleNoteSelection,
     addNoteToMeasure,
     activeDuration,
@@ -268,39 +270,11 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     onSelectionComplete: (notes, isAdditive) => {
       if (notes.length === 0) return;
 
-      if (isAdditive) {
-        // Add to existing selection
-        setSelection((prev) => ({
-          ...prev,
-          selectedNotes: [
-            ...prev.selectedNotes,
-            ...notes.filter(
-              (n) =>
-                !prev.selectedNotes.some((sn) => sn.noteId === n.noteId && sn.eventId === n.eventId)
-            ),
-          ],
-          // Update focus to first new note
-          measureIndex: notes[0].measureIndex,
-          eventId: notes[0].eventId,
-          noteId: notes[0].noteId,
-          staffIndex: notes[0].staffIndex,
-        }));
-      } else {
-        // Replace selection
-        setSelection({
-          staffIndex: notes[0].staffIndex,
-          measureIndex: notes[0].measureIndex,
-          eventId: notes[0].eventId,
-          noteId: notes[0].noteId,
-          selectedNotes: notes,
-          anchor: {
-            staffIndex: notes[0].staffIndex,
-            measureIndex: notes[0].measureIndex,
-            eventId: notes[0].eventId,
-            noteId: notes[0].noteId,
-          },
-        });
-      }
+      // Use dispatch for lasso selection
+      selectionEngine.dispatch(new LassoSelectCommand({
+        notes,
+        addToSelection: isAdditive,
+      }));
     },
     scale,
   });
