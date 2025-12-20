@@ -24,19 +24,49 @@ import type { SelectionCommand } from './types';
 
 export type SelectAllScope = 'event' | 'measure' | 'staff' | 'score';
 
+/**
+ * Options for configuring select-all behavior
+ */
 export interface SelectAllOptions {
-  /** Explicit scope to select (bypasses progressive expansion) */
+  /**
+   * Explicit scope to select (bypasses progressive expansion)
+   * - 'event': Select all notes in current event/chord
+   * - 'measure': Select all notes in current measure
+   * - 'staff': Select all notes on current staff
+   * - 'score': Select all notes in entire score
+   */
   scope?: SelectAllScope;
-  /** If true, use progressive expansion logic (default: true for keyboard) */
+
+  /**
+   * If true, use progressive expansion logic.
+   * When the current scope is already fully selected, expand to the next level.
+   * @default false (true when triggered via keyboard)
+   */
   expandIfSelected?: boolean;
-  /** Staff index (required for 'staff' or 'measure' scope, uses current if not provided) */
+
+  /** Staff index for 'staff' or 'measure' scope (defaults to current) */
   staffIndex?: number;
-  /** Measure index (required for 'measure' scope, uses current if not provided) */
+
+  /** Measure index for 'measure' scope (defaults to current) */
   measureIndex?: number;
 }
 
 /**
- * Command to select all notes following hierarchical expansion
+ * Command to select all notes with hierarchical expansion support.
+ *
+ * Supports both explicit scope selection and progressive Cmd+A expansion.
+ *
+ * @example
+ * ```typescript
+ * // Select all notes in a measure
+ * engine.dispatch(new SelectAllCommand({ scope: 'measure', measureIndex: 0 }));
+ *
+ * // Progressive expansion (Cmd+A behavior)
+ * engine.dispatch(new SelectAllCommand({ expandIfSelected: true }));
+ * ```
+ *
+ * @see Issue #99
+ * @tested SelectAllCommand.test.ts
  */
 export class SelectAllCommand implements SelectionCommand {
   readonly type = 'SELECT_ALL';
@@ -46,6 +76,13 @@ export class SelectAllCommand implements SelectionCommand {
     this.options = options;
   }
 
+  /**
+   * Execute the select-all command.
+   *
+   * @param state - Current selection state
+   * @param score - The score model to select from
+   * @returns New selection state with selected notes
+   */
   execute(state: Selection, score: Score): Selection {
     const {
       scope,
@@ -118,7 +155,11 @@ export class SelectAllCommand implements SelectionCommand {
   }
 
   /**
-   * Select a specific scope
+   * Select notes in a specific scope.
+   *
+   * @param state - Current selection state (returned if scope is empty)
+   * @param scope - Target scope to select
+   * @returns New selection with all notes in the scope
    */
   private selectScope(
     state: Selection,
@@ -348,7 +389,12 @@ export class SelectAllCommand implements SelectionCommand {
   }
 
   /**
-   * Create selection state from collected notes
+   * Create a Selection state from collected notes.
+   *
+   * Sets cursor to the first selected note and stores all notes in `selectedNotes`.
+   *
+   * @param selectedNotes - Array of notes to include in selection
+   * @returns New Selection state
    */
   private createSelectionFromNotes(selectedNotes: SelectedNote[]): Selection {
     if (selectedNotes.length === 0) {
