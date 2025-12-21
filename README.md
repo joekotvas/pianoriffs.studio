@@ -66,24 +66,27 @@ That's it! RiffScore renders a fully interactive grand staff editor with sensibl
 
 ## Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `1`-`7` | Set note duration (64th to whole) |
-| `.` | Toggle dotted |
-| `R` | Toggle note/rest mode |
-| `T` | Toggle tie |
-| `Space` | Play / Pause |
-| `↑` / `↓` | Transpose selection |
-| `←` / `→` | Navigate through timeline |
-| `Shift+←/→` | Extend selection horizontally |
-| `Esc` | Clear selection / Cancel |
-
 | Mac | Windows | Action |
 |-----|---------|--------|
+| **Entry** |||
+| `1`-`7` | `1`-`7` | Set duration (64th to whole) |
+| `.` | `.` | Toggle dotted |
+| `R` | `R` | Toggle note/rest mode |
+| `T` | `T` | Toggle tie |
+| `Enter` | `Enter` | Insert note/rest at cursor |
+| **Navigation** |||
+| `←` / `→` | `←` / `→` | Previous / Next event |
+| `↑` / `↓` | `↑` / `↓` | Transpose selection |
+| `Cmd+↑/↓` | `Ctrl+↑/↓` | Navigate within chord |
+| `Space` | `Space` | Play / Pause |
+| `Esc` | `Esc` | Clear selection / Cancel |
+| **Selection** |||
+| `Shift+←/→` | `Shift+←/→` | Extend selection horizontally |
+| `Cmd+Shift+↑/↓` | `Ctrl+Shift+↑/↓` | Extend selection vertically |
+| `Cmd+A` | `Ctrl+A` | Select all (progressive) |
+| **History** |||
 | `Cmd+Z` | `Ctrl+Z` | Undo |
 | `Cmd+Shift+Z` | `Ctrl+Y` | Redo |
-| `Cmd+A` | `Ctrl+A` | Select all (progressive scope) |
-| `Cmd+Shift+↑/↓` | `Ctrl+Shift+↑/↓` | Extend selection vertically |
 
 See the [Interaction Guide](./docs/INTERACTION.md) for the complete keyboard reference.
 
