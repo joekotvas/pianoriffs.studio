@@ -265,6 +265,32 @@ const customStaves = [{ id: 'treble', clef: 'treble', measures: [...] }];
 render(<RiffScore id="custom" config={{ score: { staves: customStaves } }} />);
 ```
 
+### Pattern: Testing Event Subscriptions
+
+Event callbacks fire via `useEffect`, so use `waitFor()` for assertions:
+
+```typescript
+import { render, waitFor } from '@testing-library/react';
+
+test('score callback fires on mutation', async () => {
+  // jsdom doesn't have scrollTo
+  Element.prototype.scrollTo = jest.fn();
+  
+  render(<RiffScore id="sub-test" />);
+  const api = getAPI('sub-test');
+
+  const callback = jest.fn();
+  api.on('score', callback);
+
+  api.select(1).addNote('C4');
+
+  // Callback fires after React processes state update
+  await waitFor(() => {
+    expect(callback).toHaveBeenCalled();
+  });
+});
+```
+
 ---
 
 ## 7. Testing Utilities
