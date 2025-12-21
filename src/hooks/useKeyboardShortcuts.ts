@@ -2,13 +2,28 @@ import { useEffect, useCallback } from 'react';
 import { handlePlayback } from './handlers/handlePlayback';
 import { handleNavigation } from './handlers/handleNavigation';
 import { handleMutation } from './handlers/handleMutation';
-import { getActiveStaff } from '@/types';
+import { getActiveStaff, ScoreEvent, Note, SelectedNote } from '@/types';
+import { UseScoreLogicGroupedReturn } from '@/hooks/score/types';
 import {
   SelectAllInEventCommand,
   ClearSelectionCommand,
   SelectAllCommand,
   ExtendSelectionVerticallyCommand,
 } from '@/commands/selection';
+
+/**
+ * Playback state returned by usePlayback hook
+ */
+interface PlaybackState {
+  isPlaying: boolean;
+  playbackPosition: { measureIndex: number | null; quant: number | null; duration: number };
+  playScore: (startMeasureIndex?: number, startQuant?: number) => Promise<void>;
+  stopPlayback: () => void;
+  pausePlayback: () => void;
+  handlePlayToggle: () => void;
+  lastPlayStart: { measureIndex: number; quant: number };
+  instrumentState: string;
+}
 
 /**
  * Hook to handle global keyboard shortcuts.
@@ -27,7 +42,7 @@ interface UIState {
   isDisabled?: boolean;
 }
 
-export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, handlers: any) => {
+export const useKeyboardShortcuts = (logic: UseScoreLogicGroupedReturn, playback: PlaybackState, meta: UIState, handlers: { handleTitleCommit: () => void }) => {
   // Access grouped API from logic
   const { selection } = logic.state;
   const score = logic.state.score;
@@ -38,7 +53,7 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
   const { handleTitleCommit } = handlers;
 
   const handleKeyDown = useCallback(
-    (e: any) => {
+    (e: KeyboardEvent) => {
       const tagName = (e.target as HTMLElement).tagName?.toLowerCase() || '';
       if (tagName === 'input' || tagName === 'textarea') {
         if (e.key === 'Enter' && isEditingTitle) {
@@ -63,7 +78,6 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
 
       if (e.key === 'Escape') {
         e.preventDefault(); // Prevent default browser behavior for Escape key
-        console.log('ESC Pressed. Focused:', document.activeElement?.getAttribute('data-testid'));
 
         // First priority: Pause playback if playing
         if (playback.isPlaying) {
@@ -81,13 +95,13 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
           // If a single note is selected...
           const activeStaff = getActiveStaff(scoreRef.current);
           const measure = activeStaff.measures[selection.measureIndex!];
-          const event = measure.events.find((ev: any) => ev.id === selection.eventId);
+          const event = measure.events.find((ev: ScoreEvent) => ev.id === selection.eventId);
 
           if (event && event.notes.length > 1) {
             // Check if we already have ALL notes selected
-            const allSelected = event.notes.every((n: any) => {
+            const allSelected = event.notes.every((n: Note) => {
               if (String(n.id) === String(selection.noteId)) return true;
-              return selection.selectedNotes.some((sn: any) => String(sn.noteId) === String(n.id));
+              return selection.selectedNotes.some((sn: SelectedNote) => String(sn.noteId) === String(n.id));
             });
 
             if (!allSelected) {
@@ -141,8 +155,6 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
     [
       logic,
       playback,
-      meta,
-      handlers,
       selection,
       score,
       moveSelection,
@@ -152,6 +164,8 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
       handleTitleCommit,
       isHoveringScore,
       scoreContainerRef,
+      isAnyMenuOpen,
+      scoreRef,
     ]
   );
 

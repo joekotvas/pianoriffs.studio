@@ -17,6 +17,7 @@ import {
   AudioFeedback,
   NavigationSelection,
   HorizontalNavigationResult,
+  Selection as ScoreSelection,
 } from '@/types';
 import { getAppendPreviewNote, getDefaultPitchForClef, createGhostCursorResult } from './previewNote';
 import { notesToAudioNotes } from './transposition';
@@ -331,10 +332,21 @@ export const calculateNextSelection = (
   }
 
   // 3. Standard Navigation
-  const newSelection = navigateSelection(measures, selection, direction);
+  const fullSelection: ScoreSelection = {
+    staffIndex: selection.staffIndex,
+    measureIndex: selection.measureIndex,
+    eventId: selection.eventId,
+    noteId: selection.noteId,
+    selectedNotes: selection.selectedNotes ?? [],
+    anchor: selection.anchor ?? null,
+  };
+  const newSelection = navigateSelection(measures, fullSelection, direction);
 
   if (newSelection !== selection) {
     // Find the event to play audio
+    if (newSelection.measureIndex === null) {
+      return { selection: { ...newSelection, staffIndex }, previewNote: null, audio: null, shouldCreateMeasure: false };
+    }
     const measure = measures[newSelection.measureIndex];
     let audio: AudioFeedback | null = null;
     if (measure) {

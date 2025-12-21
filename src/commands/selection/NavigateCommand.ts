@@ -38,7 +38,7 @@ export class NavigateCommand implements SelectionCommand {
 
       return {
         ...newSel,
-        selectedNotes: newSel.eventId
+        selectedNotes: newSel.eventId && newSel.measureIndex !== null
           ? [
               {
                 staffIndex: newSel.staffIndex,

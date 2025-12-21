@@ -17,19 +17,18 @@ import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useScoreContext } from '../context/ScoreContext';
 import { useAPISubscriptions } from './useAPISubscriptions';
 import type { MusicEditorAPI, RiffScoreRegistry } from '../api.types';
-import type { RiffScoreConfig, Note, Score, Selection } from '../types';
-import { AddEventCommand } from '../commands/AddEventCommand';
-import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
+import type { RiffScoreConfig } from '../types';
+import { SetSelectionCommand } from '../commands/selection';
 import {
-  SetSelectionCommand,
-  SelectAllCommand,
-  SelectAllInEventCommand,
-  SelectEventCommand,
-  SelectFullEventsCommand,
-  ExtendSelectionVerticallyCommand,
-} from '../commands/selection';
-import { navigateSelection, getFirstNoteId } from '../utils/core';
-import { canAddEventToMeasure } from '../utils/validation';
+  createNavigationMethods,
+  createSelectionMethods,
+  createEntryMethods,
+  createModificationMethods,
+  createHistoryMethods,
+  createPlaybackMethods,
+  createIOMethods,
+  APIContext
+} from './api';
 
 // Extend Window interface for TypeScript
 declare global {
@@ -38,10 +37,7 @@ declare global {
   }
 }
 
-const generateId = (): string =>
-  typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
 
 /**
  * Initialize the global registry if it doesn't exist
@@ -90,9 +86,11 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
   const scoreRef = useRef(score);
   const selectionRef = useRef(selection);
 
-  // Keep refs in sync with React state on every render
-  scoreRef.current = score;
-  selectionRef.current = selection;
+  // Keep refs in sync with React state
+  useEffect(() => {
+    scoreRef.current = score;
+    selectionRef.current = selection;
+  }, [score, selection]);
 
   // 3. Selection Sync Helper
   // Updates both the authoritative Ref (for immediate chaining) and dispatches to engine (for UI)
@@ -114,643 +112,44 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
 
   // 5. Build API Object (memoized to maintain stable reference)
   const api: MusicEditorAPI = useMemo(() => {
+    const context: APIContext = {
+      scoreRef,
+      selectionRef,
+      syncSelection,
+      dispatch,
+      selectionEngine,
+      history: { undo, redo, begin: beginTransaction, commit: commitTransaction, rollback: rollbackTransaction },
+      config,
+    };
+
     const instance: MusicEditorAPI = {
-      // ========== NAVIGATION ==========
-      move(direction) {
-        const sel = selectionRef.current;
-        const staff = scoreRef.current.staves[sel.staffIndex];
-        if (!staff) return this;
-
-        const measures = staff.measures;
-
-        if (direction === 'left' || direction === 'right') {
-          // Use existing navigateSelection utility for horizontal movement
-          // Note: Full ghost cursor support requires Phase 1.5 (wiring to calculateNextSelection)
-          const newSel = navigateSelection(measures, sel, direction);
-
-          syncSelection({
-            ...newSel,
-            selectedNotes: newSel.eventId
-              ? [
-                  {
-                    staffIndex: newSel.staffIndex,
-                    measureIndex: newSel.measureIndex,
-                    eventId: newSel.eventId,
-                    noteId: newSel.noteId,
-                  },
-                ]
-              : [],
-            anchor: null,
-          });
-        } else if (direction === 'up' || direction === 'down') {
-          // Vertical navigation (cross-staff) - for single staff, cycle within notes
-          // TODO: Wire to calculateVerticalNavigation in Phase 1.5
-        }
-        return this;
-      },
-
-      jump(target) {
-        const sel = selectionRef.current;
-        const staff = scoreRef.current.staves[sel.staffIndex];
-        if (!staff || staff.measures.length === 0) return this;
-
-        const measures = staff.measures;
-        let targetMeasureIndex: number;
-        let targetEventIndex: number;
-
-        switch (target) {
-          case 'start-score':
-            targetMeasureIndex = 0;
-            targetEventIndex = 0;
-            break;
-          case 'end-score':
-            targetMeasureIndex = measures.length - 1;
-            targetEventIndex = Math.max(0, measures[targetMeasureIndex].events.length - 1);
-            break;
-          case 'start-measure':
-            targetMeasureIndex = sel.measureIndex ?? 0;
-            targetEventIndex = 0;
-            break;
-          case 'end-measure':
-            targetMeasureIndex = sel.measureIndex ?? 0;
-            targetEventIndex = Math.max(0, measures[targetMeasureIndex]?.events.length - 1);
-            break;
-          default:
-            return this;
-        }
-
-        const measure = measures[targetMeasureIndex];
-        if (!measure) return this;
-
-        const event = measure.events[targetEventIndex];
-        const eventId = event?.id ?? null;
-        const noteId = getFirstNoteId(event);
-
-        syncSelection({
-          staffIndex: sel.staffIndex,
-          measureIndex: targetMeasureIndex,
-          eventId,
-          noteId,
-          selectedNotes: eventId
-            ? [{ staffIndex: sel.staffIndex, measureIndex: targetMeasureIndex, eventId, noteId }]
-            : [],
-          anchor: null,
-        });
-
-        return this;
-      },
-
-      select(measureNum, staffIndex = 0, eventIndex = 0, noteIndex = 0) {
-        // Convert 1-based measureNum to 0-based index
-        const measureIndex = measureNum - 1;
-        
-        // Use SelectEventCommand for proper selection
-        selectionEngine.dispatch(new SelectEventCommand({
-          staffIndex,
-          measureIndex,
-          eventIndex,
-          noteIndex,
-        }));
-
-        // Sync the ref for chaining
-        selectionRef.current = selectionEngine.getState();
-
-        return this;
-      },
-
-      selectAtQuant(_measureNum, _quant, _staffIndex = 0) {
-        // TODO: Implement quant-based selection
-        return this;
-      },
-
-      selectById(eventId, noteId) {
-        const sel = selectionRef.current;
-        const staff = scoreRef.current.staves[sel.staffIndex];
-        if (!staff) return this;
-
-        // Find the event and measure containing this eventId
-        for (let mIdx = 0; mIdx < staff.measures.length; mIdx++) {
-          const measure = staff.measures[mIdx];
-          const eIdx = measure.events.findIndex(e => e.id === eventId);
-          if (eIdx !== -1) {
-            const event = measure.events[eIdx];
-            // Find note index if noteId provided
-            let noteIndex = 0;
-            if (noteId && event.notes) {
-              const nIdx = event.notes.findIndex(n => n.id === noteId);
-              if (nIdx !== -1) noteIndex = nIdx;
-            }
-            selectionEngine.dispatch(new SelectEventCommand({
-              staffIndex: sel.staffIndex,
-              measureIndex: mIdx,
-              eventIndex: eIdx,
-              noteIndex,
-            }));
-            selectionRef.current = selectionEngine.getState();
-            break;
-          }
-        }
-        return this;
-      },
-
-      // ========== SELECTION (MULTI-SELECT) ==========
-      addToSelection(_measureNum, _staffIndex, _eventIndex) {
-        // TODO: Implement
-        return this;
-      },
-
-      selectRangeTo(_measureNum, _staffIndex, _eventIndex) {
-        // TODO: Implement
-        return this;
-      },
-
-      selectAll(scope = 'score') {
-        const sel = selectionRef.current;
-        selectionEngine.dispatch(new SelectAllCommand({
-          scope: scope as 'score' | 'staff' | 'measure' | 'event',
-          staffIndex: sel.staffIndex,
-          measureIndex: sel.measureIndex ?? undefined,
-          expandIfSelected: false, // API uses explicit scope
-        }));
-        selectionRef.current = selectionEngine.getState();
-        return this;
-      },
-
-      /** Select all notes in the current event (chord) */
-      selectEvent(measureNum?: number, staffIndex?: number, eventIndex?: number) {
-        const sel = selectionRef.current;
-        const sIdx = staffIndex ?? sel.staffIndex;
-        const mIdx = measureNum !== undefined ? measureNum - 1 : sel.measureIndex;
-        
-        if (mIdx === null) return this;
-        
-        const staff = scoreRef.current.staves[sIdx];
-        if (!staff) return this;
-        
-        const measure = staff.measures[mIdx];
-        if (!measure) return this;
-        
-        // Get event
-        const eIdx = eventIndex ?? measure.events.findIndex(e => e.id === sel.eventId);
-        const event = measure.events[eIdx];
-        if (!event) return this;
-
-        selectionEngine.dispatch(new SelectAllInEventCommand({
-          staffIndex: sIdx,
-          measureIndex: mIdx,
-          eventId: event.id,
-        }));
-        selectionRef.current = selectionEngine.getState();
-        return this;
-      },
-
-      deselectAll() {
-        syncSelection({
-          staffIndex: selectionRef.current.staffIndex,
-          measureIndex: null,
-          eventId: null,
-          noteId: null,
-          selectedNotes: [],
-          anchor: null,
-        });
-        return this;
-      },
-
-      /**
-       * Select all notes in all touched events (fill partial chords).
-       * "Touched" = any event that has at least one note selected.
-       */
-      selectFullEvents() {
-        selectionEngine.dispatch(new SelectFullEventsCommand());
-        selectionRef.current = selectionEngine.getState();
-        return this;
-      },
-
-      /**
-       * Extend selection to quant-aligned events in the staff above.
-       * Uses anchor-based cursor model - can expand OR contract.
-       */
-      extendSelectionUp() {
-        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction: 'up' }));
-        selectionRef.current = selectionEngine.getState();
-        return this;
-      },
-
-      /**
-       * Extend selection to quant-aligned events in the staff below.
-       * Uses anchor-based cursor model - can expand OR contract.
-       */
-      extendSelectionDown() {
-        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction: 'down' }));
-        selectionRef.current = selectionEngine.getState();
-        return this;
-      },
-
-      /**
-       * Extend selection to quant-aligned events across ALL staves.
-       */
-      extendSelectionAllStaves() {
-        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction: 'all' }));
-        selectionRef.current = selectionEngine.getState();
-        return this;
-      },
-
-
-      // ========== ENTRY (CREATE) ==========
-      addNote(pitch, duration = 'quarter', dotted = false) {
-        const sel = selectionRef.current;
-        let staffIndex = sel.staffIndex;
-        let measureIndex = sel.measureIndex;
-
-        // If no measure is selected, default to first measure
-        if (measureIndex === null) {
-          staffIndex = 0;
-          measureIndex = 0;
-        }
-
-        const staff = scoreRef.current.staves[staffIndex];
-        if (!staff || staff.measures.length === 0) {
-          console.warn('[RiffScore API] addNote failed: No measures exist in the score');
-          return this;
-        }
-
-        const measure = staff.measures[measureIndex];
-        if (!measure) {
-          console.warn(`[RiffScore API] addNote failed: Measure ${measureIndex + 1} does not exist`);
-          return this;
-        }
-
-        // Check if measure has capacity for this note
-        if (!canAddEventToMeasure(measure.events, duration, dotted)) {
-          console.warn(`[RiffScore API] addNote failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${duration} note.`);
-          return this;
-        }
-
-        // Create note payload
-        const noteId = generateId();
-        const note: Note = {
-          id: noteId,
-          pitch,
-          accidental: null,
-          tied: false,
-        };
-
-        // Dispatch AddEventCommand
-        const eventId = generateId();
-        dispatch(new AddEventCommand(measureIndex, false, note, duration, dotted, undefined, eventId, staffIndex));
-
-        // Advance cursor to the new event
-        syncSelection({
-          staffIndex,
-          measureIndex,
-          eventId,
-          noteId,
-          selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
-          anchor: null,
-        });
-
-        return this;
-      },
-
-      addRest(duration = 'quarter', dotted = false) {
-        const sel = selectionRef.current;
-        let staffIndex = sel.staffIndex;
-        let measureIndex = sel.measureIndex;
-
-        // If no measure is selected, default to first measure
-        if (measureIndex === null) {
-          staffIndex = 0;
-          measureIndex = 0;
-        }
-
-        const staff = scoreRef.current.staves[staffIndex];
-        if (!staff || staff.measures.length === 0) {
-          console.warn('[RiffScore API] addRest failed: No measures exist in the score');
-          return this;
-        }
-
-        const measure = staff.measures[measureIndex];
-        if (!measure) {
-          console.warn(`[RiffScore API] addRest failed: Measure ${measureIndex + 1} does not exist`);
-          return this;
-        }
-
-        // Check if measure has capacity for this rest
-        if (!canAddEventToMeasure(measure.events, duration, dotted)) {
-          console.warn(`[RiffScore API] addRest failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${duration} rest.`);
-          return this;
-        }
-
-        // Dispatch AddEventCommand with isRest=true
-        const eventId = generateId();
-        dispatch(new AddEventCommand(measureIndex, true, null, duration, dotted, undefined, eventId, staffIndex));
-
-        // Advance cursor
-        const restNoteId = `${eventId}-rest`;
-        syncSelection({
-          staffIndex,
-          measureIndex,
-          eventId,
-          noteId: restNoteId,
-          selectedNotes: [{ staffIndex, measureIndex, eventId, noteId: restNoteId }],
-          anchor: null,
-        });
-
-        return this;
-      },
-
-      addTone(pitch) {
-        const sel = selectionRef.current;
-        if (sel.measureIndex === null || sel.eventId === null) return this;
-
-        const staffIndex = sel.staffIndex;
-        const measureIndex = sel.measureIndex;
-        const eventId = sel.eventId;
-
-        // Create note to add to chord
-        const noteId = generateId();
-        const note: Note = {
-          id: noteId,
-          pitch,
-          accidental: null,
-          tied: false,
-        };
-
-        // Dispatch AddNoteToEventCommand
-        dispatch(new AddNoteToEventCommand(measureIndex, eventId, note, staffIndex));
-
-        // Update selection to include new note
-        syncSelection({
-          ...sel,
-          noteId,
-          selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
-        });
-
-        return this;
-      },
-
-      makeTuplet(_numNotes, _inSpaceOf) {
-        // TODO: Implement
-        return this;
-      },
-
-      unmakeTuplet() {
-        // TODO: Implement
-        return this;
-      },
-
-      toggleTie() {
-        // TODO: Implement
-        return this;
-      },
-
-      setTie(_tied) {
-        // TODO: Implement
-        return this;
-      },
-
-      setInputMode(_mode) {
-        // TODO: Implement
-        return this;
-      },
-
-      // ========== MODIFICATION (UPDATE) ==========
-      setPitch(_pitch) {
-        // TODO: Dispatch ChangePitchCommand
-        return this;
-      },
-
-      setDuration(_duration, _dotted) {
-        // TODO: Dispatch ChangeRhythmCommand
-        return this;
-      },
-
-      setAccidental(_type) {
-        // TODO: Implement
-        return this;
-      },
-
-      toggleAccidental() {
-        // TODO: Implement
-        return this;
-      },
-
-      transpose(_semitones) {
-        // TODO: Dispatch TransposeCommand
-        return this;
-      },
-
-      transposeDiatonic(_steps) {
-        // TODO: Implement
-        return this;
-      },
-
-      updateEvent(_props: Partial<{ id: string; notes: Note[]; duration: string; dotted: boolean }>) {
-        // TODO: Generic update - will use proper ScoreEvent type when implemented
-        return this;
-      },
-
-      // ========== STRUCTURE ==========
-      addMeasure(_atIndex) {
-        // TODO: Dispatch AddMeasureCommand
-        return this;
-      },
-
-      deleteMeasure(_measureIndex) {
-        // TODO: Dispatch DeleteMeasureCommand
-        return this;
-      },
-
-      deleteSelected() {
-        // TODO: Implement smart delete
-        return this;
-      },
-
-      setKeySignature(_key) {
-        // TODO: Implement
-        return this;
-      },
-
-      setTimeSignature(_sig) {
-        // TODO: Implement
-        return this;
-      },
-
-      setMeasurePickup(_isPickup) {
-        // TODO: Implement
-        return this;
-      },
-
-      // ========== CONFIGURATION ==========
-      setClef(_clef) {
-        // TODO: Dispatch SetClefCommand
-        return this;
-      },
-
-      setScoreTitle(_title) {
-        // TODO: Implement
-        return this;
-      },
-
-      setBpm(_bpm) {
-        // TODO: Implement
-        return this;
-      },
-
-      setTheme(_theme) {
-        // TODO: Implement
-        return this;
-      },
-
-      setScale(_scale) {
-        // TODO: Implement
-        return this;
-      },
-
-      setStaffLayout(_type) {
-        // TODO: Implement
-        return this;
-      },
-
-      // ========== LIFECYCLE & IO ==========
-      loadScore(_newScore) {
-        // TODO: Implement
-        return this;
-      },
-
-      reset(_template = 'grand', _measures = 4) {
-        // TODO: Implement
-        return this;
-      },
-
-      export(format) {
-        if (format === 'json') {
-          return JSON.stringify(scoreRef.current, null, 2);
-        }
-        // TODO: ABC and MusicXML export
-        throw new Error(`Export format '${format}' not yet implemented`);
-      },
-
-      // ========== PLAYBACK ==========
-      play() {
-        // TODO: Implement
-        return this;
-      },
-
-      pause() {
-        // TODO: Implement
-        return this;
-      },
-
-      stop() {
-        // TODO: Implement
-        return this;
-      },
-
-      rewind(_measureNum) {
-        // TODO: Implement
-        return this;
-      },
-
-      setInstrument(_instrumentId) {
-        // TODO: Implement
-        return this;
-      },
-
-      // ========== DATA (QUERIES) ==========
-      getScore(): Score {
-        return scoreRef.current;
-      },
-
-      getConfig(): RiffScoreConfig {
-        return config;
-      },
-
-      getSelection(): Selection {
-        return selectionRef.current;
-      },
-
-      // ========== HISTORY & CLIPBOARD ==========
-      undo() {
-        undo();
-        return this;
-      },
-
-      redo() {
-        redo();
-        return this;
-      },
-
-      /**
-       * Begin a new transaction batch.
-       * 
-       * All subsequent commands (addNote, etc.) will be executed immediately against the state,
-       * but will NOT be pushed to the history stack individually.
-       * 
-       * They will be buffered until `commitTransaction()` is called.
-       * 
-       * @example
-       * ```js
-       * api.beginTransaction();
-       * api.addNote('C4');
-       * api.addNote('E4');
-       * api.commitTransaction('Add Chord');
-       * ```
-       * @tested ScoreAPI.transactions.test.tsx
-       */
-      beginTransaction() {
-        beginTransaction();
-        return this;
-      },
-
-      /**
-       * Commit the current transaction batch.
-       * 
-       * Bundles all buffered commands into a single atomic history entry.
-       * 
-       * @param label - Optional description for the Undo/Redo stack (e.g. "Import MIDI")
-       * @tested ScoreAPI.transactions.test.tsx
-       */
-      commitTransaction(label?: string) {
-        commitTransaction(label);
-        return this;
-      },
-
-      /**
-       * Rollback the current transaction.
-       * 
-       * Undoes all operations performed since `beginTransaction()` and clears the buffer.
-       * Useful for error handling in scripts.
-       * 
-       * @tested ScoreAPI.transactions.test.tsx
-       */
-      rollbackTransaction() {
-        rollbackTransaction();
-        return this;
-      },
-
-      copy() {
-        // TODO: Implement
-        return this;
-      },
-
-      cut() {
-        // TODO: Implement
-        return this;
-      },
-
-      paste() {
-        // TODO: Implement
-        return this;
-      },
-
-      // ========== EVENTS (Phase 3) ==========
-      // Implementation delegates to a dedicated hook
+      // Composition: Mixin all factory methods
+      // eslint-disable-next-line
+      ...createNavigationMethods(context),
+      // eslint-disable-next-line
+      ...createSelectionMethods(context),
+      // eslint-disable-next-line
+      ...createEntryMethods(context),
+      // eslint-disable-next-line
+      ...createModificationMethods(context),
+      // eslint-disable-next-line
+      ...createHistoryMethods(context),
+      // eslint-disable-next-line
+      ...createPlaybackMethods(context),
+      // eslint-disable-next-line
+      ...createIOMethods(context),
+      
+      // Data Accessors (Bound Closures)
+      getScore: () => scoreRef.current,
+      getConfig: () => config,
+      getSelection: () => selectionRef.current,
+
+      // Events
       on,
     };
 
     return instance;
-  }, [config, dispatch, syncSelection, selectionEngine, on]);
+  }, [config, dispatch, syncSelection, selectionEngine, on, undo, redo, beginTransaction, commitTransaction, rollbackTransaction]);
 
   // 5. Registry registration/cleanup
   useEffect(() => {
