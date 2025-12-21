@@ -12,7 +12,7 @@ import { useTupletActions } from './useTupletActions';
 import { useSelection } from './useSelection';
 import { useEditorMode } from './useEditorMode';
 
-import { Score, createDefaultScore, migrateScore, getActiveStaff } from '@/types';
+import { createDefaultScore, migrateScore, getActiveStaff } from '@/types';
 import { getAppendPreviewNote } from '@/utils/interaction';
 import { calculateFocusSelection } from '@/utils/focusScore';
 import { SetSelectionCommand } from '@/commands/selection';
