@@ -18,8 +18,6 @@ import {
 } from '@/engines/layout';
 import { Note } from '@/engines/layout/types';
 import { ScoreEvent } from '@/types';
-import { CONFIG } from '@/config';
-import { MIDDLE_LINE_Y } from '@/constants';
 
 describe('layoutEngine', () => {
   describe('calculateChordLayout', () => {

@@ -156,7 +156,7 @@ test('example', () => {
 
 ## Deferred Issues (Phase 2g)
 
-The following issues were identified but intentionally deferred during Phase 2g migration.
+The following issues were identified during Phase 2g migration, with most now resolved.
 
 ### fireEvent → userEvent Migration
 
@@ -168,45 +168,39 @@ The following issues were identified but intentionally deferred during Phase 2g 
 
 ---
 
-### Type Issues with `any`
+### Type Issues with `any` — ✅ Mostly Fixed
 
-**Files affected:**
-- `ScoreAPI.registry.test.tsx` — Global `window.riffScore` type mismatch
-- `BassSelection.test.tsx`, `ScoreCanvas.test.tsx` — Mock context `any` types
-- `handleMutation.test.ts`, `handleNavigation.test.ts`, `handlePlayback.test.ts` — Mock object `any` types
-- `CrossStaffNavigation.test.tsx` — Mock score factory `any` types
+~~**Files affected:** Multiple files with mock objects~~
 
-**Reason for deferral:** These `any` types exist in mock objects and test factories. Typing them strictly requires:
-1. Exporting test-specific types from source
-2. Or creating comprehensive mock type definitions
+**Resolution:**
+- `ScoreAPI.registry.test.tsx` — Fixed Window declaration conflict by using global type from `useScoreAPI.ts`
+- `ScoreAPI.registry.test.tsx` — Fixed chaining types with proper `ChainableAPI` interface
+- `MultiSelect.test.tsx` — Fixed with `_props: unknown` pattern
+- Mock context `any` types — Remaining in a few files but don't cause lint errors
 
-**Recommendation:** Create a `src/__tests__/types/` directory with mock types for common patterns (MockScore, MockSelection, MockContext).
+**Recommendation:** For remaining `any` types in mock factories, consider creating shared mock types when extracting fixtures.
 
 ---
 
-### Pre-existing Lint Warnings
+### Pre-existing Lint Warnings — ✅ Fixed
 
-**Files affected:**
-- `CrossStaffNavigation.test.tsx` — 4 unused `syncToolbarState` variables
-- `Interaction.test.tsx` — unused `useState`, `CONFIG`, `unmount`; empty `act` wrapper
-- `MultiSelect.test.tsx` — unused `props` parameter
-- `RenderingDetailed.test.tsx` — unused `CONFIG`
+~~**Files affected:** Multiple files~~
 
-**Reason for deferral:** These are code quality issues unrelated to testing patterns. They should be addressed in a separate cleanup PR.
+**Resolution:**
+- `CrossStaffNavigation.test.tsx` — Removed 4 unused `syncToolbarState` declarations
+- `Interaction.test.tsx` — Removed unused `useState`, `CONFIG`, `unmount`; replaced empty `act` with `waitFor`
+- `MultiSelect.test.tsx` — Changed `props: any` to `_props: unknown`
+- `RenderingDetailed.test.tsx` — Removed unused `CONFIG`
+- `layoutEngine.test.ts` — Removed unused `CONFIG`, `MIDDLE_LINE_Y`
+- `measure.test.ts` — Removed unused `calculateBeamingGroups`
 
 ---
 
-### TypeScript Errors
+### TypeScript Errors — ✅ Fixed
 
-**ScoreAPI.registry.test.tsx:**
-```
-Subsequent property declarations must have the same type.
-Property 'riffScore' must be of type 'RiffScoreRegistry'...
-```
+~~**ScoreAPI.registry.test.tsx:** `Subsequent property declarations must have the same type.`~~
 
-**Reason:** The test file redeclares `window.riffScore` with a simpler type than the actual `RiffScoreRegistry` type. This is a type conflict, not a test issue.
-
-**Fix:** Import `RiffScoreRegistry` type and use it, or remove the local declaration.
+**Resolution:** Removed the local `declare global { interface Window { riffScore... } }` block. The type is already declared globally in `src/hooks/useScoreAPI.ts`.
 
 ---
 

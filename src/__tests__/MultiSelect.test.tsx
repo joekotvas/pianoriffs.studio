@@ -14,7 +14,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { createDefaultScore } from '@/types';
 
 // Mocks
-jest.mock('../components/Toolbar/Toolbar', () => (props: any) => (
+jest.mock('../components/Toolbar/Toolbar', () => (_props: unknown) => (
   <div data-testid="score-toolbar" />
 ));
 jest.mock('../hooks/usePlayback', () => ({

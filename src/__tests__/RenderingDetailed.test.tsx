@@ -11,7 +11,6 @@ import { render } from '@testing-library/react';
 import { ThemeProvider } from '@/context/ThemeContext';
 import ScoreEditor from '@components/Layout/ScoreEditor';
 import { Score, ScoreEvent } from '@/types';
-import { CONFIG } from '@/config';
 
 // Create a score with Beams, Tuplets, and Rests to force rendering of all Measure sub-components
 const createComplexScore = (): Score => {

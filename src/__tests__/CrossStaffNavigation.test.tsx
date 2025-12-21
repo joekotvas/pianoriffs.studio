@@ -98,7 +98,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       }
     });
     const setPreviewNote = jest.fn();
-    const syncToolbarState = jest.fn();
     const dispatch = jest.fn();
 
     const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
@@ -163,7 +162,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       }
     });
     const setPreviewNote = jest.fn();
-    const syncToolbarState = jest.fn();
     const dispatch = jest.fn();
 
     const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
@@ -224,7 +222,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       }
     });
     const setPreviewNote = jest.fn();
-    const syncToolbarState = jest.fn();
     const dispatch = jest.fn();
 
     const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
@@ -352,7 +349,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
     const setPreviewNote = jest.fn((note) => {
       capturedPreviewNote = note;
     });
-    const syncToolbarState = jest.fn();
     const dispatch = jest.fn();
 
     const select = jest.fn((measureIndex, eventId, noteId, staffIndex) => {
