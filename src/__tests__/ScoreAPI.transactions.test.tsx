@@ -122,4 +122,26 @@ describe('ScoreAPI Transactions', () => {
 
     unsubscribe();
   });
+
+  it('should handle unbalanced commit calls gracefully', () => {
+    const { result } = renderHook(() => useScoreAPI({ instanceId: 'test-unbalanced', config: DEFAULT_RIFF_CONFIG }), { wrapper });
+    
+    // Calling commit without begin should do nothing / not crash
+    act(() => {
+      result.current.commitTransaction();
+    });
+
+    // Check that undo works (should do nothing / return initial state)
+    // If history was populated, undo might change something or error if history was invalid
+    const initialScore = result.current.getScore();
+    let afterUndoScore;
+    
+    act(() => {
+       result.current.undo();
+       afterUndoScore = result.current.getScore();
+    });
+
+    // Score should be identical (mock score defaults)
+    expect(afterUndoScore).toEqual(initialScore);
+  });
 });

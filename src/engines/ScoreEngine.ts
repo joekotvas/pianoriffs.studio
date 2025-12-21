@@ -36,7 +36,7 @@ export class ScoreEngine {
     this.notifyListeners();
   }
 
-  public dispatch(command: Command, options: { addToHistory?: boolean } = {}) {
+  public dispatch(command: Command, options: { addToHistory?: boolean } = {}): boolean {
     logger.logCommand(command.type, command);
     const { addToHistory = true } = options;
 
@@ -46,7 +46,7 @@ export class ScoreEngine {
       if (!newState || !newState.staves) {
         logger.logValidationFailure(`Command ${command.type} returned invalid state`, newState);
         // Don't update state if invalid
-        return;
+        return false;
       }
 
       if (addToHistory) {
@@ -55,9 +55,11 @@ export class ScoreEngine {
       }
       
       this.setState(newState);
+      return true;
     } catch (error) {
       logger.log(`Error executing command ${command.type}`, error, LogLevel.ERROR);
       console.error(error);
+      return false;
     }
   }
 
