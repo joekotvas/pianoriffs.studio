@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useMemo, useCallback } from 'react';
+import { CONFIG } from '@/config';
 import { NOTE_TYPES } from '@/constants';
 import { useTheme } from '@/context/ThemeContext';
 import { getStemOffset } from '@/engines/layout';
@@ -240,7 +241,7 @@ const ChordGroup = ({
             isGhost={isGhost}
             accidentalGlyph={accidentalGlyph}
             handlers={handlers}
-            color={isCursor ? '#FF0000' : null}
+            color={isCursor && CONFIG.debug?.showHitZones ? '#FF0000' : null}
           />
         );
       })}
