@@ -498,7 +498,6 @@ describe('ExtendSelectionVerticallyCommand', () => {
       expect(result.selectedNotes).toEqual(state.selectedNotes);
       expect(result.noteId).toBe(state.noteId);
     });
-    });
   });
 
   describe('bug reproduction: full event expansion', () => {
@@ -537,4 +536,120 @@ describe('ExtendSelectionVerticallyCommand', () => {
     });
   });
 
+  describe('rest handling', () => {
+    // Create a score with aligned note and rest at same quant
+    const createScoreWithRest = (): Score => ({
+      title: 'Rest Test Score',
+      timeSignature: '4/4',
+      keySignature: 'C',
+      bpm: 120,
+      staves: [
+        {
+          id: 'treble-staff',
+          clef: 'treble',
+          keySignature: 'C',
+          measures: [
+            {
+              id: 'm0',
+              events: [
+                {
+                  id: 'e0',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [
+                    { id: 'n0', pitch: 'C4' },
+                    { id: 'n1', pitch: 'E4' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'bass-staff',
+          clef: 'bass',
+          keySignature: 'C',
+          measures: [
+            {
+              id: 'bass-m0',
+              events: [
+                {
+                  id: 'bass-e0',
+                  duration: 'quarter',
+                  dotted: false,
+                  isRest: true,
+                  notes: [{ id: 'rest-0', pitch: null, isRest: true }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
 
+    test('extends from treble note down to bass rest', () => {
+      const score = createScoreWithRest();
+      // Select bottom note C4, extend down should add bass rest
+      const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4
+      
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+      
+      // Should now include the bass rest
+      expect(result.selectedNotes.length).toBe(2);
+      const hasBassRest = result.selectedNotes.some(
+        n => n.staffIndex === 1 && n.eventId === 'bass-e0' && n.noteId === 'rest-0'
+      );
+      expect(hasBassRest).toBe(true);
+    });
+
+    test('extends from bass rest up to treble notes', () => {
+      const score = createScoreWithRest();
+      // Start with bass rest selected, extend up should add treble notes
+      const state = createSelectionWithNote(1, 0, 'bass-e0', 'rest-0');
+      
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+      
+      // Should now include treble note(s)
+      expect(result.selectedNotes.length).toBeGreaterThan(1);
+      const hasTreble = result.selectedNotes.some(n => n.staffIndex === 0);
+      expect(hasTreble).toBe(true);
+    });
+
+    test('contracts from treble+rest selection removes rest when going up', () => {
+      const score = createScoreWithRest();
+      // Start with treble C4 and bass rest selected (anchor at C4)
+      const state: Selection = {
+        staffIndex: 1,
+        measureIndex: 0,
+        eventId: 'bass-e0',
+        noteId: 'rest-0', // Cursor at rest (bottom)
+        selectedNotes: [
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' }, // C4
+          { staffIndex: 1, measureIndex: 0, eventId: 'bass-e0', noteId: 'rest-0' }, // Rest
+        ],
+        anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' },
+        verticalAnchors: {
+          direction: 'down',
+          sliceAnchors: {
+            0: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' },
+          },
+          originSelection: [
+            { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' },
+            { staffIndex: 1, measureIndex: 0, eventId: 'bass-e0', noteId: 'rest-0' },
+          ],
+        },
+      };
+      
+      // Extend UP should contract (move cursor up toward anchor, removing rest)
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+      
+      // Should now have only the treble note (rest removed via contraction)
+      expect(result.selectedNotes.length).toBe(1);
+      expect(result.selectedNotes[0].noteId).toBe('n0');
+      expect(result.selectedNotes[0].staffIndex).toBe(0);
+    });
+  });
+});

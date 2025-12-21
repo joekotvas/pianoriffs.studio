@@ -268,12 +268,15 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
   /**
    * Calculate a linear metric for vertical ordering.
    *
-   * Formula: (10 - staffIndex) * 1000 + midi
-   * - Staff contribution: treble (0) = 10000, bass (1) = 9000
+   * Formula: (100 - staffIndex) * 1000 + midi
+   * - Staff contribution: treble (0) = 100000, bass (1) = 99000
    * - MIDI contribution: 0-127 range
    *
    * This ensures all treble notes are "above" all bass notes,
    * and within each staff, higher pitches have higher values.
+   *
+   * Uses 100 as base to support scores with up to 100 staves
+   * before ordering inverts (sufficient for orchestral scores).
    *
    * @param staffIndex - Staff index (0 = treble, 1 = bass)
    * @param midi - MIDI pitch value (0-127)
@@ -281,7 +284,9 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
    * @internal
    */
   private calculateVerticalMetric(staffIndex: number, midi: number): number {
-    return ((10 - staffIndex) * 1000) + midi;
+    // BUG FIX: Increased from 10 to 100 to prevent negative values
+    // in orchestral scores with many staves
+    return ((100 - staffIndex) * 1000) + midi;
   }
 
   /**
@@ -368,8 +373,24 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
       let q = 0;
       for (const event of measure.events) {
         const dur = getNoteDuration(event.duration, event.dotted, event.tuplet);
+        
         if (q === timeQuant) { 
-          if (event.notes) {
+          // Handle Rests - they have notes array with pitch: null
+          // IMPORTANT: Rests DO have noteId in their notes array
+          if (event.isRest && event.notes && event.notes.length > 0) {
+            const restNote = event.notes[0];
+            const midi = staff.clef === 'bass' ? 48 : 71; // Match toVerticalPoint logic
+            stack.push({
+              staffIndex: sIdx,
+              measureIndex: mIndex,
+              eventId: event.id,
+              noteId: restNote.id, // Use actual noteId from rest's notes array
+              midi: midi,
+              time: globalTime
+            });
+          }
+          // Handle regular notes
+          else if (event.notes) {
             for (const note of event.notes) {
                stack.push({
                  staffIndex: sIdx,
@@ -382,7 +403,11 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
             }
           }
         }
+        
         q += dur;
+        
+        // OPTIMIZATION: Early break if we've passed the target quant
+        if (q > timeQuant) break;
       }
     }
 
