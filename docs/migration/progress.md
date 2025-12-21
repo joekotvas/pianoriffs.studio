@@ -8,9 +8,9 @@
 
 | Status | Phases |
 | :--- | :--- |
-| ✅ Complete | 0, 1, 2, 2b, 2c, 2d, 2e, 2f, 2g |
-| 🔲 Next | 3 (Event Subscriptions) |
-| 🔲 Remaining | 3, 4, 5, 6, 7, 8 |
+| ✅ Complete | 0, 1, 2, 2b, 2c, 2d, 2e, 2f, 2g, 3, 4 |
+| 🔲 Next | 5 (Code Refactor) |
+| 🔲 Remaining | 5, 6, 7, 8 |
 
 ---
 
@@ -118,9 +118,11 @@
 - [x] Write `ScoreAPI.events.test.tsx`
 - [x] Document ADR 002
 
-### 🔲 Phase 4: Transaction Batching
-- [ ] Add batching to `ScoreEngine.ts`
-- [ ] Write `ScoreAPI.transactions.test.tsx`
+### ✅ Phase 4: Transaction Batching
+- [x] Add batching to `ScoreEngine.ts`
+- [x] Write `ScoreAPI.transactions.test.tsx`
+- [x] Implement `useTransactionBatching` hook
+- [x] Document ADR 003
 
 ### 🔲 Phase 5: Code Refactor
 - [ ] Split `interaction.ts` (~1134 lines → 4 files)

@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { TIME_SIGNATURES } from '@/constants';
 import { CONFIG } from '@/config';
 import { useScoreEngine } from './useScoreEngine';
+import { useTransactionBatching } from './useTransactionBatching';
 import { useEditorTools } from './useEditorTools';
 import { useMeasureActions } from './useMeasureActions';
 import { useNoteActions } from './useNoteActions';
@@ -11,7 +12,7 @@ import { useTupletActions } from './useTupletActions';
 import { useSelection } from './useSelection';
 import { useEditorMode } from './useEditorMode';
 
-import { Score, createDefaultScore, migrateScore, getActiveStaff } from '@/types';
+import { createDefaultScore, migrateScore, getActiveStaff } from '@/types';
 import { getAppendPreviewNote } from '@/utils/interaction';
 import { calculateFocusSelection } from '@/utils/focusScore';
 import { SetSelectionCommand } from '@/commands/selection';
@@ -29,6 +30,12 @@ export const useScoreLogic = (initialScore: any) => {
 
   // --- ENGINE INTEGRATION ---
   const { score, engine } = useScoreEngine(migratedInitialScore);
+  const {
+    dispatch,
+    beginTransaction,
+    commitTransaction,
+    rollbackTransaction,
+  } = useTransactionBatching(engine);
 
   const undo = useCallback(() => engine.undo(), [engine]);
   const redo = useCallback(() => engine.redo(), [engine]);
@@ -134,7 +141,7 @@ export const useScoreLogic = (initialScore: any) => {
     score,
     clearSelection,
     setPreviewNote,
-    dispatch: engine.dispatch.bind(engine),
+    dispatch,
   });
 
   // Note Actions: add/delete notes, chords
@@ -150,7 +157,7 @@ export const useScoreLogic = (initialScore: any) => {
     activeAccidental,
     activeTie,
     currentQuantsPerMeasure,
-    dispatch: engine.dispatch.bind(engine),
+    dispatch,
     inputMode,
   });
 
@@ -160,7 +167,7 @@ export const useScoreLogic = (initialScore: any) => {
     selection,
     currentQuantsPerMeasure,
     tools,
-    dispatch: engine.dispatch.bind(engine),
+    dispatch,
   });
 
   // Navigation: selection, movement, transposition
@@ -180,7 +187,7 @@ export const useScoreLogic = (initialScore: any) => {
   });
 
   // Tuplet Actions: apply/remove tuplets
-  const tupletActions = useTupletActions(scoreRef, selection, engine.dispatch.bind(engine));
+  const tupletActions = useTupletActions(scoreRef, selection, dispatch);
 
   // --- EDITOR MODE ---
   const { editorState } = useEditorMode({ selection, previewNote });
@@ -428,7 +435,10 @@ export const useScoreLogic = (initialScore: any) => {
     redoStack,
     undo,
     redo,
-    dispatch: engine.dispatch.bind(engine),
+    dispatch,
+    beginTransaction,
+    commitTransaction,
+    rollbackTransaction,
     activeDuration,
     setActiveDuration,
     isDotted,

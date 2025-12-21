@@ -36,8 +36,9 @@ export class ScoreEngine {
     this.notifyListeners();
   }
 
-  public dispatch(command: Command) {
+  public dispatch(command: Command, options: { addToHistory?: boolean } = {}): boolean {
     logger.logCommand(command.type, command);
+    const { addToHistory = true } = options;
 
     try {
       const newState = command.execute(this.state);
@@ -45,16 +46,31 @@ export class ScoreEngine {
       if (!newState || !newState.staves) {
         logger.logValidationFailure(`Command ${command.type} returned invalid state`, newState);
         // Don't update state if invalid
-        return;
+        return false;
       }
 
-      this.history.push(command);
-      this.redoStack = []; // Clear redo stack on new action
+      if (addToHistory) {
+        this.history.push(command);
+        this.redoStack = []; // Clear redo stack on new action
+      }
+      
       this.setState(newState);
+      return true;
     } catch (error) {
       logger.log(`Error executing command ${command.type}`, error, LogLevel.ERROR);
       console.error(error);
+      return false;
     }
+  }
+
+  /**
+   * Commits a batch command to the history stack without executing it.
+   * Assumes the state has already been updated by individual commands in the batch.
+   */
+  public commitBatch(batchCommand: Command) {
+    logger.log('Committing batch transaction', batchCommand);
+    this.history.push(batchCommand);
+    this.redoStack = [];
   }
 
   public undo() {

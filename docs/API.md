@@ -167,10 +167,11 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `undo` | `undo()` | ⏳ | Undo last mutation. |
-| `redo` | `redo()` | ⏳ | Redo last undone. |
-| `beginTransaction` | `beginTransaction()` | ⏳ | Start batch (single undo step). |
-| `commitTransaction` | `commitTransaction()` | ⏳ | End batch. |
+| `undo` | `undo()` | ✅ | Undo last mutation. |
+| `redo` | `redo()` | ✅ | Redo last undone. |
+| `beginTransaction` | `beginTransaction()` | ✅ | Start batch (single undo step). |
+| `commitTransaction` | `commitTransaction(label?)` | ✅ | End batch with optional history label. |
+| `rollbackTransaction` | `rollbackTransaction()` | ✅ | Abort batch and revert changes. |
 | `copy` | `copy()` | ⏳ | Copy selection. |
 | `cut` | `cut()` | ⏳ | Cut selection. |
 | `paste` | `paste()` | ⏳ | Paste at cursor. |
@@ -229,14 +230,13 @@ const json = api.export('json');
 localStorage.setItem('score', json);
 ```
 
-### Batch with Transaction ⏳
+### Batch with Transaction ✅
 ```javascript
-// PENDING: Transaction support not yet implemented
 api.beginTransaction();
 for (let i = 0; i < 16; i++) {
   api.addNote(`C${(i % 3) + 4}`, 'sixteenth');
 }
-api.commitTransaction();
+api.commitTransaction('Insert 16th Run');
 ```
 
 ### Reactive Integration ✅

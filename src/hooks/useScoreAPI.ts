@@ -81,7 +81,17 @@ export interface UseScoreAPIProps {
  */
 export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEditorAPI {
   // 1. Consume Context Directly
-  const { score, selection, dispatch, selectionEngine } = useScoreContext();
+  const { 
+    score, 
+    selection, 
+    dispatch, 
+    selectionEngine,
+    beginTransaction,
+    commitTransaction,
+    rollbackTransaction,
+    undo,
+    redo
+  } = useScoreContext();
 
   // 2. Synchronous State Refs (authoritative for API methods to avoid stale closures)
   const scoreRef = useRef(score);
@@ -669,22 +679,60 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
 
       // ========== HISTORY & CLIPBOARD ==========
       undo() {
-        // TODO: Implement
+        undo();
         return this;
       },
 
       redo() {
-        // TODO: Implement
+        redo();
         return this;
       },
 
+      /**
+       * Begin a new transaction batch.
+       * 
+       * All subsequent commands (addNote, etc.) will be executed immediately against the state,
+       * but will NOT be pushed to the history stack individually.
+       * 
+       * They will be buffered until `commitTransaction()` is called.
+       * 
+       * @example
+       * ```js
+       * api.beginTransaction();
+       * api.addNote('C4');
+       * api.addNote('E4');
+       * api.commitTransaction('Add Chord');
+       * ```
+       * @tested ScoreAPI.transactions.test.tsx
+       */
       beginTransaction() {
-        // TODO: Implement (Phase 4)
+        beginTransaction();
         return this;
       },
 
-      commitTransaction() {
-        // TODO: Implement (Phase 4)
+      /**
+       * Commit the current transaction batch.
+       * 
+       * Bundles all buffered commands into a single atomic history entry.
+       * 
+       * @param label - Optional description for the Undo/Redo stack (e.g. "Import MIDI")
+       * @tested ScoreAPI.transactions.test.tsx
+       */
+      commitTransaction(label?: string) {
+        commitTransaction(label);
+        return this;
+      },
+
+      /**
+       * Rollback the current transaction.
+       * 
+       * Undoes all operations performed since `beginTransaction()` and clears the buffer.
+       * Useful for error handling in scripts.
+       * 
+       * @tested ScoreAPI.transactions.test.tsx
+       */
+      rollbackTransaction() {
+        rollbackTransaction();
         return this;
       },
 
