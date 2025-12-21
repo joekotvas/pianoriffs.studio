@@ -69,11 +69,21 @@ That's it! RiffScore renders a fully interactive grand staff editor with sensibl
 | Key | Action |
 |-----|--------|
 | `1`-`7` | Set note duration (64th to whole) |
+| `.` | Toggle dotted |
 | `R` | Toggle note/rest mode |
+| `T` | Toggle tie |
 | `Space` | Play / Pause |
-| `Cmd+Z` | Undo |
 | `↑` / `↓` | Transpose selection |
-| `Cmd+Shift+↑/↓` | Extend selection vertically |
+| `←` / `→` | Navigate through timeline |
+| `Shift+←/→` | Extend selection horizontally |
+| `Esc` | Clear selection / Cancel |
+
+| Mac | Windows | Action |
+|-----|---------|--------|
+| `Cmd+Z` | `Ctrl+Z` | Undo |
+| `Cmd+Shift+Z` | `Ctrl+Y` | Redo |
+| `Cmd+A` | `Ctrl+A` | Select all (progressive scope) |
+| `Cmd+Shift+↑/↓` | `Ctrl+Shift+↑/↓` | Extend selection vertically |
 
 See the [Interaction Guide](./docs/INTERACTION.md) for the complete keyboard reference.
 
