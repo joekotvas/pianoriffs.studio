@@ -95,20 +95,19 @@ api.selectAll('measure')
 
 ## 3. Batch Operations ⏳
 
-### Batch with Transaction (Single Undo Step) ⏳
+### Batch with Transaction (Single Undo Step) ✅
 
 ```javascript
-// PENDING: beginTransaction/commitTransaction not yet implemented
 api.beginTransaction();
 
 for (let i = 0; i < 16; i++) {
   api.addNote(`C${(i % 3) + 4}`, 'sixteenth');
 }
 
-api.commitTransaction();  // All 16 notes = 1 undo step
+api.commitTransaction('Add Scale Run');  // All 16 notes = 1 undo step
 ```
 
-> **Workaround**: Without transactions, each `addNote` is a separate undo step. The notes still work—just not batched for undo.
+> **Note**: Without transactions, each `addNote` is a separate undo step. Transactions ensure atomicity for complex scripts.
 
 ### Fill Measure with Rest ✅
 

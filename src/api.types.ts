@@ -174,8 +174,10 @@ export interface MusicEditorAPI {
   redo(): this;
   /** Begin a transaction (batch mutations) */
   beginTransaction(): this;
-  /** Commit the transaction */
-  commitTransaction(): this;
+  /** Commit the transaction with optional label */
+  commitTransaction(label?: string): this;
+  /** Rollback the current transaction */
+  rollbackTransaction(): this;
   /** Copy selected events to clipboard */
   copy(): this;
   /** Cut selected events to clipboard */

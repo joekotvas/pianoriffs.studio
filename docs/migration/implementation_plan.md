@@ -187,10 +187,28 @@ describe('Event Subscriptions', () => {
 
 ### Phase 4: Transaction Batching ([#91](https://github.com/joekotvas/RiffScore/issues/91))
 
+#### [NEW] `src/commands/BatchCommand.ts`
+-   Implements `Command` interface.
+-   `constructor(commands: Command[])`.
+-   `execute(score)`: Sequentially executes all sub-commands.
+-   `undo(score)`: Reversely undoes all sub-commands.
+
 #### [MODIFY] `src/engines/ScoreEngine.ts`
--   Add `batchDepth: number` and `batchedCommands: Command[]`.
--   `beginBatch()`: Increment `batchDepth`; suppress listeners.
--   `endBatch()`: Decrement; if `0`, notify listeners and push compound undo.
+-   Add `batchDepth: number` (init 0).
+-   Add `batchBuffer: Command[]` (init []).
+-   **dispatch(command)**:
+    -   Execute command `newState = command.execute(this.state)`.
+    -   Update `this.state = newState`.
+    -   If `batchDepth > 0`: Push to `batchBuffer`. DO NOT notify listeners.
+    -   If `batchDepth === 0`: Push to `history`, notify listeners.
+-   **beginBatch()**: `this.batchDepth++`.
+-   **endBatch()**:
+    -   `this.batchDepth--`.
+    -   If `this.batchDepth === 0` AND buffer not empty:
+        -   Create `batch = new BatchCommand(this.batchBuffer)`.
+        -   Push `batch` to `history`.
+        -   `this.batchBuffer = []`.
+        -   Notify listeners.
 
 #### [MODIFY] `src/hooks/useScoreAPI.ts`
 -   `beginTransaction()`: Calls `engine.beginBatch()`.
@@ -202,7 +220,8 @@ describe('Transaction Batching', () => {
   test('listeners suppressed during transaction');
   test('listener fires once on commit');
   test('undo reverts entire transaction as single step');
-  test('nested transactions work correctly');
+  test('nested transactions work correctly (flatten to single batch)');
+  test('atomicity: partial failure aborts batch (optional improvement)');
 });
 ```
 
