@@ -113,9 +113,10 @@
 
 ---
 
-### 🔲 Phase 3: Event Subscriptions
-- [ ] Implement `on(event, callback)` in useScoreAPI
-- [ ] Write `ScoreAPI.events.test.tsx`
+### ✅ Phase 3: Event Subscriptions
+- [x] Implement `on(event, callback)` in useScoreAPI
+- [x] Write `ScoreAPI.events.test.tsx`
+- [x] Document ADR 002
 
 ### 🔲 Phase 4: Transaction Batching
 - [ ] Add batching to `ScoreEngine.ts`
@@ -138,6 +139,7 @@
 - [ ] Update `README.md`
 - [ ] Update `ARCHITECTURE.md`
 - [ ] Update all "See Also" sections
+
 
 ---
 

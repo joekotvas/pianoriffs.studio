@@ -15,7 +15,8 @@
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useScoreContext } from '../context/ScoreContext';
-import type { MusicEditorAPI, RiffScoreRegistry, Unsubscribe } from '../api.types';
+import { useAPISubscriptions } from './useAPISubscriptions';
+import type { MusicEditorAPI, RiffScoreRegistry } from '../api.types';
 import type { RiffScoreConfig, Note, Score, Selection } from '../types';
 import { AddEventCommand } from '../commands/AddEventCommand';
 import { AddNoteToEventCommand } from '../commands/AddNoteToEventCommand';
@@ -104,7 +105,11 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
     }));
   }, [selectionEngine]);
 
-  // 4. Build API Object (memoized to maintain stable reference)
+  // 4. API Event Subscriptions
+  // Delegates listener management to the dedicated hook
+  const { on } = useAPISubscriptions(score, selection);
+
+  // 5. Build API Object (memoized to maintain stable reference)
   const api: MusicEditorAPI = useMemo(() => {
     const instance: MusicEditorAPI = {
       // ========== NAVIGATION ==========
@@ -699,16 +704,12 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
       },
 
       // ========== EVENTS (Phase 3) ==========
-      // Implementation uses 'any' to satisfy overloaded interface signatures
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      on(_event: any, _callback: any): Unsubscribe {
-        // TODO: Implement (Phase 3)
-        return () => {};
-      },
+      // Implementation delegates to a dedicated hook
+      on,
     };
 
     return instance;
-  }, [config, dispatch, syncSelection, selectionEngine]);
+  }, [config, dispatch, syncSelection, selectionEngine, on]);
 
   // 5. Registry registration/cleanup
   useEffect(() => {

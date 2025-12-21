@@ -119,12 +119,11 @@ api.select(3)  // Measure 3
 
 ---
 
-## 4. Integration Recipes ⏳
+## 4. Integration Recipes
 
-### Auto-Save to Backend ⏳
+### Auto-Save to Backend ✅
 
 ```javascript
-// PENDING: on() event subscriptions not yet implemented
 const unsub = api.on('score', (newScore) => {
   fetch('/api/scores', {
     method: 'POST',
@@ -135,10 +134,9 @@ const unsub = api.on('score', (newScore) => {
 
 > **Workaround**: Poll `api.getScore()` on an interval or after user actions.
 
-### Sync Selection with External UI ⏳
+### Sync Selection with External UI ✅
 
 ```javascript
-// PENDING: on() event subscriptions not yet implemented
 api.on('selection', (selection) => {
   if (selection.eventId) {
     highlightInExternalPiano(selection.noteId);

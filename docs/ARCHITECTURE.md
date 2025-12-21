@@ -639,6 +639,7 @@ flowchart TD
 | `useFocusTrap` | Toolbar focus management |
 | `useModifierKeys` | Cmd/Ctrl key tracking |
 | `useTitleEditor` | Title editing |
+| `useAPISubscriptions` | Event listener management |
 
 ### Handler Modules (`hooks/handlers/`)
 
