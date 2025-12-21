@@ -81,7 +81,7 @@ describe('MyComponent', () => {
 
 | Phase | Files | Status |
 | :--- | :---: | :--- |
-| B | 14 command tests | ⬜ |
+| B | 14 command tests | ✅ Complete (1 fix) |
 | C | 10 engine/API tests | ⬜ |
 | D | 14 hook/component tests | ⬜ |
 | E | 10 utility tests | ⬜ |
