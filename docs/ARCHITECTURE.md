@@ -596,6 +596,7 @@ flowchart TD
 | `useScoreEngine` | Command dispatch |
 | `useSelection` | Selection state |
 | `useHistory` | Undo/redo stack |
+| `useTransactionBatching` | Transaction batching & atomicity |
 
 ### Interaction
 
@@ -660,6 +661,7 @@ flowchart TD
 
 | Command | Purpose |
 |---------|---------|
+| `BatchCommand` | Composite command for atomic operations |
 | `AddEventCommand` | Insert note/rest at position |
 | `AddNoteToEventCommand` | Add note to chord |
 | `ChangePitchCommand` | Change single note pitch |
