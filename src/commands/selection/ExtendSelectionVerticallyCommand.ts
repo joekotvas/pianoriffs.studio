@@ -67,77 +67,226 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
 
     // Initialize anchor if not set
     const anchor = state.anchor ?? state.selectedNotes[0];
+    const anchorPos = this.toVerticalPosition(anchor, score);
+    if (!anchorPos) return state;
 
-    // Group selected notes by event
-    const notesByEvent = this.groupNotesByEvent(state.selectedNotes);
+    // Group notes by Vertical Slice (measureIndex + startTime)
+    // This allows:
+    // 1. Cross-staff contraction (notes in same slice on different staves act together)
+    // 2. Independent extension (notes in different slices extend independently)
+    const slices = this.groupNotesByVerticalSlice(state.selectedNotes, score);
     const newNotes: SelectedNote[] = [];
 
-    // For each event, find the cursor (extreme note in direction) and extend
-    for (const [eventKey, notes] of notesByEvent) {
-      const [staffIdx, measureIdx, eventId] = this.parseEventKey(eventKey);
-      
-      // Find this event's cursor (extreme note in direction)
-      const positions = notes
+    for (const sliceNotes of slices.values()) {
+      const positions = sliceNotes
         .map(n => this.toVerticalPosition(n, score))
         .filter((p): p is VerticalPosition => p !== null);
 
       if (positions.length === 0) continue;
 
-      const eventCursor = this.findCursorForEvent(positions);
-      if (!eventCursor) continue;
-
-      // Try to move cursor within this event's chord
-      const newCursor = this.moveCursor(eventCursor, score);
-      
-      if (newCursor && newCursor.staffIndex === eventCursor.staffIndex && newCursor.eventId === eventCursor.eventId) {
-        // Cursor moved within same event (chord extension)
-        // Select range from anchor note to new cursor within this event
-        const eventAnchor = this.findAnchorForEvent(positions);
-        const event = this.findEventById(score, staffIdx, measureIdx, eventId);
-        if (eventAnchor && event) {
-          this.addNotesInMidiRange(
-            newNotes,
-            staffIdx,
-            measureIdx,
-            event,
-            eventAnchor.midi,
-            newCursor.midi
-          );
-        }
-      } else if (newCursor) {
-        // Cursor moved to another staff (cross-staff extension)
-        // Add all notes from this event (fill the chord)
-        const event = this.findEventById(score, staffIdx, measureIdx, eventId);
-        if (event) {
-          this.addAllNotesInEvent(newNotes, staffIdx, measureIdx, event);
-        }
-        // Add the target staff note
-        newNotes.push({
-          staffIndex: newCursor.staffIndex,
-          measureIndex: newCursor.measureIndex,
-          eventId: newCursor.eventId,
-          noteId: newCursor.noteId,
-        });
-      } else {
-        // Can't move (at boundary) - keep existing selection for this event
-        for (const note of notes) {
-          newNotes.push(note);
-        }
+      // Determine cursor for THIS slice relative to the GLOBAL anchor
+      // (We use global anchor relation for direction, but slice extremes for cursor)
+      const globalCursor = this.findGlobalCursor(positions, anchorPos);
+      if (!globalCursor) {
+        // Keep existing
+        sliceNotes.forEach(n => newNotes.push(n));
+        continue;
       }
+
+      // Determine direction for expansion/contraction
+      const isContraction = this.isMovingTowardAnchor(globalCursor, anchorPos);
+
+      let resultState: Selection = {
+        ...state,
+        selectedNotes: sliceNotes,
+        anchor // Pass global anchor
+      };
+
+      if (isContraction) {
+        resultState = this.contractSelection(resultState, score, anchor, anchorPos, globalCursor);
+      } else {
+        resultState = this.expandSelection(resultState, score, anchor, anchorPos, globalCursor);
+      }
+
+      // Add resulting notes from this slice
+      resultState.selectedNotes.forEach(n => newNotes.push(n));
     }
 
-    // If no change, return original state
-    if (newNotes.length === state.selectedNotes.length &&
-        newNotes.every(n => state.selectedNotes.some(
+    // Deduplicate
+    const uniqueNotes = this.deduplicateNotes(newNotes);
+
+    if (uniqueNotes.length === state.selectedNotes.length &&
+        uniqueNotes.every(n => state.selectedNotes.some(
           s => s.staffIndex === n.staffIndex && s.measureIndex === n.measureIndex &&
                s.eventId === n.eventId && s.noteId === n.noteId
         ))) {
       return state;
     }
 
-    // Determine the "primary" selection focus (last moved cursor)
-    const lastNote = newNotes[newNotes.length - 1] ?? state.selectedNotes[0];
+    // Determine the "primary" selection focus (last moved note from last processed slice)
+    const lastNote = uniqueNotes[uniqueNotes.length - 1];
 
+    return {
+      staffIndex: lastNote.staffIndex,
+      measureIndex: lastNote.measureIndex,
+      eventId: lastNote.eventId,
+      noteId: lastNote.noteId,
+      selectedNotes: uniqueNotes,
+      anchor,
+    };
+  }
+
+  /**
+   * Group notes by vertical time slice (measure index + start time).
+   * Key: "measureIdx-startTimeTick"
+   */
+  private groupNotesByVerticalSlice(notes: SelectedNote[], score: Score): Map<string, SelectedNote[]> {
+    const groups = new Map<string, SelectedNote[]>();
+    const eventTimeCache = new Map<string, number>();
+
+    for (const note of notes) {
+      const eventKey = `${note.staffIndex}-${note.measureIndex}-${note.eventId}`;
+      
+      let startTime = eventTimeCache.get(eventKey);
+      if (startTime === undefined) {
+        startTime = this.calculateEventStartTime(score, note.staffIndex, note.measureIndex, String(note.eventId));
+        eventTimeCache.set(eventKey, startTime);
+      }
+
+      // Slice key: Measure + StartTime (ignore staff)
+      // This groups treble/bass notes at same time together
+      const sliceKey = `${note.measureIndex}-${startTime}`;
+      
+      if (!groups.has(sliceKey)) {
+        groups.set(sliceKey, []);
+      }
+      groups.get(sliceKey)?.push(note);
+    }
+
+    return groups;
+  }
+
+  private calculateEventStartTime(score: Score, staffIdx: number, measureIdx: number, eventId: string): number {
+    const staff = score.staves[staffIdx];
+    const measure = staff?.measures[measureIdx];
+    if (!measure) return 0;
+
+    let time = 0;
+    for (const event of measure.events) {
+      if (event.id === eventId) return time;
+      time += getNoteDuration(event.duration, event.dotted, event.tuplet);
+    }
+    return 0; // Fallback
+  }
+
+  /**
+   * Determine if the movement direction is toward the anchor (contraction).
+   */
+  private isMovingTowardAnchor(cursor: VerticalPosition, anchor: VerticalPosition): boolean {
+    if (this.direction === 'all') return false;
+
+    // If cursor equals anchor (single-note selection), always expand
+    if (cursor.staffIndex === anchor.staffIndex && cursor.midi === anchor.midi) {
+      return false;
+    }
+
+    // If cursor is below anchor (lower staff or lower pitch), moving up = toward anchor
+    // If cursor is above anchor (higher staff or higher pitch), moving down = toward anchor
+    const cursorIsBelow = cursor.staffIndex > anchor.staffIndex ||
+      (cursor.staffIndex === anchor.staffIndex && cursor.midi < anchor.midi);
+
+    if (cursorIsBelow) {
+      return this.direction === 'up'; // Moving up toward anchor = contraction
+    } else {
+      return this.direction === 'down'; // Moving down toward anchor = contraction
+    }
+  }
+
+  /**
+   * Find the global cursor (opposite extreme from anchor across all staves).
+   */
+  private findGlobalCursor(positions: VerticalPosition[], anchor: VerticalPosition): VerticalPosition | null {
+    if (positions.length === 0) return null;
+
+    // Sort from Bottom (Low) to Top (High)
+    // Bottom = High Staff Index (e.g. Bass=1), Low MIDI
+    // Top = Low Staff Index (e.g. Treble=0), High MIDI
+    const sorted = [...positions].sort((a, b) => {
+      // Sort by staff index descending (Bass before Treble)
+      if (a.staffIndex !== b.staffIndex) return b.staffIndex - a.staffIndex;
+      // Sort by MIDI ascending (Low pitch before High pitch)
+      return a.midi - b.midi;
+    });
+
+    const lowest = sorted[0]; // Absolute bottom-most note
+    const highest = sorted[sorted.length - 1]; // Absolute top-most note
+
+    // Cursor is the opposite of anchor
+    // If anchor is in the upper half of the range, cursor is lowest
+    // Upper half = Lower Staff Index OR Higher MIDI
+    const anchorIsHigh = anchor.staffIndex < lowest.staffIndex ||
+      (anchor.staffIndex === lowest.staffIndex && anchor.midi > (lowest.midi + highest.midi) / 2);
+
+    return anchorIsHigh ? lowest : highest;
+  }
+
+  /**
+   * Contract the selection by removing notes from the cursor side.
+   * Uses a unified "Vertical Metric" to determine valid range across staves.
+   */
+  private contractSelection(
+    state: Selection,
+    score: Score,
+    anchor: SelectedNote,
+    anchorPos: VerticalPosition,
+    cursor: VerticalPosition
+  ): Selection {
+    // 1. Move cursor one step in the contraction direction (towards anchor)
+    const newCursor = this.moveCursor(cursor, score);
+    
+    // If we can't move, we return state unchanged (or should we return single note if cursor==anchor?)
+    if (!newCursor) {
+      return state;
+    }
+
+    // 2. Define the valid range between Anchor and New Cursor
+    // We use a "Vertical Metric" to linearize the 2D space (staff + midi)
+    // Metric = (MAX_STAFF_INDEX - staffIndex) * 1000 + midi
+    // This makes "higher on screen" = "higher metric value"
+    
+    // Helper to compute metric (inline for captured scope, or we'll add a method)
+    const getMetric = (pos: { staffIndex: number, midi: number }) => {
+      // Invert staff index so Staff 0 (Top) > Staff 1 (Bottom)
+      const visualStaffValue = (100 - pos.staffIndex) * 1000;
+      return visualStaffValue + pos.midi;
+    };
+
+    const anchorMetric = getMetric(anchorPos);
+    const cursorMetric = getMetric(newCursor);
+
+    const minMetric = Math.min(anchorMetric, cursorMetric);
+    const maxMetric = Math.max(anchorMetric, cursorMetric);
+
+    // 3. Filter notes to keep only those within the range
+    const newNotes: SelectedNote[] = [];
+    
+    for (const note of state.selectedNotes) {
+      const notePos = this.toVerticalPosition(note, score);
+      if (!notePos) continue;
+
+      const noteMetric = getMetric(notePos);
+
+      // Inclusive check: Keep note if it falls within [min, max]
+      if (noteMetric >= minMetric && noteMetric <= maxMetric) {
+        newNotes.push(note);
+      }
+    }
+
+    if (newNotes.length === 0 || newNotes.length === state.selectedNotes.length) {
+      return state;
+    }
+
+    const lastNote = newNotes[newNotes.length - 1];
     return {
       staffIndex: lastNote.staffIndex,
       measureIndex: lastNote.measureIndex,
@@ -146,6 +295,127 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
       selectedNotes: newNotes,
       anchor,
     };
+  }
+
+  /**
+   * Expand the selection by adding notes on the cursor side.
+   */
+  private expandSelection(
+    state: Selection,
+    score: Score,
+    anchor: SelectedNote,
+    anchorPos: VerticalPosition,
+    cursor: VerticalPosition
+  ): Selection {
+    const newNotes: SelectedNote[] = [...state.selectedNotes];
+
+    // Try to move cursor
+    const newCursor = this.moveCursor(cursor, score);
+    if (!newCursor) return state; // At boundary
+
+    if (newCursor.staffIndex === cursor.staffIndex && newCursor.eventId === cursor.eventId) {
+      // Cursor moved within same event (chord extension)
+      const event = this.findEventById(score, cursor.staffIndex, cursor.measureIndex, cursor.eventId);
+      if (!event) return state;
+
+      // Add the new note if not already selected
+      if (!newNotes.some(n => n.noteId === newCursor.noteId && n.eventId === newCursor.eventId)) {
+        newNotes.push({
+          staffIndex: newCursor.staffIndex,
+          measureIndex: newCursor.measureIndex,
+          eventId: newCursor.eventId,
+          noteId: newCursor.noteId,
+        });
+      }
+    } else {
+      // Cursor moved to another staff (cross-staff extension)
+      // First, fill the current chord completely
+      const currentEvent = this.findEventById(score, cursor.staffIndex, cursor.measureIndex, cursor.eventId);
+      if (currentEvent) {
+        this.addAllNotesInEvent(newNotes, cursor.staffIndex, cursor.measureIndex, currentEvent);
+      }
+
+      // Then add ALL notes from the target staff's quant-aligned event
+      const targetEvent = this.findEventById(score, newCursor.staffIndex, newCursor.measureIndex, newCursor.eventId);
+      if (targetEvent) {
+        this.addAllNotesInEvent(newNotes, newCursor.staffIndex, newCursor.measureIndex, targetEvent);
+      }
+    }
+
+    // Deduplicate
+    const uniqueNotes = this.deduplicateNotes(newNotes);
+
+    if (uniqueNotes.length === state.selectedNotes.length) {
+      return state;
+    }
+
+    const lastNote = uniqueNotes[uniqueNotes.length - 1];
+    return {
+      staffIndex: lastNote.staffIndex,
+      measureIndex: lastNote.measureIndex,
+      eventId: lastNote.eventId,
+      noteId: lastNote.noteId,
+      selectedNotes: uniqueNotes,
+      anchor,
+    };
+  }
+
+  /**
+   * Remove duplicate notes from array.
+   */
+  private deduplicateNotes(notes: SelectedNote[]): SelectedNote[] {
+    const seen = new Set<string>();
+    return notes.filter(n => {
+      const key = `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  /**
+   * Find cursor as the note at the OPPOSITE extreme from anchor in vertical space.
+   * This enables contraction: cursor moves toward anchor when direction reverses.
+   */
+  private findCursorAsOppositeOfAnchor(
+    positions: VerticalPosition[],
+    anchorPos: VerticalPosition | null
+  ): VerticalPosition | null {
+    if (positions.length === 0) return null;
+    if (positions.length === 1) return positions[0];
+
+    if (!anchorPos) {
+      // No anchor - use direction-based extreme
+      return this.direction === 'down'
+        ? positions.reduce((lowest, p) => p.midi < lowest.midi ? p : lowest)
+        : positions.reduce((highest, p) => p.midi > highest.midi ? p : highest);
+    }
+
+    // Find the note furthest from anchor in vertical space
+    const lowest = positions.reduce((l, p) => p.midi < l.midi ? p : l);
+    const highest = positions.reduce((h, p) => p.midi > h.midi ? p : h);
+
+    // If anchor is toward the high end, cursor is low (and vice versa)
+    // This makes the cursor the "movable end" of the selection
+    const anchorIsHigh = anchorPos.midi >= (lowest.midi + highest.midi) / 2;
+    return anchorIsHigh ? lowest : highest;
+  }
+
+  /**
+   * Find anchor as the opposite extreme from cursor (stable end of selection).
+   */
+  private findAnchorAsOppositeOfCursor(
+    positions: VerticalPosition[],
+    cursor: VerticalPosition
+  ): VerticalPosition | null {
+    if (positions.length === 0) return null;
+    if (positions.length === 1) return positions[0];
+
+    const lowest = positions.reduce((l, p) => p.midi < l.midi ? p : l);
+    const highest = positions.reduce((h, p) => p.midi > h.midi ? p : h);
+
+    // Anchor is the opposite extreme from cursor
+    return cursor.midi === lowest.midi ? highest : lowest;
   }
 
   /**
@@ -172,16 +442,24 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
   }
 
   /**
-   * Find the cursor (extreme note in movement direction) for a single event.
+   * Find the cursor (the note that moves when extending).
+   * For expansion: cursor is the extreme in movement direction.
+   * For contraction: cursor moves back toward anchor.
+   * 
+   * Key insight: the cursor is always the note at the OPPOSITE extreme from
+   * where the anchor would naturally be. If anchor is high (for "down" extension),
+   * cursor is low. This way, pressing "up" moves the low cursor up toward anchor.
    */
   private findCursorForEvent(positions: VerticalPosition[]): VerticalPosition | null {
     if (positions.length === 0) return null;
 
+    // For 'down' direction, we want to move the LOWEST note (further down or back up)
+    // For 'up' direction, we want to move the HIGHEST note (further up or back down)
     if (this.direction === 'down') {
-      // Cursor is lowest pitch
+      // Cursor is lowest pitch - moving down expands, moving up contracts
       return positions.reduce((lowest, p) => p.midi < lowest.midi ? p : lowest);
     } else if (this.direction === 'up') {
-      // Cursor is highest pitch
+      // Cursor is highest pitch - moving up expands, moving down contracts
       return positions.reduce((highest, p) => p.midi > highest.midi ? p : highest);
     } else {
       return positions[0];
@@ -189,16 +467,17 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
   }
 
   /**
-   * Find the anchor (opposite of cursor) for a single event.
+   * Find the anchor (the fixed end of the selection range).
+   * Anchor is the OPPOSITE extreme from cursor.
    */
   private findAnchorForEvent(positions: VerticalPosition[]): VerticalPosition | null {
     if (positions.length === 0) return null;
 
     if (this.direction === 'down') {
-      // Anchor is highest pitch
+      // Anchor is highest pitch (opposite of cursor which is lowest)
       return positions.reduce((highest, p) => p.midi > highest.midi ? p : highest);
     } else if (this.direction === 'up') {
-      // Anchor is lowest pitch
+      // Anchor is lowest pitch (opposite of cursor which is highest)
       return positions.reduce((lowest, p) => p.midi < lowest.midi ? p : lowest);
     } else {
       return positions[0];

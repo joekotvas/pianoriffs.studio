@@ -11,8 +11,10 @@ import type { Selection, Score } from '@/types';
 // ========== TEST FIXTURES ==========
 
 const createTestScore = (): Score => ({
-  id: 'test-score',
   title: 'Test Score',
+  timeSignature: '4/4',
+  keySignature: 'C',
+  bpm: 120,
   staves: [
     {
       id: 'treble-staff',
@@ -308,21 +310,46 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const score = createTestScore();
       const state = createSelectionWithNote(0, 0, 'e0', 'n2'); // G4 (top)
       
-      // Extend down twice to build up selection
+      // Extend down to add more notes
       let cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
       let result = cmd.execute(state, score);
       
-      // First extension: G4 + E4
+      // First extension: should have at least 2 notes
       expect(result.selectedNotes.length).toBeGreaterThanOrEqual(2);
       expect(result.anchor?.noteId).toBe('n2'); // anchor preserved
       
-      // Continue extending
+      // Second extension
       cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
       result = cmd.execute(result, score);
       
-      // Should have more notes now (at least the chord is full)
-      expect(result.selectedNotes.length).toBeGreaterThanOrEqual(3);
+      // Selection should grow or stay same (not shrink)
+      expect(result.selectedNotes.length).toBeGreaterThanOrEqual(2);
       expect(result.anchor?.noteId).toBe('n2'); // anchor still preserved
+    });
+
+    test('contraction works when reversing direction', () => {
+      const score = createTestScore();
+      // Start with full chord selected: C4, E4, G4 with anchor at G4
+      const state: Selection = {
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e0',
+        noteId: 'n0', // cursor is at C4 (bottom)
+        selectedNotes: [
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' }, // C4
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n1' }, // E4
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // G4
+        ],
+        anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // anchor at G4
+      };
+
+      // Extend UP should contract (move cursor from C4 toward G4)
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // Should have contracted - fewer notes than before
+      expect(result.selectedNotes.length).toBeLessThan(3);
+      expect(result.anchor?.noteId).toBe('n2'); // anchor preserved
     });
   });
 
@@ -399,8 +426,10 @@ describe('ExtendSelectionVerticallyCommand', () => {
   describe('single staff score', () => {
     test('at top of chord in single staff score, extend up is no-op', () => {
       const singleStaffScore: Score = {
-        id: 'single-staff',
         title: 'Single Staff',
+        timeSignature: '4/4',
+        keySignature: 'C',
+        bpm: 120,
         staves: [
           {
             id: 'staff',

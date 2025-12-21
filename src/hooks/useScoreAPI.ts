@@ -708,7 +708,7 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
     };
 
     return instance;
-  }, [config, dispatch, syncSelection]);
+  }, [config, dispatch, syncSelection, selectionEngine]);
 
   // 5. Registry registration/cleanup
   useEffect(() => {

@@ -1,5 +1,5 @@
 import React, { useCallback, RefObject } from 'react';
-import { Selection, Score, getActiveStaff } from '@/types';
+import { Selection, Score, getActiveStaff, PreviewNote } from '@/types';
 import {
   calculateNextSelection,
   calculateTranspositionWithPreview,
@@ -14,17 +14,16 @@ import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand'
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;
   selection: Selection;
-  lastSelection?: Selection | null;
   setSelection: React.Dispatch<React.SetStateAction<Selection>>;
   select: (
     measureIndex: number | null,
     eventId: string | number | null,
     noteId: string | number | null,
     staffIndex?: number,
-    options?: any
+    options?: { isMulti?: boolean; selectAllInEvent?: boolean; isShift?: boolean }
   ) => void;
-  previewNote: any;
-  setPreviewNote: (note: any) => void;
+  previewNote: PreviewNote | null;
+  setPreviewNote: (note: PreviewNote | null) => void;
   activeDuration: string;
   isDotted: boolean;
   currentQuantsPerMeasure: number;
@@ -50,7 +49,6 @@ interface UseNavigationReturn {
 export const useNavigation = ({
   scoreRef,
   selection,
-  lastSelection,
   select,
   previewNote,
   setPreviewNote,
@@ -62,9 +60,11 @@ export const useNavigation = ({
 }: UseNavigationProps): UseNavigationReturn => {
   // --- Internal Helpers ---
 
-  const playAudioFeedback = useCallback((notes: any[]) => {
+  const playAudioFeedback = useCallback((notes: { pitch: string | null }[]) => {
     if (!notes || notes.length === 0) return;
-    notes.forEach((n) => playNote(n.pitch));
+    notes.forEach((n) => {
+      if (n.pitch) playNote(n.pitch);
+    });
   }, []);
 
   // --- Public Handlers ---
@@ -136,11 +136,11 @@ export const useNavigation = ({
           if (vertResult.selection?.eventId && vertResult.selection?.measureIndex !== null) {
             const staff = getActiveStaff(scoreRef.current, vertResult.selection.staffIndex || 0);
             const event = staff.measures[vertResult.selection.measureIndex]?.events.find(
-              (e: any) => e.id === vertResult.selection.eventId
+              (e) => e.id === vertResult.selection.eventId
             );
             if (event && !event.isRest) {
               const noteToPlay = vertResult.selection.noteId
-                ? event.notes?.find((n: any) => n.id === vertResult.selection.noteId)
+                ? event.notes?.find((n) => n.id === vertResult.selection.noteId)
                 : event.notes?.[0];
               if (noteToPlay) playAudioFeedback([noteToPlay]);
             }
