@@ -193,6 +193,10 @@ The following issues were identified during Phase 2g migration, with most now re
 - `RenderingDetailed.test.tsx` — Removed unused `CONFIG`
 - `layoutEngine.test.ts` — Removed unused `CONFIG`, `MIDDLE_LINE_Y`
 - `measure.test.ts` — Removed unused `calculateBeamingGroups`
+- `SelectionNavigation.test.ts` — Removed unused `ScoreEngine`, `AddEventCommand`, `SetGrandStaffCommand`, `createDefaultScore`; prefixed unused fixture
+- `usePlayback.test.ts` — Removed unused `waitFor`
+
+**Result:** Test files now have **0 ESLint warnings**.
 
 ---
 

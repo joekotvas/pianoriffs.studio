@@ -15,7 +15,6 @@
  */
 
 import { SelectionEngine } from '../engines/SelectionEngine';
-import { ScoreEngine } from '../engines/ScoreEngine';
 import {
   NavigateCommand,
   SelectEventCommand,
@@ -24,9 +23,7 @@ import {
   SelectAllInEventCommand,
   ClearSelectionCommand,
 } from '../commands/selection';
-import { AddEventCommand } from '../commands/AddEventCommand';
-import { SetGrandStaffCommand } from '../commands/SetGrandStaffCommand';
-import { createDefaultScore, createDefaultSelection, Score, SelectedNote } from '../types';
+import { createDefaultSelection, Score, SelectedNote } from '../types';
 
 /**
  * Creates a test score with multiple events for navigation testing.
@@ -87,7 +84,7 @@ const createNavigationTestScore = (): Score => ({
 /**
  * Creates a grand staff score for cross-staff navigation testing.
  */
-const createGrandStaffScore = (): Score => ({
+const _createGrandStaffScore = (): Score => ({
   title: 'Grand Staff Test',
   timeSignature: '4/4',
   keySignature: 'C',

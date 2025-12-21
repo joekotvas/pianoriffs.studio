@@ -3,7 +3,7 @@
  * Tests playback state management, start/stop, position tracking, and edge cases.
  */
 
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { usePlayback } from '@/hooks/usePlayback';
 
 // Mock toneEngine
