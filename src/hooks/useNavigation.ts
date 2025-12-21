@@ -171,7 +171,10 @@ export const useNavigation = ({
 
         // SIMPLIFIED UX: When Shift+Arrow lands on a gap (no event),
         // skip the gap and extend selection directly to the next actual note.
-        // This is cleaner UX and avoids complex state preservation.
+        // This was chosen because previous behavior could leave the selection on empty
+        // positions (or appear to clear it), which confused users and made keyboard
+        // navigation feel broken; skipping gaps keeps selection behavior predictable
+        // while also avoiding complex state preservation.
         if (isShift && !eventId && navResult.previewNote) {
           // Navigate AGAIN from the ghost position to find the next note
           const ghostSelection: Selection = {
