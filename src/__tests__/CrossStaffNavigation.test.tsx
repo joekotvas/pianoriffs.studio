@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useNavigation } from '@/hooks/useNavigation';
-import { Score, Staff, Measure, Selection } from '@/types';
+import { Score, Measure } from '@/types';
 import { createDefaultSelection } from '@/types';
 
 jest.mock('../engines/toneEngine', () => ({

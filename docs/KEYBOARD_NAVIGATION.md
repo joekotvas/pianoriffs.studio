@@ -38,6 +38,8 @@ The `selection` object tracks what is currently selected:
 | `measureIndex` | `number \| null` | Which measure (null when at ghost cursor) |
 | `eventId` | `string \| null` | Selected event ID (null when at ghost cursor) |
 | `noteId` | `string \| null` | Selected note within chord |
+| `anchor` | `object \| null` | Anchor point for range selection |
+| `selectedNotes` | `object[]` | Array of selected notes (Multi-select) |
 
 ### Ghost Cursor State
 
@@ -164,6 +166,14 @@ When at the edge staff (top or bottom):
 
 - **Up from top staff**: Cycle to bottom staff at same quant
 - **Down from bottom staff**: Cycle to top staff at same quant
+
+### Vertical Selection (`Cmd + Shift + Up/Down`)
+
+Unlike navigation, extending selection operates on **independent vertical slices**:
+
+1. **Global Orientation**: Determined by the relationship between the Primary Anchor and Focus.
+2. **Slice Processing**: Each time-slice in the selection (e.g., multiple disjoint measures) is processed independently.
+3. **Cursor Movement**: The "moving edge" of each slice expands or contracts based on the global direction.
 
 ---
 

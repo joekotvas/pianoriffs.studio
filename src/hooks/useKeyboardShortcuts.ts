@@ -3,7 +3,12 @@ import { handlePlayback } from './handlers/handlePlayback';
 import { handleNavigation } from './handlers/handleNavigation';
 import { handleMutation } from './handlers/handleMutation';
 import { getActiveStaff } from '@/types';
-import { SelectAllInEventCommand, ClearSelectionCommand } from '@/commands/selection';
+import {
+  SelectAllInEventCommand,
+  ClearSelectionCommand,
+  SelectAllCommand,
+  ExtendSelectionVerticallyCommand,
+} from '@/commands/selection';
 
 /**
  * Hook to handle global keyboard shortcuts.
@@ -98,6 +103,25 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
           // If event is selected (fallback for rests), clear selection via dispatch
           selectionEngine.dispatch(new ClearSelectionCommand());
         }
+        return;
+      }
+
+      // Cmd/Ctrl+A: Select all with progressive expansion
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        selectionEngine.dispatch(new SelectAllCommand({
+          expandIfSelected: true,
+          staffIndex: selection.staffIndex,
+          measureIndex: selection.measureIndex ?? undefined,
+        }));
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+Up/Down: Extend selection vertically
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const direction = e.key === 'ArrowUp' ? 'up' : 'down';
+        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction }));
         return;
       }
 

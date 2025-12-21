@@ -64,5 +64,18 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-require-imports": "off"
     }
+  },
+  
+  // Configuration files (like jest.config.js)
+  {
+    files: ["*.js", "*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node
+      }
+    },
+    rules: {
+      "@typescript-eslint/no-var-requires": "off"
+    }
   }
 );

@@ -11,4 +11,8 @@ export * from './ToggleNoteCommand';
 export * from './RangeSelectCommand';
 export * from './LassoSelectCommand';
 export * from './SetSelectionCommand';
+export * from './SelectAllCommand';
+export * from './SelectMeasureCommand';
+export * from './SelectFullEventsCommand';
+export * from './ExtendSelectionVerticallyCommand';
 

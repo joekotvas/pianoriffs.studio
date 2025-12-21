@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useMemo, useCallback } from 'react';
+import { CONFIG } from '@/config';
 import { NOTE_TYPES } from '@/constants';
 import { useTheme } from '@/context/ThemeContext';
 import { getStemOffset } from '@/engines/layout';
@@ -213,6 +214,13 @@ const ChordGroup = ({
           noteId: note.id,
         });
 
+        // DEBUG: Check if this is the primary cursor note
+        const isCursor = 
+          selection.eventId === eventId && 
+          selection.measureIndex === measureIndex && 
+          selection.noteId === note.id &&
+          selection.staffIndex === staffIndex;
+
         // Check if note is in lasso preview (O(1) Set lookup)
         const noteKey = `${staffIndex}-${measureIndex}-${eventId}-${note.id}`;
         const isInLassoPreview = interaction.lassoPreviewIds?.has(noteKey) ?? false;
@@ -233,6 +241,7 @@ const ChordGroup = ({
             isGhost={isGhost}
             accidentalGlyph={accidentalGlyph}
             handlers={handlers}
+            color={isCursor && CONFIG.debug?.showHitZones ? '#FF0000' : null}
           />
         );
       })}
