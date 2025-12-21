@@ -137,11 +137,19 @@
 - [x] Memoize migration logic
 - **Net reduction:** 154 lines
 
+#### ✅ Component A: `interaction.ts` Modularization
+- [x] Extract `previewNote.ts` (3 functions)
+- [x] Extract `crossStaff.ts` (2 functions)
+- [x] Extract `transposition.ts` (3 functions)
+- [x] Extract `horizontal.ts` (3 functions, ~400 lines)
+- [x] Extract `vertical.ts` (2 functions, ~450 lines)
+- [x] Convert `interaction.ts` to facade
+- [x] All tests passing
+
 #### 🔲 Deferred (Future PRs)
-- Component A: Split `interaction.ts` (~1134 lines → 4 files)
-- Component B: Split `useScoreAPI.ts` (facade modules)
-- Component C: Split `useNoteActions.ts`
-- Component D: Selection keyboard handlers
+- Component B: `hooks/api/`
+- Component C: `hooks/entry/`
+- Component D: Selection Handlers
 
 ### 🔲 Phase 6: Initial Documentation
 - [ ] Finalize `docs/API.md`
