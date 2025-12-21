@@ -1,14 +1,35 @@
 /**
  * ExtendSelectionVerticallyCommand
  *
- * Extends selection vertically using a slice-based approach (Phase 2f).
- * - Code iterates over each "Vertical Slice" (time point) present in the selection.
- * - For each slice, it identifies a slice-specific "Anchor" (static edge) and "Cursor" (moving edge).
- * - Global orientation (Up/Down) is inferred from the relationship between the Global Anchor and Focus.
- * - This allows independent chords to be extended simultaneously.
+ * Extends selection vertically using a per-slice anchor approach.
+ * Each "Vertical Slice" (time point) maintains its own anchor, allowing
+ * independent chords at different times to be extended simultaneously.
  *
+ * ## Per-Slice Anchors
+ * On the first call (or when selection changes externally), anchors are
+ * computed for each slice based on the extension direction:
+ * - DOWN: Anchor at TOP of slice (selection expands downward)
+ * - UP: Anchor at BOTTOM of slice (selection expands upward)
+ *
+ * On subsequent calls (continuation), stored anchors are reused, enabling
+ * both expansion (cursor moves away from anchor) and contraction (cursor
+ * moves toward anchor when direction changes).
+ *
+ * ## Vertical Metric
+ * Notes are ordered by a combined metric: (10 - staffIndex) * 1000 + midi
+ * This ensures treble staff notes are always "above" bass staff notes,
+ * and within a staff, higher pitches are "above" lower pitches.
+ *
+ * @example
+ * ```typescript
+ * // Extend selection downward
+ * const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+ * const newSelection = cmd.execute(currentSelection, score);
+ * ```
+ *
+ * @see VerticalAnchors in types.ts
  * @see Issue #101
- * @see Phase 2f
+ * @tested ExtendSelectionVertically.test.ts
  */
 
 import type { Selection, Score, SelectedNote, ScoreEvent } from '../../types';
@@ -16,29 +37,64 @@ import type { SelectionCommand } from './types';
 import { getNoteDuration } from '../../utils/core';
 import { getMidi } from '../../services/MusicService';
 
+/** Direction for vertical selection extension */
 export type ExpandDirection = 'up' | 'down' | 'all';
 
+/** Options for ExtendSelectionVerticallyCommand */
 export interface ExtendSelectionVerticallyOptions {
+  /** Direction to extend: 'up', 'down', or 'all' (select entire column) */
   direction: ExpandDirection;
 }
 
+/**
+ * Represents a note's position in vertical space.
+ * Used internally for sorting and comparison.
+ * @internal
+ */
 interface VerticalPoint {
   measureIndex: number;
   staffIndex: number;
   eventId: string | number;
   noteId: string | number | null;
+  /** MIDI pitch value (higher = higher pitch) */
   midi: number;
-  time: number; // Global quant time (measureIndex * 100000 + quant)
+  /** Global quant time: measureIndex * 100000 + quant */
+  time: number;
 }
 
+/**
+ * Command to extend selection vertically (up/down) through chords and staves.
+ *
+ * Implements per-slice anchoring for predictable expansion and contraction
+ * when repeatedly pressing shift+up/down.
+ */
 export class ExtendSelectionVerticallyCommand implements SelectionCommand {
   readonly type = 'EXTEND_SELECTION_VERTICALLY';
   private direction: ExpandDirection;
 
+  /**
+   * Create a new ExtendSelectionVerticallyCommand.
+   * @param options - Configuration with direction to extend
+   */
   constructor(options: ExtendSelectionVerticallyOptions) {
     this.direction = options.direction;
   }
 
+  /**
+   * Execute the vertical extension command.
+   *
+   * Algorithm:
+   * 1. Validate selection exists
+   * 2. Determine if first call or continuation (compare selection snapshot)
+   * 3. Group selected notes by time slice
+   * 4. Compute or retrieve per-slice anchors
+   * 5. For each slice: move cursor, collect notes in range
+   * 6. Return updated selection with new verticalAnchors state
+   *
+   * @param state - Current selection state
+   * @param score - Full score data for context
+   * @returns Updated selection with extended notes
+   */
   execute(state: Selection, score: Score): Selection {
     // 1. Basic Validation - need at least one selected note
     if (state.selectedNotes.length === 0) {
@@ -210,14 +266,35 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
   // =========================================================================================
 
   /**
-   * Calculate a linear value for vertical position.
-   * Higher Pitch = Higher Value.
-   * Top Staff > Bottom Staff.
+   * Calculate a linear metric for vertical ordering.
+   *
+   * Formula: (10 - staffIndex) * 1000 + midi
+   * - Staff contribution: treble (0) = 10000, bass (1) = 9000
+   * - MIDI contribution: 0-127 range
+   *
+   * This ensures all treble notes are "above" all bass notes,
+   * and within each staff, higher pitches have higher values.
+   *
+   * @param staffIndex - Staff index (0 = treble, 1 = bass)
+   * @param midi - MIDI pitch value (0-127)
+   * @returns Combined metric suitable for vertical sorting
+   * @internal
    */
   private calculateVerticalMetric(staffIndex: number, midi: number): number {
     return ((10 - staffIndex) * 1000) + midi;
   }
 
+  /**
+   * Convert a SelectedNote to a VerticalPoint with pitch and time info.
+   *
+   * Walks through measure events to calculate the quant time,
+   * then resolves the MIDI pitch from the note data.
+   *
+   * @param note - The selected note to convert
+   * @param score - Full score for context
+   * @returns VerticalPoint with all positioning info, or null if not found
+   * @internal
+   */
   private toVerticalPoint(note: SelectedNote, score: Score): VerticalPoint | null {
     const staff = score.staves[note.staffIndex];
     if (!staff) return null;
@@ -265,6 +342,18 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
     };
   }
 
+  /**
+   * Collect all notes at a specific time across all staves.
+   *
+   * Finds events at the exact quant position in each staff's measure,
+   * creating a "vertical stack" of all notes that could be selected.
+   * Results are sorted from highest to lowest (visual top to bottom).
+   *
+   * @param score - Full score to search
+   * @param globalTime - Global time (measureIndex * 100000 + quant)
+   * @returns Array of VerticalPoints sorted by descending metric (top to bottom)
+   * @internal
+   */
   private collectVerticalStack(score: Score, globalTime: number): VerticalPoint[] {
     const stack: VerticalPoint[] = [];
     
@@ -305,6 +394,19 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
     });
   }
 
+  /**
+   * Move the cursor one step in the vertical stack.
+   *
+   * Given the current cursor position in the stack, moves it
+   * up (toward index 0) or down (toward end) by one step.
+   * Direction 'all' moves to the bottom of the stack.
+   *
+   * @param stack - Sorted vertical stack (top to bottom)
+   * @param current - Current cursor position
+   * @param direction - Direction to move: 'up', 'down', or 'all'
+   * @returns New cursor position, or current if at boundary or not found
+   * @internal
+   */
   private moveCursorInStack(
     stack: VerticalPoint[], 
     current: VerticalPoint, 
@@ -337,7 +439,14 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
 
   /**
    * Compare two SelectedNote arrays for equality.
-   * Order-independent comparison using note identity.
+   *
+   * Order-independent comparison using composite keys.
+   * Used to detect if selection has changed externally (triggering first-call behavior).
+   *
+   * @param a - First selection array
+   * @param b - Second selection array
+   * @returns True if both arrays contain the same notes (regardless of order)
+   * @internal
    */
   private selectionsMatch(a: SelectedNote[], b: SelectedNote[]): boolean {
     if (a.length !== b.length) return false;
