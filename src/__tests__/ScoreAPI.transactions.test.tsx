@@ -118,9 +118,6 @@ describe('ScoreAPI Transactions', () => {
     });
 
     // Should NOT fire again on commit (only history update)
-    // Wait, typically history push doesn't change state, so no 'score' event?
-    // ScoreEngine.commitBatch pushes to history but doesn't call setState.
-    // So listener count remains 1.
     expect(listener).toHaveBeenCalledTimes(1);
 
     unsubscribe();
