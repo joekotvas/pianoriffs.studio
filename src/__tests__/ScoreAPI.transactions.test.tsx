@@ -41,7 +41,6 @@ describe('ScoreAPI Transactions', () => {
     // Verify state: Should have 2 notes
     const score = result.current.getScore();
     const measure = score.staves[0].measures[0];
-    expect(measure.events.length).toBeGreaterThan(0);
     expect(measure.events.length).toBe(2); 
 
     // 4. Undo once - should revert BOTH addNote calls
