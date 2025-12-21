@@ -4,8 +4,13 @@
  * Encapsulates the logic for managing and notifying external event listeners
  * for the RiffScore API.
  * 
+ * DESIGN:
+ * - `on()` registers listeners in a Ref for identity stability
+ * - `useEffect` hooks notify listeners when React state changes
+ * - Listeners fire exactly once per state change (no double-notifications)
+ * 
  * @see docs/adr/002-event-subscriptions.md
- * @tested
+ * @tested ScoreAPI.events.test.tsx, ScoreAPI.cookbook.test.tsx
  */
 
 import { useRef, useEffect, useCallback } from 'react';
@@ -35,10 +40,11 @@ function safeCall<T>(callback: Listener<T>, state: T): void {
 /**
  * Manages event subscriptions for the score API.
  * 
- * DESIGN:
- * Uses `useEffect` to detect state changes and trigger notifications.
- * This ensures strict synchronization with React's render cycle.
- * Listeners are stored in a Ref to maintain identity stability.
+ * Returns:
+ * - `on`: Subscribe to events (returns unsubscribe function)
+ * 
+ * Listeners are notified via useEffect when React state changes.
+ * This ensures callbacks receive fresh, correct data.
  */
 export function useAPISubscriptions(score: Score, selection: Selection) {
   // Store listeners in a Ref to avoid re-creation on render
@@ -48,14 +54,23 @@ export function useAPISubscriptions(score: Score, selection: Selection) {
     playback: new Set(),
   });
 
-  // Notify SCORE listeners when score object changes
+  // Notify SCORE listeners when React state updates
+  // Callbacks fire after React processes state changes, ensuring fresh data
+  const prevScoreRef = useRef(score);
   useEffect(() => {
-    listenersRef.current.score.forEach(cb => safeCall(cb, score));
+    if (prevScoreRef.current !== score) {
+      prevScoreRef.current = score;
+      listenersRef.current.score.forEach(cb => safeCall(cb, score));
+    }
   }, [score]);
 
-  // Notify SELECTION listeners when selection object changes
+  // Notify SELECTION listeners when React state updates
+  const prevSelectionRef = useRef(selection);
   useEffect(() => {
-    listenersRef.current.selection.forEach(cb => safeCall(cb, selection));
+    if (prevSelectionRef.current !== selection) {
+      prevSelectionRef.current = selection;
+      listenersRef.current.selection.forEach(cb => safeCall(cb, selection));
+    }
   }, [selection]);
 
   // Public subscription method
@@ -88,3 +103,4 @@ export function useAPISubscriptions(score: Score, selection: Selection) {
 
   return { on };
 }
+

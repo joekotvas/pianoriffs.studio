@@ -10,7 +10,7 @@
  * - Serve as living examples of API usage
  */
 
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { RiffScore } from '../RiffScore';
 import type { MusicEditorAPI } from '../api.types';
 
@@ -161,62 +161,71 @@ describe('Cookbook: Integration Recipes', () => {
    * Recipe: Auto-Save to Backend ✅
    * docs/COOKBOOK.md lines 125-131
    *
-   * TODO: This test only verifies the API shape, NOT that callbacks fire.
-   * See docs/migration/api_test_coverage.md "Missing Behaviors #5" - callbacks
-   * don't fire synchronously when using imperative API access.
-   *
-   * The actual documented behavior (callbacks fire on mutation) is NOT tested here
-   * because it doesn't work as documented. This is a known bug.
+   * Score callbacks fire when React processes the state update.
+   * This is asynchronous (via useEffect) but happens before the next paint.
    */
-  test('Auto-Save to Backend (subscription API shape only)', () => {
+  test('Auto-Save to Backend (callback fires on mutation)', async () => {
+    // Mock scrollTo for jsdom
+    Element.prototype.scrollTo = jest.fn();
+    
     render(<RiffScore id="cookbook-autosave" />);
     const api = getAPI('cookbook-autosave');
 
     const callback = jest.fn();
     const unsub = api.on('score', callback);
 
-    // Verify subscription returns unsubscribe function
-    expect(typeof unsub).toBe('function');
-
-    // Make a change - addNote triggers score mutation
+    // Make a change - addNote dispatches a command that updates React state
     api.select(1).addNote('C4');
 
-    // BUG: callback.toHaveBeenCalled() would FAIL here
-    // The callback is NOT invoked synchronously. See api_test_coverage.md.
+    // Score callback fires after React processes the update (via useEffect)
+    await waitFor(() => {
+      expect(callback).toHaveBeenCalled();
+    });
+    
+    // Verify callback was invoked with a score object
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
+      staves: expect.any(Array),
+    }));
 
     // Cleanup
     unsub();
-
-    // Verify score was modified (the entry part works)
-    expect(api.getSelection().eventId).toBeDefined();
   });
 
   /**
    * Recipe: Sync Selection with External UI ✅
    * docs/COOKBOOK.md lines 138-144
    *
-   * TODO: This test only verifies the API shape, NOT that callbacks fire.
-   * See docs/migration/api_test_coverage.md "Missing Behaviors #5"
+   * Selection callbacks fire when React processes the state update.
+   * This is asynchronous (via useEffect) but happens before the next paint.
    */
-  test('Sync Selection with External UI (subscription API shape only)', () => {
+  test('Sync Selection with External UI (callback fires on navigation)', async () => {
+    // Mock scrollTo for jsdom
+    Element.prototype.scrollTo = jest.fn();
+    
     render(<RiffScore id="cookbook-sync-selection" />);
     const api = getAPI('cookbook-sync-selection');
 
-    // Verify the subscription API works (returns unsubscribe function)
+    // First select something to have a starting point
+    api.select(1, 0, 0);
+
     const callback = jest.fn();
     const unsub = api.on('selection', callback);
 
-    expect(typeof unsub).toBe('function');
+    // Navigate to trigger selection change
+    api.move('right');
+
+    // Selection callback fires after React processes the update (via useEffect)
+    await waitFor(() => {
+      expect(callback).toHaveBeenCalled();
+    });
+    
+    // Verify callback was invoked with selection data
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
+      staffIndex: expect.any(Number),
+    }));
 
     // Cleanup
     unsub();
-
-    // After unsubscribe, further calls should not invoke callback
-    api.select(1, 0, 0);
-    api.move('right');
-
-    // BUG: Even BEFORE unsubscribe, callback would not be invoked
-    // The callback is NOT invoked synchronously. See api_test_coverage.md.
   });
 });
 

@@ -30,3 +30,4 @@ export interface APIContext {
   /** Current configuration */
   config: RiffScoreConfig;
 }
+

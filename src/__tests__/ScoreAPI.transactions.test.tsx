@@ -109,14 +109,14 @@ describe('ScoreAPI Transactions', () => {
       result.current.addNote('C4');
     });
 
-    // Should have fired once for the addNote (immediate update)
+    // Should have fired exactly once (via useEffect after state update)
     expect(listener).toHaveBeenCalledTimes(1);
 
     act(() => {
       result.current.commitTransaction();
     });
 
-    // Should NOT fire again on commit (only history update)
+    // Should NOT fire again on commit (only history update, not score change)
     expect(listener).toHaveBeenCalledTimes(1);
 
     unsubscribe();
