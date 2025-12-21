@@ -4,23 +4,14 @@ import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
  * Handles mutation keyboard shortcuts (Enter, Delete, Accidentals, Ties, Transposition, Undo/Redo).
  */
 export const handleMutation = (e: KeyboardEvent, logic: any) => {
-  const {
-    undo,
-    redo,
-    handleAccidentalToggle,
-    handleTieToggle,
-    handleDotToggle,
-    deleteSelected,
-    transposeSelection,
-    addNoteToMeasure,
-    previewNote,
-    handleDurationChange,
-    // R key / Rest toggle
-    toggleInputMode,
-    selection,
-    dispatch,
-    editorState,
-  } = logic;
+  // Access grouped API from logic
+  const { selection, previewNote, editorState } = logic.state;
+  const { undo, redo } = logic.historyAPI;
+  const { accidental: handleAccidentalToggle, tie: handleTieToggle, dot: handleDotToggle, duration: handleDurationChange } = logic.modifiers;
+  const { transpose: transposeSelection } = logic.navigation;
+  const { addNote: addNoteToMeasure, delete: deleteSelected } = logic.entry;
+  const { toggleInputMode } = logic.tools;
+  const { dispatch } = logic.engines;
 
   // DURATION SHORTCUTS
   // DURATION SHORTCUTS

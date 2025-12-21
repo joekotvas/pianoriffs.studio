@@ -39,8 +39,10 @@ jest.mock('../engines/toneEngine', () => ({
 
 // Mock Component to consume context and trigger actions
 const MockNoteTrigger = () => {
-  const { handleNoteSelection, selection, setSelection, transposeSelection } =
-    require('../context/ScoreContext').useScoreContext();
+  const ctx = require('../context/ScoreContext').useScoreContext();
+  const { selection } = ctx.state;
+  const { select: handleNoteSelection, transpose: transposeSelection } = ctx.navigation;
+  const { setSelection } = ctx;
 
   return (
     <div>

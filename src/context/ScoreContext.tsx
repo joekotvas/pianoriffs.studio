@@ -35,14 +35,17 @@ export const ScoreProvider: React.FC<ScoreProviderProps> = ({ children, initialS
     targetClef: 'treble' | 'bass';
   } | null>(null);
 
-  const { setGrandStaff, dispatch, score } = logic;
+  // Access grouped API
+  const setGrandStaff = logic.measures.setGrandStaff;
+  const dispatch = logic.engines.dispatch;
+  const score = logic.state.score;
   const staffCount = score.staves.length;
 
   const handleClefChange = React.useCallback(
     (val: string) => {
       const newClef = String(val).trim();
       if (newClef === 'grand') {
-        setGrandStaff();
+        setGrandStaff(true);
       } else if (staffCount >= 2) {
         // Switching from grand staff to single clef - show confirmation
         setPendingClefChange({ targetClef: newClef as 'treble' | 'bass' });

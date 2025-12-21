@@ -55,23 +55,15 @@ const ScoreEditorContent = ({
   // --- Context & Theme ---
   const { theme } = useTheme();
   const scoreLogic = useScoreContext();
-  const {
-    score,
-    dispatch,
-    pendingClefChange,
-    setPendingClefChange,
-    selection,
-    clearSelection,
-    setPreviewNote,
-    activeDuration,
-    isDotted,
-    activeAccidental,
-    scoreRef,
-    updateNotePitch,
-    handleNoteSelection,
-    addChordToMeasure,
-    focusScore,
-  } = scoreLogic;
+  
+  // Grouped API destructuring
+  const { score, selection, previewNote } = scoreLogic.state;
+  const { dispatch, scoreRef } = scoreLogic.engines;
+  const { activeDuration, isDotted, activeAccidental } = scoreLogic.tools;
+  const { select: handleNoteSelection, focus: focusScore } = scoreLogic.navigation;
+  const { addChord: addChordToMeasure, updatePitch: updateNotePitch } = scoreLogic.entry;
+  const { clearSelection, setPreviewNote } = scoreLogic;
+  const { pendingClefChange, setPendingClefChange } = scoreLogic as any; // UI state from context
 
   // --- Local UI State ---
   const [bpm, setBpm] = useState(120);

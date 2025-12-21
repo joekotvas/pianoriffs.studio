@@ -80,18 +80,11 @@ export interface UseScoreAPIProps {
  * ```
  */
 export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEditorAPI {
-  // 1. Consume Context Directly
-  const { 
-    score, 
-    selection, 
-    dispatch, 
-    selectionEngine,
-    beginTransaction,
-    commitTransaction,
-    rollbackTransaction,
-    undo,
-    redo
-  } = useScoreContext();
+  // 1. Consume Context Directly (Grouped API)
+  const ctx = useScoreContext();
+  const { score, selection } = ctx.state;
+  const { dispatch, selectionEngine } = ctx.engines;
+  const { begin: beginTransaction, commit: commitTransaction, rollback: rollbackTransaction, undo, redo } = ctx.historyAPI;
 
   // 2. Synchronous State Refs (authoritative for API methods to avoid stale closures)
   const scoreRef = useRef(score);

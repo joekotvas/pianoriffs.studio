@@ -14,7 +14,7 @@ interface UseToolsSyncProps {
   score: Score;
   selection: Selection;
   inputMode: 'NOTE' | 'REST';
-  setActiveAccidental: (acc: string | null) => void;
+  setActiveAccidental: (acc: 'flat' | 'natural' | 'sharp' | null) => void;
   setActiveTie: (tied: boolean) => void;
   setInputMode: (mode: 'NOTE' | 'REST') => void;
 }

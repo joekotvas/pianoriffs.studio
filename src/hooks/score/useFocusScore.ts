@@ -18,7 +18,7 @@ interface UseFocusScoreProps {
   score: Score;
   scoreRef: RefObject<Score>;
   selection: Selection;
-  lastSelection: Selection;
+  lastSelection: Selection | null;
   selectionEngine: SelectionEngine;
   setPreviewNote: (note: PreviewNote | null) => void;
   activeDuration: string;

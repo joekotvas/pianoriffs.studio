@@ -24,10 +24,10 @@ describe('useScoreLogic Integration', () => {
   test('should initialize with default score', () => {
     const { result } = renderHook(() => useScoreLogic(initialScore));
 
-    expect(result.current.score).toBeDefined();
-    expect(result.current.score.staves).toHaveLength(2);
+    expect(result.current.state.score).toBeDefined();
+    expect(result.current.state.score.staves).toHaveLength(2);
     // Default score has 2 measures
-    expect(result.current.score.staves[0].measures).toHaveLength(2);
+    expect(result.current.state.score.staves[0].measures).toHaveLength(2);
   });
 
   test('should add a note to the score', () => {
@@ -37,10 +37,10 @@ describe('useScoreLogic Integration', () => {
 
     act(() => {
       // Add note to first measure
-      result.current.addNoteToMeasure(0, newNote);
+      result.current.entry.addNote(0, newNote);
     });
 
-    const measure = result.current.score.staves[0].measures[0];
+    const measure = result.current.state.score.staves[0].measures[0];
     expect(measure.events).toHaveLength(1);
     expect(measure.events[0].notes[0].pitch).toBe('C4');
     expect(measure.events[0].duration).toBe('quarter');
@@ -52,26 +52,26 @@ describe('useScoreLogic Integration', () => {
     // 1. Add a note
     const newNote = { pitch: 'C4', duration: 'quarter', dotted: false };
     act(() => {
-      result.current.addNoteToMeasure(0, newNote);
+      result.current.entry.addNote(0, newNote);
     });
 
     // Verify addition
-    let measure = result.current.score.staves[0].measures[0];
+    let measure = result.current.state.score.staves[0].measures[0];
     const eventId = measure.events[0].id;
     const noteId = measure.events[0].notes[0].id;
 
-    // 2. Select the note (addNoteToMeasure auto-selects, but let's be explicit)
+    // 2. Select the note (addNote auto-selects, but let's be explicit)
     act(() => {
       result.current.setSelection({ staffIndex: 0, measureIndex: 0, eventId, noteId, selectedNotes: [] });
     });
 
     // 3. Delete it
     act(() => {
-      result.current.deleteSelected();
+      result.current.entry.delete();
     });
 
     // Verify deletion
-    measure = result.current.score.staves[0].measures[0];
+    measure = result.current.state.score.staves[0].measures[0];
     expect(measure.events).toHaveLength(0);
   });
 
@@ -81,10 +81,10 @@ describe('useScoreLogic Integration', () => {
     // 1. Add a note
     const newNote = { pitch: 'C4', duration: 'quarter', dotted: false };
     act(() => {
-      result.current.addNoteToMeasure(0, newNote);
+      result.current.entry.addNote(0, newNote);
     });
 
-    const measure = result.current.score.staves[0].measures[0];
+    const measure = result.current.state.score.staves[0].measures[0];
     const eventId = measure.events[0].id;
     const noteId = measure.events[0].notes[0].id;
 
@@ -95,11 +95,11 @@ describe('useScoreLogic Integration', () => {
 
     // 3. Change duration to eighth
     act(() => {
-      result.current.handleDurationChange('eighth');
+      result.current.modifiers.duration('eighth');
     });
 
     // Verify change
-    const updatedMeasure = result.current.score.staves[0].measures[0];
+    const updatedMeasure = result.current.state.score.staves[0].measures[0];
     expect(updatedMeasure.events[0].duration).toBe('eighth');
   });
 
@@ -109,10 +109,10 @@ describe('useScoreLogic Integration', () => {
     // 1. Add a note
     const newNote = { pitch: 'C4', duration: 'quarter', dotted: false };
     act(() => {
-      result.current.addNoteToMeasure(0, newNote);
+      result.current.entry.addNote(0, newNote);
     });
 
-    const measure = result.current.score.staves[0].measures[0];
+    const measure = result.current.state.score.staves[0].measures[0];
     const eventId = measure.events[0].id;
     const noteId = measure.events[0].notes[0].id;
 
@@ -123,11 +123,11 @@ describe('useScoreLogic Integration', () => {
 
     // 3. Toggle Sharp - should raise pitch by semitone
     act(() => {
-      result.current.handleAccidentalToggle('sharp');
+      result.current.modifiers.accidental('sharp');
     });
 
     // Verify pitch changed from C4 to C#4 (preserves letter name)
-    const updatedMeasure = result.current.score.staves[0].measures[0];
+    const updatedMeasure = result.current.state.score.staves[0].measures[0];
     const updatedPitch = updatedMeasure.events[0].notes[0].pitch;
     expect(updatedPitch).toBe('C#4');
   });

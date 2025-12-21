@@ -28,7 +28,11 @@ interface UIState {
 }
 
 export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, handlers: any) => {
-  const { selection, score, moveSelection, selectionEngine, scoreRef, switchStaff } = logic;
+  // Access grouped API from logic
+  const { selection } = logic.state;
+  const score = logic.state.score;
+  const { move: moveSelection, switchStaff } = logic.navigation;
+  const { selectionEngine, scoreRef } = logic.engines;
 
   const { isEditingTitle, isHoveringScore, scoreContainerRef, isAnyMenuOpen } = meta;
   const { handleTitleCommit } = handlers;

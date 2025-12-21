@@ -100,45 +100,34 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
     const [showLibrary, setShowLibrary] = useState(false);
     const [isToolbarFocused, setIsToolbarFocused] = useState(false);
 
-    // -- Score Context (Grouped for Clarity) --
-    const scoreCtx = useScoreContext();
+    // -- Score Context (Grouped API) --
+    const ctx = useScoreContext();
 
     // 1. Core Data
-    const { score, dispatch, inputMode, toggleInputMode, selection, editorState } = scoreCtx;
+    const { score, selection, editorState } = ctx.state;
+    const { dispatch } = ctx.engines;
+    const { inputMode, toggleInputMode } = ctx.tools;
 
     // 2. History
-    const { history, undo, redoStack, redo } = scoreCtx;
+    const { history, redoStack } = ctx.state;
+    const { undo, redo } = ctx.historyAPI;
 
     // 3. Duration & Rhythms
-    const {
-      activeDuration,
-      handleDurationChange,
-      checkDurationValidity,
-      selectedDurations,
-      isDotted,
-      handleDotToggle,
-      checkDotValidity,
-      selectedDots,
-      activeTie,
-      handleTieToggle,
-      selectedTies,
-    } = scoreCtx;
+    const { activeDuration, isDotted, activeTie } = ctx.tools;
+    const { duration: handleDurationChange, dot: handleDotToggle, tie: handleTieToggle, checkDurationValidity, checkDotValidity } = ctx.modifiers;
+    const { selectedDurations, selectedDots, selectedTies } = ctx.derived;
 
     // 4. Pitch & Accidentals
-    const { activeAccidental, handleAccidentalToggle, selectedAccidentals } = scoreCtx;
+    const { activeAccidental } = ctx.tools;
+    const { accidental: handleAccidentalToggle } = ctx.modifiers;
+    const { selectedAccidentals } = ctx.derived;
 
     // 5. Structure (Measures, Staff)
-    const {
-      addMeasure,
-      removeMeasure,
-      togglePickup,
-      handleTimeSignatureChange,
-      handleKeySignatureChange,
-      handleClefChange,
-    } = scoreCtx;
+    const { add: addMeasure, remove: removeMeasure, togglePickup, setTimeSignature: handleTimeSignatureChange, setKeySignature: handleKeySignatureChange } = ctx.measures;
+    const handleClefChange = ctx.measures.setGrandStaff; // Maps to setGrandStaff for now
 
     // 6. Advanced (Tuplets)
-    const { applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio } = scoreCtx;
+    const { apply: applyTuplet, remove: removeTuplet, canApply: canApplyTuplet, activeRatio: activeTupletRatio } = ctx.tuplets;
 
     // -- Handlers --
 

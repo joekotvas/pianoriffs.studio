@@ -41,22 +41,14 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 }) => {
   const { theme } = useTheme();
 
-  // Consume Score Context
-  const {
-    score,
-    selection,
-    clearSelection,
-    selectionEngine,
-    handleNoteSelection,
-    addNoteToMeasure,
-    activeDuration,
-    isDotted,
-    previewNote,
-    setPreviewNote,
-    handleMeasureHover,
-    scoreRef,
-    updateNotePitch,
-  } = useScoreContext();
+  // Consume Score Context (Grouped API)
+  const ctx = useScoreContext();
+  const { score, selection, previewNote } = ctx.state;
+  const { selectionEngine, scoreRef } = ctx.engines;
+  const { activeDuration, isDotted } = ctx.tools;
+  const { select: handleNoteSelection } = ctx.navigation;
+  const { addNote: addNoteToMeasure, handleMeasureHover, updatePitch: updateNotePitch } = ctx.entry;
+  const { clearSelection, setPreviewNote } = ctx;
 
   // --- INTERACTION LOGIC MOVED FROM SCORE EDITOR ---
 

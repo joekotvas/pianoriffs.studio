@@ -15,7 +15,7 @@ import { RefObject } from 'react';
 export interface ScoreStateGroup {
   score: Score;
   selection: Selection;
-  editorState: string;
+  editorState: 'IDLE' | 'ENTRY_READY' | 'SELECTION_READY';
   previewNote: PreviewNote | null;
   history: Command[];
   redoStack: Command[];
@@ -29,7 +29,7 @@ export interface ScoreToolsGroup {
   setActiveDuration: (duration: string) => void;
   isDotted: boolean;
   setIsDotted: (dotted: boolean) => void;
-  activeAccidental: string | null;
+  activeAccidental: 'flat' | 'natural' | 'sharp' | null;
   activeTie: boolean;
   inputMode: 'NOTE' | 'REST';
   setInputMode: (mode: 'NOTE' | 'REST') => void;

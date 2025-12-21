@@ -14,14 +14,34 @@ describe('handleMutation', () => {
 
   beforeEach(() => {
     mockLogic = {
-      undo: jest.fn(),
-      redo: jest.fn(),
-      handleAccidentalToggle: jest.fn(),
-      handleTieToggle: jest.fn(),
-      deleteSelected: jest.fn(),
-      transposeSelection: jest.fn(),
-      addNoteToMeasure: jest.fn(),
-      previewNote: null,
+      state: {
+        selection: null,
+        previewNote: null,
+        editorState: 'IDLE',
+      },
+      historyAPI: {
+        undo: jest.fn(),
+        redo: jest.fn(),
+      },
+      modifiers: {
+        accidental: jest.fn(),
+        tie: jest.fn(),
+        dot: jest.fn(),
+        duration: jest.fn(),
+      },
+      navigation: {
+        transpose: jest.fn(),
+      },
+      entry: {
+        addNote: jest.fn(),
+        delete: jest.fn(),
+      },
+      tools: {
+        toggleInputMode: jest.fn(),
+      },
+      engines: {
+        dispatch: jest.fn(),
+      },
     };
     mockEvent = {
       key: '',
@@ -37,7 +57,7 @@ describe('handleMutation', () => {
     mockEvent.metaKey = true;
     const result = handleMutation(mockEvent, mockLogic);
     expect(result).toBe(true);
-    expect(mockLogic.undo).toHaveBeenCalled();
+    expect(mockLogic.historyAPI.undo).toHaveBeenCalled();
   });
 
   test('should handle Redo (Cmd+Shift+Z)', () => {
@@ -46,31 +66,31 @@ describe('handleMutation', () => {
     mockEvent.shiftKey = true;
     const result = handleMutation(mockEvent, mockLogic);
     expect(result).toBe(true);
-    expect(mockLogic.redo).toHaveBeenCalled();
+    expect(mockLogic.historyAPI.redo).toHaveBeenCalled();
   });
 
   test('should handle Accidentals', () => {
     mockEvent.key = '-';
     handleMutation(mockEvent, mockLogic);
-    expect(mockLogic.handleAccidentalToggle).toHaveBeenCalledWith('flat');
+    expect(mockLogic.modifiers.accidental).toHaveBeenCalledWith('flat');
 
     mockEvent.key = '=';
     handleMutation(mockEvent, mockLogic);
-    expect(mockLogic.handleAccidentalToggle).toHaveBeenCalledWith('sharp');
+    expect(mockLogic.modifiers.accidental).toHaveBeenCalledWith('sharp');
   });
 
   test('should handle Transposition (ArrowUp)', () => {
     mockEvent.key = 'ArrowUp';
     const result = handleMutation(mockEvent, mockLogic);
     expect(result).toBe(true);
-    expect(mockLogic.transposeSelection).toHaveBeenCalledWith('up', false);
+    expect(mockLogic.navigation.transpose).toHaveBeenCalledWith('up', false);
   });
 
   test('should handle Delete', () => {
     mockEvent.key = 'Delete';
     const result = handleMutation(mockEvent, mockLogic);
     expect(result).toBe(true);
-    expect(mockLogic.deleteSelected).toHaveBeenCalled();
+    expect(mockLogic.entry.delete).toHaveBeenCalled();
   });
 
   test('should ignore unknown keys', () => {
