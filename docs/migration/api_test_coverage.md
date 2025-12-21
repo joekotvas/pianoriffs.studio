@@ -185,6 +185,24 @@ The generated `noteId` for rests doesn't correspond to any note in the score (re
 
 ---
 
+### 5. Subscription Callbacks Don't Fire Synchronously
+**Severity:** High  
+**Discovered:** Cookbook integration testing
+
+**Observed:** When using the imperative API via `window.riffScore.get(id)`:
+- `api.on('score', callback)` — callback is NOT invoked when `addNote()` mutates score
+- `api.on('selection', callback)` — callback is NOT invoked when `select()`/`move()` changes selection
+
+**Expected:** Per COOKBOOK.md recipes, callbacks should fire when state changes.
+
+**Workaround:** Use `renderHook` + `act()` in tests (works), or poll `getScore()`/`getSelection()` in production.
+
+**Root Cause (suspected):** The subscription system relies on React's `useEffect` to detect state changes. When API methods are called imperatively (not within React's render cycle), the effect doesn't run until the next render, which may not happen synchronously.
+
+**Impact:** COOKBOOK.md recipes "Auto-Save to Backend" and "Sync Selection with External UI" may not work as documented.
+
+---
+
 ## Summary
 
 | Priority | Status | Notes |
