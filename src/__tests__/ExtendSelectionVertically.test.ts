@@ -219,6 +219,32 @@ describe('ExtendSelectionVerticallyCommand', () => {
       expect(result.selectedNotes.map(n => n.noteId)).toContain('n1'); // E4 added
     });
 
+    test('extend down from middle note adds lower note', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n1'); // E4 (middle)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should add C4 (below E4)
+      expect(result.selectedNotes).toHaveLength(2);
+      expect(result.selectedNotes.map(n => n.noteId)).toContain('n1'); // E4 still selected
+      expect(result.selectedNotes.map(n => n.noteId)).toContain('n0'); // C4 added
+    });
+
+    test('extend up from middle note adds higher note', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n1'); // E4 (middle)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // Should add G4 (above E4)
+      expect(result.selectedNotes).toHaveLength(2);
+      expect(result.selectedNotes.map(n => n.noteId)).toContain('n1'); // E4 still selected
+      expect(result.selectedNotes.map(n => n.noteId)).toContain('n2'); // G4 added
+    });
+
     test('extend up from bottom note moves cursor to middle', () => {
       const score = createTestScore();
       const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4 (bottom)
@@ -294,8 +320,9 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
       const result = cmd.execute(state, score);
 
-      // Can't go lower - unchanged
-      expect(result).toBe(state);
+      // Can't go lower - selection unchanged (but verticalAnchors may be set)
+      expect(result.selectedNotes).toEqual(state.selectedNotes);
+      expect(result.noteId).toBe(state.noteId);
     });
 
     test('extend all staves selects quant-aligned notes across all staves', () => {
@@ -333,9 +360,9 @@ describe('ExtendSelectionVerticallyCommand', () => {
       expect(result.anchor?.noteId).toBe('n2'); // anchor still preserved
     });
 
-    test('contraction works when reversing direction', () => {
+    test('direction change without verticalAnchors starts new expansion series', () => {
       const score = createTestScore();
-      // Start with full chord selected: C4, E4, G4 with anchor at G4
+      // Start with full chord selected: C4, E4, G4 (no verticalAnchors)
       const state: Selection = {
         staffIndex: 0,
         measureIndex: 0,
@@ -347,15 +374,19 @@ describe('ExtendSelectionVerticallyCommand', () => {
           { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // G4
         ],
         anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // anchor at G4
+        // NO verticalAnchors set - this is treated as a NEW series
       };
 
-      // Extend UP should contract (move cursor from C4 toward G4)
+      // Extend UP - since no verticalAnchors, this starts a NEW series with anchor at BOTTOM
+      // Since selection already includes the top note, trying to expand UP does nothing (at boundary)
       const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
       const result = cmd.execute(state, score);
 
-      // Should have contracted - fewer notes than before
-      expect(result.selectedNotes.length).toBeLessThan(3);
-      expect(result.anchor?.noteId).toBe('n2'); // anchor preserved
+      // Selection stays same size (already at top boundary of chord)
+      // verticalAnchors should now be set
+      expect(result.selectedNotes.length).toBe(3);
+      expect(result.verticalAnchors).toBeDefined();
+      expect(result.verticalAnchors?.direction).toBe('up');
     });
   });
 
@@ -463,8 +494,9 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
       const result = cmd.execute(state, singleStaffScore);
 
-      // No change - at boundary, nowhere to go  
-      expect(result).toBe(state);
+      // No change - at boundary, nowhere to go (but verticalAnchors may be set)
+      expect(result.selectedNotes).toEqual(state.selectedNotes);
+      expect(result.noteId).toBe(state.noteId);
     });
     });
   });

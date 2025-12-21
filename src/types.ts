@@ -185,6 +185,19 @@ export interface SelectedNote {
 }
 
 /**
+ * Per-slice vertical anchors for vertical selection extension.
+ * Set on first vertical extension, cleared when selection is modified.
+ */
+export interface VerticalAnchors {
+  /** Direction of this vertical extension series */
+  direction: 'up' | 'down';
+  /** Map of global time (measureIndex * 100000 + quant) to anchor note for that slice */
+  sliceAnchors: Record<number, SelectedNote>;
+  /** Snapshot of selection when vertical extension started */
+  originSelection: SelectedNote[];
+}
+
+/**
  * Selection State for the editor
  */
 export interface Selection {
@@ -194,6 +207,7 @@ export interface Selection {
   noteId: string | number | null; // ID of the selected note (for chords)
   selectedNotes: SelectedNote[]; // List of all selected notes (including the primary one above)
   anchor?: SelectedNote | null; // The static "anchor" point for range selection
+  verticalAnchors?: VerticalAnchors | null; // Per-slice anchors for vertical extension
 }
 
 /**
@@ -206,6 +220,7 @@ export const createDefaultSelection = (): Selection => ({
   noteId: null,
   selectedNotes: [],
   anchor: null,
+  verticalAnchors: null,
 });
 
 // ========== PREVIEW NOTE (GHOST CURSOR) ==========

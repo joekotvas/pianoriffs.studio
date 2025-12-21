@@ -40,46 +40,22 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
   }
 
   execute(state: Selection, score: Score): Selection {
-    // 1. Basic Validation
-    if (!state.anchor || state.selectedNotes.length === 0) return state;
-
-    // 2. Setup
-    const anchorPt = this.toVerticalPoint(state.anchor, score);
-    // If anchor is invalid (e.g. deleted note), just return state or try to recover?
-    // Return state for safety.
-    if (!anchorPt) return state;
-
-    // DEBUG LOGS
-    console.log('DEBUG: Anchor', anchorPt?.midi, 'FocusNoteId', state.noteId);
-    
-    // 3. Determine Global Orientation
-    let orientation: 'up' | 'down' = 'down'; // Default
-    
-    // Heuristic: Check relationship between Anchor and Focus (state.noteId)
-    // If we have a focus note different from anchor...
-    if (state.noteId && state.noteId !== state.anchor.noteId) {
-      const focusNote = state.selectedNotes.find(n => n.noteId === state.noteId);
-      if (focusNote) {
-        const focusPt = this.toVerticalPoint(focusNote, score);
-        if (focusPt) {
-           const metricA = this.calculateVerticalMetric(anchorPt.staffIndex, anchorPt.midi);
-           const metricF = this.calculateVerticalMetric(focusPt.staffIndex, focusPt.midi);
-           console.log('DEBUG: Metrics A:', metricA, 'F:', metricF);
-           
-           if (metricF > metricA) orientation = 'up'; // Visual UP (Higher Pitch)
-           else if (metricF < metricA) orientation = 'down'; // Visual DOWN (Lower Pitch)
-        }
-      } else {
-         console.log('DEBUG: Focus note not found in selection');
-      }
-    } else {
-       // Neutral state (Anchor == Focus): Use input direction to establish orientation
-       orientation = this.direction === 'up' ? 'up' : 'down'; 
-       if (this.direction === 'all') orientation = 'down'; 
+    // 1. Basic Validation - need at least one selected note
+    if (state.selectedNotes.length === 0) {
+      return state;
     }
-    console.log('DEBUG: Orientation:', orientation);
 
-    // 4. Group by Time Slice
+    // 2. Determine if this is the first call or a continuation
+    //    First call: verticalAnchors is null OR selection has changed from snapshot
+    const isFirstCall = !state.verticalAnchors || !this.selectionsMatch(
+      state.verticalAnchors.originSelection,
+      state.selectedNotes
+    );
+    
+    // eslint-disable-next-line no-console
+    console.info(`EXTEND VERTICAL: ${isFirstCall ? 'FIRST CALL' : 'CONTINUATION'} (direction: ${this.direction})`);
+
+    // 3. Group current selection by Time Slice
     const slices = new Map<number, VerticalPoint[]>();
     for (const note of state.selectedNotes) {
        const pt = this.toVerticalPoint(note, score);
@@ -89,37 +65,76 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
        }
     }
 
+    // 4. Compute or retrieve per-slice anchors
+    let sliceAnchors: Record<number, SelectedNote>;
+    
+    if (isFirstCall) {
+      // First call: Compute anchors based on input direction
+      sliceAnchors = {};
+      for (const [time, points] of slices.entries()) {
+        if (points.length === 0) continue;
+        
+        // Find extremes in this slice
+        let minPt = points[0];
+        let maxPt = points[0];
+        let minM = this.calculateVerticalMetric(minPt.staffIndex, minPt.midi);
+        let maxM = minM;
+
+        for (let i = 1; i < points.length; i++) {
+          const p = points[i];
+          const m = this.calculateVerticalMetric(p.staffIndex, p.midi);
+          if (m < minM) { minM = m; minPt = p; }
+          if (m > maxM) { maxM = m; maxPt = p; }
+        }
+        
+        // Set anchor at the OPPOSITE extreme from the direction
+        // DOWN: anchor at TOP (maxPt), so cursor expands downward
+        // UP: anchor at BOTTOM (minPt), so cursor expands upward
+        const anchorPt = (this.direction === 'down' || this.direction === 'all') ? maxPt : minPt;
+        sliceAnchors[time] = {
+          staffIndex: anchorPt.staffIndex,
+          measureIndex: anchorPt.measureIndex,
+          eventId: anchorPt.eventId,
+          noteId: anchorPt.noteId,
+        };
+      }
+    } else {
+      // Continuation: Use stored anchors
+      sliceAnchors = state.verticalAnchors!.sliceAnchors;
+    }
+
+    // 5. Process Slices - expand selection
     const newSelectedNotes: SelectedNote[] = [];
     let newFocusPoint: VerticalPoint | null = null;
     let hasChanged = false;
-    
-    // 5. Process Slices
+
     for (const [time, points] of slices.entries()) {
        if (points.length === 0) continue;
 
-       // Find Metric Extremes in this slice
+       // Get the stored anchor for this slice
+       const storedAnchor = sliceAnchors[time];
+       if (!storedAnchor) continue;
+       
+       const sliceAnchorPt = this.toVerticalPoint(storedAnchor, score);
+       if (!sliceAnchorPt) continue;
+
+       // Find current cursor (the extreme in the direction of movement)
        let minPt = points[0];
        let maxPt = points[0];
        let minM = this.calculateVerticalMetric(minPt.staffIndex, minPt.midi);
        let maxM = minM;
 
        for (let i = 1; i < points.length; i++) {
-           const p = points[i];
-           const m = this.calculateVerticalMetric(p.staffIndex, p.midi);
-           if (m < minM) { minM = m; minPt = p; }
-           if (m > maxM) { maxM = m; maxPt = p; }
+         const p = points[i];
+         const m = this.calculateVerticalMetric(p.staffIndex, p.midi);
+         if (m < minM) { minM = m; minPt = p; }
+         if (m > maxM) { maxM = m; maxPt = p; }
        }
        
-       let sliceAnchorPt: VerticalPoint; // The static edge
-       let sliceCursorPt: VerticalPoint; // The moving edge
-
-       if (orientation === 'up') {
-          sliceAnchorPt = minPt; // Bottom is fixed
-          sliceCursorPt = maxPt; // Top moves
-       } else {
-          sliceAnchorPt = maxPt; // Top is fixed
-          sliceCursorPt = minPt; // Bottom moves
-       }
+       // Cursor is at the OPPOSITE extreme from the anchor
+       // This allows both expansion (cursor away from anchor) and contraction (cursor toward anchor)
+       const anchorMetric = this.calculateVerticalMetric(sliceAnchorPt.staffIndex, sliceAnchorPt.midi);
+       const sliceCursorPt = (anchorMetric >= maxM) ? minPt : maxPt;
        
        // Collect Stack (All notes at this time, sorted Top to Bottom)
        const stack = this.collectVerticalStack(score, time);
@@ -156,16 +171,37 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
        }
     }
 
-    if (!hasChanged) return state;
+    // 6. Build verticalAnchors for result
+    // Keep sliceAnchors from first call; update originSelection to NEW selection
+    const effectiveDirection = this.direction === 'all' ? 'down' : this.direction;
+    const newVerticalAnchors = {
+      direction: effectiveDirection,
+      sliceAnchors,
+      // On first call, originSelection is the input. On change, update to new selection.
+      originSelection: isFirstCall ? [...state.selectedNotes] : state.verticalAnchors!.originSelection,
+    };
 
-    // 6. Return Result
+    // If no change happened, still update verticalAnchors if this was first call
+    if (!hasChanged) {
+      if (isFirstCall) {
+        return { ...state, verticalAnchors: newVerticalAnchors };
+      }
+      return state;
+    }
+
+    // 7. Return Result with verticalAnchors
+    // IMPORTANT: Update originSelection to the NEW selection so next call detects continuation
     return {
        ...state,
        selectedNotes: newSelectedNotes,
        noteId: newFocusPoint?.noteId ?? state.noteId,
        eventId: newFocusPoint?.eventId ?? state.eventId,
        staffIndex: newFocusPoint?.staffIndex ?? state.staffIndex,
-       measureIndex: newFocusPoint?.measureIndex ?? state.measureIndex
+       measureIndex: newFocusPoint?.measureIndex ?? state.measureIndex,
+       verticalAnchors: {
+         ...newVerticalAnchors,
+         originSelection: [...newSelectedNotes], // Update snapshot to new selection
+       },
     };
   }
 
@@ -297,5 +333,19 @@ export class ExtendSelectionVerticallyCommand implements SelectionCommand {
     }
 
     return stack[newIdx];
+  }
+
+  /**
+   * Compare two SelectedNote arrays for equality.
+   * Order-independent comparison using note identity.
+   */
+  private selectionsMatch(a: SelectedNote[], b: SelectedNote[]): boolean {
+    if (a.length !== b.length) return false;
+    
+    const toKey = (n: SelectedNote) => 
+      `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`;
+    
+    const setA = new Set(a.map(toKey));
+    return b.every(note => setA.has(toKey(note)));
   }
 }

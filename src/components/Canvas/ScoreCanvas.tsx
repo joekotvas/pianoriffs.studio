@@ -198,12 +198,12 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
         const forcedPositions = synchronizedLayoutData?.[measureIdx]?.forcedPositions;
 
         // Calculate actual layout to get event positions
-
+        // IMPORTANT: Use measure.isPickup to match visual rendering!
         const layout = calculateMeasureLayout(
           measure.events,
           undefined,
           staffClef,
-          false,
+          measure.isPickup || false,
           forcedPositions
         );
 
@@ -480,6 +480,23 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
               style={{ pointerEvents: 'none' }}
             />
           )}
+
+
+          {/* DEBUG: Lasso hit zone positions (cyan) - compare to red Note hit zones */}
+          {CONFIG.debug?.showHitZones && notePositions.map((pos, idx) => (
+            <rect
+              key={`debug-lasso-${idx}`}
+              x={pos.x}
+              y={pos.y}
+              width={pos.width}
+              height={pos.height}
+              fill="cyan"
+              fillOpacity={0.3}
+              stroke="cyan"
+              strokeWidth={1}
+              style={{ pointerEvents: 'none' }}
+            />
+          ))}
         </g>
       </svg>
     </div>
