@@ -4,7 +4,7 @@
 
 > An intuitive, embeddable sheet music editor for common notation tasks—without the complexity of professional engraving software.
 
-> **See also**: [Architecture](./ARCHITECTURE.md) • [Configuration](./CONFIGURATION.md) • [Keyboard Navigation Deep Dive](./KEYBOARD_NAVIGATION.md)
+> **See also**: [Keyboard Navigation](./KEYBOARD_NAVIGATION.md) • [Selection Model](./SELECTION.md) • [API Reference](./API.md)
 
 ---
 

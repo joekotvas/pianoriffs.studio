@@ -4,7 +4,7 @@
 
 Thank you for your interest in contributing to RiffScore!
 
-> **See also**: [Architecture](./ARCHITECTURE.md) • [Configuration](./CONFIGURATION.md) • [Interaction Design](./INTERACTION.md)
+> **See also**: [Architecture](./ARCHITECTURE.md) • [Testing](./TESTING.md) • [Commands](./COMMANDS.md)
 
 ---
 

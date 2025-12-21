@@ -1,10 +1,10 @@
-[← Back to Interaction Design](./INTERACTION.md)
+[← Back to README](../README.md) • [Interaction Design](./INTERACTION.md)
 
 # Keyboard Navigation Deep Dive
 
 > Detailed technical documentation for the keyboard navigation system in RiffScore.
 
----
+> **See also**: [Interaction Design](./INTERACTION.md) • [Selection Model](./SELECTION.md) • [Commands](./COMMANDS.md)
 
 ## 1. State Model
 

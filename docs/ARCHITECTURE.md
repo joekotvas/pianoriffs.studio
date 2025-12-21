@@ -4,7 +4,7 @@
 
 > A configurable, embeddable sheet music editor for React. Focuses on common notation needs and platform independence.
 
-> **See also**: [Configuration Guide](./CONFIGURATION.md) • [Interaction Design](./INTERACTION.md)
+> **See also**: [Configuration](./CONFIGURATION.md) • [Commands](./COMMANDS.md) • [Data Model](./DATA_MODEL.md) • [Layout Engine](./LAYOUT_ENGINE.md)
 
 ---
 

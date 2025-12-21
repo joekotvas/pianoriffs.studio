@@ -4,7 +4,7 @@
 
 > Deep dive into the Score schema, quant system, and data structures.
 
-> **See also**: [Architecture](./ARCHITECTURE.md) • [Layout Engine](./LAYOUT_ENGINE.md)
+> **See also**: [Architecture](./ARCHITECTURE.md) • [Commands](./COMMANDS.md) • [Selection Model](./SELECTION.md)
 
 ---
 

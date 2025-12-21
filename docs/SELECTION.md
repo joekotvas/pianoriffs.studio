@@ -4,7 +4,7 @@
 
 > Comprehensive guide to selection mechanics, multi-selection patterns, and the 2D selection box model.
 
-> **See also**: [Keyboard Navigation](./KEYBOARD_NAVIGATION.md) • [Interaction Design](./INTERACTION.md) • [Architecture](./ARCHITECTURE.md)
+> **See also**: [Keyboard Navigation](./KEYBOARD_NAVIGATION.md) • [Commands](./COMMANDS.md) • [Data Model](./DATA_MODEL.md)
 
 ---
 
