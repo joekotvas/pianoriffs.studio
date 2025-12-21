@@ -8,9 +8,9 @@
 
 | Status | Phases |
 | :--- | :--- |
-| ✅ Complete | 0, 1, 2, 2b, 2c, 2d, 2e, 2f, 2g |
-| 🔲 Next | 3 (Event Subscriptions) |
-| 🔲 Remaining | 3, 4, 5, 6, 7, 8 |
+| ✅ Complete | 0, 1, 2, 2b, 2c, 2d, 2e, 2f, 2g, 3 |
+| 🔲 Next | 4 (Transaction Batching) |
+| 🔲 Remaining | 4, 5, 6, 7, 8 |
 
 ---
 
@@ -113,9 +113,11 @@
 
 ---
 
-### 🔲 Phase 3: Event Subscriptions
-- [ ] Implement `on(event, callback)` in useScoreAPI
-- [ ] Write `ScoreAPI.events.test.tsx`
+### ✅ Phase 3: Event Subscriptions
+- [x] Implement `on(event, callback)` in useScoreAPI
+- [x] Write `ScoreAPI.events.test.tsx`
+- [x] Document ADR 002
+- [x] Update API & Architecture docs
 
 ### 🔲 Phase 4: Transaction Batching
 - [ ] Add batching to `ScoreEngine.ts`
@@ -138,6 +140,7 @@
 - [ ] Update `README.md`
 - [ ] Update `ARCHITECTURE.md`
 - [ ] Update all "See Also" sections
+
 
 ---
 

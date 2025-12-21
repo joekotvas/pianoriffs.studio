@@ -181,12 +181,12 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `on` | `on(event, callback)` | ⏳ | Subscribe to state changes. |
+| `on` | `on(event, callback)` | ✅ | Subscribe to state changes. |
 
 ### Event Types
 - `'score'` — Score mutations
 - `'selection'` — Selection changes  
-- `'playback'` — Play/pause state
+- `'playback'` — Play/pause state (Pending)
 
 **Returns:** `() => void` — Unsubscribe function.
 
@@ -239,9 +239,8 @@ for (let i = 0; i < 16; i++) {
 api.commitTransaction();
 ```
 
-### Reactive Integration ⏳
+### Reactive Integration ✅
 ```javascript
-// PENDING: Event subscriptions not yet implemented
 const unsub = api.on('score', (newScore) => {
   backend.save(newScore);
 });
