@@ -20,29 +20,36 @@ The `Score` object is the canonical state. Layout details (beam angles, accident
 *   `Score` is plain JSON—easy to serialize and debug.
 *   What you save is what you load.
 
-### ⚡ Command Pattern
-All mutations go through `ScoreEngine.dispatch()`.
-*   Undo/redo comes for free.
-*   Each command is self-contained and logged.
+See [Data Model](./DATA_MODEL.md) for the full schema.
+
+### ⚡ Command Abstraction Layer
+All state mutations flow through dedicated engines:
+*   **ScoreEngine**: Handles score mutations with built-in undo/redo history.
+*   **SelectionEngine**: Manages cursor and multi-selection state (no undo for ephemeral navigation).
+
+Commands are self-contained, logged, and testable in isolation. See [Commands](./COMMANDS.md) for the pattern reference.
 
 ### 🎼 Theory-First Data Model
-Pitches are stored as absolute values (e.g., `"F#4"`), not relative to key.
+Pitches are stored as absolute values (e.g., `"F#4"`), not relative to key. Music theory operations are powered by [Tonal.js](https://github.com/tonaljs/tonal).
 *   `MusicService` handles context—whether an `F#` needs an accidental depends on the key signature, computed at render time.
+*   Intervals, transposition, and chord detection use Tonal's battle-tested algorithms.
 
 ### 🎨 Standards-Based Notation
-Glyphs come from the SMuFL specification, using the Bravura font.
+Glyphs come from the [SMuFL specification](https://www.smufl.org/), using the Bravura font.
 *   No custom SVG paths—just standardized Unicode code points.
 *   Swap in any SMuFL-compliant font if you prefer.
 
+See [Layout Engine](./LAYOUT_ENGINE.md) for engraving details.
+
 ### 🔧 Flexibility
-One `config` prop controls everything.
-*   Override only what you need; sensible defaults handle the rest.
+One `config` prop controls everything. Override only what you need; sensible defaults handle the rest.
 *   Generate blank scores from templates, or pass in existing compositions.
+*   Script control via the imperative API ([API Reference](./API.md)).
 
 ### ✨ Simplicity
 `<RiffScore />` works out of the box.
 *   No providers to wrap, no context to set up.
-*   Playback, MIDI, keyboard shortcuts, and undo/redo are included.
+*   Playback ([Tone.js](https://tonejs.github.io/)), MIDI, keyboard shortcuts, and undo/redo are included.
 
 ### 🔄 Compatibility
 Export to JSON, MusicXML, or ABC notation.
