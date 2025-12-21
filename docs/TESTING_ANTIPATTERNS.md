@@ -147,10 +147,66 @@ test('example', () => {
 
 | Pattern | Files Affected | Status |
 | :--- | :---: | :--- |
-| Manual cleanup | 1 | 🔲 To fix |
-| Unnecessary act | 1 | 🔲 To fix |
-| fireEvent → userEvent | ~10 | 🔲 To migrate |
-| Manual jest-dom import | ~20 | 🔲 To remove |
+| Manual cleanup | 1 (ScoreAPI.registry) | ✅ Fixed |
+| Unnecessary act | 1 (Interaction) | 🔲 Pre-existing |
+| fireEvent → userEvent | ~10 | 🔲 Deferred |
+| Manual jest-dom import | 6 | ✅ Removed |
+
+---
+
+## Deferred Issues (Phase 2g)
+
+The following issues were identified but intentionally deferred during Phase 2g migration.
+
+### fireEvent → userEvent Migration
+
+**Files affected:** `Interaction.test.tsx`, `BassSelection.test.tsx`, `MultiSelect.test.tsx`, `Smoke.test.tsx`
+
+**Reason for deferral:** These files use `fireEvent` for complex mouse coordinate tests (`fireEvent.mouseMove`, `fireEvent.click` with `clientX/clientY`). `userEvent` doesn't support coordinate-based events directly. Migration requires rethinking test strategy.
+
+**Future approach:** Consider testing at a different level (unit test the coordinate calculation logic separately, integration test the result).
+
+---
+
+### Type Issues with `any`
+
+**Files affected:**
+- `ScoreAPI.registry.test.tsx` — Global `window.riffScore` type mismatch
+- `BassSelection.test.tsx`, `ScoreCanvas.test.tsx` — Mock context `any` types
+- `handleMutation.test.ts`, `handleNavigation.test.ts`, `handlePlayback.test.ts` — Mock object `any` types
+- `CrossStaffNavigation.test.tsx` — Mock score factory `any` types
+
+**Reason for deferral:** These `any` types exist in mock objects and test factories. Typing them strictly requires:
+1. Exporting test-specific types from source
+2. Or creating comprehensive mock type definitions
+
+**Recommendation:** Create a `src/__tests__/types/` directory with mock types for common patterns (MockScore, MockSelection, MockContext).
+
+---
+
+### Pre-existing Lint Warnings
+
+**Files affected:**
+- `CrossStaffNavigation.test.tsx` — 4 unused `syncToolbarState` variables
+- `Interaction.test.tsx` — unused `useState`, `CONFIG`, `unmount`; empty `act` wrapper
+- `MultiSelect.test.tsx` — unused `props` parameter
+- `RenderingDetailed.test.tsx` — unused `CONFIG`
+
+**Reason for deferral:** These are code quality issues unrelated to testing patterns. They should be addressed in a separate cleanup PR.
+
+---
+
+### TypeScript Errors
+
+**ScoreAPI.registry.test.tsx:**
+```
+Subsequent property declarations must have the same type.
+Property 'riffScore' must be of type 'RiffScoreRegistry'...
+```
+
+**Reason:** The test file redeclares `window.riffScore` with a simpler type than the actual `RiffScoreRegistry` type. This is a type conflict, not a test issue.
+
+**Fix:** Import `RiffScoreRegistry` type and use it, or remove the local declaration.
 
 ---
 
