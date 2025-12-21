@@ -4,7 +4,7 @@
 
 > A configurable, embeddable sheet music editor for React. Focuses on common notation needs and platform independence.
 
-> **See also**: [Configuration Guide](./CONFIGURATION.md) • [Interaction Design](./INTERACTION.md)
+> **See also**: [Configuration](./CONFIGURATION.md) • [Commands](./COMMANDS.md) • [Data Model](./DATA_MODEL.md) • [Layout Engine](./LAYOUT_ENGINE.md)
 
 ---
 
@@ -20,29 +20,36 @@ The `Score` object is the canonical state. Layout details (beam angles, accident
 *   `Score` is plain JSON—easy to serialize and debug.
 *   What you save is what you load.
 
-### ⚡ Command Pattern
-All mutations go through `ScoreEngine.dispatch()`.
-*   Undo/redo comes for free.
-*   Each command is self-contained and logged.
+See [Data Model](./DATA_MODEL.md) for the full schema.
+
+### ⚡ Command Abstraction Layer
+All state mutations flow through dedicated engines:
+*   **ScoreEngine**: Handles score mutations with built-in undo/redo history.
+*   **SelectionEngine**: Manages cursor and multi-selection state (no undo for ephemeral navigation).
+
+Commands are self-contained, logged, and testable in isolation. See [Commands](./COMMANDS.md) for the pattern reference.
 
 ### 🎼 Theory-First Data Model
-Pitches are stored as absolute values (e.g., `"F#4"`), not relative to key.
+Pitches are stored as absolute values (e.g., `"F#4"`), not relative to key. Music theory operations are powered by [Tonal.js](https://github.com/tonaljs/tonal).
 *   `MusicService` handles context—whether an `F#` needs an accidental depends on the key signature, computed at render time.
+*   Intervals, transposition, and chord detection use Tonal's battle-tested algorithms.
 
 ### 🎨 Standards-Based Notation
-Glyphs come from the SMuFL specification, using the Bravura font.
+Glyphs come from the [SMuFL specification](https://www.smufl.org/), using the Bravura font.
 *   No custom SVG paths—just standardized Unicode code points.
 *   Swap in any SMuFL-compliant font if you prefer.
 
+See [Layout Engine](./LAYOUT_ENGINE.md) for engraving details.
+
 ### 🔧 Flexibility
-One `config` prop controls everything.
-*   Override only what you need; sensible defaults handle the rest.
+One `config` prop controls everything. Override only what you need; sensible defaults handle the rest.
 *   Generate blank scores from templates, or pass in existing compositions.
+*   Script control via the imperative API ([API Reference](./API.md)).
 
 ### ✨ Simplicity
 `<RiffScore />` works out of the box.
 *   No providers to wrap, no context to set up.
-*   Playback, MIDI, keyboard shortcuts, and undo/redo are included.
+*   Playback ([Tone.js](https://tonejs.github.io/)), MIDI, keyboard shortcuts, and undo/redo are included.
 
 ### 🔄 Compatibility
 Export to JSON, MusicXML, or ABC notation.
@@ -269,12 +276,13 @@ riffscore/
 │   │   ├── ScoreContext.tsx
 │   │   └── ThemeContext.tsx
 │
-│   ├── utils/                # Utility functions (10 files)
+│   ├── utils/                # Utility functions (11 files)
 │   │   ├── core.ts           # Duration math
 │   │   ├── generateScore.ts  # Template → staves
 │   │   ├── mergeConfig.ts    # Deep merge
 │   │   ├── selection.ts      # Selection utilities
 │   │   ├── interaction.ts    # Interaction utilities
+│   │   ├── verticalStack.ts  # Vertical selection (metrics, stacks)
 │   │   ├── validation.ts     # Score validation
 │   │   ├── accidentalContext.ts
 │   │   ├── commandHelpers.ts
@@ -487,7 +495,12 @@ Selection
   ├── selectedNotes: Array<{      // Multi-selection support
   │     staffIndex, measureIndex, eventId, noteId
   │   }>
-  └── anchor?: { ... } | null     // Range selection anchor
+  ├── anchor?: { ... } | null     // Range selection anchor
+  └── verticalAnchors?: {         // Vertical extension state
+        direction: 'up' | 'down'
+        sliceAnchors: Record<time, SelectedNote>
+        originSelection: SelectedNote[]
+      }
 ```
 
 ### Configuration
@@ -516,6 +529,15 @@ Key signature, time signature, and pickup measures apply to all staves. `Alt + U
 
 ### Tests are consolidated
 All tests live in `__tests__/`. Current coverage: Services 98%, Utils 87%, Commands 79%, Hooks 62%.
+
+### 2D Selection Model
+Vertical selection treats the score as a **2D grid** where:
+- **Time** is the horizontal axis (`measureIndex × 100000 + quant`)
+- **Vertical Metric** combines staff and pitch into a single ordering (`(100 - staffIndex) × 1000 + midi`)
+
+This unified model allows natural rectangular selection and predictable expand/contract behavior regardless of whether notes are in the same chord, different chords, or different staves. By computing a single numeric metric, we avoid special-case logic for "within chord" vs "cross-staff"—both are just steps in the vertical stack.
+
+See [verticalStack.ts](../src/utils/verticalStack.ts) for the `calculateVerticalMetric()` formula and [KEYBOARD_NAVIGATION.md](./KEYBOARD_NAVIGATION.md#vertical-selection-cmd--shift--updown) for the full algorithm.
 
 </details>
 

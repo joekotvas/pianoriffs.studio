@@ -1,10 +1,10 @@
-[← Back to Interaction Design](./INTERACTION.md)
+[← Back to README](../README.md) • [Interaction Design](./INTERACTION.md)
 
 # Keyboard Navigation Deep Dive
 
 > Detailed technical documentation for the keyboard navigation system in RiffScore.
 
----
+> **See also**: [Interaction Design](./INTERACTION.md) • [Selection Model](./SELECTION.md) • [Commands](./COMMANDS.md)
 
 ## 1. State Model
 
@@ -174,6 +174,61 @@ Unlike navigation, extending selection operates on **independent vertical slices
 1. **Global Orientation**: Determined by the relationship between the Primary Anchor and Focus.
 2. **Slice Processing**: Each time-slice in the selection (e.g., multiple disjoint measures) is processed independently.
 3. **Cursor Movement**: The "moving edge" of each slice expands or contracts based on the global direction.
+
+#### The 2D Selection Box
+
+The score is treated as a 2D grid:
+- **X-Axis (Time)**: `Measure Index × 100000 + Quant Position`
+- **Y-Axis (Vertical Metric)**: `(100 - Staff Index) × 1000 + MIDI Pitch`
+
+Selection is a rectangle bounded by **Anchor** and **Cursor** in this space.
+
+```
+Vertical
+Metric ↑
+        │ ┌─────────────────┐
+  100071│ │  G4 (treble)    │ ← Anchor
+  100067│ │  E4 (treble)    │
+  100060│ │  C4 (treble)    │
+        │ │- - - - - - - - -│ Staff boundary
+   99048│ │  C3 (bass)      │ ← Cursor
+        │ └─────────────────┘
+        └────────────────────→ Time
+```
+
+#### Per-Slice Anchors
+
+Each time point in the selection maintains an independent anchor:
+
+| Direction | Anchor Position | Effect |
+|-----------|-----------------|--------|
+| DOWN | Top of slice (highest note) | Cursor expands downward |
+| UP | Bottom of slice (lowest note) | Cursor expands upward |
+
+This enables:
+- **Multi-event independence**: Extend chords at different times simultaneously
+- **Predictable contraction**: Reversing direction moves cursor toward anchor
+- **Cross-staff continuity**: Anchors persist across staff boundaries
+
+#### Algorithm Flow
+
+```mermaid
+flowchart TD
+    A[Shift+Up/Down pressed] --> B{First call?}
+    
+    B -->|Yes| C[Compute anchors per slice]
+    B -->|No| D[Retrieve stored anchors]
+    
+    C --> E[Process each time slice]
+    D --> E
+    
+    E --> F[Find vertical stack at time]
+    F --> G[Move cursor in stack]
+    G --> H[Collect notes: anchor → cursor]
+    H --> I[Store verticalAnchors state]
+```
+
+See [verticalStack.ts](../src/utils/verticalStack.ts) for the `calculateVerticalMetric()` formula and `collectVerticalStack()` implementation.
 
 ---
 
