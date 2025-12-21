@@ -12,16 +12,73 @@ import { useTupletActions } from './useTupletActions';
 import { useSelection } from './useSelection';
 import { useEditorMode } from './useEditorMode';
 
-import { createDefaultScore, migrateScore, getActiveStaff } from '@/types';
+import { createDefaultScore, migrateScore, getActiveStaff, PreviewNote, ScoreEvent, Score } from '@/types';
 import { getAppendPreviewNote } from '@/utils/interaction';
 import { calculateFocusSelection } from '@/utils/focusScore';
 import { SetSelectionCommand } from '@/commands/selection';
 
+// Extracted score modules - hooks available for future refactoring
+// import { useDerivedSelection } from './score/useDerivedSelection';
+// import { useToolsSync } from './score/useToolsSync';
+// import { useFocusScore } from './score/useFocusScore';
+import type {
+  ScoreStateGroup,
+  ScoreToolsGroup,
+  ScoreNavigationGroup,
+  ScoreEntryGroup,
+  ScoreModifiersGroup,
+  ScoreMeasuresGroup,
+  ScoreTupletsGroup,
+  ScoreHistoryGroup,
+  ScoreEnginesGroup,
+  ScoreDerivedGroup,
+} from './score/types';
+
 /**
- * Main score logic orchestrator hook.
- * Composes focused hooks for measure, note, modifier, and navigation actions.
+ * useScoreLogic
+ *
+ * Main orchestrator hook that composes all focused domain hooks into a unified
+ * score editing interface. Manages state synchronization between:
+ * - ScoreEngine (undo/redo, state mutations)
+ * - SelectionEngine (cursor, multi-select)
+ * - Editor tools (duration, accidental, tie state)
+ * - Preview/ghost note rendering
+ *
+ * @see useScoreEngine - Core state engine
+ * @see useSelection - Selection management
+ * @see useNavigation - Keyboard navigation
+ * @see useNoteActions - Note entry/modification
+ * @see useModifiers - Duration/accidental changes
  */
-export const useScoreLogic = (initialScore: any) => {
+
+/**
+ * Main score logic hook providing the complete editing API.
+ *
+ * Composes focused hooks for measure, note, modifier, navigation, and tuplet
+ * actions into a single unified interface. Handles state synchronization between
+ * the score engine, selection engine, and editor tool state.
+ *
+ * @param initialScore - Optional partial score to initialize with. If not provided,
+ *                       creates a default score. Scores are migrated to current schema.
+ * @returns Complete score editing interface including:
+ *   - score: Current score state
+ *   - selection: Current selection state
+ *   - dispatch: Command dispatcher for score mutations
+ *   - Navigation, entry, and modifier handlers
+ *   - Undo/redo functionality
+ *   - Transaction batching for atomic operations
+ *
+ * @example
+ * ```tsx
+ * const logic = useScoreLogic(savedScore);
+ * logic.dispatch(new AddEventCommand({ ... }));
+ * logic.undo();
+ * ```
+ *
+ * @see ScoreContext - Context provider that wraps this hook
+ * @internal Orchestrator hook, use via ScoreContext in most cases
+ */
+export const useScoreLogic = (initialScore?: Partial<Score>) => {
   // --- STATE ---
   const defaultScore = createDefaultScore();
 
@@ -44,8 +101,11 @@ export const useScoreLogic = (initialScore: any) => {
   const redoStack = engine.getRedoStack();
 
   // --- REFS ---
+  // Keep ref synced with score for use in event handlers (not during render)
   const scoreRef = useRef(score);
-  scoreRef.current = score;
+  useEffect(() => {
+    scoreRef.current = score;
+  }, [score]);
 
   // --- EDITOR TOOLS ---
   const tools = useEditorTools();
@@ -69,12 +129,12 @@ export const useScoreLogic = (initialScore: any) => {
     setSelection,
     select,
     clearSelection,
-    updateSelection,
-    selectAllInMeasure,
+    updateSelection: _updateSelection,
+    selectAllInMeasure: _selectAllInMeasure,
     lastSelection,
     engine: selectionEngine,
   } = useSelection({ score });
-  const [previewNote, setPreviewNote] = useState<any>(null);
+  const [previewNote, setPreviewNote] = useState<PreviewNote | null>(null);
 
   // --- COMPUTED VALUES ---
   if (!score || !score.staves) {
@@ -105,13 +165,13 @@ export const useScoreLogic = (initialScore: any) => {
     const measure = getActiveStaff(score, staffIndex || 0).measures[measureIndex];
     if (!measure) return;
 
-    const event = measure.events.find((e: any) => e.id === eventId);
+    const event = measure.events.find((e: ScoreEvent) => e.id === eventId);
 
     if (event) {
       // Duration is NOT synced - user controls duration independently
 
       if (noteId) {
-        const note = event.notes.find((n: any) => n.id === noteId);
+        const note = event.notes.find((n) => n.id === noteId);
         if (note) {
           setActiveAccidental(note.accidental || null);
           setActiveTie(!!note.tied);
@@ -174,7 +234,6 @@ export const useScoreLogic = (initialScore: any) => {
   const navigation = useNavigation({
     scoreRef,
     selection,
-    lastSelection, // Pass history
     setSelection,
     select,
     previewNote,
@@ -197,13 +256,12 @@ export const useScoreLogic = (initialScore: any) => {
     if (editorState !== 'SELECTION_READY') return [];
 
     const durations = new Set<string>();
-    const currentScore = scoreRef.current;
 
     // Helper to add duration from an event
     const addFromEvent = (measureIndex: number, eventId: string | number, staffIndex: number) => {
-      const staff = currentScore.staves[staffIndex] || getActiveStaff(currentScore);
+      const staff = score.staves[staffIndex] || getActiveStaff(score);
       const measure = staff.measures[measureIndex];
-      const event = measure?.events.find((e: any) => e.id === eventId);
+      const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
       if (event) durations.add(event.duration);
     };
 
@@ -225,12 +283,11 @@ export const useScoreLogic = (initialScore: any) => {
     if (editorState !== 'SELECTION_READY') return [];
 
     const dots = new Set<boolean>();
-    const currentScore = scoreRef.current;
 
     const addFromEvent = (measureIndex: number, eventId: string | number, staffIndex: number) => {
-      const staff = currentScore.staves[staffIndex] || getActiveStaff(currentScore);
+      const staff = score.staves[staffIndex] || getActiveStaff(score);
       const measure = staff.measures[measureIndex];
-      const event = measure?.events.find((e: any) => e.id === eventId);
+      const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
       if (event) dots.add(!!event.dotted);
     };
 
@@ -247,7 +304,6 @@ export const useScoreLogic = (initialScore: any) => {
     if (editorState !== 'SELECTION_READY') return [];
 
     const ties = new Set<boolean>();
-    const currentScore = scoreRef.current;
 
     const addFromNote = (
       measureIndex: number,
@@ -255,15 +311,15 @@ export const useScoreLogic = (initialScore: any) => {
       noteId: string | number | null,
       staffIndex: number
     ) => {
-      const staff = currentScore.staves[staffIndex] || getActiveStaff(currentScore);
+      const staff = score.staves[staffIndex] || getActiveStaff(score);
       const measure = staff.measures[measureIndex];
-      const event = measure?.events.find((e: any) => e.id === eventId);
+      const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
       if (event) {
         if (noteId) {
-          const note = event.notes.find((n: any) => n.id === noteId);
+          const note = event.notes.find((n) => n.id === noteId);
           if (note) ties.add(!!note.tied);
         } else {
-          event.notes.forEach((n: any) => ties.add(!!n.tied));
+          event.notes.forEach((n) => ties.add(!!n.tied));
         }
       }
     };
@@ -283,16 +339,9 @@ export const useScoreLogic = (initialScore: any) => {
     if (editorState !== 'SELECTION_READY') return [];
 
     const accidentals = new Set<string>();
-    const currentScore = scoreRef.current;
 
     // Helper to determine type from pitch
     const getAccidentalType = (pitch: string): string => {
-      // Use very simple parsing or Tonal if imported.
-      // Since we want to avoid import in this file if possible?
-      // Actually importing Note from tonal is fine.
-      // Assuming Note is imported or we use MusicService.
-      // Let's use basic regex for speed/dependency avoidance if simple,
-      // OR just import Note (preferred for robustness).
       const match = pitch.match(/^([A-G])(#{1,2}|b{1,2})?(\d+)$/);
       if (!match) return 'natural';
       const acc = match[2];
@@ -307,16 +356,16 @@ export const useScoreLogic = (initialScore: any) => {
       noteId: string | number | null,
       staffIndex: number
     ) => {
-      const staff = currentScore.staves[staffIndex] || getActiveStaff(currentScore);
+      const staff = score.staves[staffIndex] || getActiveStaff(score);
       const measure = staff.measures[measureIndex];
-      const event = measure?.events.find((e: any) => e.id === eventId);
+      const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
       if (event) {
         if (noteId) {
-          const note = event.notes.find((n: any) => n.id === noteId);
+          const note = event.notes.find((n) => n.id === noteId);
           // Skip rest notes (null pitch)
           if (note && note.pitch !== null) accidentals.add(getAccidentalType(note.pitch));
         } else {
-          event.notes.forEach((n: any) => {
+          event.notes.forEach((n) => {
             // Skip rest notes (null pitch)
             if (n.pitch !== null) accidentals.add(getAccidentalType(n.pitch));
           });
@@ -366,21 +415,22 @@ export const useScoreLogic = (initialScore: any) => {
           // Update existing preview note immediately?
           // The preview note usually updates automatically via mouse hover,
           // but if keyboard cursor is active, we should update it.
-          setPreviewNote((prev: any) => ({
+          setPreviewNote((prev) => prev ? ({
             ...prev,
             duration: newDuration,
-          }));
+          }) : null);
         }
       }
     },
     [
       editorState,
-      modifiers.handleDurationChange,
+      modifiers,
       setActiveDuration,
       lastSelection,
       scoreRef,
       isDotted,
       previewNote,
+      setPreviewNote,
     ]
   );
 
@@ -420,11 +470,108 @@ export const useScoreLogic = (initialScore: any) => {
   }, [score, selection, selectionEngine, setPreviewNote, activeDuration, isDotted, inputMode]);
 
   // --- EXPORTS ---
-  return {
+  // Grouped domain objects for organized API access
+  const state: ScoreStateGroup = {
     score,
     selection,
     editorState,
-    selectedDurations, // Expose derived durations
+    previewNote,
+    history,
+    redoStack,
+  };
+
+  const toolsGroup: ScoreToolsGroup = {
+    activeDuration,
+    setActiveDuration,
+    isDotted,
+    setIsDotted,
+    activeAccidental,
+    activeTie,
+    inputMode,
+    setInputMode,
+    toggleInputMode,
+  };
+
+  const navigationGroup: ScoreNavigationGroup = {
+    move: navigation.moveSelection,
+    select: navigation.handleNoteSelection,
+    transpose: navigation.transposeSelection,
+    switchStaff: navigation.switchStaff,
+    focus: focusScore,
+  };
+
+  const entryGroup: ScoreEntryGroup = {
+    addNote: noteActions.addNoteToMeasure,
+    addChord: noteActions.addChordToMeasure,
+    delete: noteActions.deleteSelected,
+    handleMeasureHover: noteActions.handleMeasureHover,
+    updatePitch: noteActions.updateNotePitch,
+  };
+
+  const modifiersGroup: ScoreModifiersGroup = {
+    duration: handleDurationChangeWrapper,
+    dot: modifiers.handleDotToggle,
+    accidental: modifiers.handleAccidentalToggle,
+    tie: modifiers.handleTieToggle,
+    checkDurationValidity: modifiers.checkDurationValidity,
+    checkDotValidity: modifiers.checkDotValidity,
+  };
+
+  const measuresGroup: ScoreMeasuresGroup = {
+    add: measureActions.addMeasure,
+    remove: measureActions.removeMeasure,
+    setTimeSignature: measureActions.handleTimeSignatureChange,
+    setKeySignature: measureActions.handleKeySignatureChange,
+    togglePickup: measureActions.togglePickup,
+    setGrandStaff: measureActions.setGrandStaff,
+  };
+
+  const tupletsGroup: ScoreTupletsGroup = {
+    apply: tupletActions.applyTuplet,
+    remove: tupletActions.removeTuplet,
+    canApply: tupletActions.canApplyTuplet,
+    activeRatio: tupletActions.getActiveTupletRatio(),
+  };
+
+  const historyGroup: ScoreHistoryGroup = {
+    undo,
+    redo,
+    begin: beginTransaction,
+    commit: commitTransaction,
+    rollback: rollbackTransaction,
+  };
+
+  const enginesGroup: ScoreEnginesGroup = {
+    dispatch,
+    selectionEngine,
+    scoreRef,
+  };
+
+  const derivedGroup: ScoreDerivedGroup = {
+    selectedDurations,
+    selectedDots,
+    selectedTies,
+    selectedAccidentals,
+  };
+
+  return {
+    // --- GROUPED API (NEW) ---
+    state,
+    tools: toolsGroup,
+    navigation: navigationGroup,
+    entry: entryGroup,
+    modifiers: modifiersGroup,
+    measures: measuresGroup,
+    tuplets: tupletsGroup,
+    historyAPI: historyGroup,
+    engines: enginesGroup,
+    derived: derivedGroup,
+
+    // --- FLAT EXPORTS (BACKWARD COMPAT) ---
+    score,
+    selection,
+    editorState,
+    selectedDurations,
     selectedDots,
     selectedTies,
     selectedAccidentals,
@@ -459,7 +606,7 @@ export const useScoreLogic = (initialScore: any) => {
     addChordToMeasure: noteActions.addChordToMeasure,
     deleteSelected: noteActions.deleteSelected,
     handleNoteSelection: navigation.handleNoteSelection,
-    handleDurationChange: handleDurationChangeWrapper, // Use wrapper
+    handleDurationChange: handleDurationChangeWrapper,
     handleDotToggle: modifiers.handleDotToggle,
     handleAccidentalToggle: modifiers.handleAccidentalToggle,
     handleTieToggle: modifiers.handleTieToggle,
@@ -468,7 +615,6 @@ export const useScoreLogic = (initialScore: any) => {
     checkDurationValidity: modifiers.checkDurationValidity,
     checkDotValidity: modifiers.checkDotValidity,
     updateNotePitch: noteActions.updateNotePitch,
-    // Tuplet actions
     applyTuplet: tupletActions.applyTuplet,
     removeTuplet: tupletActions.removeTuplet,
     canApplyTuplet: tupletActions.canApplyTuplet,
@@ -477,7 +623,6 @@ export const useScoreLogic = (initialScore: any) => {
     moveSelection: navigation.moveSelection,
     switchStaff: navigation.switchStaff,
     focusScore,
-    // Selection Engine (for dispatch-based selection changes)
     selectionEngine,
     clearSelection,
   };
