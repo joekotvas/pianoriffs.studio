@@ -166,7 +166,7 @@ The editor transitions between the following states:
 | `Enter` | **Insert (Commit)** | Adds Note/Rest at cursor & auto-advances |
 | `←` / `→` | Previous/Next | Navigates through timeline |
 | `Shift + ←` / `→` | Extend Selection | Multi-select range |
-| `Cmd + Shift + ↑` / `↓` | **Extend Vertical** | Extend selection vertically (Slice-Based) |
+| `Cmd + Shift + ↑` / `↓` | **Extend Vertical** | Expand/contract selection through chords and staves. First press sets anchor; subsequent presses move cursor. See [deep dive](./KEYBOARD_NAVIGATION.md#vertical-selection-cmd--shift--updown). |
 | `Cmd + ↑` / `↓` | Intra-chord | Navigates notes within a single chord |
 | `Alt + ↑` / `↓` | **Switch Staff** | Grand Staff only: move between staves |
 | `Delete` / `Backspace` | Remove | Deletes selection |
