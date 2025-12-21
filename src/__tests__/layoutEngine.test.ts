@@ -1,3 +1,14 @@
+/**
+ * Layout Engine Tests
+ *
+ * Tests for chord, measure, and beaming layout calculations.
+ * Covers: stem direction, spacing, tuplets, pitch detection.
+ *
+ * @see calculateChordLayout
+ * @see calculateMeasureLayout
+ * @see calculateBeamingGroups
+ */
+
 import {
   calculateChordLayout,
   calculateMeasureLayout,

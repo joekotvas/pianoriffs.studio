@@ -1,3 +1,13 @@
+/**
+ * Navigation Helper Tests
+ *
+ * Tests for keyboard navigation helper functions.
+ * Covers: pitch defaults, quant position, note selection, duration adjustment.
+ *
+ * @see getDefaultPitchForClef
+ * @see calculateVerticalNavigation
+ */
+
 import {
   getDefaultPitchForClef,
   findEventAtQuantPosition,

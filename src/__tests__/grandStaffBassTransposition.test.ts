@@ -1,3 +1,12 @@
+/**
+ * Grand Staff Bass Transposition Tests
+ *
+ * Tests for transposing notes on bass clef in grand staff.
+ * Covers: bass-only transposition, treble isolation, undo.
+ *
+ * @see TransposeSelectionCommand
+ */
+
 import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand';
 import { createDefaultScore, getActiveStaff } from '@/types';
 import { SetGrandStaffCommand } from '@/commands/SetGrandStaffCommand';

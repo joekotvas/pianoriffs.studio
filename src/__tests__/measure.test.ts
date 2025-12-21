@@ -1,3 +1,13 @@
+/**
+ * Measure Layout Tests
+ *
+ * Comprehensive tests for measure layout engine.
+ * Covers: empty measures, positioning, accidentals, chords, tuplets, hit zones.
+ *
+ * @see calculateMeasureLayout
+ * @see analyzePlacement
+ */
+
 import {
   calculateMeasureLayout,
   calculateMeasureWidth,
