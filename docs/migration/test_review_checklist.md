@@ -98,6 +98,6 @@ describe('MyComponent', () => {
 | Phase | Files | Status |
 | :--- | :---: | :--- |
 | B | 14 command tests | ✅ Complete (1 fix, 6 JSDoc added) |
-| C | 10 engine/API tests | ⬜ |
+| C | 10 engine/API tests | ✅ Complete (1 cleanup fix, 6 JSDoc) |
 | D | 14 hook/component tests | ⬜ |
 | E | 10 utility tests | ⬜ |

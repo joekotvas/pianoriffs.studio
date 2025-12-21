@@ -1,3 +1,11 @@
+/**
+ * handleNavigation Tests
+ *
+ * Tests for keyboard navigation handler (arrow keys, chord navigation).
+ *
+ * @see handleNavigation
+ */
+
 import { handleNavigation } from '@/hooks/handlers/handleNavigation';
 
 describe('handleNavigation', () => {

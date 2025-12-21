@@ -4,7 +4,7 @@
  * Tests for the window.riffScore registry and API chainability.
  */
 
-import { render, cleanup } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { RiffScore } from '../RiffScore';
 
 // Extend Window interface for tests
@@ -20,8 +20,7 @@ declare global {
 
 describe('Registry', () => {
   afterEach(() => {
-    cleanup();
-    // Clean up registry between tests
+    // Clean up registry between tests (RTL auto-cleans DOM)
     if (window.riffScore) {
       window.riffScore.instances.clear();
       window.riffScore.active = null;
@@ -63,7 +62,7 @@ describe('Registry', () => {
 });
 
 describe('Data Methods', () => {
-  afterEach(cleanup);
+  // RTL auto-cleans after each test
 
   test('getScore() returns current score', () => {
     render(<RiffScore id="data-test" />);
@@ -99,7 +98,7 @@ describe('Data Methods', () => {
 });
 
 describe('Chainability', () => {
-  afterEach(cleanup);
+  // RTL auto-cleans after each test
 
   test('methods return this for chaining', () => {
     render(<RiffScore id="chain-test" />);
@@ -122,7 +121,7 @@ describe('Chainability', () => {
 
 describe('Entry Methods', () => {
   afterEach(() => {
-    cleanup();
+    // Clean up registry between tests (RTL auto-cleans DOM)
     if (window.riffScore) {
       window.riffScore.instances.clear();
       window.riffScore.active = null;
@@ -199,7 +198,7 @@ describe('Entry Methods', () => {
 
 describe('Navigation Methods', () => {
   afterEach(() => {
-    cleanup();
+    // Clean up registry between tests (RTL auto-cleans DOM)
     if (window.riffScore) {
       window.riffScore.instances.clear();
       window.riffScore.active = null;

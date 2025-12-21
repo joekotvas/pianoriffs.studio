@@ -1,3 +1,11 @@
+/**
+ * handleMutation Tests
+ *
+ * Tests for keyboard mutation handler (undo, redo, accidentals, transpose, delete).
+ *
+ * @see handleMutation
+ */
+
 import { handleMutation } from '@/hooks/handlers/handleMutation';
 
 describe('handleMutation', () => {

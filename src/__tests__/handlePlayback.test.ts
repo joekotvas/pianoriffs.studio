@@ -1,3 +1,11 @@
+/**
+ * handlePlayback Tests
+ *
+ * Tests for keyboard playback handler (P for play, Space for toggle).
+ *
+ * @see handlePlayback
+ */
+
 import { handlePlayback } from '@/hooks/handlers/handlePlayback';
 
 describe('handlePlayback', () => {

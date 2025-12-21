@@ -1,3 +1,12 @@
+/**
+ * TimelineService Tests
+ *
+ * Tests for audio playback timeline generation.
+ * Covers: timing, ties, pickup measures, grand staff sync, quant.
+ *
+ * @see TimelineService
+ */
+
 import { createTimeline } from '@/services/TimelineService';
 
 describe('TimelineService', () => {
