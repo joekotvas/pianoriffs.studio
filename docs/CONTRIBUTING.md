@@ -44,6 +44,7 @@ This starts the Next.js demo app at `http://localhost:3000` which consumes the l
 | `src/` | Core component library |
 | `demo/` | Next.js demo app for testing |
 | `docs/` | Documentation |
+| `docs/adrs/` | Architecture Decision Records |
 | `dist/` | Built library output (generated) |
 
 ### Available Scripts

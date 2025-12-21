@@ -4,7 +4,7 @@
 
 > Comprehensive guide to selection mechanics, multi-selection patterns, and the 2D selection box model.
 
-> **See also**: [Keyboard Navigation](./KEYBOARD_NAVIGATION.md) • [Commands](./COMMANDS.md) • [Data Model](./DATA_MODEL.md)
+> **See also**: [Keyboard Navigation](./KEYBOARD_NAVIGATION.md) • [Commands](./COMMANDS.md) • [Data Model](./DATA_MODEL.md) • [ADR-001: Vertical Selection](./adrs/ADR-001-vertical-selection.md)
 
 ---
 
