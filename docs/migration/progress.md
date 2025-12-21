@@ -8,8 +8,8 @@
 
 | Status | Phases |
 | :--- | :--- |
-| ✅ Complete | 0, 1, 2, 2b, 2c, 2d, 2e, 2f |
-| 🔲 Next | 2g (Testing Enhancement) |
+| ✅ Complete | 0, 1, 2, 2b, 2c, 2d, 2e, 2f, 2g |
+| 🔲 Next | 3 (Event Subscriptions) |
 | 🔲 Remaining | 3, 4, 5, 6, 7, 8 |
 
 ---
@@ -77,34 +77,34 @@
 
 ---
 
-### 🔲 Phase 2g: Testing Enhancement
+### ✅ Phase 2g: Testing Enhancement
 
 **Goal:** Improve test reliability, coverage, and developer experience.
 
 **Evaluation:** [testing_enhancement_evaluation.md](./testing_enhancement_evaluation.md)
 
-#### Phase A: Infrastructure ⬜
-- [ ] Install `@testing-library/user-event`
-- [ ] Install `eslint-plugin-testing-library` + configure
-- [ ] Create `setupTests.ts` with global jest-dom
-- [ ] Add coverage config (75% threshold) + `test:coverage` script
+#### Phase A: Infrastructure ✅
+- [x] Install `@testing-library/user-event`
+- [x] Install `eslint-plugin-testing-library` + configure
+- [x] Create `setupTests.ts` with global jest-dom
+- [x] Add coverage config (75% threshold) + `test:coverage` script
 
-#### Phase B: Command Tests (14 files) ⬜
-- [ ] Migrate pure command tests to new patterns
+#### Phase B: Command Tests (14 files) ✅
+- [x] Migrate pure command tests to new patterns
 
-#### Phase C: Engine/API Tests (10 files) ⬜
-- [ ] Migrate engine and API tests, add userEvent where applicable
+#### Phase C: Engine/API Tests (10 files) ✅
+- [x] Migrate engine and API tests, add userEvent where applicable
 
-#### Phase D: Hook/Component Tests (14 files) ⬜
-- [ ] Migrate RTL tests to userEvent pattern
+#### Phase D: Hook/Component Tests (14 files) ✅
+- [x] Migrate RTL tests to userEvent pattern
 
-#### Phase E: Utility Tests (10 files) ⬜
-- [ ] Migrate utility and integration tests
+#### Phase E: Utility Tests (10 files) ✅
+- [x] Migrate utility and integration tests
 
-#### Phase F: Documentation ⬜
-- [ ] Create `docs/TESTING_ANTIPATTERNS.md`
-- [ ] Update `docs/TESTING.md`
-- [ ] Update progress tracker
+#### Phase F: Documentation ✅
+- [x] Create `docs/TESTING_ANTIPATTERNS.md`
+- [x] Update `docs/TESTING.md`
+- [x] Update progress tracker
 
 #### Deferred
 - Property-based testing (fast-check)

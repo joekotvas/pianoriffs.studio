@@ -81,56 +81,6 @@ const createNavigationTestScore = (): Score => ({
   ],
 });
 
-/**
- * Creates a grand staff score for cross-staff navigation testing.
- */
-const _createGrandStaffScore = (): Score => ({
-  title: 'Grand Staff Test',
-  timeSignature: '4/4',
-  keySignature: 'C',
-  bpm: 120,
-  staves: [
-    {
-      id: 'staff-treble',
-      clef: 'treble',
-      keySignature: 'C',
-      measures: [
-        {
-          id: 'm1-treble',
-          events: [
-            {
-              id: 'treble-e1',
-              isRest: false,
-              duration: 'quarter',
-              dotted: false,
-              notes: [{ id: 'treble-n1', pitch: 'C5', accidental: null, tied: false }],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'staff-bass',
-      clef: 'bass',
-      keySignature: 'C',
-      measures: [
-        {
-          id: 'm1-bass',
-          events: [
-            {
-              id: 'bass-e1',
-              isRest: false,
-              duration: 'quarter',
-              dotted: false,
-              notes: [{ id: 'bass-n1', pitch: 'C3', accidental: null, tied: false }],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-});
-
 describe('Selection Navigation - Horizontal', () => {
   let engine: SelectionEngine;
 
