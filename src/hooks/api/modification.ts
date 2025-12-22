@@ -27,7 +27,8 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
           sel.measureIndex,
           sel.eventId,
           sel.noteId,
-          pitch
+          pitch,
+          sel.staffIndex
         ));
       }
       return this;
