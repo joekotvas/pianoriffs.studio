@@ -108,7 +108,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
   const updateHistoryOnly = useCallback((
     staffIndex: number, 
     measureIndex: number, 
-    eventId: string | number | null, 
+    eventId: string | number, 
     noteId: string | number | null,
     notes: Note[]
   ) => {
