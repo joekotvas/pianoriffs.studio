@@ -9,6 +9,7 @@
 
 import { calculateTotalQuants } from '../core';
 import { Measure, PreviewNote, HorizontalNavigationResult } from '@/types';
+import { getClefConfig } from '@/constants';
 
 /**
  * Generates preview note state for appending to a measure (APPEND mode ghost cursor).
@@ -70,13 +71,16 @@ export const getAppendPreviewNote = (
  * Returns the default pitch for a given clef.
  * Used for initializing ghost cursors when no previous pitch context exists.
  *
- * @param clef - The clef type ('treble', 'bass', etc.)
- * @returns 'C3' for bass clef, 'C4' for all others
+ * @param clef - The clef type ('treble', 'bass', 'alto', 'tenor', etc.)
+ * @returns Default pitch from CLEF_CONFIG
  *
+ * @see CLEF_CONFIG in constants.ts
  * @tested navigationHelpers.test.ts
  */
-export const getDefaultPitchForClef = (clef: string): string =>
-  clef === 'bass' ? 'C3' : 'C4';
+export const getDefaultPitchForClef = (clef: string): string => {
+  const config = getClefConfig(clef);
+  return config.defaultPitch;
+};
 
 /**
  * Creates a navigation result for ghost cursor mode (no event selected).

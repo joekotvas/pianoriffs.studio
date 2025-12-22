@@ -12,21 +12,17 @@
 import type { Score, SelectedNote, ScoreEvent } from '../types';
 import { getNoteDuration } from './core';
 import { getMidi } from '../services/MusicService';
+import { getClefConfig } from '../constants';
 
 /**
  * Get the default MIDI value for a rest in a given clef.
  * Used for vertical stack sorting.
+ * 
+ * @see CLEF_CONFIG in constants.ts
  */
 const getRestMidi = (clef: string): number => {
-  switch (clef) {
-    case 'bass':
-      return 48; // C3
-    case 'alto':
-    case 'tenor':
-      return 60; // C4 (Middle C)
-    default:
-      return 71; // B4 (treble)
-  }
+  const config = getClefConfig(clef);
+  return config.restMidi;
 };
 
 // =============================================================================

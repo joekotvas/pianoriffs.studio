@@ -48,11 +48,11 @@ Each clef defines a reference pitch and offset in `CLEF_REFERENCE`:
 
 | Line | Treble | Bass | Alto | Tenor |
 |------|--------|------|------|-------|
-| 5th line | F5 | A3 | G5 | D5 |
-| 4th line | D5 | F3 | E5 | A4 |
-| 3rd line | B4 | D3 | C4 | F4 |
-| 2nd line | G4 | B2 | A4 | C4 |
-| 1st line | E4 | G2 | F4 | A3 |
+| 5th line | F5 | A3 | G4 | E4 |
+| 4th line | D5 | F3 | E4 | C4 |
+| 3rd line | B4 | D3 | C4 | A3 |
+| 2nd line | G4 | B2 | A3 | F3 |
+| 1st line | E4 | G2 | F3 | D3 |
 
 ---
 

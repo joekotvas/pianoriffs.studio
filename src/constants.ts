@@ -225,6 +225,106 @@ export const CLEF_TYPES: Record<string, ClefType> = {
   grand: { label: 'Grand', isGrand: true },
 };
 
+/**
+ * Unified clef configuration (Open-Closed Principle)
+ * 
+ * Define only the minimal reference data for each clef.
+ * All derived values (staffLines, etc.) are computed from the reference.
+ * To add a new clef, simply add an entry with referencePitch, referenceLine,
+ * defaultPitch, centerPitch, and restMidi.
+ * 
+ * @see ADR-007: Open-Closed Clef Reference Pattern
+ */
+interface ClefReference {
+  /** Reference pitch (e.g., 'G4' for treble, 'F3' for bass, 'C4' for C-clefs) */
+  referencePitch: string;
+  /** Staff line where reference pitch sits (1-5, bottom to top) */
+  referenceLine: 1 | 2 | 3 | 4 | 5;
+  /** Default pitch for ghost cursor/preview */
+  defaultPitch: string;
+  /** Center pitch when converting rests to notes */
+  centerPitch: string;
+  /** MIDI value for rest positioning in vertical stack */
+  restMidi: number;
+}
+
+const CLEF_REFERENCES: Record<string, ClefReference> = {
+  treble: { referencePitch: 'G4', referenceLine: 2, defaultPitch: 'C4', centerPitch: 'B4', restMidi: 71 },
+  bass:   { referencePitch: 'F3', referenceLine: 4, defaultPitch: 'C3', centerPitch: 'D3', restMidi: 48 },
+  alto:   { referencePitch: 'C4', referenceLine: 3, defaultPitch: 'C4', centerPitch: 'C4', restMidi: 60 },
+  tenor:  { referencePitch: 'C4', referenceLine: 4, defaultPitch: 'C4', centerPitch: 'C4', restMidi: 60 },
+  grand:  { referencePitch: 'G4', referenceLine: 2, defaultPitch: 'C4', centerPitch: 'B4', restMidi: 71 },
+};
+
+/** Generate staff line pitches from a reference pitch and line */
+const generateStaffLines = (
+  referencePitch: string,
+  referenceLine: number
+): [string, string, string, string, string] => {
+  // Parse reference pitch (e.g., 'G4' -> { letter: 'G', octave: 4 })
+  const match = referencePitch.match(/^([A-G])(\d)$/);
+  if (!match) return ['C4', 'E4', 'G4', 'B4', 'D5']; // Fallback
+  
+  const letter = match[1];
+  const octave = parseInt(match[2], 10);
+  const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  const refIndex = NOTES.indexOf(letter);
+  
+  // Calculate steps from reference line to each staff line
+  // Each staff line is 2 steps apart (a line + space = 2 steps)
+  const lines: string[] = [];
+  for (let line = 1; line <= 5; line++) {
+    const stepsFromRef = (line - referenceLine) * 2; // Each line = 2 diatonic steps
+    let noteIndex = refIndex + stepsFromRef;
+    let noteOctave = octave;
+    
+    // Handle octave wrapping
+    while (noteIndex >= 7) {
+      noteIndex -= 7;
+      noteOctave++;
+    }
+    while (noteIndex < 0) {
+      noteIndex += 7;
+      noteOctave--;
+    }
+    
+    lines.push(`${NOTES[noteIndex]}${noteOctave}`);
+  }
+  
+  return lines as [string, string, string, string, string];
+};
+
+/** Full clef configuration with generated staffLines */
+export interface ClefConfig {
+  /** Default pitch for ghost cursor/preview */
+  defaultPitch: string;
+  /** Center pitch when converting rests to notes */
+  centerPitch: string;
+  /** MIDI value for rest positioning in vertical stack */
+  restMidi: number;
+  /** Staff line pitches (Line 1 to Line 5, bottom to top) - generated */
+  staffLines: [string, string, string, string, string];
+}
+
+/** Build CLEF_CONFIG from references */
+export const CLEF_CONFIG: Record<string, ClefConfig> = Object.fromEntries(
+  Object.entries(CLEF_REFERENCES).map(([clef, ref]) => [
+    clef,
+    {
+      defaultPitch: ref.defaultPitch,
+      centerPitch: ref.centerPitch,
+      restMidi: ref.restMidi,
+      staffLines: generateStaffLines(ref.referencePitch, ref.referenceLine),
+    },
+  ])
+) as Record<string, ClefConfig>;
+
+/**
+ * Get clef configuration, falling back to treble for unknown clefs.
+ */
+export const getClefConfig = (clef: string): ClefConfig =>
+  CLEF_CONFIG[clef] || CLEF_CONFIG.treble;
+
 // =============================================================================
 // NOTE TYPES
 // =============================================================================
