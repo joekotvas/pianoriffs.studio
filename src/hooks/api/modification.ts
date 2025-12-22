@@ -83,7 +83,12 @@ export const createModificationMethods = (
           processedEvents.add(eventKey);
 
           dispatch(
-            new UpdateEventCommand(note.measureIndex, note.eventId, { duration, dotted }, note.staffIndex)
+            new UpdateEventCommand(
+              note.measureIndex,
+              note.eventId,
+              { duration, dotted },
+              note.staffIndex
+            )
           );
         });
 

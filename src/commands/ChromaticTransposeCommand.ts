@@ -143,9 +143,7 @@ export class ChromaticTransposeCommand implements Command {
     const measure = { ...newMeasures[this.selection.measureIndex] };
 
     if (this.selection.eventId && this.selection.noteId) {
-      const eventIndex = measure.events.findIndex((e) =>
-        idsMatch(e.id, this.selection.eventId)
-      );
+      const eventIndex = measure.events.findIndex((e) => idsMatch(e.id, this.selection.eventId));
       if (eventIndex === -1) return score;
 
       const event = { ...measure.events[eventIndex] };
@@ -169,9 +167,7 @@ export class ChromaticTransposeCommand implements Command {
     }
     // Case 2: Transpose entire event (all notes)
     else if (this.selection.eventId) {
-      const eventIndex = measure.events.findIndex((e) =>
-        idsMatch(e.id, this.selection.eventId)
-      );
+      const eventIndex = measure.events.findIndex((e) => idsMatch(e.id, this.selection.eventId));
       if (eventIndex === -1) return score;
 
       const event = { ...measure.events[eventIndex] };

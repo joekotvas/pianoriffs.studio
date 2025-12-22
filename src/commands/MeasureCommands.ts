@@ -20,11 +20,7 @@ export class AddMeasureCommand implements Command {
       };
 
       // Insert at specific index if valid, otherwise append
-      if (
-        this.atIndex !== undefined &&
-        this.atIndex >= 0 &&
-        this.atIndex <= newMeasures.length
-      ) {
+      if (this.atIndex !== undefined && this.atIndex >= 0 && this.atIndex <= newMeasures.length) {
         this.insertedIndex = this.atIndex;
         newMeasures.splice(this.atIndex, 0, newMeasure);
       } else {

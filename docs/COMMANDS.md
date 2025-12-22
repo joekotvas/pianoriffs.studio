@@ -34,9 +34,10 @@ Modify the `Score` object (notes, measures, key signatures, etc.):
 | `AddEventCommand` | Insert note/rest at position |
 | `AddNoteToEventCommand` | Add note to chord |
 | `ChangePitchCommand` | Change single note pitch |
+| `ChromaticTransposeCommand` | Chromatic transposition by semitones |
 | `DeleteEventCommand` | Remove entire event |
 | `DeleteNoteCommand` | Remove note from chord |
-| `TransposeSelectionCommand` | Transpose selected notes |
+| `TransposeSelectionCommand` | Diatonic transposition by steps |
 | `UpdateEventCommand` | Update event properties |
 | `UpdateNoteCommand` | Update note properties |
 | `LoadScoreCommand` | Load complete score |
