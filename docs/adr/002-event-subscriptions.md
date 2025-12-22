@@ -1,8 +1,9 @@
 # ADR 002: Event Subscription Pattern
 
-**Status:** Accepted
-**Date:** 2025-12-21
-**Deciders:** Core Team
+**Status:** Accepted  
+**Date:** 2025-12-21  
+**Deciders:** Core Team  
+**Revised:** 2025-12-21 ([Issue #122](https://github.com/joekotvas/RiffScore/issues/122), [PR #123](https://github.com/joekotvas/RiffScore/pull/123))
 
 ## Context
 
@@ -43,3 +44,59 @@ We chose to implement the Event Subscription pattern using a custom hook (`useAP
 -   *Approach:* Replace internal state with Observables.
 -   *Pros:* Powerful stream processing.
 -   *Cons:* Overkill complexity for current requirements; introduces new paradigm/dependencies.
+
+---
+
+## Revision: useEffect-Only Callbacks (2025-12-21)
+
+**Issue:** [#122](https://github.com/joekotvas/RiffScore/issues/122) — Subscription callbacks firing twice or with stale data.
+
+### Problem
+
+The initial implementation attempted "hybrid" notification:
+- API methods called `notifySelection(freshData)` immediately
+- `useEffect` also fired when React state updated
+
+This caused:
+1. **Double-notification:** Callbacks fired twice per state change
+2. **Stale data:** `notifyScore(scoreRef.current)` sent pre-update data
+
+### Resolution
+
+**All callbacks now fire exclusively via `useEffect`.**
+
+```typescript
+// useAPISubscriptions.ts
+const prevScoreRef = useRef(score);
+useEffect(() => {
+  if (prevScoreRef.current !== score) {
+    prevScoreRef.current = score;
+    listenersRef.current.score.forEach(cb => safeCall(cb, score));
+  }
+}, [score]);
+```
+
+### Trade-offs
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| Timing | Hybrid (immediate + effect) | useEffect only |
+| Data freshness | Risk of stale refs | Guaranteed fresh |
+| Notification count | 1-2 per change | Exactly 1 |
+| Synchronicity | Partially sync | Async (before next paint) |
+
+### Testing Implications
+
+Tests must use `waitFor()` for callback assertions:
+
+```typescript
+await waitFor(() => {
+  expect(callback).toHaveBeenCalled();
+});
+```
+
+### Files Modified
+- `src/hooks/useAPISubscriptions.ts` — Removed immediate notify functions
+- `src/hooks/api/entry.ts`, `navigation.ts` — Removed `notifySelection()` calls
+- `src/hooks/api/types.ts` — Removed `notifyScore`/`notifySelection` from `APIContext`
+
