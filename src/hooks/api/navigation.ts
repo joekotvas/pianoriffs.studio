@@ -33,7 +33,7 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
         // Use existing navigateSelection utility for horizontal movement
         const newSel = navigateSelection(measures, sel, direction);
 
-        syncSelection({
+        const fullSelection = {
           ...newSel,
           selectedNotes: newSel.eventId && newSel.measureIndex !== null
             ? [
@@ -46,7 +46,8 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
               ]
             : [],
           anchor: null,
-        });
+        };
+        syncSelection(fullSelection);
       } else if (direction === 'up' || direction === 'down') {
         // Use calculateVerticalNavigation for cross-staff and chord navigation
         // Note: activeDuration defaults to 'quarter' - if needed, expose via API context
@@ -60,7 +61,7 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
         );
 
         if (result?.selection) {
-          syncSelection({
+          const fullSelection = {
             ...result.selection,
             selectedNotes: result.selection.eventId && result.selection.measureIndex !== null
               ? [
@@ -73,7 +74,8 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
                 ]
               : [],
             anchor: null,
-          });
+          };
+          syncSelection(fullSelection);
         }
         // Note: Ghost cursor (previewNote) is handled by the UI layer, not the API
       }

@@ -220,6 +220,19 @@ The most recently focused or mounted instance.
 
 **Returns:** `() => void` — Unsubscribe function.
 
+### Callback Timing
+
+> [!IMPORTANT]
+> Callbacks fire **after React processes state updates** (via `useEffect`), not synchronously.
+> This ensures callbacks receive **guaranteed-fresh data**.
+
+In tests, use `waitFor()` from `@testing-library/react`:
+```javascript
+await waitFor(() => {
+  expect(callback).toHaveBeenCalled();
+});
+```
+
 ---
 
 ## 13. Error Handling

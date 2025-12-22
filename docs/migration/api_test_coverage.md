@@ -185,21 +185,24 @@ The generated `noteId` for rests doesn't correspond to any note in the score (re
 
 ---
 
-### 5. Subscription Callbacks Don't Fire Synchronously
-**Severity:** High  
-**Discovered:** Cookbook integration testing
+### 5. ~~Subscription Callbacks Don't Fire Synchronously~~ ✅ FIXED
+**Severity:** ~~High~~ → Resolved  
+**Discovered:** Cookbook integration testing  
+**Fixed:** Issue #122, branch `fix/122-subscription-callbacks`
 
-**Observed:** When using the imperative API via `window.riffScore.get(id)`:
-- `api.on('score', callback)` — callback is NOT invoked when `addNote()` mutates score
-- `api.on('selection', callback)` — callback is NOT invoked when `select()`/`move()` changes selection
+**Resolution:**  
+Both score AND selection callbacks now fire via `useEffect` when React processes state updates.
+This ensures:
+- Callbacks receive **correct, fresh data** (not stale refs)
+- Callbacks fire **exactly once** per state change (no double-notifications)
 
-**Expected:** Per COOKBOOK.md recipes, callbacks should fire when state changes.
+**Trade-off:** Callbacks are not strictly synchronous—they fire after React's commit phase but before the next paint. Use `waitFor` in tests.
 
-**Workaround:** Use `renderHook` + `act()` in tests (works), or poll `getScore()`/`getSelection()` in production.
-
-**Root Cause (suspected):** The subscription system relies on React's `useEffect` to detect state changes. When API methods are called imperatively (not within React's render cycle), the effect doesn't run until the next render, which may not happen synchronously.
-
-**Impact:** COOKBOOK.md recipes "Auto-Save to Backend" and "Sync Selection with External UI" may not work as documented.
+**Files Modified:**
+- `src/hooks/useAPISubscriptions.ts` — Simplified to useEffect-only, removed unused notify functions
+- `src/hooks/api/types.ts` — Removed `notifyScore`/`notifySelection` from APIContext
+- `src/hooks/api/entry.ts` — Removed immediate notify calls
+- `src/hooks/api/navigation.ts` — Removed immediate notify calls
 
 ---
 

@@ -120,6 +120,10 @@ api.select(3)  // Measure 3
 
 ## 4. Integration Recipes
 
+> [!NOTE]
+> **Callback Timing:** Event callbacks fire after React processes state updates (via `useEffect`), not synchronously.
+> This ensures callbacks receive guaranteed-fresh data. See [API.md > Events](./API.md#12-events--subscriptions) for details.
+
 ### Auto-Save to Backend ✅
 
 ```javascript
@@ -131,8 +135,6 @@ const unsub = api.on('score', (newScore) => {
 });
 ```
 
-> **Workaround**: Poll `api.getScore()` on an interval or after user actions.
-
 ### Sync Selection with External UI ✅
 
 ```javascript
@@ -142,8 +144,6 @@ api.on('selection', (selection) => {
   }
 });
 ```
-
-> **Workaround**: Poll `api.getSelection()` when needed.
 
 ### React to Playback Position ⏳
 

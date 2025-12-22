@@ -73,14 +73,16 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
       dispatch(new AddEventCommand(measureIndex, false, note, duration, dotted, undefined, eventId, staffIndex));
 
       // Advance cursor to the new event
-      syncSelection({
+      const newSelection = {
         staffIndex,
         measureIndex,
         eventId,
         noteId,
         selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
         anchor: null,
-      });
+      };
+      syncSelection(newSelection);
+
 
       return this;
     },
@@ -120,14 +122,15 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
 
       // Advance cursor - use the same rest note ID pattern as AddEventCommand
       const restNoteId = `${eventId}-rest`;
-      syncSelection({
+      const newSelection = {
         staffIndex,
         measureIndex,
         eventId,
         noteId: restNoteId,
         selectedNotes: [{ staffIndex, measureIndex, eventId, noteId: restNoteId }],
         anchor: null,
-      });
+      };
+      syncSelection(newSelection);
 
       return this;
     },
@@ -159,11 +162,12 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
       dispatch(new AddNoteToEventCommand(measureIndex, eventId, note, staffIndex));
 
       // Update selection to include new note
-      syncSelection({
+      const newSelection = {
         ...sel,
         noteId,
         selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
-      });
+      };
+      syncSelection(newSelection);
 
       return this;
     },
