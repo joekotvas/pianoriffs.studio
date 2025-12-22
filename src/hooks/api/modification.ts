@@ -14,6 +14,7 @@ import {
   SetSingleStaffCommand,
   UpdateTitleCommand,
   TransposeSelectionCommand,
+  ChromaticTransposeCommand,
   UpdateEventCommand,
   UpdateNoteCommand,
   SetBpmCommand,
@@ -68,13 +69,47 @@ export const createModificationMethods = (
       return this;
     },
 
-    setDuration(_duration, _dotted) {
-      // TODO: Dispatch ChangeRhythmCommand
+    setDuration(duration, dotted = false) {
+      const sel = selectionRef.current;
+
+      // Multi-selection: update each unique event
+      if (sel.selectedNotes && sel.selectedNotes.length > 1) {
+        ctx.history.begin();
+
+        const processedEvents = new Set<string>();
+        sel.selectedNotes.forEach((note) => {
+          const eventKey = `${note.staffIndex}-${note.measureIndex}-${note.eventId}`;
+          if (processedEvents.has(eventKey)) return;
+          processedEvents.add(eventKey);
+
+          dispatch(
+            new UpdateEventCommand(note.measureIndex, note.eventId, { duration, dotted }, note.staffIndex)
+          );
+        });
+
+        ctx.history.commit();
+        return this;
+      }
+
+      // Single selection
+      if (sel.measureIndex === null || sel.eventId === null) {
+        console.warn('[RiffScore API] setDuration failed: No event selected');
+        return this;
+      }
+
+      dispatch(
+        new UpdateEventCommand(sel.measureIndex, sel.eventId, { duration, dotted }, sel.staffIndex)
+      );
       return this;
     },
 
-    transpose(_semitones) {
-      // TODO: Implement chromatic transposition
+    transpose(semitones) {
+      const sel = selectionRef.current;
+      if (sel.measureIndex === null) {
+        console.warn('[RiffScore API] transpose failed: No selection');
+        return this;
+      }
+      dispatch(new ChromaticTransposeCommand(sel, semitones));
       return this;
     },
 
@@ -95,8 +130,8 @@ export const createModificationMethods = (
     },
 
     // ========== STRUCTURE ==========
-    addMeasure(_atIndex) {
-      dispatch(new AddMeasureCommand());
+    addMeasure(atIndex) {
+      dispatch(new AddMeasureCommand(atIndex));
       return this;
     },
 
