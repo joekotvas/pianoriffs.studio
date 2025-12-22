@@ -228,10 +228,17 @@ export const CLEF_TYPES: Record<string, ClefType> = {
 /**
  * Unified clef configuration (Open-Closed Principle)
  * 
- * Define only the minimal reference data for each clef.
- * All derived values (staffLines, etc.) are computed from the reference.
- * To add a new clef, simply add an entry with referencePitch, referenceLine,
- * defaultPitch, centerPitch, and restMidi.
+ * Define ONLY the essential reference data for each clef:
+ * - referencePitch: The defining pitch (G4 for G-clef, F3 for F-clef, C4 for C-clefs)
+ * - referenceLine: The staff line where that pitch sits (1-5, bottom to top)
+ * 
+ * ALL other values are derived:
+ * - staffLines: Generated from reference pitch/line
+ * - centerPitch: Middle line pitch (Line 3)
+ * - defaultPitch: 'C' in the clef's primary octave
+ * - restMidi: MIDI value of centerPitch
+ * 
+ * To add a new clef, add ONLY { referencePitch, referenceLine }.
  * 
  * @see ADR-007: Open-Closed Clef Reference Pattern
  */
@@ -240,61 +247,80 @@ interface ClefReference {
   referencePitch: string;
   /** Staff line where reference pitch sits (1-5, bottom to top) */
   referenceLine: 1 | 2 | 3 | 4 | 5;
-  /** Default pitch for ghost cursor/preview */
-  defaultPitch: string;
-  /** Center pitch when converting rests to notes */
-  centerPitch: string;
-  /** MIDI value for rest positioning in vertical stack */
-  restMidi: number;
 }
 
 const CLEF_REFERENCES: Record<string, ClefReference> = {
-  treble: { referencePitch: 'G4', referenceLine: 2, defaultPitch: 'C4', centerPitch: 'B4', restMidi: 71 },
-  bass:   { referencePitch: 'F3', referenceLine: 4, defaultPitch: 'C3', centerPitch: 'D3', restMidi: 48 },
-  alto:   { referencePitch: 'C4', referenceLine: 3, defaultPitch: 'C4', centerPitch: 'C4', restMidi: 60 },
-  tenor:  { referencePitch: 'C4', referenceLine: 4, defaultPitch: 'C4', centerPitch: 'C4', restMidi: 60 },
-  grand:  { referencePitch: 'G4', referenceLine: 2, defaultPitch: 'C4', centerPitch: 'B4', restMidi: 71 },
+  treble: { referencePitch: 'G4', referenceLine: 2 },
+  bass:   { referencePitch: 'F3', referenceLine: 4 },
+  alto:   { referencePitch: 'C4', referenceLine: 3 },
+  tenor:  { referencePitch: 'C4', referenceLine: 4 },
+  grand:  { referencePitch: 'G4', referenceLine: 2 }, // Uses treble clef
 };
 
-/** Generate staff line pitches from a reference pitch and line */
+// =============================================================================
+// CLEF CONFIG GENERATION
+// =============================================================================
+
+const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const MIDI_BASE: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+/** Calculate pitch at a given diatonic step offset from reference */
+const getPitchAtOffset = (referencePitch: string, steps: number): string => {
+  const match = referencePitch.match(/^([A-G])(\d)$/);
+  if (!match) return 'C4';
+  
+  let noteIndex = NOTES.indexOf(match[1]);
+  let octave = parseInt(match[2], 10);
+  
+  noteIndex += steps;
+  while (noteIndex >= 7) { noteIndex -= 7; octave++; }
+  while (noteIndex < 0) { noteIndex += 7; octave--; }
+  
+  return `${NOTES[noteIndex]}${octave}`;
+};
+
+/** Convert pitch string to MIDI number */
+const pitchToMidi = (pitch: string): number => {
+  const match = pitch.match(/^([A-G])(\d)$/);
+  if (!match) return 60; // C4 fallback
+  return 12 + parseInt(match[2], 10) * 12 + MIDI_BASE[match[1]];
+};
+
+/** Generate staff line pitches from reference pitch and line */
 const generateStaffLines = (
   referencePitch: string,
   referenceLine: number
 ): [string, string, string, string, string] => {
-  // Parse reference pitch (e.g., 'G4' -> { letter: 'G', octave: 4 })
-  const match = referencePitch.match(/^([A-G])(\d)$/);
-  if (!match) return ['C4', 'E4', 'G4', 'B4', 'D5']; // Fallback
-  
-  const letter = match[1];
-  const octave = parseInt(match[2], 10);
-  const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-  const refIndex = NOTES.indexOf(letter);
-  
-  // Calculate steps from reference line to each staff line
-  // Each staff line is 2 steps apart (a line + space = 2 steps)
   const lines: string[] = [];
   for (let line = 1; line <= 5; line++) {
     const stepsFromRef = (line - referenceLine) * 2; // Each line = 2 diatonic steps
-    let noteIndex = refIndex + stepsFromRef;
-    let noteOctave = octave;
-    
-    // Handle octave wrapping
-    while (noteIndex >= 7) {
-      noteIndex -= 7;
-      noteOctave++;
-    }
-    while (noteIndex < 0) {
-      noteIndex += 7;
-      noteOctave--;
-    }
-    
-    lines.push(`${NOTES[noteIndex]}${noteOctave}`);
+    lines.push(getPitchAtOffset(referencePitch, stepsFromRef));
   }
-  
   return lines as [string, string, string, string, string];
 };
 
-/** Full clef configuration with generated staffLines */
+/** Derive full clef config from just reference pitch and line */
+const deriveClefConfig = (ref: ClefReference): ClefConfig => {
+  const staffLines = generateStaffLines(ref.referencePitch, ref.referenceLine);
+  
+  // centerPitch: For C-clefs (reference is C4), use the reference pitch (C4 is musically central)
+  // For other clefs, use the middle line (Line 3)
+  const isCClef = ref.referencePitch === 'C4';
+  const centerPitch = isCClef ? ref.referencePitch : staffLines[2];
+  
+  // restMidi: MIDI value of center pitch - used for vertical stack sorting
+  const restMidi = pitchToMidi(centerPitch);
+  
+  // defaultPitch: 'C' in the clef's primary octave
+  // Find which octave of 'C' is closest to the center of the staff
+  const centerMidi = restMidi;
+  const c3Midi = 48, c4Midi = 60;
+  const defaultPitch = Math.abs(centerMidi - c3Midi) < Math.abs(centerMidi - c4Midi) ? 'C3' : 'C4';
+  
+  return { defaultPitch, centerPitch, restMidi, staffLines };
+};
+
+/** Full clef configuration with all derived values */
 export interface ClefConfig {
   /** Default pitch for ghost cursor/preview */
   defaultPitch: string;
@@ -302,21 +328,13 @@ export interface ClefConfig {
   centerPitch: string;
   /** MIDI value for rest positioning in vertical stack */
   restMidi: number;
-  /** Staff line pitches (Line 1 to Line 5, bottom to top) - generated */
+  /** Staff line pitches (Line 1 to Line 5, bottom to top) */
   staffLines: [string, string, string, string, string];
 }
 
-/** Build CLEF_CONFIG from references */
+/** Build CLEF_CONFIG from references - all values derived */
 export const CLEF_CONFIG: Record<string, ClefConfig> = Object.fromEntries(
-  Object.entries(CLEF_REFERENCES).map(([clef, ref]) => [
-    clef,
-    {
-      defaultPitch: ref.defaultPitch,
-      centerPitch: ref.centerPitch,
-      restMidi: ref.restMidi,
-      staffLines: generateStaffLines(ref.referencePitch, ref.referenceLine),
-    },
-  ])
+  Object.entries(CLEF_REFERENCES).map(([clef, ref]) => [clef, deriveClefConfig(ref)])
 ) as Record<string, ClefConfig>;
 
 /**

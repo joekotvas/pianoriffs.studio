@@ -109,7 +109,7 @@ describe('toVerticalPoint', () => {
     const point = toVerticalPoint(note, score);
     
     expect(point).not.toBeNull();
-    expect(point!.midi).toBe(48); // Bass clef rest position
+    expect(point!.midi).toBe(50); // Bass clef rest: D3 (Line 3 = middle line)
   });
 });
 
