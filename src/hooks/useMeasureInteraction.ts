@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { getPitchForOffset } from '@/engines/layout';
 import { HitZone } from '@/engines/layout/types';
 import { CLAMP_LIMITS, MOUSE_OFFSET_SNAP } from '@/constants';
+import { PreviewNote, Selection } from '@/types';
+import { NoteInput } from './note/useNoteEntry';
 
 interface UseMeasureInteractionParams {
   hitZones: HitZone[];
@@ -13,10 +15,10 @@ interface UseMeasureInteractionParams {
   measureIndex: number;
   isLast: boolean;
   activeDuration: string;
-  previewNote: any;
-  selection: { selectedNotes?: any[] };
+  previewNote: PreviewNote | null;
+  selection: Selection;
   onHover?: (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void;
-  onAddNote?: (measureIndex: number, note: any, autoAdvance: boolean) => void;
+  onAddNote?: (measureIndex: number, note: NoteInput, autoAdvance: boolean) => void;
 }
 
 interface UseMeasureInteractionReturn {
@@ -117,7 +119,6 @@ export function useMeasureInteraction({
       topMargin,
       mouseLimits,
       measureIndex,
-      activeDuration,
       hoveredMeasure,
       onHover,
     ]

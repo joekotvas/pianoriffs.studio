@@ -5,10 +5,6 @@ import { calculateHeaderLayout, getOffsetForPitch, calculateMeasureLayout } from
 import { isRestEvent, getFirstNoteId } from '@/utils/core';
 import Staff, { calculateStaffWidth } from './Staff';
 import {
-  Score,
-  Measure as MeasureData,
-  PreviewNote,
-  Selection,
   getActiveStaff,
   Staff as StaffType,
   Measure,
@@ -327,36 +323,49 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     [handleDragStart]
   );
 
-  // Ref to track latest handler to avoid stale closures in the cached wrappers
-  const handleMeasureHoverRef = useRef(handleMeasureHover);
-  useEffect(() => {
-    handleMeasureHoverRef.current = handleMeasureHover;
-  }, [handleMeasureHover]);
+
 
 // ... (keep existing imports)
 
 // ... inside component ...
   // Cache per-staff onHover handlers to prevent recreation (stable identity for memoized children)
-  const hoverHandlersRef = useRef<
-    Map<number, (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void>
-  >(new Map());
-
-  const getHoverHandler = useCallback(
-    (staffIndex: number) => {
-      if (!hoverHandlersRef.current.has(staffIndex)) {
-        hoverHandlersRef.current.set(
-          staffIndex,
-          (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => {
-            if (!dragState.active) {
-              handleMeasureHoverRef.current(measureIndex, hit, pitch || '', staffIndex);
-            }
-          }
-        );
+  // Create stable onHover handlers for each staff index
+  // We use useMemo to ensure the function references stay stable across renders
+  // unless relevant dependencies change.
+  const staffHoverHandlers = useMemo(() => {
+    // Generate handlers for up to 4 staves (reasonable max) or dynamic based on score.staves
+    // using a Map or Array.
+    const handlers = new Map<number, (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void>();
+    
+    // We create a factory that returns a handler for a specific staff index
+    const createHandler = (sIdx: number) => (
+      measureIndex: number | null,
+      hit: HitZone | null,
+      pitch: string | null
+    ) => {
+      // Access refs/state effectively inside the event handler (safe)
+      if (!dragState.active) {
+        handleMeasureHover(measureIndex, hit, pitch || '', sIdx);
       }
-      return hoverHandlersRef.current.get(staffIndex)!;
-    },
-    [dragState.active]
-  );
+    };
+
+    // Pre-create handlers for existing staves
+    score.staves.forEach((_, index) => {
+      handlers.set(index, createHandler(index));
+    });
+
+    return handlers;
+  }, [dragState.active, score.staves, handleMeasureHover]); 
+  // score.staves.length ensures we recreate if staff count changes. 
+  // dragState.active is a dependency so handlers update behavior (or we could use a ref for dragState to keep handlers stable).
+  // Actually, handleMeasureHoverRef is stable. If we want fully stable props, we should use a ref for dragState too? 
+  // The original code had [dragState.active] as dependency for getHoverHandler.
+  // So recreating handlers when dragging starts/stops is expected behavior.
+  
+  const getHoverHandler = useCallback((staffIndex: number) => {
+      // Return a no-op fallback with matching signature if handler missing
+      return staffHoverHandlers.get(staffIndex) || ((() => {}) as (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void);
+  }, [staffHoverHandlers]);
 
   return (
     <div

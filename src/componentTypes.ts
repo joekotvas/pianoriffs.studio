@@ -1,5 +1,6 @@
-import { Selection, Measure } from './types';
+import { Selection, Measure, PreviewNote } from './types';
 import { HitZone } from './engines/layout/types';
+import { NoteInput, PlacementOverride } from './hooks/note/useNoteEntry';
 
 /**
  * Encapsulates all layout configuration required for a measure to render.
@@ -19,10 +20,22 @@ export interface LayoutConfig {
  * Encapsulates all user interaction state and callbacks.
  * This object can be passed down the tree to avoid prop drilling.
  */
+export interface DragStartParams {
+  measureIndex: number;
+  eventId: string | number;
+  noteId: string | number;
+  startPitch: string;
+  startY: number;
+  isMulti?: boolean;
+  isShift?: boolean;
+  selectAllInEvent?: boolean;
+  staffIndex?: number;
+}
+
 export interface InteractionState {
   // State
   selection: Selection;
-  previewNote: any | null; // Note preview data
+  previewNote: PreviewNote | null; // Note preview data
   activeDuration: string;
   isDotted: boolean;
   modifierHeld: boolean;
@@ -32,9 +45,9 @@ export interface InteractionState {
   // Actions
   onAddNote: (
     measureIndex: number,
-    note: any,
+    note: NoteInput,
     shouldAutoAdvance?: boolean,
-    placementOverride?: any
+    placementOverride?: PlacementOverride
   ) => void;
   onSelectNote: (
     measureIndex: number | null,
@@ -45,7 +58,7 @@ export interface InteractionState {
     selectAllInEvent?: boolean,
     isShift?: boolean
   ) => void;
-  onDragStart: (params: any) => void;
+  onDragStart: (params: DragStartParams) => void;
   onHover: (
     measureIndex: number | null,
     hit: HitZone | null,
