@@ -117,6 +117,10 @@
 - [x] Implement `on(event, callback)` in useScoreAPI
 - [x] Write `ScoreAPI.events.test.tsx`
 - [x] Document ADR 002
+- [x] **#122 Fix:** Callbacks now fire reliably via `useEffect` with correct data
+  - Added `prevRef` checks to prevent duplicate invocations
+  - Updated tests to use `waitFor()` for async assertions
+  - Documented callback timing in API.md, COOKBOOK.md, TESTING.md
 
 ### ✅ Phase 4: Transaction Batching
 - [x] Add batching to `ScoreEngine.ts`
