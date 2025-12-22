@@ -4,8 +4,6 @@ import { calculateChordLayout } from '@/engines/layout';
 import { HitZone } from '@/engines/layout/types';
 import { CONFIG } from '@/config';
 
-
-
 interface UsePreviewRenderParams {
   previewNote: PreviewNote | null;
   events: ScoreEvent[];
@@ -47,8 +45,8 @@ export function usePreviewRender({
   totalWidth,
   selectedNotes,
 }: UsePreviewRenderParams): PreviewRenderResult | null {
-  // Cache for rest previews to prevent recalculation on pitch changes
-  // removed to fix ref-access-during-render error. Rely on useMemo.
+  // Use useMemo to cache preview rendering instead of ref to avoid ref-access-during-render errors.
+  // This approach ensures proper React rendering lifecycle while maintaining performance.
 
   return useMemo(() => {
     if (!previewNote) return null;

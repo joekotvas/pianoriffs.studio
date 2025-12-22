@@ -27,7 +27,7 @@ import {
   createHistoryMethods,
   createPlaybackMethods,
   createIOMethods,
-  APIContext
+  APIContext,
 } from './api';
 
 // Extend Window interface for TypeScript
@@ -36,8 +36,6 @@ declare global {
     riffScore: RiffScoreRegistry;
   }
 }
-
-
 
 /**
  * Initialize the global registry if it doesn't exist
@@ -80,7 +78,13 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
   const ctx = useScoreContext();
   const { score, selection } = ctx.state;
   const { dispatch, selectionEngine } = ctx.engines;
-  const { begin: beginTransaction, commit: commitTransaction, rollback: rollbackTransaction, undo, redo } = ctx.historyAPI;
+  const {
+    begin: beginTransaction,
+    commit: commitTransaction,
+    rollback: rollbackTransaction,
+    undo,
+    redo,
+  } = ctx.historyAPI;
 
   // 2. Synchronous State Refs (authoritative for API methods to avoid stale closures)
   const scoreRef = useRef(score);
@@ -94,17 +98,22 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
 
   // 3. Selection Sync Helper
   // Updates both the authoritative Ref (for immediate chaining) and dispatches to engine (for UI)
-  const syncSelection = useCallback((newSelection: typeof selection) => {
-    selectionRef.current = newSelection;
-    selectionEngine.dispatch(new SetSelectionCommand({
-      staffIndex: newSelection.staffIndex,
-      measureIndex: newSelection.measureIndex,
-      eventId: newSelection.eventId,
-      noteId: newSelection.noteId,
-      selectedNotes: newSelection.selectedNotes,
-      anchor: newSelection.anchor,
-    }));
-  }, [selectionEngine]);
+  const syncSelection = useCallback(
+    (newSelection: typeof selection) => {
+      selectionRef.current = newSelection;
+      selectionEngine.dispatch(
+        new SetSelectionCommand({
+          staffIndex: newSelection.staffIndex,
+          measureIndex: newSelection.measureIndex,
+          eventId: newSelection.eventId,
+          noteId: newSelection.noteId,
+          selectedNotes: newSelection.selectedNotes,
+          anchor: newSelection.anchor,
+        })
+      );
+    },
+    [selectionEngine]
+  );
 
   // 4. API Event Subscriptions
   // Delegates listener management to the dedicated hook
@@ -118,7 +127,13 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
       syncSelection,
       dispatch,
       selectionEngine,
-      history: { undo, redo, begin: beginTransaction, commit: commitTransaction, rollback: rollbackTransaction },
+      history: {
+        undo,
+        redo,
+        begin: beginTransaction,
+        commit: commitTransaction,
+        rollback: rollbackTransaction,
+      },
       config,
     };
 
@@ -134,7 +149,7 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
       ...createHistoryMethods(context),
       ...createPlaybackMethods(context),
       ...createIOMethods(context),
-      
+
       // Data Accessors (Bound Closures)
       getScore: () => scoreRef.current,
       getConfig: () => config,
@@ -146,12 +161,23 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
     /* eslint-enable react-hooks/refs */
 
     return instance;
-  }, [config, dispatch, syncSelection, selectionEngine, on, undo, redo, beginTransaction, commitTransaction, rollbackTransaction]);
+  }, [
+    config,
+    dispatch,
+    syncSelection,
+    selectionEngine,
+    on,
+    undo,
+    redo,
+    beginTransaction,
+    commitTransaction,
+    rollbackTransaction,
+  ]);
 
   // 5. Registry registration/cleanup
   useEffect(() => {
     initRegistry();
-    
+
     // Register this instance
     window.riffScore.instances.set(instanceId, api);
     window.riffScore.active = api;

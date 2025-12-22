@@ -17,6 +17,20 @@ import { InteractionState } from '../../componentTypes';
 import { Measure as MeasureData } from '@/types';
 
 /**
+ * Represents a note with tie information for rendering
+ */
+interface TieNote {
+  measureIndex: number;
+  eventIndex: number;
+  noteIndex: number;
+  pitch: string;
+  tied: boolean;
+  x: number;
+  y: number;
+  id: string | number;
+}
+
+/**
  * Props for a self-contained Staff component.
  * Each Staff is independent and can be stacked for Grand Staff.
  */
@@ -138,17 +152,6 @@ const Staff: React.FC<StaffProps> = ({
     const { startOfMeasures: tieStartX } = calculateHeaderLayout(keySignature);
 
     let currentMeasureX = tieStartX;
-
-    interface TieNote {
-      measureIndex: number;
-      eventIndex: number;
-      noteIndex: number;
-      pitch: string;
-      tied: boolean;
-      x: number;
-      y: number;
-      id: string | number;
-    }
 
     const allNotes: TieNote[] = [];
 

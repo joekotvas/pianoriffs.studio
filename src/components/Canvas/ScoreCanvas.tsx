@@ -4,13 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { calculateHeaderLayout, getOffsetForPitch, calculateMeasureLayout } from '@/engines/layout';
 import { isRestEvent, getFirstNoteId } from '@/utils/core';
 import Staff, { calculateStaffWidth } from './Staff';
-import {
-  getActiveStaff,
-  Staff as StaffType,
-  Measure,
-  ScoreEvent,
-  Note,
-} from '@/types';
+import { getActiveStaff, Staff as StaffType, Measure, ScoreEvent, Note } from '@/types';
 import { HitZone } from '@/engines/layout/types';
 import { useScoreContext } from '@/context/ScoreContext';
 import { useScoreInteraction } from '@/hooks/useScoreInteraction';
@@ -269,10 +263,12 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
       if (notes.length === 0) return;
 
       // Use dispatch for lasso selection
-      selectionEngine.dispatch(new LassoSelectCommand({
-        notes,
-        addToSelection: isAdditive,
-      }));
+      selectionEngine.dispatch(
+        new LassoSelectCommand({
+          notes,
+          addToSelection: isAdditive,
+        })
+      );
     },
     scale,
   });
@@ -323,49 +319,47 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     [handleDragStart]
   );
 
-
-
-// ... (keep existing imports)
-
-// ... inside component ...
-  // Cache per-staff onHover handlers to prevent recreation (stable identity for memoized children)
   // Create stable onHover handlers for each staff index
-  // We use useMemo to ensure the function references stay stable across renders
-  // unless relevant dependencies change.
   const staffHoverHandlers = useMemo(() => {
-    // Generate handlers for up to 4 staves (reasonable max) or dynamic based on score.staves
-    // using a Map or Array.
-    const handlers = new Map<number, (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void>();
-    
-    // We create a factory that returns a handler for a specific staff index
-    const createHandler = (sIdx: number) => (
-      measureIndex: number | null,
-      hit: HitZone | null,
-      pitch: string | null
-    ) => {
-      // Access refs/state effectively inside the event handler (safe)
-      if (!dragState.active) {
-        handleMeasureHover(measureIndex, hit, pitch || '', sIdx);
-      }
-    };
+    const handlers = new Map<
+      number,
+      (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void
+    >();
 
-    // Pre-create handlers for existing staves
+    const createHandler =
+      (sIdx: number) =>
+      (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => {
+        if (!dragState.active) {
+          handleMeasureHover(measureIndex, hit, pitch || '', sIdx);
+        }
+      };
+
     score.staves.forEach((_, index) => {
       handlers.set(index, createHandler(index));
     });
 
     return handlers;
-  }, [dragState.active, score.staves, handleMeasureHover]); 
-  // score.staves.length ensures we recreate if staff count changes. 
-  // dragState.active is a dependency so handlers update behavior (or we could use a ref for dragState to keep handlers stable).
-  // Actually, handleMeasureHoverRef is stable. If we want fully stable props, we should use a ref for dragState too? 
-  // The original code had [dragState.active] as dependency for getHoverHandler.
-  // So recreating handlers when dragging starts/stops is expected behavior.
-  
-  const getHoverHandler = useCallback((staffIndex: number) => {
-      // Return a no-op fallback with matching signature if handler missing
-      return staffHoverHandlers.get(staffIndex) || ((() => {}) as (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void);
-  }, [staffHoverHandlers]);
+  }, [dragState.active, score.staves, handleMeasureHover]);
+
+  const getHoverHandler = useCallback(
+    (staffIndex: number) => {
+      const handler = staffHoverHandlers.get(staffIndex);
+      if (!handler) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(
+            `ScoreCanvas: hover handler requested for non-existent staff index ${staffIndex}.`
+          );
+        }
+        return (() => {}) as (
+          measureIndex: number | null,
+          hit: HitZone | null,
+          pitch: string | null
+        ) => void;
+      }
+      return handler;
+    },
+    [staffHoverHandlers]
+  );
 
   return (
     <div
@@ -496,22 +490,22 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
             />
           )}
 
-
           {/* DEBUG: Lasso hit zone positions (cyan) - compare to red Note hit zones */}
-          {CONFIG.debug?.showHitZones && notePositions.map((pos, idx) => (
-            <rect
-              key={`debug-lasso-${idx}`}
-              x={pos.x}
-              y={pos.y}
-              width={pos.width}
-              height={pos.height}
-              fill="cyan"
-              fillOpacity={0.3}
-              stroke="cyan"
-              strokeWidth={1}
-              style={{ pointerEvents: 'none' }}
-            />
-          ))}
+          {CONFIG.debug?.showHitZones &&
+            notePositions.map((pos, idx) => (
+              <rect
+                key={`debug-lasso-${idx}`}
+                x={pos.x}
+                y={pos.y}
+                width={pos.width}
+                height={pos.height}
+                fill="cyan"
+                fillOpacity={0.3}
+                stroke="cyan"
+                strokeWidth={1}
+                style={{ pointerEvents: 'none' }}
+              />
+            ))}
         </g>
       </svg>
     </div>

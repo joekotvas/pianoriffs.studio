@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { THEMES, Theme, ThemeName, DEFAULT_THEME } from '@/config';
 import { DEFAULT_SCALE } from '@/constants';
 
@@ -19,7 +19,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode; initialTheme?:
   const [themeName, setThemeName] = useState<ThemeName>(initialTheme || DEFAULT_THEME);
   const [zoom, setZoom] = useState(DEFAULT_SCALE);
 
-
+  // Sync with prop changes
+  useEffect(() => {
+    if (initialTheme) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setThemeName(initialTheme);
+    }
+  }, [initialTheme]);
 
   const theme = THEMES[themeName];
 

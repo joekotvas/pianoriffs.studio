@@ -1,4 +1,3 @@
-
 import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
 import { ScoreContextType } from '@/context/ScoreContext';
 
@@ -9,7 +8,12 @@ export const handleMutation = (e: KeyboardEvent, logic: ScoreContextType) => {
   // Access grouped API from logic
   const { selection, previewNote, editorState } = logic.state;
   const { undo, redo } = logic.historyAPI;
-  const { accidental: handleAccidentalToggle, tie: handleTieToggle, dot: handleDotToggle, duration: handleDurationChange } = logic.modifiers;
+  const {
+    accidental: handleAccidentalToggle,
+    tie: handleTieToggle,
+    dot: handleDotToggle,
+    duration: handleDurationChange,
+  } = logic.modifiers;
   const { transpose: transposeSelection } = logic.navigation;
   const { addNote: addNoteToMeasure, delete: deleteSelected } = logic.entry;
   const { toggleInputMode } = logic.tools;

@@ -109,12 +109,11 @@ export const generateABC = (score: Score, bpm: number) => {
 
             let acc = '';
             // 1. Check explicit property
-            const accidental = n.accidental as string | null | undefined;
-            if (accidental === 'sharp') acc = '^';
-            else if (accidental === 'flat') acc = '_';
-            else if (accidental === 'natural') acc = '=';
-            else if (accidental === 'double-sharp') acc = '^^';
-            else if (accidental === 'double-flat') acc = '__';
+            if (n.accidental === 'sharp') acc = '^';
+            else if (n.accidental === 'flat') acc = '_';
+            else if (n.accidental === 'natural') acc = '=';
+            // Note: double-sharp and double-flat are not standard Note.accidental values
+            // They would need to be parsed from the pitch string if needed
 
             // 2. Fallback: Check Pitch String
             // If no explicit accidental property, parse from "F#4", "Bb4", etc.

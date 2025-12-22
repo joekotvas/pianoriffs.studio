@@ -90,8 +90,7 @@ export const generateMusicXML = (score: Score) => {
     </note>`;
         } else {
           // NOTES / CHORDS
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          event.notes.forEach((note: any, nIndex: number) => {
+          event.notes.forEach((note: ScoreEvent['notes'][number], nIndex: number) => {
             const isChord = nIndex > 0;
             const step = note.pitch.charAt(0);
             const octave = note.pitch.slice(-1);

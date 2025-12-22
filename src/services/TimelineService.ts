@@ -15,7 +15,6 @@ export interface TimelineEvent {
   quant: number; // Relative quant from start of measure
 }
 
-
 /**
  * Creates a flattened timeline of audio events from the score.
  * Handles timing, ties, and frequency lookup.
@@ -82,7 +81,16 @@ export const createTimeline = (score: Score, bpm: number): TimelineEvent[] => {
         const eventDurQuants = getNoteDuration(event.duration, event.dotted, event.tuplet);
 
         event.notes.forEach((note: Note) => {
-          if (!note.pitch) return;
+          if (!note.pitch) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn('TimelineService: Note without pitch detected', {
+                measureIndex: mIndex,
+                eventIndex: eIndex,
+                note,
+              });
+            }
+            return;
+          }
           rawEvents.push({
             time: measureStartTime + currentMeasureQuant * secondsPerQuant,
             duration: eventDurQuants * secondsPerQuant,

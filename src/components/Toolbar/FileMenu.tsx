@@ -145,17 +145,17 @@ const FileMenu: React.FC<FileMenuProps> = ({ score, bpm, height = 'h-9', variant
       />
 
       {isOpen && (
+        /* eslint-disable react-hooks/refs */
         <DropdownOverlay
           onClose={handleClose}
           triggerRef={buttonRef as React.RefObject<HTMLElement>}
-          /* eslint-disable react-hooks/refs */
           position={{
             x: buttonRef.current?.getBoundingClientRect().left || 0,
             y: (buttonRef.current?.getBoundingClientRect().bottom || 0) + 5,
           }}
-          /* eslint-enable react-hooks/refs */
           width={220}
         >
+          /* eslint-enable react-hooks/refs */
           <div
             className="px-4 py-2 border-b"
             style={{
@@ -167,7 +167,6 @@ const FileMenu: React.FC<FileMenuProps> = ({ score, bpm, height = 'h-9', variant
               Export
             </h3>
           </div>
-
           <ExportRow
             label="JSON"
             icon={<FileJson size={14} />}

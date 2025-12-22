@@ -19,10 +19,9 @@ interface UseGrandStaffLayoutProps {
 export const useGrandStaffLayout = ({
   score,
   playbackPosition,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  activeStaff,
+  _activeStaff,
   keySignature,
-  clef: _clef,
+  clef: _clef, // Parameter kept for API compatibility; may be used in future implementations
 }: UseGrandStaffLayoutProps) => {
   // Calculate synchronized measure layouts for Grand Staff
   const synchronizedLayoutData = useMemo(() => {

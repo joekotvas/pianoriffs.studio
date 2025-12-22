@@ -115,7 +115,13 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
 
     // 3. Duration & Rhythms
     const { activeDuration, isDotted, activeTie } = ctx.tools;
-    const { duration: handleDurationChange, dot: handleDotToggle, tie: handleTieToggle, checkDurationValidity, checkDotValidity } = ctx.modifiers;
+    const {
+      duration: handleDurationChange,
+      dot: handleDotToggle,
+      tie: handleTieToggle,
+      checkDurationValidity,
+      checkDotValidity,
+    } = ctx.modifiers;
     const { selectedDurations, selectedDots, selectedTies } = ctx.derived;
 
     // 4. Pitch & Accidentals
@@ -124,11 +130,22 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
     const { selectedAccidentals } = ctx.derived;
 
     // 5. Structure (Measures, Staff)
-    const { add: addMeasure, remove: removeMeasure, togglePickup, setTimeSignature: handleTimeSignatureChange, setKeySignature: handleKeySignatureChange } = ctx.measures;
+    const {
+      add: addMeasure,
+      remove: removeMeasure,
+      togglePickup,
+      setTimeSignature: handleTimeSignatureChange,
+      setKeySignature: handleKeySignatureChange,
+    } = ctx.measures;
     const { handleClefChange } = ctx; // Get from ScoreContext which has proper clef handling logic
 
     // 6. Advanced (Tuplets)
-    const { apply: applyTuplet, remove: removeTuplet, canApply: canApplyTuplet, activeRatio: activeTupletRatio } = ctx.tuplets;
+    const {
+      apply: applyTuplet,
+      remove: removeTuplet,
+      canApply: canApplyTuplet,
+      activeRatio: activeTupletRatio,
+    } = ctx.tuplets;
 
     // -- Handlers --
 
@@ -232,18 +249,18 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
               height={TOP_ROW_HEIGHT}
             />
             {showLibrary && (
+              /* eslint-disable react-hooks/refs */
               <MelodyLibrary
                 melodies={melodies}
                 onSelectMelody={handleMelodySelect}
                 onClose={() => setShowLibrary(false)}
-                /* eslint-disable react-hooks/refs */
                 position={{
                   x: (melodyLibBtnRef.current?.getBoundingClientRect().right || 0) - 256,
                   y: (melodyLibBtnRef.current?.getBoundingClientRect().bottom || 0) + 5,
                 }}
-                /* eslint-enable react-hooks/refs */
                 triggerRef={melodyLibBtnRef as React.RefObject<HTMLElement>}
               />
+              /* eslint-enable react-hooks/refs */
             )}
           </div>
           {/* 

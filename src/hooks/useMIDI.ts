@@ -106,7 +106,9 @@ export const useMIDI = (
     return () => {
       if (midiCleanupRef.current) midiCleanupRef.current();
     };
-  }, [scoreRef]); // Run once on mount (scoreRef is stable)
+    // scoreRef is intentionally omitted - it's stable and only used in callbacks
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { midiStatus };
 };

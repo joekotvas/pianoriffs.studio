@@ -23,11 +23,16 @@ export function useTitleEditor(
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSetEditing = useCallback((editing: boolean) => {
-    if (editing) {
-      setBuffer(currentTitle); // Initialize buffer when starting edit
-    }
     setIsEditing(editing);
-  }, [currentTitle]);
+  }, []);
+
+  // Sync buffer with currentTitle when editing starts or currentTitle changes during editing
+  useEffect(() => {
+    if (isEditing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBuffer(currentTitle);
+    }
+  }, [isEditing, currentTitle]);
 
   // Focus and select when editing starts
   useEffect(() => {

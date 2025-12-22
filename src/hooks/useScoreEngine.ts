@@ -3,7 +3,7 @@ import { ScoreEngine } from '@/engines/ScoreEngine';
 import { Score } from '@/types';
 
 export const useScoreEngine = (initialScore?: Score) => {
-  // Use state to hold the engine instance, ensuring it is created only once.
+  // Use useState with lazy initializer to create engine instance only once
   const [engine] = useState(() => new ScoreEngine(initialScore));
 
   // Local state to trigger re-renders when the engine state changes

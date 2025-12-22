@@ -13,7 +13,6 @@ export const useTupletActions = (
   selection: Selection,
   dispatch: (command: Command) => void
 ) => {
-
   /**
    * Applies a tuplet to a group of consecutive events starting from current selection.
    * @param ratio - Tuplet ratio, e.g., [3, 2] for triplet
@@ -58,7 +57,9 @@ export const useTupletActions = (
       }
 
       // Apply the tuplet
-      dispatch(new ApplyTupletCommand(selection.measureIndex, eventIndex, groupSize, ratio, staffIndex));
+      dispatch(
+        new ApplyTupletCommand(selection.measureIndex, eventIndex, groupSize, ratio, staffIndex)
+      );
 
       return true;
     },

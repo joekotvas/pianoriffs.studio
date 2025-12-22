@@ -149,12 +149,12 @@ export function useNoteEntry({
   inputMode,
 }: UseNoteEntryProps): UseNoteEntryReturn {
   const addNoteToMeasure = useCallback(
-    function handleAddNote(
+    (
       measureIndex: number,
       newNote: NoteInput,
       shouldAutoAdvance = false,
       placementOverride: PlacementOverride | null = null
-    ) {
+    ) => {
       const currentScore = scoreRef.current;
       // Use staff from newNote (preview) if available, otherwise selection
       const currentStaffIndex =
