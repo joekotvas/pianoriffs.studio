@@ -1,19 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { requestMIDIAccess, setupMIDIListeners, midiNoteToPitch } from '@/engines/midiEngine';
 import { playNote } from '@/engines/toneEngine';
-import { getActiveStaff } from '@/types';
+import { Score, getActiveStaff } from '@/types';
 
 export const useMIDI = (
   addChordCallback: (
     measureIndex: number,
-    notes: any[],
+    notes: { pitch: string; accidental: string | null; id?: number }[],
     duration: string,
     isDotted: boolean
   ) => void,
   activeDuration: string,
   isDotted: boolean,
   activeAccidental: 'flat' | 'natural' | 'sharp' | null,
-  scoreRef: React.MutableRefObject<any>
+  scoreRef: React.MutableRefObject<Score>
 ) => {
   const [midiStatus, setMidiStatus] = useState<{
     connected: boolean;
@@ -66,15 +66,13 @@ export const useMIDI = (
         midiChordBuffer.current = [];
 
         // Play tones
-        const keySignature = scoreRef.current
-          ? getActiveStaff(scoreRef.current).keySignature || 'C'
-          : 'C';
+        // const keySignature = ... (unused)
         notes.forEach((n) => playNote(n.pitch));
 
         // Add chord
         if (addChordRef.current && scoreRef.current) {
           const currentScore = scoreRef.current;
-          const targetMeasureIndex = currentScore.measures.length - 1;
+          const targetMeasureIndex = getActiveStaff(currentScore).measures.length - 1;
           addChordRef.current(
             targetMeasureIndex,
             notes.map((n) => ({
@@ -88,7 +86,8 @@ export const useMIDI = (
         }
       };
 
-      const cleanup = setupMIDIListeners(access as any, (midiNote: number, velocity: number) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cleanup = setupMIDIListeners(access as any, (midiNote: number, _velocity: number) => {
         const pitch = midiNoteToPitch(midiNote);
         // Valid range check could be here if needed
 
@@ -105,7 +104,7 @@ export const useMIDI = (
     return () => {
       if (midiCleanupRef.current) midiCleanupRef.current();
     };
-  }, []); // Run once on mount
+  }, [scoreRef]); // Run once on mount (scoreRef is stable)
 
   return { midiStatus };
 };

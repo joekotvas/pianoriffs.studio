@@ -99,12 +99,14 @@ export function useFocusTrap({
     // Use capture phase to intercept before default handlers
     document.addEventListener('keydown', handleKeyDown, true);
 
+    const elementToReturnTo = returnFocusRef?.current;
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
 
       // Return focus when trap is deactivated
-      if (returnFocusRef?.current) {
-        returnFocusRef.current.focus();
+      if (elementToReturnTo) {
+        elementToReturnTo.focus();
       }
     };
   }, [isActive, onEscape, containerRef, returnFocusRef, enableArrowKeys, getFocusableElements]);

@@ -1,10 +1,16 @@
-import { getActiveStaff } from '@/types';
+import { getActiveStaff, Score, Selection, ScoreEvent } from '@/types';
+import { UsePlaybackReturn } from '../usePlayback';
 
 /**
  * Handles playback keyboard shortcuts (Space, P).
  */
-export const handlePlayback = (e: KeyboardEvent, playback: any, selection: any, score: any) => {
-  const { playScore, stopPlayback, isPlaying, lastPlayStart } = playback;
+export const handlePlayback = (
+  e: KeyboardEvent,
+  playback: UsePlaybackReturn,
+  selection: Selection,
+  score: Score
+) => {
+  const { playScore, isPlaying, lastPlayStart } = playback;
   const measures = getActiveStaff(score).measures;
 
   // PLAYBACK 'P'
@@ -12,7 +18,7 @@ export const handlePlayback = (e: KeyboardEvent, playback: any, selection: any, 
     e.preventDefault();
     if (selection.measureIndex !== null && selection.eventId) {
       const m = measures[selection.measureIndex];
-      const eIdx = m.events.findIndex((evt: any) => evt.id === selection.eventId);
+      const eIdx = m.events.findIndex((evt: ScoreEvent) => evt.id === selection.eventId);
       playScore(selection.measureIndex, eIdx !== -1 ? eIdx : 0);
     } else {
       playScore(0, 0);
@@ -26,7 +32,7 @@ export const handlePlayback = (e: KeyboardEvent, playback: any, selection: any, 
     if (e.shiftKey && (e.altKey || e.metaKey)) {
       playScore(0, 0);
     } else if (e.shiftKey) {
-      playScore(lastPlayStart.measureIndex, lastPlayStart.eventIndex);
+      playScore(lastPlayStart.measureIndex, lastPlayStart.quant);
     } else {
       if (isPlaying) {
         playback.pausePlayback();
@@ -39,7 +45,7 @@ export const handlePlayback = (e: KeyboardEvent, playback: any, selection: any, 
         // START from selection if stopped
         else if (selection.measureIndex !== null && selection.eventId) {
           const m = measures[selection.measureIndex];
-          const eIdx = m.events.findIndex((evt: any) => evt.id === selection.eventId);
+          const eIdx = m.events.findIndex((evt: ScoreEvent) => evt.id === selection.eventId);
           playScore(selection.measureIndex, eIdx !== -1 ? eIdx : 0);
         }
         // START from beginning

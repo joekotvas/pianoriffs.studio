@@ -2,18 +2,16 @@ import { useMemo } from 'react';
 import { CONFIG } from '@/config';
 import {
   calculateSystemLayout,
-  calculateMeasureLayout,
   getNoteWidth,
   calculateHeaderLayout,
   calculateMeasureWidth,
 } from '@/engines/layout';
-import { Score, getActiveStaff } from '@/types';
-import { getNoteDuration } from '@/utils/core';
+import { Score, Staff } from '@/types';
 
 interface UseGrandStaffLayoutProps {
   score: Score;
   playbackPosition: { measureIndex: number | null; quant: number | null; duration: number };
-  activeStaff: any; // Using activeStaff from ScoreCanvas for now
+  activeStaff: Staff; // Using activeStaff from ScoreCanvas for now
   keySignature: string;
   clef: string;
 }
@@ -21,20 +19,21 @@ interface UseGrandStaffLayoutProps {
 export const useGrandStaffLayout = ({
   score,
   playbackPosition,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   activeStaff,
   keySignature,
-  clef,
+  clef: _clef,
 }: UseGrandStaffLayoutProps) => {
   // Calculate synchronized measure layouts for Grand Staff
   const synchronizedLayoutData = useMemo(() => {
     if (!score.staves || score.staves.length <= 1) return undefined;
 
-    const maxMeasures = Math.max(...score.staves.map((s: any) => s.measures?.length || 0));
+    const maxMeasures = Math.max(...score.staves.map((s: Staff) => s.measures?.length || 0));
     const layouts: { width: number; forcedPositions: Record<number, number> }[] = [];
 
     for (let i = 0; i < maxMeasures; i++) {
       const measuresAtIndices = score.staves
-        .map((staff: any) => staff.measures?.[i])
+        .map((staff: Staff) => staff.measures?.[i])
         .filter(Boolean);
 
       if (measuresAtIndices.length > 0) {
@@ -135,7 +134,7 @@ export const useGrandStaffLayout = ({
     }
 
     return { x: cursorX, width: cursorWidth };
-  }, [isGrandStaff, playbackPosition, score.staves, keySignature, synchronizedLayoutData, clef]);
+  }, [isGrandStaff, playbackPosition, score.staves, keySignature, synchronizedLayoutData]);
 
   return {
     synchronizedLayoutData,
