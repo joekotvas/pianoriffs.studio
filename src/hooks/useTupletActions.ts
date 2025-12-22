@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { ApplyTupletCommand } from '@/commands/TupletCommands';
 import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
-import { getActiveStaff } from '@/types';
 import { Command } from '@/commands/types';
 
 /**
@@ -122,8 +121,9 @@ export const useTupletActions = (
       }
 
       const currentScore = scoreRef.current;
-      const activeStaff = getActiveStaff(currentScore);
-      const measure = activeStaff.measures[selection.measureIndex];
+      const staffIndex = selection.staffIndex ?? 0;
+      const staff = currentScore.staves[staffIndex];
+      const measure = staff?.measures[selection.measureIndex];
 
       if (!measure) return false;
 
@@ -150,8 +150,9 @@ export const useTupletActions = (
     }
 
     const currentScore = scoreRef.current;
-    const activeStaff = getActiveStaff(currentScore);
-    const measure = activeStaff.measures[selection.measureIndex];
+    const staffIndex = selection.staffIndex ?? 0;
+    const staff = currentScore.staves[staffIndex];
+    const measure = staff?.measures[selection.measureIndex];
 
     if (!measure) return null;
 
