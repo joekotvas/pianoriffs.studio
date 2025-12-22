@@ -3,6 +3,7 @@ export * from './AddEventCommand';
 export * from './AddNoteToEventCommand';
 export * from './BatchCommand';
 export * from './ChangePitchCommand';
+export * from './ChromaticTransposeCommand';
 export * from './DeleteEventCommand';
 export * from './DeleteNoteCommand';
 export * from './LoadScoreCommand';

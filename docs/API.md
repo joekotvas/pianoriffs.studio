@@ -125,10 +125,10 @@ The most recently focused or mounted instance.
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
 | `setPitch` | `setPitch(pitch)` | ✅ | Update selected note(s). |
-| `setDuration` | `setDuration(duration, dotted?)` | ⏳ | Update selected event(s). |
+| `setDuration` | `setDuration(duration, dotted?)` | ✅ | Update selected event(s). |
 | `setAccidental` | `setAccidental(type)` | ✅ | `'sharp'`, `'flat'`, `'natural'`, `null`. |
 | `toggleAccidental` | `toggleAccidental()` | ✅ | Cycle accidental. |
-| `transpose` | `transpose(semitones)` | ⏳ | Chromatic transposition. |
+| `transpose` | `transpose(semitones)` | ✅ | Chromatic transposition. |
 | `transposeDiatonic` | `transposeDiatonic(steps)` | ✅ | Visual/diatonic transposition. |
 | `updateEvent` | `updateEvent(props)` | ✅ | Generic escape hatch. |
 
@@ -138,7 +138,7 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `addMeasure` | `addMeasure(atIndex?)` | ⚠️ Partial | Add measure at end (atIndex ignored). |
+| `addMeasure` | `addMeasure(atIndex?)` | ✅ | Add measure at index (default: end). |
 | `deleteMeasure` | `deleteMeasure(measureIndex?)` | ✅ | Delete measure (default: selected). |
 | `deleteSelected` | `deleteSelected()` | ✅ | Smart delete. |
 | `setKeySignature` | `setKeySignature(key)` | ✅ | Change key signature. |

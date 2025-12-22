@@ -127,17 +127,45 @@ A deep code audit confirmed that complex methods like `makeTuplet` and `setPitch
 
 ## 🏁 The Final Mile
 
-We are in the final stretch. Only **6 methods** remain unimplemented or partial.
+We are in the final stretch. Only robustness hardening remains for v1.0.
 
-### 1. Missing Command Wrappers (Phase 7E)
-These methods exist in the API but need to be wired to new or existing commands.
+### 1. Missing Command Wrappers (Phase 7E) ✅
+All previously stubbed API methods are now fully implemented and tested.
 
-- [ ] **`setDuration(duration)`**: Implementation stubbed. Needs `ChangeRhythmCommand`.
-- [ ] **`transpose(semitones)`**: Implementation stubbed. Needs chromatic, key-aware transposition logic.
-- [ ] **`addMeasure(atIndex)`**: ⚠️ **Partial**. Currently appends to the end regardless of the index. Needs `AddMeasureCommand` update.
+<details>
+<summary><strong>✅ Phase 7E: Remaining Stubs</strong></summary>
 
-### 2. Clipboard API (Phase 7F - Deferred)
-- [ ] `copy()`, `cut()`, `paste()`: High-complexity operations (browser clipboard + JSON serialization). Deferred.
+- [x] **`setDuration(duration)`**: Wired to `UpdateEventCommand` with multi-select support.
+- [x] **`transpose(semitones)`**: Implemented `ChromaticTransposeCommand` using Tonal.js.
+- [x] **`addMeasure(atIndex)`**: Updated `AddMeasureCommand` to support insertion at index.
+- [x] **`rollbackTransaction()`**: Verified implementation in `history.ts`.
+</details>
+
+## 🛡️ Robustness & Stability (Phase 8 - v1.0 Candidate)
+
+With the API surface complete, the focus shifts to hardening the implementation for a public v1.0 release.
+
+### Goals for 1.0
+- **Input Validation**: Methods should not fail silently on invalid input.
+- **Unified Events**: Emit `on('batch')` for plugins to track compound operations.
+- **Documentation**: Finalize Cookbook and API Reference.
+
+> [!NOTE]
+> Detailed error handling (breaking changes like `APIResult` return types) is deferred to v1.1 to preserve the fluent chaining API for the initial release.
+
+- [ ] **Data Validation**: Add validation to critical methods (e.g., `setBpm` range, `addNote` pitch format).
+- [ ] **Event Emission**: Implement `batch` event type in `ScoreEngine`.
+- [ ] **Documentation**: Update [COOKBOOK.md](../COOKBOOK.md) with new 7E/D features.
+
+---
+
+## 🔮 Roadmap (Post-1.0 / Deferred)
+
+### Phase 9: Advanced Features (v1.1+)
+- [ ] **Clipboard API**: `copy`/`paste` (High complexity, requires serialization format design).
+- [ ] **MIDI Integration**: `onMidi` input hook.
+- [ ] **Keyboard Shortcuts**: Public API for triggering internal shortcuts.
+- [ ] **Strict Error Handling**: Consider `APIResult<T>` return types (Breaking Change).
 
 ---
 
@@ -179,6 +207,6 @@ These methods exist in the API but need to be wired to new or existing commands.
 
 ## Next Steps
 
-1. **Fix `addMeasure`** to respect insertion index.
-2. **Implement `setDuration`** and **`transpose`**.
-3. **Draft Release Notes** for the 1.0 API.
+1. **Phase 8: Robustness Audit** (Validation & Events).
+2. **Documentation Scrub** (Update for 7E features).
+3. **v1.0 Release Candidate**.

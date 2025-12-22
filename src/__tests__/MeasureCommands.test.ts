@@ -39,7 +39,7 @@ describe('MeasureCommands', () => {
       expect(undoneScore.staves[0].measures.length).toBe(2);
     });
 
-    test('undo without execute pops last measure (defensive fallback)', () => {
+    test('undo without execute does nothing (safer fallback)', () => {
       const score = createDefaultScore();
       // Add a measure manually to simulate state where we might want to pop
       score.staves[0].measures.push({ id: 'extra', events: [] });
@@ -49,8 +49,8 @@ describe('MeasureCommands', () => {
       // Undo without having executed (so no IDs recorded)
       const undoneScore = command.undo(score);
 
-      expect(undoneScore.staves[0].measures.length).toBe(2);
-      expect(undoneScore.staves[1].measures.length).toBe(2);
+      expect(undoneScore.staves[0].measures.length).toBe(3);
+      expect(undoneScore.staves[1].measures.length).toBe(3);
     });
   });
 
