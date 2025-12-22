@@ -1,6 +1,6 @@
 import { MusicEditorAPI } from '@/api.types';
 import { APIContext } from './types';
-import { navigateSelection, getFirstNoteId } from '@/utils/core';
+import { navigateSelection, getFirstNoteId, getNoteDuration } from '@/utils/core';
 import { calculateVerticalNavigation } from '@/utils/navigation/vertical';
 import { SelectEventCommand } from '@/commands/selection';
 
@@ -151,8 +151,32 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
       return this;
     },
 
-    selectAtQuant(_measureNum, _quant, _staffIndex = 0) {
-      // TODO: Implement quant-based selection
+    selectAtQuant(measureNum, quant, staffIndex = 0) {
+      const measureIndex = measureNum - 1;
+      const staff = scoreRef.current.staves[staffIndex];
+      if (!staff?.measures[measureIndex]) return this;
+      
+      const measure = staff.measures[measureIndex];
+      
+      // Walk events to find event at quant position
+      let currentQuant = 0;
+      for (let i = 0; i < measure.events.length; i++) {
+        const event = measure.events[i];
+        const eventDuration = getNoteDuration(event.duration, event.dotted);
+        
+        if (currentQuant <= quant && quant < currentQuant + eventDuration) {
+          // Found the event at this quant position
+          selectionEngine.dispatch(new SelectEventCommand({
+            staffIndex,
+            measureIndex,
+            eventIndex: i,
+            noteIndex: 0,
+          }));
+          selectionRef.current = selectionEngine.getState();
+          break;
+        }
+        currentQuant += eventDuration;
+      }
       return this;
     },
 

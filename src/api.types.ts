@@ -74,15 +74,15 @@ export interface MusicEditorAPI {
 
   // --- Selection (Multi-Select) ---
   /**
-   * Add an event to the current selection (Cmd+Click behavior).
-   * @status stub
+   * Add an event to the current selection (Cmd+Click toggle behavior).
+   * @status implemented
    */
-  addToSelection(measureNum: number, staffIndex: number, eventIndex: number): this;
+  addToSelection(measureNum: number, staffIndex: number, eventIndex: number, noteIndex?: number): this;
   /**
-   * Extend selection from anchor to target (Shift+Click behavior).
-   * @status stub
+   * Extend selection from anchor to target (Shift+Click range behavior).
+   * @status implemented
    */
-  selectRangeTo(measureNum: number, staffIndex: number, eventIndex: number): this;
+  selectRangeTo(measureNum: number, staffIndex: number, eventIndex: number, noteIndex?: number): this;
   /**
    * Select all events in the specified scope.
    * @status implemented

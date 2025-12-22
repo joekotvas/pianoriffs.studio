@@ -167,8 +167,14 @@
 - [x] Added `ScoreAPI.config.test.tsx` and `ScoreAPI.accidental.test.tsx`
 </details>
 
-#### 7C: Selection Enhancements (3 methods) — Est. 2 hours
-- [ ] `selectAtQuant`, `addToSelection`, `selectRangeTo`
+<details>
+<summary><strong>✅ Phase 7C: Selection Enhancements</strong></summary>
+
+- [x] Implemented `selectAtQuant(measureNum, quant, staffIndex?)` (navigation.ts)
+- [x] Implemented `addToSelection(measureNum, staffIndex, eventIndex)` (selection.ts)
+- [x] Implemented `selectRangeTo(measureNum, staffIndex, eventIndex)` (selection.ts)
+- [x] Added `ScoreAPI.selection.test.tsx` with 8 tests
+</details>
 
 #### 7D: Playback Integration (5 methods) — Est. 2-3 hours
 - [ ] `play`, `pause`, `stop`, `rewind`, `setInstrument`

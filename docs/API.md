@@ -84,7 +84,7 @@ The most recently focused or mounted instance.
 | `move` | `move(direction)` | ✅ | Navigate in any direction (left/right/up/down). |
 | `jump` | `jump(target)` | ✅ | `'start-score'`, `'end-score'`, `'start-measure'`, `'end-measure'`. |
 | `select` | `select(measureNum, staffIndex?, eventIndex?, noteIndex?)` | ✅ | Absolute targeting (1-based measure). |
-| `selectAtQuant` | `selectAtQuant(measureNum, quant, staffIndex?)` | ⏳ | Target by rhythmic position. |
+| `selectAtQuant` | `selectAtQuant(measureNum, quant, staffIndex?)` | ✅ | Target by rhythmic position. |
 | `selectById` | `selectById(eventId, noteId?)` | ✅ | Target by internal IDs. |
 
 ---
@@ -93,8 +93,8 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `addToSelection` | `addToSelection(measureNum, staffIndex, eventIndex)` | ⏳ | Cmd+Click behavior. |
-| `selectRangeTo` | `selectRangeTo(measureNum, staffIndex, eventIndex)` | ⏳ | Shift+Click from anchor. |
+| `addToSelection` | `addToSelection(measureNum, staffIndex, eventIndex)` | ✅ | Cmd+Click toggle behavior. |
+| `selectRangeTo` | `selectRangeTo(measureNum, staffIndex, eventIndex)` | ✅ | Shift+Click range from anchor. |
 | `selectAll` | `selectAll(scope)` | ✅ | `'score'`, `'measure'`, `'staff'`, `'event'`. |
 | `selectEvent` | `selectEvent(measureNum?, staffIndex?, eventIndex?)` | ✅ | Select all notes in chord. |
 | `deselectAll` | `deselectAll()` | ✅ | Clear selection. |

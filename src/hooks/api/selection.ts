@@ -5,6 +5,8 @@ import {
   SelectAllInEventCommand,
   SelectFullEventsCommand,
   ExtendSelectionVerticallyCommand,
+  ToggleNoteCommand,
+  RangeSelectCommand,
 } from '@/commands/selection';
 
 /**
@@ -25,13 +27,55 @@ export const createSelectionMethods = (ctx: APIContext): Pick<MusicEditorAPI, Se
   const { scoreRef, selectionRef, syncSelection, selectionEngine } = ctx;
 
   return {
-    addToSelection(_measureNum, _staffIndex, _eventIndex) {
-      // TODO: Implement
+    addToSelection(measureNum, staffIndex, eventIndex, noteIndex = 0) {
+      const measureIndex = measureNum - 1;
+      const staff = scoreRef.current.staves[staffIndex];
+      const event = staff?.measures[measureIndex]?.events[eventIndex];
+      if (!event) return this;
+      
+      const noteId = event.notes?.[noteIndex]?.id ?? null;
+      
+      selectionEngine.dispatch(new ToggleNoteCommand({
+        staffIndex,
+        measureIndex,
+        eventId: event.id,
+        noteId,
+      }));
+      selectionRef.current = selectionEngine.getState();
       return this;
     },
 
-    selectRangeTo(_measureNum, _staffIndex, _eventIndex) {
-      // TODO: Implement
+    selectRangeTo(measureNum, staffIndex, eventIndex, noteIndex = 0) {
+      const measureIndex = measureNum - 1;
+      const staff = scoreRef.current.staves[staffIndex];
+      const event = staff?.measures[measureIndex]?.events[eventIndex];
+      if (!event) return this;
+      
+      const noteId = event.notes?.[noteIndex]?.id ?? null;
+      const sel = selectionRef.current;
+      
+      // Use existing anchor or create one from current selection
+      // Require valid eventId for anchor
+      if (!sel.anchor && sel.eventId === null) {
+        // No valid anchor - set current as anchor first
+        syncSelection({
+          ...sel,
+          anchor: { staffIndex, measureIndex, eventId: event.id, noteId },
+        });
+      }
+      
+      const anchor = sel.anchor || {
+        staffIndex: sel.staffIndex,
+        measureIndex: sel.measureIndex ?? 0,
+        eventId: sel.eventId!,
+        noteId: sel.noteId,
+      };
+      
+      selectionEngine.dispatch(new RangeSelectCommand({
+        anchor,
+        focus: { staffIndex, measureIndex, eventId: event.id, noteId },
+      }));
+      selectionRef.current = selectionEngine.getState();
       return this;
     },
 
