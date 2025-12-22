@@ -177,7 +177,6 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
   const noteActions = useNoteActions({
     scoreRef,
     selection,
-    setSelection, // Still passed but might be unused if we fully switched
     select,
     setPreviewNote,
     activeDuration,
@@ -202,7 +201,6 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
   const navigation = useNavigation({
     scoreRef,
     selection,
-    setSelection,
     select,
     previewNote,
     setPreviewNote,

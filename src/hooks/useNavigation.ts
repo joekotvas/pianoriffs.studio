@@ -1,4 +1,4 @@
-import React, { useCallback, RefObject } from 'react';
+import { useCallback, RefObject } from 'react';
 import { Selection, Score, getActiveStaff, PreviewNote } from '@/types';
 import {
   calculateNextSelection,
@@ -14,7 +14,6 @@ import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand'
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;
   selection: Selection;
-  setSelection: React.Dispatch<React.SetStateAction<Selection>>;
   select: (
     measureIndex: number | null,
     eventId: string | number | null,

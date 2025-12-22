@@ -8,6 +8,7 @@ import {
   ToggleNoteCommand,
   RangeSelectCommand,
   SelectEventCommand,
+  SelectAllInMeasureCommand,
 } from '@/commands/selection';
 
 interface UseSelectionProps {
@@ -249,42 +250,20 @@ export const useSelection = ({ score }: UseSelectionProps) => {
   }, [engine]);
 
   /**
-   * Selects all notes in a measure
+   * Selects all notes in a measure.
+   *
+   * Uses dispatch pattern via SelectAllInMeasureCommand.
+   *
+   * @param measureIndex - Index of measure to select
+   * @param staffIndex - Staff index (defaults to 0)
+   *
+   * @tested (via SelectAllInMeasureCommand tests)
    */
   const selectAllInMeasure = useCallback(
     (measureIndex: number, staffIndex: number = 0) => {
-      const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
-      if (!measure) return;
-
-      const allNotes: SelectedNote[] = [];
-      measure.events.forEach((event: ScoreEvent) => {
-        if (event.notes) {
-          event.notes.forEach((note: Note) => {
-            allNotes.push({
-              staffIndex,
-              measureIndex,
-              eventId: event.id,
-              noteId: note.id,
-            });
-          });
-        }
-      });
-
-      if (allNotes.length > 0) {
-        const first = allNotes[0];
-        // For selectAllInMeasure, we set state directly as there's no single command
-        // that selects across multiple events. This is acceptable for this bulk operation.
-        engine.setState({
-          staffIndex,
-          measureIndex,
-          eventId: first.eventId,
-          noteId: first.noteId,
-          selectedNotes: allNotes,
-          anchor: { ...first },
-        });
-      }
+      engine.dispatch(new SelectAllInMeasureCommand({ staffIndex, measureIndex }));
     },
-    [score, engine]
+    [engine]
   );
 
   /**
