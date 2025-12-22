@@ -1,4 +1,20 @@
-import React, { useCallback, RefObject } from 'react';
+/**
+ * useNavigation Hook
+ *
+ * Handles keyboard and mouse navigation within the score editor.
+ * Provides handlers for note selection, arrow key movement, transposition,
+ * and cross-staff navigation.
+ *
+ * Key exports:
+ * - handleNoteSelection: Handle click on note/event
+ * - moveSelection: Arrow key navigation
+ * - transposeSelection: Pitch transposition
+ * - switchStaff: Cross-staff navigation
+ *
+ * @see useSelection
+ */
+
+import { useCallback, RefObject } from 'react';
 import { Selection, Score, getActiveStaff, PreviewNote } from '@/types';
 import {
   calculateNextSelection,
@@ -14,7 +30,6 @@ import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand'
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;
   selection: Selection;
-  setSelection: React.Dispatch<React.SetStateAction<Selection>>;
   select: (
     measureIndex: number | null,
     eventId: string | number | null,

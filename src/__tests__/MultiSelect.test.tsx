@@ -42,7 +42,6 @@ const MockNoteTrigger = () => {
   const ctx = require('../context/ScoreContext').useScoreContext();
   const { selection } = ctx.state;
   const { select: handleNoteSelection, transpose: transposeSelection } = ctx.navigation;
-  const { setSelection } = ctx;
 
   return (
     <div>
@@ -63,13 +62,7 @@ const MockNoteTrigger = () => {
       <button
         data-testid="simulate-add-note"
         onClick={() =>
-          setSelection({
-            staffIndex: 0,
-            measureIndex: 0,
-            eventId: 'e1',
-            noteId: 'n1',
-            selectedNotes: [],
-          })
+          handleNoteSelection(0, 'e1', 'n1', 0)
         }
       />
       <button data-testid="transpose-up" onClick={() => transposeSelection('up', false)} />

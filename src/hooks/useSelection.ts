@@ -1,5 +1,22 @@
+/**
+ * useSelection Hook
+ *
+ * Manages selection state for the score editor using the command pattern.
+ * All selection mutations go through engine.dispatch() for consistency.
+ *
+ * Key exports:
+ * - selection: Current selection state
+ * - select: Select an event/note
+ * - clearSelection: Clear current selection
+ * - selectAllInMeasure: Select all notes in a measure
+ * - engine: SelectionEngine instance for direct dispatch access
+ *
+ * @see SelectionEngine
+ * @see Issue #135
+ */
+
 import { useState, useCallback, useEffect } from 'react';
-import { Selection, createDefaultSelection, Score, getActiveStaff, Note, ScoreEvent, SelectedNote } from '@/types';
+import { Selection, createDefaultSelection, Score, getActiveStaff, Note, ScoreEvent, SelectedNote, Measure } from '@/types';
 import { playNote } from '@/engines/toneEngine';
 import { SelectionEngine } from '@/engines/SelectionEngine';
 import {
@@ -8,53 +25,139 @@ import {
   ToggleNoteCommand,
   RangeSelectCommand,
   SelectEventCommand,
+  SelectAllInMeasureCommand,
 } from '@/commands/selection';
 
 interface UseSelectionProps {
   score: Score;
 }
 
+/** Helper return type for looking up score data */
+interface SelectionTarget {
+  measure: Measure | undefined;
+  event: ScoreEvent | undefined;
+  note: Note | undefined;
+  eventIndex: number;
+  noteIndex: number;
+}
+
 export const useSelection = ({ score }: UseSelectionProps) => {
-  // Create SelectionEngine instance using useState with lazy initializer
-  // This avoids React Compiler errors about accessing refs during render
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 1. Engine Initialization
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Using lazy initializer to avoid React Compiler side-effect warnings
   const [engine] = useState(
     () => new SelectionEngine(createDefaultSelection(), () => score)
   );
 
-  // Keep engine's score reference in sync
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 2. Sync Engine with React State
+  // ─────────────────────────────────────────────────────────────────────────────
+  const [selection, setSelectionState] = useState<Selection>(() => engine.getState());
+  const [lastSelection, setLastSelection] = useState<Selection | null>(null);
+
   useEffect(() => {
     engine.setScoreGetter(() => score);
   }, [score, engine]);
 
-  // React state syncs from engine
-  const [selection, setSelectionState] = useState<Selection>(() => engine.getState());
-  const [lastSelection, setLastSelection] = useState<Selection | null>(null);
-
-  // Subscribe React state to engine changes
   useEffect(() => {
-    const unsubscribe = engine.subscribe((newSelection) => {
-      setSelectionState(newSelection);
-    });
+    const unsubscribe = engine.subscribe(setSelectionState);
     return unsubscribe;
   }, [engine]);
 
-  // --- Helpers ---
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. Helpers
+  // ─────────────────────────────────────────────────────────────────────────────
 
+  /** Play audio feedback for notes */
   const playAudioFeedback = useCallback((notes: Note[]) => {
     notes.forEach((n) => {
       if (n.pitch !== null) playNote(n.pitch);
     });
   }, []);
 
-  // --- Actions (all via dispatch) ---
+  /**
+   * Resolves IDs to actual Score objects and indices.
+   * Centralizes the lookup logic used by multiple selection modes.
+   */
+  const getSelectionTarget = useCallback((
+    staffIndex: number,
+    measureIndex: number,
+    eventId: string | number,
+    noteId: string | number | null
+  ): SelectionTarget => {
+    const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
+    
+    // Find Event
+    const eventIndex = measure?.events.findIndex((e: ScoreEvent) => e.id === eventId) ?? -1;
+    const event = eventIndex >= 0 ? measure?.events[eventIndex] : undefined;
+
+    // Find Note
+    const noteIndex = (noteId && event)
+      ? event.notes.findIndex((n: Note) => n.id === noteId)
+      : -1;
+    const note = noteIndex >= 0 ? event?.notes[noteIndex] : undefined;
+
+    return { measure, event, note, eventIndex, noteIndex };
+  }, [score]);
 
   /**
-   * Clears the current selection via ClearSelectionCommand
+   * Updates lastSelection state without changing the active engine selection.
+   * Used for "onlyHistory" actions.
+   */
+  const updateHistoryOnly = useCallback((
+    staffIndex: number, 
+    measureIndex: number, 
+    eventId: string | number, 
+    noteId: string | number | null,
+    notes: Note[]
+  ) => {
+    setLastSelection({
+      staffIndex,
+      measureIndex,
+      eventId,
+      noteId,
+      selectedNotes: notes.map(n => ({
+        staffIndex,
+        measureIndex,
+        eventId,
+        noteId: n.id
+      })),
+      anchor: { staffIndex, measureIndex, eventId, noteId }
+    });
+    // Ensure the engine is visually clear
+    engine.dispatch(new ClearSelectionCommand());
+  }, [engine]);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 4. Actions
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Clears the current selection via ClearSelectionCommand.
+   * Stores the previous selection in lastSelection for history.
    */
   const clearSelection = useCallback(() => {
     setLastSelection(engine.getState());
     engine.dispatch(new ClearSelectionCommand());
   }, [engine]);
+
+  /**
+   * Selects all notes in a measure.
+   *
+   * Uses dispatch pattern via SelectAllInMeasureCommand.
+   *
+   * @param measureIndex - Index of measure to select
+   * @param staffIndex - Staff index (defaults to 0)
+   *
+   * @tested (via SelectAllInMeasureCommand tests)
+   */
+  const selectAllInMeasure = useCallback(
+    (measureIndex: number, staffIndex: number = 0) => {
+      engine.dispatch(new SelectAllInMeasureCommand({ staffIndex, measureIndex }));
+    },
+    [engine]
+  );
 
   /**
    * Selects an event or note in the score.
@@ -67,6 +170,12 @@ export const useSelection = ({ score }: UseSelectionProps) => {
    * - **History only (onlyHistory)**: Updates lastSelection without visual selection
    *
    * All selection changes go through engine.dispatch() as the canonical pattern.
+   *
+   * @param measureIndex - Measure index (null to clear)
+   * @param eventId - Event ID (null to clear)
+   * @param noteId - Note ID (null for event-level selection)
+   * @param staffIndex - Staff index (defaults to 0)
+   * @param options - Selection mode options
    */
   const select = useCallback(
     (
@@ -81,234 +190,110 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         onlyHistory?: boolean;
       } = {}
     ) => {
-      const {
-        isMulti = false,
-        isShift = false,
-        selectAllInEvent = false,
-        onlyHistory = false,
-      } = options;
+      const { isMulti, isShift, selectAllInEvent, onlyHistory } = options;
 
-      // Early exit: no target specified
+      // Guard: No target - clear selection
       if (!eventId || measureIndex === null) {
-        if (!onlyHistory) {
-          engine.dispatch(new ClearSelectionCommand());
-        }
+        if (!onlyHistory) engine.dispatch(new ClearSelectionCommand());
         return;
       }
 
-      const startStaffIndex = staffIndex !== undefined ? staffIndex : selection.staffIndex || 0;
+      const effectiveStaffIndex = staffIndex ?? selection.staffIndex ?? 0;
+      const target = getSelectionTarget(effectiveStaffIndex, measureIndex, eventId, noteId);
 
-      // Get event for audio feedback and validation
-      const measure = getActiveStaff(score, startStaffIndex).measures[measureIndex];
-      const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
+      // Guard: Invalid target (data out of sync?)
+      if (!target.event) return;
 
-      // Handle Shift+Click (Range Selection)
+      // ── Mode 1: Range Selection (Shift+Click) ──
       if (isShift && !onlyHistory) {
         const currentState = engine.getState();
-        const anchor = currentState.anchor || {
-          staffIndex: currentState.staffIndex || 0,
-          measureIndex: currentState.measureIndex!,
-          eventId: currentState.eventId!,
-          noteId: currentState.noteId,
-        };
-
-        // If anchor is invalid, fall through to standard selection
-        if (anchor.eventId && anchor.measureIndex !== null) {
-          // Resolve noteId if null (pick first note of event)
-          let targetNoteId = noteId;
-          if (!targetNoteId && event && event.notes.length > 0) {
-            targetNoteId = event.notes[0].id;
-          }
-
+        const anchor = currentState.anchor;
+        
+        // Only proceed with range selection if we have a valid anchor
+        if (anchor?.eventId && anchor.measureIndex !== null) {
+          // Resolve target note (default to first note if clicking event body)
+          const targetNoteId = noteId || (target.event.notes[0]?.id);
+          
           if (targetNoteId) {
-            const focus: SelectedNote = {
-              staffIndex: startStaffIndex,
-              measureIndex,
-              eventId,
-              noteId: targetNoteId,
-            };
-
-            engine.dispatch(new RangeSelectCommand({ anchor: anchor as SelectedNote, focus }));
-
-            // Audio feedback for range selection
-            if (event && !event.isRest) {
-              playAudioFeedback(event.notes || []);
-            }
+            engine.dispatch(new RangeSelectCommand({
+              anchor: anchor as SelectedNote,
+              focus: {
+                staffIndex: effectiveStaffIndex,
+                measureIndex,
+                eventId,
+                noteId: targetNoteId,
+              }
+            }));
+            if (!target.event.isRest) playAudioFeedback(target.event.notes);
             return;
           }
         }
+        // No valid anchor - fall through to standard selection
       }
 
-      // Handle selectAllInEvent or null noteId (click on event body/stem)
+      // ── Mode 2: Event Selection (Click on Body/Stem OR selectAllInEvent) ──
       if (selectAllInEvent || !noteId) {
         if (onlyHistory) {
-          // For onlyHistory, just record what would be selected
-          const hasNotes = event && event.notes && event.notes.length > 0;
-          const firstNoteId = hasNotes ? event.notes[0].id : null;
-          setLastSelection({
-            staffIndex: startStaffIndex,
-            measureIndex,
-            eventId,
-            noteId: firstNoteId,
-            selectedNotes: hasNotes
-              ? event.notes.map((n: Note) => ({
-                  staffIndex: startStaffIndex,
-                  measureIndex,
-                  eventId,
-                  noteId: n.id,
-                }))
-              : [{ staffIndex: startStaffIndex, measureIndex, eventId, noteId: null }],
-            anchor: { staffIndex: startStaffIndex, measureIndex, eventId, noteId: firstNoteId },
-          });
-          engine.dispatch(new ClearSelectionCommand());
+          const notes = target.event.notes || [];
+          const firstNoteId = notes[0]?.id || null;
+          updateHistoryOnly(effectiveStaffIndex, measureIndex, eventId, firstNoteId, notes);
           return;
         }
 
-        engine.dispatch(
-          new SelectAllInEventCommand({
-            staffIndex: startStaffIndex,
-            measureIndex,
-            eventId,
-            addToSelection: isMulti,
-          })
-        );
+        engine.dispatch(new SelectAllInEventCommand({
+          staffIndex: effectiveStaffIndex,
+          measureIndex,
+          eventId,
+          addToSelection: !!isMulti,
+        }));
 
-        // Audio feedback
-        if (event && !event.isRest) {
-          playAudioFeedback(event.notes || []);
-        }
+        if (!target.event.isRest) playAudioFeedback(target.event.notes);
         return;
       }
 
-      // Handle isMulti (Cmd+click toggle)
+      // ── Mode 3: Toggle Selection (Cmd/Ctrl+Click) ──
       if (isMulti && !onlyHistory) {
-        engine.dispatch(
-          new ToggleNoteCommand({
-            staffIndex: startStaffIndex,
-            measureIndex,
-            eventId,
-            noteId,
-          })
-        );
-
-        // Audio feedback for single note
-        if (noteId && event) {
-          const note = event.notes.find((n: Note) => n.id === noteId);
-          if (note) playAudioFeedback([note]);
-        }
-        return;
-      }
-
-      // Handle onlyHistory (record selection without visual change)
-      if (onlyHistory) {
-        setLastSelection({
-          staffIndex: startStaffIndex,
+        engine.dispatch(new ToggleNoteCommand({
+          staffIndex: effectiveStaffIndex,
           measureIndex,
           eventId,
           noteId,
-          selectedNotes: [{ staffIndex: startStaffIndex, measureIndex, eventId, noteId }],
-          anchor: { staffIndex: startStaffIndex, measureIndex, eventId, noteId },
-        });
-        engine.dispatch(new ClearSelectionCommand());
+        }));
+        if (target.note) playAudioFeedback([target.note]);
         return;
       }
 
-      // Standard single selection - find event index for SelectEventCommand
-      const eventIndex = measure?.events.findIndex((e: ScoreEvent) => e.id === eventId) ?? 0;
-      const noteIndex = noteId && event
-        ? event.notes.findIndex((n: Note) => n.id === noteId)
-        : 0;
+      // ── Mode 4: History Only ──
+      if (onlyHistory) {
+        const notes = target.note ? [target.note] : [];
+        updateHistoryOnly(effectiveStaffIndex, measureIndex, eventId, noteId, notes);
+        return;
+      }
 
-      engine.dispatch(
-        new SelectEventCommand({
-          staffIndex: startStaffIndex,
-          measureIndex,
-          eventIndex: eventIndex >= 0 ? eventIndex : 0,
-          noteIndex: noteIndex >= 0 ? noteIndex : 0,
-        })
-      );
+      // ── Mode 5: Standard Single Selection ──
+      engine.dispatch(new SelectEventCommand({
+        staffIndex: effectiveStaffIndex,
+        measureIndex,
+        eventIndex: Math.max(0, target.eventIndex),
+        noteIndex: Math.max(0, target.noteIndex),
+      }));
 
       // Audio feedback
-      if (noteId && event) {
-        const note = event.notes.find((n: Note) => n.id === noteId);
-        if (note) playAudioFeedback([note]);
-      } else if (event && !event.isRest) {
-        playAudioFeedback(event.notes || []);
+      if (target.note) {
+        playAudioFeedback([target.note]);
+      } else if (!target.event.isRest) {
+        playAudioFeedback(target.event.notes);
       }
     },
-    [selection, score, playAudioFeedback, engine]
+    [selection, engine, getSelectionTarget, playAudioFeedback, updateHistoryOnly]
   );
-
-  /**
-   * Updates selection with partial values (legacy compatibility)
-   * @deprecated Use dispatch commands directly instead
-   */
-  const updateSelection = useCallback((partial: Partial<Selection>) => {
-    const current = engine.getState();
-    engine.setState({ ...current, ...partial });
-  }, [engine]);
-
-  /**
-   * Selects all notes in a measure
-   */
-  const selectAllInMeasure = useCallback(
-    (measureIndex: number, staffIndex: number = 0) => {
-      const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
-      if (!measure) return;
-
-      const allNotes: SelectedNote[] = [];
-      measure.events.forEach((event: ScoreEvent) => {
-        if (event.notes) {
-          event.notes.forEach((note: Note) => {
-            allNotes.push({
-              staffIndex,
-              measureIndex,
-              eventId: event.id,
-              noteId: note.id,
-            });
-          });
-        }
-      });
-
-      if (allNotes.length > 0) {
-        const first = allNotes[0];
-        // For selectAllInMeasure, we set state directly as there's no single command
-        // that selects across multiple events. This is acceptable for this bulk operation.
-        engine.setState({
-          staffIndex,
-          measureIndex,
-          eventId: first.eventId,
-          noteId: first.noteId,
-          selectedNotes: allNotes,
-          anchor: { ...first },
-        });
-      }
-    },
-    [score, engine]
-  );
-
-  /**
-   * Exposed setSelection for backward compatibility
-   * @deprecated Use engine.dispatch() with commands instead
-   */
-  const setSelection = useCallback((newSelection: Selection | ((prev: Selection) => Selection)) => {
-    if (typeof newSelection === 'function') {
-      const updated = newSelection(engine.getState());
-      engine.setState(updated);
-    } else {
-      engine.setState(newSelection);
-    }
-  }, [engine]);
 
   return {
     selection,
-    setSelection, // @deprecated - use commands via dispatch
     select,
     clearSelection,
-    updateSelection, // @deprecated - use commands via dispatch
     selectAllInMeasure,
     lastSelection,
-    // Expose engine for direct dispatch access
     engine,
   };
 };

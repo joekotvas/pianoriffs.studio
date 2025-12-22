@@ -13,7 +13,6 @@ import { HitZone } from '@/engines/layout/types';
 export interface UseNoteActionsProps {
   scoreRef: RefObject<Score>;
   selection: Selection;
-  setSelection: React.Dispatch<React.SetStateAction<Selection>>;
   select: (
     measureIndex: number | null,
     eventId: string | number | null,
@@ -79,7 +78,6 @@ export interface UseNoteActionsReturn {
 export const useNoteActions = ({
   scoreRef,
   selection,
-  setSelection: _setSelection, // Renamed to underscore to indicate unused
   select,
   setPreviewNote,
   activeDuration,

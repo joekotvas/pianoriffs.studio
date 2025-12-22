@@ -147,7 +147,6 @@ export interface UseScoreLogicGroupedReturn {
   derived: ScoreDerivedGroup;
   
   // Additional top-level exports
-  setSelection: (selection: Selection) => void;
   setPreviewNote: (note: PreviewNote | null) => void;
   clearSelection: () => void;
   currentQuantsPerMeasure: number;
