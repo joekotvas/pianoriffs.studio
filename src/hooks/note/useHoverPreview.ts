@@ -3,6 +3,7 @@ import { Score, getActiveStaff } from '@/types';
 import { canAddEventToMeasure } from '@/utils/validation';
 import { resolvePitch, createPreviewNote, arePreviewsEqual, PreviewNote } from '@/utils/entry';
 import { InputMode } from '../useEditorTools';
+import { HitZone } from '@/engines/layout/types';
 
 /**
  * Props for the useHoverPreview hook.
@@ -31,7 +32,7 @@ export interface UseHoverPreviewReturn {
   /** Handler for measure hover events */
   handleMeasureHover: (
     measureIndex: number | null,
-    hit: any,
+    hit: HitZone | null,
     rawPitch: string,
     staffIndex?: number
   ) => void;
@@ -74,7 +75,7 @@ export function useHoverPreview({
   inputMode,
 }: UseHoverPreviewProps): UseHoverPreviewReturn {
   const handleMeasureHover = useCallback(
-    (measureIndex: number | null, hit: any, rawPitch: string, staffIndex: number = 0) => {
+    (measureIndex: number | null, hit: HitZone | null, rawPitch: string, staffIndex: number = 0) => {
       if (measureIndex === null || !hit) {
         // Only clear preview if this call is from the same staff as current preview
         // This prevents staff B's mouseLeave from clearing staff A's preview

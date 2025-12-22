@@ -4,6 +4,7 @@ import { Command } from '@/commands/types';
 import { InputMode } from './useEditorTools';
 import { useHoverPreview, useNoteEntry, useNoteDelete, useNotePitch, PreviewNote } from './note';
 import { NoteInput, PlacementOverride, ChordNoteInput, SelectOptions } from './note/useNoteEntry';
+import { HitZone } from '@/engines/layout/types';
 
 /**
  * Props for the useNoteActions hook.
@@ -38,7 +39,7 @@ export interface UseNoteActionsProps {
 export interface UseNoteActionsReturn {
   handleMeasureHover: (
     measureIndex: number | null,
-    hit: any,
+    hit: HitZone | null,
     pitch: string,
     staffIndex?: number
   ) => void;
