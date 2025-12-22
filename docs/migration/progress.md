@@ -1,6 +1,6 @@
 # API Migration Progress
 
-**Last Updated:** 2025-12-21
+**Last Updated:** 2025-12-22
 
 ---
 
@@ -8,8 +8,8 @@
 
 | Status | Phases |
 | :--- | :--- |
-| ✅ Complete | 0, 1, 2 (a-g), 3, 4, 5 (A, B, E) |
-| � In Progress | 5 (remaining), 6, 7 |
+| ✅ Complete | 0, 1, 2 (a-g), 3, 4, 5 (A, B, C, E) |
+| 🔄 In Progress | 5 (D), 6, 7 |
 | 🔲 Remaining | 8 |
 
 **Goal:** Complete transition to a dispatch-based, engine-driven, fully exposed and machine-addressable API.
@@ -74,25 +74,22 @@
 - [x] **Component B:** `hooks/api/` factory pattern ([ADR-004](../adr/004-api-factory-pattern.md))
 </details>
 
----
-
-## Remaining Roadmap
-
-### 🔄 Phase 5C: Entry Hook Refactor — [Issue #125](https://github.com/joekotvas/RiffScore/issues/125)
-
-**Goal:** Refactor entry hooks for DRY, organization, and maintainability.
+<details>
+<summary><strong>✅ Phase 5C: Entry Hook Refactor</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/125">Issue #125</a> · <a href="https://github.com/joekotvas/RiffScore/pull/130">PR #130</a></summary>
 
 **Analysis:** [phase-5c-entry-analysis.md](./phase-5c-entry-analysis.md)
 
-| Task | Priority |
-|------|----------|
-| Extract `src/utils/entry/` utilities (notePayload, previewNote, pitchResolver) | P1 |
-| Split `useNoteActions.ts` → `hooks/note/` (4 focused hooks) | P1 |
-| Add unit tests (80%+ coverage) | P1 |
-| Implement API stubs (makeTuplet, toggleTie, setInputMode) | P2 |
-| Add JSDoc with `@tested` annotations | P2 |
+- [x] Extract `src/utils/entry/` utilities (notePayload, previewNote, pitchResolver)
+- [x] Split `useNoteActions.ts` → `hooks/note/` (4 focused hooks + facade)
+- [x] Add unit tests (100% coverage on entry utils)
+- [x] Implement API stubs (makeTuplet, unmakeTuplet, toggleTie, setTie, setInputMode)
+- [x] Add JSDoc with `@tested` annotations
+- [x] Fix tuplet bugs (bass clef, staffIndex, TupletBracket NaN)
+</details>
 
-**Effort:** 12-18 hours
+---
+
+## Remaining Roadmap
 
 ### 🔄 Phase 5D: Selection Handler Consolidation
 
