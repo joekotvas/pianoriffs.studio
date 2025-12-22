@@ -129,8 +129,8 @@ The most recently focused or mounted instance.
 | `setAccidental` | `setAccidental(type)` | ⏳ | `'sharp'`, `'flat'`, `'natural'`, `null`. |
 | `toggleAccidental` | `toggleAccidental()` | ⏳ | Cycle accidental. |
 | `transpose` | `transpose(semitones)` | ⏳ | Chromatic transposition. |
-| `transposeDiatonic` | `transposeDiatonic(steps)` | ⏳ | Visual/diatonic transposition. |
-| `updateEvent` | `updateEvent(props)` | ⏳ | Generic escape hatch. |
+| `transposeDiatonic` | `transposeDiatonic(steps)` | ✅ | Visual/diatonic transposition. |
+| `updateEvent` | `updateEvent(props)` | ✅ | Generic escape hatch. |
 
 ---
 
@@ -139,11 +139,11 @@ The most recently focused or mounted instance.
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
 | `addMeasure` | `addMeasure(atIndex?)` | ⏳ | Add measure (default: end). |
-| `deleteMeasure` | `deleteMeasure(measureIndex?)` | ⏳ | Delete measure (default: selected). |
-| `deleteSelected` | `deleteSelected()` | ⏳ | Smart delete. |
-| `setKeySignature` | `setKeySignature(key)` | ⏳ | Change key signature. |
-| `setTimeSignature` | `setTimeSignature(sig)` | ⏳ | Change time signature. |
-| `setMeasurePickup` | `setMeasurePickup(isPickup)` | ⏳ | Toggle pickup measure. |
+| `deleteMeasure` | `deleteMeasure(measureIndex?)` | ✅ | Delete measure (default: selected). |
+| `deleteSelected` | `deleteSelected()` | ✅ | Smart delete. |
+| `setKeySignature` | `setKeySignature(key)` | ✅ | Change key signature. |
+| `setTimeSignature` | `setTimeSignature(sig)` | ✅ | Change time signature. |
+| `setMeasurePickup` | `setMeasurePickup(isPickup)` | ✅ | Toggle pickup measure. |
 
 ---
 
@@ -151,12 +151,12 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `setClef` | `setClef(clef)` | ⏳ | `'treble'`, `'bass'`, `'alto'`, `'tenor'`, `'grand'`. |
-| `setScoreTitle` | `setScoreTitle(title)` | ⏳ | Update title. |
+| `setClef` | `setClef(clef)` | ✅ | `'treble'`, `'bass'`, `'alto'`, `'tenor'`, `'grand'`. |
+| `setScoreTitle` | `setScoreTitle(title)` | ✅ | Update title. |
 | `setBpm` | `setBpm(number)` | ⏳ | Set tempo. |
 | `setTheme` | `setTheme(theme)` | ⏳ | `'LIGHT'`, `'DARK'`, `'WARM'`, `'COOL'`. |
 | `setScale` | `setScale(number)` | ⏳ | Zoom factor. |
-| `setStaffLayout` | `setStaffLayout(type)` | ⏳ | `'grand'`, `'single'`. |
+| `setStaffLayout` | `setStaffLayout(type)` | ✅ | `'grand'`, `'single'`. |
 
 ---
 
@@ -164,9 +164,9 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `loadScore` | `loadScore(score)` | ⏳ | Load/replace score. |
+| `loadScore` | `loadScore(score)` | ✅ | Load/replace score. |
 | `reset` | `reset(template?, measures?)` | ⏳ | Reset to blank score. |
-| `export` | `export(format)` | ⚠️ Partial | `'json'` works; `'abc'`, `'musicxml'` throw. |
+| `export` | `export(format)` | ✅ | `'json'`, `'abc'`, `'musicxml'`. |
 
 ---
 

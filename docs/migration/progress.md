@@ -147,18 +147,16 @@
 | `play()` / `pause()` | playback.ts | ⏳ Stub | Low |
 | `on('playback')` | events.ts | ⏳ Stub | Low |
 
-#### 7A: Selection Expansion Tests
-- [x] Test `selectFullEvents()` 
-- [x] Test `extendSelectionUp/Down/All`
-- [x] Test `selectAll()` with different scopes
+<details>
+<summary><strong>✅ Phase 7A: Wire Commands & Robustness</strong> — <a href="https://github.com/joekotvas/RiffScore/pull/144">PR #144</a></summary>
 
-#### 7B: Wire Modification & IO Commands (Done)
-- [x] Wire `setClef`, `setKeySignature`, `setTimeSignature`
-- [x] Wire `deleteMeasure`, `deleteSelected`
-- [x] Wire `loadScore`, `export`
-- [x] Wire `transposeDiatonic` (via `TransposeSelectionCommand`)
-- [x] Verified with `ScoreAPI.modification.test.tsx` (21 tests, edge cases included)
-- [x] Robustness: Fixed stale state chaining bug via synchronous getters
+- [x] **Wired Commands**: `loadScore`, `export`, `deleteMeasure`, `deleteSelected`, `setClef`, `setKeySignature`, `setTimeSignature`, `transposeDiatonic`, `setStaffLayout`, `setScoreTitle`, `setMeasurePickup`, `updateEvent`
+- [x] **Integration Tests**: Added `ScoreAPI.modification.test.tsx` (21 tests) covering happy/edge paths
+- [x] **Robustness Fix**: Implemented synchronous `getScore()` and `getSelection()` getters in `APIContext` to prevent stale state bugs in method chaining
+- [x] **Types**: Exported `ClefType`
+</details>
+
+#### 7B: Simple State Updates — Est. 1-2 hours
 
 #### 7C: Clipboard API (Deferred)
 - [ ] Implement `copy()`, `cut()`, `paste()`
