@@ -1,6 +1,5 @@
 import React from 'react';
 import ToolbarButton from './ToolbarButton';
-import { useTheme } from '@/context/ThemeContext';
 
 interface TupletControlsProps {
   onApplyTuplet: (ratio: [number, number], groupSize: number) => void;
@@ -23,7 +22,7 @@ const TupletControls: React.FC<TupletControlsProps> = ({
   activeTupletRatio,
   variant = 'default',
 }) => {
-  const { theme } = useTheme();
+  // const { theme } = useTheme();
 
   const isTripletActive = activeTupletRatio?.[0] === 3 && activeTupletRatio?.[1] === 2;
   const isQuintupletActive = activeTupletRatio?.[0] === 5 && activeTupletRatio?.[1] === 4;

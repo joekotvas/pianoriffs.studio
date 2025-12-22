@@ -1,6 +1,7 @@
 import { Command } from './types';
 import { Score, Note, Selection, getActiveStaff } from '@/types';
 import { updateEvent } from '@/utils/commandHelpers';
+import { getClefConfig } from '@/constants';
 
 /**
  * Represents the previous state of an event for undo purposes.
@@ -17,11 +18,13 @@ interface EventPreviousState {
  * Returns the center pitch for a staff based on its clef.
  * Used when converting rests to notes.
  *
- * @param clef - 'treble' | 'bass' | 'grand'
- * @returns Center pitch (B4 for treble, D3 for bass)
+ * @param clef - 'treble' | 'bass' | 'alto' | 'tenor' | 'grand'
+ * @returns Center pitch from CLEF_CONFIG
+ * @see CLEF_CONFIG in constants.ts
  */
-const getCenterPitch = (clef: 'treble' | 'bass' | 'grand'): string => {
-  return clef === 'bass' ? 'D3' : 'B4';
+const getCenterPitch = (clef: string): string => {
+  const config = getClefConfig(clef);
+  return config.centerPitch;
 };
 
 /**

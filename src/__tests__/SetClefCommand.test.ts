@@ -1,3 +1,12 @@
+/**
+ * SetClefCommand Tests
+ *
+ * Tests for changing staff clef (treble ↔ bass).
+ * Covers: clef changes, undo, no-op, multi-staff, edge cases.
+ *
+ * @see SetClefCommand
+ */
+
 import { SetClefCommand } from '@/commands/SetClefCommand';
 import { Score, Staff } from '@/types';
 

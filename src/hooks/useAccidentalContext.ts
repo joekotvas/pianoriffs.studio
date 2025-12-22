@@ -32,11 +32,11 @@ export function useAccidentalContext(
     events.forEach((event) => {
       if (!event.notes) return;
 
-      event.notes.forEach((note: any) => {
+      event.notes.forEach((note) => {
         // Skip rest notes (null pitch)
         if (note.pitch === null) return;
 
-        const effective = getEffectiveAccidental(note.pitch, keySignature);
+        const effective = getEffectiveAccidental(note.pitch);
         const keyAccidental = getKeyAccidental(note.pitch.charAt(0), keySignature);
         const diatonicPitch = getDiatonicPitch(note.pitch);
 

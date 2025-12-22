@@ -1,3 +1,11 @@
+/**
+ * Selection Utility Tests
+ *
+ * Tests for selection utilities: compareIds, isNoteSelected, toggleNoteInSelection.
+ *
+ * @see selection
+ */
+
 import { toggleNoteInSelection, isNoteSelected, compareIds } from '@/utils/selection';
 import { createDefaultSelection } from '@/types';
 

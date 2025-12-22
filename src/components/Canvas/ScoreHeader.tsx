@@ -15,6 +15,46 @@ interface ScoreHeaderProps {
   onTimeSigClick: (e: React.MouseEvent) => void;
 }
 
+/**
+ * Get the appropriate clef glyph for rendering
+ */
+const getClefGlyph = (clef: string): string => {
+  switch (clef) {
+    case 'treble':
+      return CLEFS.gClef;
+    case 'bass':
+      return CLEFS.fClef;
+    case 'alto':
+    case 'tenor':
+      return CLEFS.cClef;
+    default:
+      return CLEFS.gClef;
+  }
+};
+
+/**
+ * Get the Y position for the clef symbol
+ * Each clef has a reference line where the symbol "sits"
+ */
+const getClefY = (clef: string, baseY: number): number => {
+  switch (clef) {
+    case 'treble':
+      // G clef sits on Line 2 (G4), rendered lower for visual position
+      return baseY + CONFIG.lineHeight * 3;
+    case 'bass':
+      // F clef has dots around Line 4 (F3), rendered at top
+      return baseY + CONFIG.lineHeight;
+    case 'alto':
+      // C clef centered on Line 3 (Middle C)
+      return baseY + CONFIG.lineHeight * 2;
+    case 'tenor':
+      // C clef centered on Line 4 (Middle C)
+      return baseY + CONFIG.lineHeight * 3;
+    default:
+      return baseY + CONFIG.lineHeight * 3;
+  }
+};
+
 const ScoreHeader: React.FC<ScoreHeaderProps> = ({
   clef,
   keySignature,
@@ -61,13 +101,13 @@ const ScoreHeader: React.FC<ScoreHeaderProps> = ({
         <rect x="-5" y={baseY - 25} width={CLEF_WIDTH} height="100" fill="transparent" />
         <text
           x={12}
-          y={clef === 'treble' ? baseY + CONFIG.lineHeight * 3 : baseY + CONFIG.lineHeight}
+          y={getClefY(clef, baseY)}
           fontFamily={BRAVURA_FONT}
           fontSize={getFontSize(CONFIG.lineHeight)}
           fill={theme.score.fill}
           textAnchor="start"
         >
-          {clef === 'treble' ? CLEFS.gClef : CLEFS.fClef}
+          {getClefGlyph(clef)}
         </text>
       </g>
 

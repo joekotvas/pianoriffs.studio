@@ -15,16 +15,12 @@ export class RemoveTupletCommand implements Command {
 
   constructor(
     private measureIndex: number,
-    private eventIndex: number // Can be any event in the tuplet group
+    private eventIndex: number, // Can be any event in the tuplet group
+    private staffIndex: number = 0
   ) {}
 
   execute(score: Score): Score {
-    // Note: This command assumes STAFF 0 (Active Staff) as per current implementation logic
-    // seen in original file ("getActiveStaff(score)" usually defaults to 0 or active one).
-    // Original implementation hardcoded "newStaves[0]". We will assume staffIndex 0.
-    const staffIndex = 0;
-
-    return updateMeasure(score, staffIndex, this.measureIndex, (measure) => {
+    return updateMeasure(score, this.staffIndex, this.measureIndex, (measure) => {
       const events = measure.events;
       const targetEvent = events[this.eventIndex];
 
@@ -55,9 +51,7 @@ export class RemoveTupletCommand implements Command {
   }
 
   undo(score: Score): Score {
-    const staffIndex = 0;
-
-    return updateMeasure(score, staffIndex, this.measureIndex, (measure) => {
+    return updateMeasure(score, this.staffIndex, this.measureIndex, (measure) => {
       const newEvents = [...measure.events];
 
       this.previousStates.forEach(({ eventId, tuplet }) => {

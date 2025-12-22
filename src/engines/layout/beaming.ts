@@ -1,9 +1,8 @@
-import { ScoreEvent, BeamGroup } from './types';
+import { ScoreEvent } from '@/types';
+import { BeamGroup } from './types';
 import { getNoteDuration } from '@/utils/core';
 import {
   getOffsetForPitch,
-  getNoteWidth,
-  getPitchForOffset,
   calculateChordLayout,
   getStemOffset,
 } from './positioning';
@@ -21,12 +20,12 @@ import { MIDDLE_LINE_Y, BEAMING } from '@/constants';
  * @returns Array of beam group specifications
  */
 export const calculateBeamingGroups = (
-  events: any[],
+  events: ScoreEvent[],
   eventPositions: Record<string, number>,
-  clef: string = 'treble'
-): any[] => {
-  const groups: any[] = [];
-  let currentGroup: any[] = [];
+  clef = 'treble'
+): BeamGroup[] => {
+  const groups: BeamGroup[] = [];
+  let currentGroup: ScoreEvent[] = [];
   let currentType: string | null = null;
 
   // Helper to finalize a group
@@ -40,7 +39,7 @@ export const calculateBeamingGroups = (
 
   let currentQuant = 0;
 
-  events.forEach((event: any, index: number) => {
+  events.forEach((event: ScoreEvent) => {
     const type = event.duration;
     const isFlagged = ['eighth', 'sixteenth', 'thirtysecond', 'sixtyfourth'].includes(type);
     const durationQuants = getNoteDuration(type, event.dotted, event.tuplet);
@@ -82,19 +81,18 @@ export const calculateBeamingGroups = (
   return groups;
 };
 
-import { STEM_LENGTHS, STEM_BEAMED_LENGTHS } from './stems';
+import { STEM_BEAMED_LENGTHS } from './stems';
 
 /**
  * Calculates the geometry for a single beam group.
  * Implements proper beam sloping based on pitch contour.
  */
 const processBeamGroup = (
-  groupEvents: any[],
+  groupEvents: ScoreEvent[],
   eventPositions: Record<string, number>,
   clef: string
-): any => {
+): BeamGroup => {
   const startEvent = groupEvents[0];
-  const endEvent = groupEvents[groupEvents.length - 1];
 
   // Determine minimum stem length based on the note type with the most beams in the group
   // 32nd notes need longer stems to accommodate 3 beams, 64th for 4 beams
@@ -111,6 +109,7 @@ const processBeamGroup = (
   // First pass: collect note data to determine direction
   const noteData = groupEvents.map((e) => {
     const noteX = eventPositions[e.id];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const noteYs = e.notes.map((n: any) => CONFIG.baseY + getOffsetForPitch(n.pitch, clef));
 
     // Check if this chord has a second interval
@@ -123,6 +122,7 @@ const processBeamGroup = (
       maxY: Math.max(...noteYs),
       avgY: noteYs.reduce((sum: number, y: number) => sum + y, 0) / noteYs.length,
       hasSecond,
+      eventX: 0, // Placeholder, updated later
     };
   });
 
@@ -146,7 +146,7 @@ const processBeamGroup = (
   // Update noteData with stem X positions for clearance calculations
   noteData.forEach((d, i) => {
     const layout = calculateChordLayout(groupEvents[i].notes, clef);
-    (d as any).eventX = d.noteX + getStemOffset(layout, direction);
+    d.eventX = d.noteX + getStemOffset(layout, direction);
   });
 
   // Find the extreme notes (the ones that determine beam position)
@@ -201,7 +201,7 @@ const processBeamGroup = (
   let maxAdditionalClearance = 0;
 
   noteData.forEach((d) => {
-    const beamYAtPoint = slope * (d as any).eventX + intercept;
+    const beamYAtPoint = slope * d.eventX + intercept;
     const anchorNoteY = direction === 'up' ? d.minY : d.maxY;
     const currentStemLength = Math.abs(beamYAtPoint - anchorNoteY);
 

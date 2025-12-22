@@ -1,14 +1,29 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { Score } from '@/types';
 import {
   initTone,
   scheduleTonePlayback,
   stopTonePlayback,
-  getState,
   InstrumentState,
 } from '@/engines/toneEngine';
 import { createTimeline } from '@/services/TimelineService';
 
-export const usePlayback = (score: any, bpm: number) => {
+export interface UsePlaybackReturn {
+  isPlaying: boolean;
+  playbackPosition: {
+    measureIndex: number | null;
+    quant: number | null;
+    duration: number;
+  };
+  playScore: (startMeasureIndex?: number, startQuant?: number) => Promise<void>;
+  stopPlayback: () => void;
+  pausePlayback: () => void;
+  handlePlayToggle: () => void;
+  lastPlayStart: { measureIndex: number; quant: number };
+  instrumentState: InstrumentState;
+}
+
+export const usePlayback = (score: Score, bpm: number): UsePlaybackReturn => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackPosition, setPlaybackPosition] = useState<{
     measureIndex: number | null;

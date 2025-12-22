@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Score } from '@/types';
 import { generateJSON } from '../exporters/jsonExporter';
 import { generateABC } from '../exporters/abcExporter';

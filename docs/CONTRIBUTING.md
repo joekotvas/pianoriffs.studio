@@ -4,7 +4,7 @@
 
 Thank you for your interest in contributing to RiffScore!
 
-> **See also**: [Architecture](./ARCHITECTURE.md) • [Configuration](./CONFIGURATION.md) • [Interaction Design](./INTERACTION.md)
+> **See also**: [Architecture](./ARCHITECTURE.md) • [Testing](./TESTING.md) • [Commands](./COMMANDS.md)
 
 ---
 
@@ -44,6 +44,7 @@ This starts the Next.js demo app at `http://localhost:3000` which consumes the l
 | `src/` | Core component library |
 | `demo/` | Next.js demo app for testing |
 | `docs/` | Documentation |
+| `docs/adr/` | Architecture Decision Records |
 | `dist/` | Built library output (generated) |
 
 ### Available Scripts
@@ -108,6 +109,81 @@ Before committing, ensure:
 npm run lint        # No errors
 npm run format:check # Formatting passes
 npm run test        # Tests pass
+```
+
+---
+
+## Documentation Standards
+
+### JSDoc for Public APIs
+
+Use comprehensive JSDoc for exported functions, commands, and hooks:
+
+```typescript
+/**
+ * Brief description of what the function does.
+ *
+ * Longer description if needed, explaining behavior,
+ * edge cases, or important context.
+ *
+ * @param paramName - Description of parameter
+ * @param options - Object with configuration options
+ * @returns Description of return value
+ *
+ * @example
+ * ```typescript
+ * const result = myFunction(arg1, { option: true });
+ * ```
+ *
+ * @see RelatedFunction
+ * @see Issue #123
+ * @tested
+ */
+```
+
+### Helper Functions
+
+For small utilities, use concise single-line JSDoc:
+
+```typescript
+/** Generate a unique key for a note selection */
+private getNoteKey(note: SelectedNote): string { ... }
+```
+
+### File-Level Documentation
+
+Each significant file should have a top-level JSDoc:
+
+```typescript
+/**
+ * SelectAllCommand
+ *
+ * Selects all notes following a hierarchical expansion pattern.
+ * Hierarchy: Note → Measure → Staff → Score
+ *
+ * @see Issue #99
+ */
+```
+
+### Annotations
+
+| Annotation | Purpose |
+|------------|---------|
+| `@tested` | Function has test coverage |
+| `@see` | Reference related function or issue |
+| `@example` | Show usage example |
+| `@deprecated` | Mark for removal |
+| `@internal` | Not part of public API |
+
+### Implementation Notes
+
+Use prefixed comments for important implementation details:
+
+```typescript
+// OPTIMIZATION: Build the Set once for O(N+M) complexity
+// BUG FIX #100: Preserve anchor when navigating through gaps
+// TODO: Refactor to use command pattern
+// NOTE: This relies on async initialization
 ```
 
 ---

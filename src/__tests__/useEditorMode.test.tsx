@@ -1,3 +1,11 @@
+/**
+ * useEditorMode Hook Tests
+ *
+ * Tests for editor state determination (IDLE, SELECTION_READY, ENTRY_READY).
+ *
+ * @see useEditorMode
+ */
+
 import { renderHook } from '@testing-library/react';
 import { useEditorMode } from '@/hooks/useEditorMode';
 import { createDefaultSelection } from '@/types';

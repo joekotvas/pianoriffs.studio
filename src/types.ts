@@ -46,7 +46,7 @@ export interface Measure {
 
 export interface Staff {
   id: string | number;
-  clef: 'treble' | 'bass' | 'grand';
+  clef: 'treble' | 'bass' | 'alto' | 'tenor' | 'grand';
   keySignature: string; // e.g., 'C', 'G', 'F', 'Bb'
   measures: Measure[];
 }
@@ -175,28 +175,39 @@ export interface Melody {
 // ========== SELECTION ==========
 
 /**
- * Represents the current selection state in the editor.
- * Supports Grand Staff by tracking which staff is selected.
+ * Represents a note in the selection array
+ */
+export interface SelectedNote {
+  staffIndex: number;
+  measureIndex: number;
+  eventId: string | number;
+  noteId: string | number | null;
+}
+
+/**
+ * Per-slice vertical anchors for vertical selection extension.
+ * Set on first vertical extension, cleared when selection is modified.
+ */
+export interface VerticalAnchors {
+  /** Direction of this vertical extension series */
+  direction: 'up' | 'down';
+  /** Map of global time (measureIndex * 100000 + quant) to anchor note for that slice */
+  sliceAnchors: Record<number, SelectedNote>;
+  /** Snapshot of selection when vertical extension started */
+  originSelection: SelectedNote[];
+}
+
+/**
+ * Selection State for the editor
  */
 export interface Selection {
   staffIndex: number; // Index of the selected staff (0 for single staff, 0 or 1 for Grand Staff)
   measureIndex: number | null; // Index of the selected measure
   eventId: string | number | null; // ID of the selected event
   noteId: string | number | null; // ID of the selected note (for chords)
-  selectedNotes: Array<{
-    // List of all selected notes (including the primary one above)
-    staffIndex: number;
-    measureIndex: number;
-    eventId: string | number;
-    noteId: string | number | null;
-  }>;
-  anchor?: {
-    // The static "anchor" point for range selection
-    staffIndex: number;
-    measureIndex: number;
-    eventId: string | number;
-    noteId: string | number | null;
-  } | null;
+  selectedNotes: SelectedNote[]; // List of all selected notes (including the primary one above)
+  anchor?: SelectedNote | null; // The static "anchor" point for range selection
+  verticalAnchors?: VerticalAnchors | null; // Per-slice anchors for vertical extension
 }
 
 /**
@@ -209,6 +220,7 @@ export const createDefaultSelection = (): Selection => ({
   noteId: null,
   selectedNotes: [],
   anchor: null,
+  verticalAnchors: null,
 });
 
 // ========== PREVIEW NOTE (GHOST CURSOR) ==========
@@ -225,10 +237,10 @@ export interface PreviewNote {
   pitch: string; // Preview pitch (e.g., "C4")
   duration: string; // Duration name ('quarter', 'half', etc.)
   dotted: boolean;
-  mode: 'APPEND' | 'INSERT'; // Append at end or insert at position
+  mode: 'APPEND' | 'INSERT' | 'CHORD'; // Append at end or insert at position
   index: number; // Event index where this would be inserted
   isRest: boolean;
-  source?: 'keyboard' | 'mouse'; // How the ghost cursor was triggered
+  source?: 'keyboard' | 'mouse' | 'hover'; // How the ghost cursor was triggered
 }
 
 // ========== NAVIGATION RESULT TYPES ==========

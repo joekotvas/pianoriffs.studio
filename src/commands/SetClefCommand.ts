@@ -8,10 +8,10 @@ import { Score } from '@/types';
  */
 export class SetClefCommand implements Command {
   type = 'SET_CLEF';
-  private previousClef: 'treble' | 'bass' | 'grand' | null = null;
+  private previousClef: 'treble' | 'bass' | 'alto' | 'tenor' | 'grand' | null = null;
 
   constructor(
-    private targetClef: 'treble' | 'bass',
+    private targetClef: 'treble' | 'bass' | 'alto' | 'tenor',
     private staffIndex: number = 0
   ) {}
 

@@ -1,5 +1,15 @@
+/**
+ * ChangePitchCommand + Tuplet Integration Test
+ *
+ * Tests that changing pitch on a tuplet note preserves tuplet structure.
+ * Regression test for tuplet corruption issues.
+ *
+ * @see ChangePitchCommand
+ * @see ApplyTupletCommand
+ */
+
 import { ChangePitchCommand } from '@/commands/ChangePitchCommand';
-import { createDefaultScore } from '@/types';
+import { createDefaultScore, ScoreEvent } from '@/types';
 import { ApplyTupletCommand } from '@/commands/TupletCommands';
 import { ScoreEngine } from '@/engines/ScoreEngine';
 
@@ -9,18 +19,18 @@ describe('ChangePitchCommand with Tuplets via Engine', () => {
 
     // 1. Create 3 quarter notes manually
     const notes = [
-      { id: 'n1', pitch: 'C4', accidental: null },
-      { id: 'n2', pitch: 'D4', accidental: null },
-      { id: 'n3', pitch: 'E4', accidental: null },
+      { id: 'n1', pitch: 'C4', accidental: null, tied: false },
+      { id: 'n2', pitch: 'D4', accidental: null, tied: false },
+      { id: 'n3', pitch: 'E4', accidental: null, tied: false },
     ];
 
-    const events = [
-      { id: 'e1', duration: 'quarter', dotted: false, notes: [notes[0]] },
-      { id: 'e2', duration: 'quarter', dotted: false, notes: [notes[1]] },
-      { id: 'e3', duration: 'quarter', dotted: false, notes: [notes[2]] },
+    const events: ScoreEvent[] = [
+      { id: 'e1', duration: 'quarter', dotted: false, isRest: false, notes: [notes[0]] },
+      { id: 'e2', duration: 'quarter', dotted: false, isRest: false, notes: [notes[1]] },
+      { id: 'e3', duration: 'quarter', dotted: false, isRest: false, notes: [notes[2]] },
     ];
 
-    initialScore.staves[0].measures[0].events = events as any;
+    initialScore.staves[0].measures[0].events = events;
 
     const engine = new ScoreEngine(initialScore);
 

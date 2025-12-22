@@ -127,23 +127,29 @@ const LedgerLines = ({ x, y, baseY, color }) => {
 };
 
 /**
- * Invisible hit area for easier clicking on notes.
+ * Hit area for easier clicking on notes.
+ * Visibility controlled by CONFIG.debug.showHitZones
  */
-const HitArea = ({ x, y, cursor, onClick, onMouseDown, onDoubleClick, testId }) => (
-  <rect
-    x={x}
-    y={y}
-    width={LAYOUT.HIT_AREA.WIDTH}
-    height={LAYOUT.HIT_AREA.HEIGHT}
-    fill="white"
-    fillOpacity={0.01}
-    style={{ cursor }}
-    onClick={onClick}
-    onMouseDown={onMouseDown}
-    onDoubleClick={onDoubleClick}
-    data-testid={testId}
-  />
-);
+const HitArea = ({ x, y, cursor, onClick, onMouseDown, onDoubleClick, testId }) => {
+  const showDebug = CONFIG.debug?.showHitZones;
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={LAYOUT.HIT_AREA.WIDTH}
+      height={LAYOUT.HIT_AREA.HEIGHT}
+      fill={showDebug ? 'red' : 'white'}
+      fillOpacity={showDebug ? 0.3 : 0.01}
+      stroke={showDebug ? 'red' : 'none'}
+      strokeWidth={showDebug ? 1 : 0}
+      style={{ cursor }}
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      onDoubleClick={onDoubleClick}
+      data-testid={testId}
+    />
+  );
+};
 
 // =============================================================================
 // MAIN NOTE COMPONENT

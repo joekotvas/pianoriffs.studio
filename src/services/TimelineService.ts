@@ -1,7 +1,7 @@
 import { TIME_SIGNATURES } from '@/constants';
 import { getNoteDuration } from '@/utils/core';
 import { getFrequency } from './MusicService';
-import { getActiveStaff } from '@/types';
+import { getActiveStaff, Score, Staff, Measure, ScoreEvent, Note } from '@/types';
 
 export interface TimelineEvent {
   time: number; // Start time in seconds
@@ -18,21 +18,13 @@ export interface TimelineEvent {
 /**
  * Creates a flattened timeline of audio events from the score.
  * Handles timing, ties, and frequency lookup.
- *
- * @param score - The score object
- * @param bpm - Beats per minute
- * @returns Array of TimelineEvents sorted by time
- */
-/**
- * Creates a flattened timeline of audio events from the score.
- * Handles timing, ties, and frequency lookup.
  * Refactored to use "Flatten-then-Merge" strategy for cleaner tie resolution.
  *
  * @param score - The score object
  * @param bpm - Beats per minute
  * @returns Array of TimelineEvents sorted by time
  */
-export const createTimeline = (score: any, bpm: number): TimelineEvent[] => {
+export const createTimeline = (score: Score, bpm: number): TimelineEvent[] => {
   const timeline: TimelineEvent[] = [];
   const secondsPerBeat = 60 / bpm;
   const secondsPerQuant = secondsPerBeat / 16;
@@ -47,14 +39,14 @@ export const createTimeline = (score: any, bpm: number): TimelineEvent[] => {
   const measureStartTimes: number[] = [];
   let currentGlobalTime = 0;
 
-  firstStaffMeasures.forEach((measure: any) => {
+  firstStaffMeasures.forEach((measure: Measure) => {
     measureStartTimes.push(currentGlobalTime);
 
     // Calculate duration of this measure
     let measureQuants;
     if (measure.isPickup) {
       measureQuants = measure.events.reduce(
-        (acc: number, e: any) => acc + getNoteDuration(e.duration, e.dotted, e.tuplet),
+        (acc: number, e: ScoreEvent) => acc + getNoteDuration(e.duration, e.dotted, e.tuplet),
         0
       );
     } else {
@@ -76,19 +68,29 @@ export const createTimeline = (score: any, bpm: number): TimelineEvent[] => {
   }
 
   // 2. Process each Staff independently
-  staves.forEach((staff: any, staffIndex: number) => {
+  staves.forEach((staff: Staff, staffIndex: number) => {
     const rawEvents: RawNoteEvent[] = [];
 
     // Flatten all notes in this staff
-    staff.measures.forEach((measure: any, mIndex: number) => {
+    staff.measures.forEach((measure: Measure, mIndex: number) => {
       if (mIndex >= measureStartTimes.length) return;
       const measureStartTime = measureStartTimes[mIndex];
       let currentMeasureQuant = 0;
 
-      measure.events.forEach((event: any, eIndex: number) => {
+      measure.events.forEach((event: ScoreEvent, eIndex: number) => {
         const eventDurQuants = getNoteDuration(event.duration, event.dotted, event.tuplet);
 
-        event.notes.forEach((note: any) => {
+        event.notes.forEach((note: Note) => {
+          if (!note.pitch) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.warn('TimelineService: Note without pitch detected', {
+                measureIndex: mIndex,
+                eventIndex: eIndex,
+                note,
+              });
+            }
+            return;
+          }
           rawEvents.push({
             time: measureStartTime + currentMeasureQuant * secondsPerQuant,
             duration: eventDurQuants * secondsPerQuant,

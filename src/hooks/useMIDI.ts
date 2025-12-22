@@ -1,19 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { requestMIDIAccess, setupMIDIListeners, midiNoteToPitch } from '@/engines/midiEngine';
 import { playNote } from '@/engines/toneEngine';
-import { getActiveStaff } from '@/types';
+import { Score, getActiveStaff } from '@/types';
+
+export type Accidental = 'sharp' | 'flat' | 'natural' | null;
 
 export const useMIDI = (
   addChordCallback: (
     measureIndex: number,
-    notes: any[],
+    notes: { pitch: string; accidental: Accidental; id?: number }[],
     duration: string,
     isDotted: boolean
   ) => void,
   activeDuration: string,
   isDotted: boolean,
-  activeAccidental: 'flat' | 'natural' | 'sharp' | null,
-  scoreRef: React.MutableRefObject<any>
+  activeAccidental: Accidental,
+  scoreRef: React.MutableRefObject<Score>
 ) => {
   const [midiStatus, setMidiStatus] = useState<{
     connected: boolean;
@@ -22,7 +24,7 @@ export const useMIDI = (
   }>({ connected: false, deviceName: null, error: null });
 
   const midiCleanupRef = useRef<(() => void) | null>(null);
-  const midiChordBuffer = useRef<{ pitch: string; accidental: string | null }[]>([]);
+  const midiChordBuffer = useRef<{ pitch: string; accidental: Accidental }[]>([]);
   const midiChordTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Refs to access latest state in callbacks
@@ -66,15 +68,13 @@ export const useMIDI = (
         midiChordBuffer.current = [];
 
         // Play tones
-        const keySignature = scoreRef.current
-          ? getActiveStaff(scoreRef.current).keySignature || 'C'
-          : 'C';
+        // const keySignature = ... (unused)
         notes.forEach((n) => playNote(n.pitch));
 
         // Add chord
         if (addChordRef.current && scoreRef.current) {
           const currentScore = scoreRef.current;
-          const targetMeasureIndex = currentScore.measures.length - 1;
+          const targetMeasureIndex = getActiveStaff(currentScore).measures.length - 1;
           addChordRef.current(
             targetMeasureIndex,
             notes.map((n) => ({
@@ -88,7 +88,8 @@ export const useMIDI = (
         }
       };
 
-      const cleanup = setupMIDIListeners(access as any, (midiNote: number, velocity: number) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cleanup = setupMIDIListeners(access as any, (midiNote: number, _velocity: number) => {
         const pitch = midiNoteToPitch(midiNote);
         // Valid range check could be here if needed
 
@@ -105,7 +106,9 @@ export const useMIDI = (
     return () => {
       if (midiCleanupRef.current) midiCleanupRef.current();
     };
-  }, []); // Run once on mount
+    // scoreRef is intentionally omitted - it's stable and only used in callbacks
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { midiStatus };
 };

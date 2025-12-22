@@ -1,4 +1,14 @@
 import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
+import { Measure, ScoreEvent, Note, Selection } from '@/types';
+
+/**
+ * Basic ID generator.
+ * Uses crypto.randomUUID() when available, falls back to timestamp + random string.
+ */
+export const generateId = (): string =>
+  typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 /**
  * Calculates the duration of a note in quants.
@@ -7,12 +17,8 @@ import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
  * @param tuplet - Optional tuplet ratio (e.g., [3, 2] for triplet)
  * @returns Duration in quants
  */
-export const getNoteDuration = (
-  type: string,
-  dotted: boolean,
-  tuplet?: { ratio: [number, number] }
-) => {
-  const base = NOTE_TYPES[type].duration;
+export const getNoteDuration = (duration: string, dotted: boolean = false, tuplet?: { ratio: [number, number]; groupSize?: number; position?: number; baseDuration?: string; id?: string }): number => {
+  const base = NOTE_TYPES[duration].duration;
   const dottedValue = dotted ? base * 1.5 : base;
 
   // Apply tuplet ratio if present
@@ -31,7 +37,7 @@ export const getNoteDuration = (
  * @param events - List of events
  * @returns Total quants
  */
-export const calculateTotalQuants = (events: any[]) => {
+export const calculateTotalQuants = (events: ScoreEvent[]) => {
   return events.reduce((acc, event) => {
     return acc + getNoteDuration(event.duration, event.dotted, event.tuplet);
   }, 0);
@@ -82,28 +88,28 @@ export const getBreakdownOfQuants = (quants: number) => {
  * @param newTimeSignature - New time signature string (e.g., '4/4')
  * @returns New list of measures
  */
-export const reflowScore = (measures: any[], newTimeSignature: string) => {
+export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
   const maxQuants = TIME_SIGNATURES[newTimeSignature as keyof typeof TIME_SIGNATURES] || 64;
 
   // 1. Identify if first measure is a pickup
   const isPickup = measures.length > 0 && measures[0].isPickup;
 
   // 2. Flatten all events
-  const allEvents: any[] = [];
-  measures.forEach((m: any) => {
-    m.events.forEach((e: any) => {
+  const allEvents: ScoreEvent[] = [];
+  measures.forEach((m: Measure) => {
+    m.events.forEach((e: ScoreEvent) => {
       // Clone event to avoid mutation issues
       // Reset ties as we will recalculate them
       const event = {
         ...e,
-        notes: e.notes.map((n: any) => ({ ...n, tied: false })),
+        notes: e.notes.map((n: Note) => ({ ...n, tied: false })),
       };
       allEvents.push(event);
     });
   });
 
-  const newMeasures: any[] = [];
-  let currentMeasureEvents: any[] = [];
+  const newMeasures: Measure[] = [];
+  let currentMeasureEvents: ScoreEvent[] = [];
   let currentMeasureQuants = 0;
 
   const commitMeasure = (isPickupMeasure = false) => {
@@ -217,7 +223,7 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
             id: Date.now() + Math.random(),
             duration: part.duration,
             dotted: part.dotted,
-            notes: event.notes.map((n: any) => ({ ...n, tied: true })),
+            notes: event.notes.map((n: Note) => ({ ...n, tied: true })),
           };
           currentMeasureEvents.push(newEvent);
         });
@@ -241,7 +247,7 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
             id: Date.now() + Math.random(),
             duration: part.duration,
             dotted: part.dotted,
-            notes: event.notes.map((n: any) => ({ ...n, tied: event.notes[0].tied })),
+            notes: event.notes.map((n: Note) => ({ ...n, tied: event.notes[0].tied })),
           };
 
           // Check if fits in NEW measure (which is standard size)
@@ -282,14 +288,14 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
 /**
  * Helper: Robust check for rest event
  */
-export const isRestEvent = (event: any): boolean => {
+export const isRestEvent = (event: ScoreEvent): boolean => {
   return !!event.isRest;
 };
 
 /**
  * Helper: Robust check for note event (has at least one pitch)
  */
-export const isNoteEvent = (event: any): boolean => {
+export const isNoteEvent = (event: ScoreEvent): boolean => {
   return !isRestEvent(event) && event.notes?.length > 0;
 };
 
@@ -297,8 +303,8 @@ export const isNoteEvent = (event: any): boolean => {
  * Helper to get noteId for an event.
  * Returns ID for first note (pitch or rest).
  */
-export const getFirstNoteId = (event: any): string | number | null => {
-  if (!event.notes?.length) return null;
+export const getFirstNoteId = (event: ScoreEvent | undefined | null): string | number | null => {
+  if (!event || !event.notes?.length) return null;
   return event.notes[0].id; // Rests now have notes, so this works for both
 };
 
@@ -307,8 +313,8 @@ export const getFirstNoteId = (event: any): string | number | null => {
  * Vertical navigation (up/down) is handled by calculateVerticalNavigation in interaction.ts.
  */
 export const navigateSelection = (
-  measures: any[],
-  selection: any,
+  measures: Measure[],
+  selection: Selection,
   direction: string
 ) => {
   const { measureIndex, eventId } = selection;
@@ -317,7 +323,7 @@ export const navigateSelection = (
   const measure = measures[measureIndex];
   if (!measure) return selection;
 
-  const eventIdx = measure.events.findIndex((e: any) => e.id === eventId);
+  const eventIdx = measure.events.findIndex((e: ScoreEvent) => e.id === eventId);
   if (eventIdx === -1) return selection;
 
   if (direction === 'left') {

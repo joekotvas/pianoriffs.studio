@@ -1,8 +1,8 @@
 import { useCallback, RefObject } from 'react';
 import { canModifyEventDuration, canToggleEventDot } from '@/utils/validation';
-import { getNoteDuration } from '@/utils/core';
+
 import { playNote } from '@/engines/toneEngine';
-import { Score, getActiveStaff, Selection, Note as ScoreNote } from '@/types';
+import { Score, getActiveStaff, Selection, Note as ScoreNote, ScoreEvent } from '@/types';
 import { Command } from '@/commands/types';
 import { UpdateEventCommand } from '@/commands/UpdateEventCommand';
 import { UpdateNoteCommand } from '@/commands/UpdateNoteCommand';
@@ -185,9 +185,9 @@ export const useModifiers = ({
     const eventObjects = targets
       .map((t) => {
         const staff = score.staves[t.staffIndex] || getActiveStaff(score);
-        return staff.measures[t.measureIndex]?.events.find((e: any) => e.id === t.eventId);
+        return staff.measures[t.measureIndex]?.events.find((e: ScoreEvent) => e.id === t.eventId);
       })
-      .filter((e): e is any => !!e);
+      .filter((e): e is ScoreEvent => !!e);
 
     if (eventObjects.length === 0) return;
 
@@ -205,7 +205,7 @@ export const useModifiers = ({
     targets.forEach((target) => {
       const staff = score.staves[target.staffIndex] || getActiveStaff(score);
       const measure = staff.measures[target.measureIndex];
-      const event = measure?.events.find((e: any) => e.id === target.eventId);
+      const event = measure?.events.find((e: ScoreEvent) => e.id === target.eventId);
 
       if (event) {
         // Skip if already in target state
@@ -247,9 +247,9 @@ export const useModifiers = ({
       const noteObjects = targets
         .map((t) => {
           const staff = score.staves[t.staffIndex] || getActiveStaff(score);
-          const event = staff.measures[t.measureIndex]?.events.find((e: any) => e.id === t.eventId);
+          const event = staff.measures[t.measureIndex]?.events.find((e: ScoreEvent) => e.id === t.eventId);
           // Explicitly cast or check if it matches ScoreNote interface roughly
-          return event?.notes.find((n: any) => n.id === t.noteId);
+          return event?.notes.find((n: ScoreNote) => n.id === t.noteId);
         })
         .filter((n): n is ScoreNote => !!n && n.pitch !== null); // Filter out rests
 
@@ -275,8 +275,8 @@ export const useModifiers = ({
       targets.forEach((target) => {
         const staff = score.staves[target.staffIndex] || getActiveStaff(score);
         const measure = staff.measures[target.measureIndex];
-        const event = measure?.events.find((e: any) => e.id === target.eventId);
-        const note = event?.notes.find((n: any) => n.id === target.noteId);
+        const event = measure?.events.find((e: ScoreEvent) => e.id === target.eventId);
+        const note = event?.notes.find((n: ScoreNote) => n.id === target.noteId);
 
         // Skip rest notes (null pitch)
         if (note && note.pitch !== null) {
@@ -301,8 +301,8 @@ export const useModifiers = ({
         const staffIdx = selection.staffIndex !== undefined ? selection.staffIndex : 0;
         const staff = score.staves[staffIdx] || getActiveStaff(score);
         const measure = staff.measures[selection.measureIndex];
-        const event = measure?.events.find((e: any) => e.id === selection.eventId);
-        const note = event?.notes.find((n: any) => n.id === selection.noteId);
+        const event = measure?.events.find((e: ScoreEvent) => e.id === selection.eventId);
+        const note = event?.notes.find((n: ScoreNote) => n.id === selection.noteId);
         // Skip rest notes (null pitch)
         if (note && note.pitch !== null) {
           const newPitch = calculateNewPitch(note.pitch, targetType);
@@ -332,10 +332,10 @@ export const useModifiers = ({
       .map((t) => {
         const staff = score.staves[t.staffIndex] || getActiveStaff(score);
         const measure = staff.measures[t.measureIndex];
-        const event = measure?.events.find((e: any) => e.id === t.eventId);
-        return event?.notes.find((n: any) => n.id === t.noteId);
+        const event = measure?.events.find((e: ScoreEvent) => e.id === t.eventId);
+        return event?.notes.find((n: ScoreNote) => n.id === t.noteId);
       })
-      .filter((n): n is any => !!n);
+      .filter((n): n is ScoreNote => !!n);
 
     if (noteObjects.length === 0) return;
 

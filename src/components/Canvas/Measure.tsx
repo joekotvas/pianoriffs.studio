@@ -214,10 +214,12 @@ const Measure: React.FC<MeasureProps> = ({
       {tupletGroups.map((tuplet, idx) => (
         <TupletBracket
           key={`tuplet-${idx}`}
-          group={tuplet}
-          baseY={baseY}
-          staffHeight={CONFIG.lineHeight * 4}
-          theme={theme}
+          startX={tuplet.startX}
+          endX={tuplet.endX}
+          startY={tuplet.startY}
+          endY={tuplet.endY}
+          number={tuplet.number}
+          direction={tuplet.direction}
         />
       ))}
 

@@ -1,3 +1,13 @@
+/**
+ * Interaction Utils Tests
+ *
+ * Tests for navigation and transposition calculation utilities.
+ * Covers: selection nav, ghost cursor, transposition preview.
+ *
+ * @see calculateNextSelection
+ * @see calculateTranspositionWithPreview
+ */
+
 import { calculateNextSelection, calculateTranspositionWithPreview } from '@/utils/interaction';
 
 // Mock utils dependencies if needed, or rely on them being pure functions
@@ -38,6 +48,8 @@ describe('interactionUtils', () => {
         eventId: 'e2',
         noteId: 'n2',
         staffIndex: 0,
+        anchor: null,
+        selectedNotes: [],
       });
     });
 

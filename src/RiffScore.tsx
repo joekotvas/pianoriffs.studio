@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * RiffScore Component
  *
@@ -6,44 +5,71 @@
  * Supports two modes:
  * - Generator Mode: Create blank scores from templates (staff + measureCount)
  * - Render Mode: Load compositions from staves array
+ *
+ * Exposes an imperative API via `window.riffScore` registry for external script control.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useId } from 'react';
 import { DeepPartial, RiffScoreConfig } from './types';
 import { useRiffScore } from './hooks/useRiffScore';
 import { ScoreProvider } from './context/ScoreContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ScoreEditorContent } from './components/Layout/ScoreEditor';
+import { useScoreAPI } from './hooks/useScoreAPI';
 
 interface RiffScoreProps {
+  /** Unique identifier for this RiffScore instance (auto-generated if not provided) */
+  id?: string;
   config?: DeepPartial<RiffScoreConfig>;
 }
 
 /**
+ * Bridge component that connects the API hook to the ScoreContext.
+ * The useScoreAPI hook consumes ScoreContext internally and handles
+ * registry registration/cleanup.
+ */
+const RiffScoreAPIBridge: React.FC<{
+  instanceId: string;
+  config: RiffScoreConfig;
+  children: React.ReactNode;
+}> = ({ instanceId, config, children }) => {
+  // useScoreAPI consumes ScoreContext internally
+  useScoreAPI({ instanceId, config });
+
+  return <>{children}</>;
+};
+
+/**
  * Internal component that handles the config-driven rendering
  */
-const RiffScoreInner: React.FC<RiffScoreProps> = ({ config: userConfig }) => {
+const RiffScoreInner: React.FC<RiffScoreProps> = ({ id, config: userConfig }) => {
   const { config, initialScore } = useRiffScore(userConfig);
-  const { theme } = useTheme();
+  const { theme: _theme } = useTheme();
+
+  // Use React's useId() for SSR-compatible auto-generated IDs
+  const reactId = useId();
+  const instanceId = id || `riffScore${reactId}`;
 
   // Container style for interaction master switch
-  const containerStyle = useMemo(
+  const containerStyle: React.CSSProperties = useMemo(
     () => ({
-      pointerEvents: config.interaction.isEnabled ? 'auto' : 'none',
+      pointerEvents: config.interaction.isEnabled ? 'auto' as const : 'none' as const,
       userSelect: 'none' as const,
     }),
     [config.interaction.isEnabled]
   );
 
   return (
-    <div className="RiffScore" style={containerStyle}>
+    <div className="RiffScore" style={containerStyle} data-riffscore-id={instanceId}>
       <ScoreProvider initialScore={initialScore}>
-        <ScoreEditorContent
-          scale={config.ui.scale}
-          showToolbar={config.ui.showToolbar}
-          enableKeyboard={config.interaction.enableKeyboard}
-          enablePlayback={config.interaction.enablePlayback}
-        />
+        <RiffScoreAPIBridge instanceId={instanceId} config={config}>
+          <ScoreEditorContent
+            scale={config.ui.scale}
+            showToolbar={config.ui.showToolbar}
+            enableKeyboard={config.interaction.enableKeyboard}
+            enablePlayback={config.interaction.enablePlayback}
+          />
+        </RiffScoreAPIBridge>
       </ScoreProvider>
     </div>
   );
@@ -63,11 +89,16 @@ const RiffScoreInner: React.FC<RiffScoreProps> = ({ config: userConfig }) => {
  * @example
  * // Disable all interaction (read-only display)
  * <RiffScore config={{ interaction: { isEnabled: false } }} />
+ *
+ * @example
+ * // Access API via window.riffScore
+ * <RiffScore id="my-score" />
+ * // Then in console: window.riffScore.get('my-score').addNote('C4')
  */
-export const RiffScore: React.FC<RiffScoreProps> = ({ config }) => {
+export const RiffScore: React.FC<RiffScoreProps> = ({ id, config }) => {
   return (
     <ThemeProvider initialTheme={config?.ui?.theme}>
-      <RiffScoreInner config={config} />
+      <RiffScoreInner id={id} config={config} />
     </ThemeProvider>
   );
 };

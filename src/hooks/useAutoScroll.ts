@@ -5,19 +5,14 @@ import {
   calculateMeasureLayout,
   calculateHeaderLayout,
 } from '@/engines/layout';
-import { getActiveStaff, Score, Selection } from '@/types';
+import { getActiveStaff, Score, Selection, PreviewNote } from '@/types';
 import { getNoteDuration } from '@/utils/core';
 
 // ------------------------------------------------------------------
 // Types & Interfaces
 // ------------------------------------------------------------------
 
-interface PreviewNote {
-  source?: 'hover' | 'keyboard' | string;
-  measureIndex: number | null;
-  mode: 'APPEND' | 'INSERT';
-  index: number;
-}
+
 
 interface UseAutoScrollProps {
   containerRef: React.RefObject<HTMLDivElement | null>;

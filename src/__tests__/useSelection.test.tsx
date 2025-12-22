@@ -1,3 +1,11 @@
+/**
+ * useSelection Hook Tests
+ *
+ * Tests for selection state management: select, clear, multi-select, event selection.
+ *
+ * @see useSelection
+ */
+
 import { renderHook, act } from '@testing-library/react';
 import { useSelection } from '@/hooks/useSelection';
 import { createDefaultScore } from '@/types';

@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, getActiveStaff } from '@/types';
+import { Score } from '@/types';
 
 /**
  * Command to apply tuplet metadata to a group of consecutive events.
@@ -16,12 +16,14 @@ export class ApplyTupletCommand implements Command {
     private measureIndex: number,
     private startEventIndex: number,
     private groupSize: number,
-    private ratio: [number, number] // e.g., [3, 2] for triplet
+    private ratio: [number, number], // e.g., [3, 2] for triplet
+    private staffIndex: number = 0
   ) {}
 
   execute(score: Score): Score {
-    const activeStaff = getActiveStaff(score);
-    const newMeasures = [...activeStaff.measures];
+    const staff = score.staves[this.staffIndex];
+    if (!staff) return score;
+    const newMeasures = [...staff.measures];
 
     if (!newMeasures[this.measureIndex]) {
       return score; // Measure not found
@@ -86,14 +88,15 @@ export class ApplyTupletCommand implements Command {
     newMeasures[this.measureIndex] = measure;
 
     const newStaves = [...score.staves];
-    newStaves[0] = { ...activeStaff, measures: newMeasures };
+    newStaves[this.staffIndex] = { ...staff, measures: newMeasures };
 
     return { ...score, staves: newStaves };
   }
 
   undo(score: Score): Score {
-    const activeStaff = getActiveStaff(score);
-    const newMeasures = [...activeStaff.measures];
+    const staff = score.staves[this.staffIndex];
+    if (!staff) return score;
+    const newMeasures = [...staff.measures];
 
     if (!newMeasures[this.measureIndex]) {
       return score;
@@ -118,7 +121,7 @@ export class ApplyTupletCommand implements Command {
     newMeasures[this.measureIndex] = measure;
 
     const newStaves = [...score.staves];
-    newStaves[0] = { ...activeStaff, measures: newMeasures };
+    newStaves[this.staffIndex] = { ...staff, measures: newMeasures };
 
     return { ...score, staves: newStaves };
   }

@@ -60,15 +60,18 @@ export const useDragToSelect = ({
   const [justFinishedDrag, setJustFinishedDrag] = useState(false);
 
   // Calculate selection rectangle from start and current points
-  const selectionRect =
-    dragState.isDragging && dragState.startPoint && dragState.currentPoint
-      ? {
-          x: Math.min(dragState.startPoint.x, dragState.currentPoint.x),
-          y: Math.min(dragState.startPoint.y, dragState.currentPoint.y),
-          width: Math.abs(dragState.currentPoint.x - dragState.startPoint.x),
-          height: Math.abs(dragState.currentPoint.y - dragState.startPoint.y),
-        }
-      : null;
+  const selectionRect = useMemo(
+    () =>
+      dragState.isDragging && dragState.startPoint && dragState.currentPoint
+        ? {
+            x: Math.min(dragState.startPoint.x, dragState.currentPoint.x),
+            y: Math.min(dragState.startPoint.y, dragState.currentPoint.y),
+            width: Math.abs(dragState.currentPoint.x - dragState.startPoint.x),
+            height: Math.abs(dragState.currentPoint.y - dragState.startPoint.y),
+          }
+        : null,
+    [dragState.isDragging, dragState.startPoint, dragState.currentPoint]
+  );
 
   // Check if a note intersects with the selection rectangle
   const noteIntersectsRect = useCallback(
@@ -196,6 +199,8 @@ export const useDragToSelect = ({
   }, [
     dragState.isDragging,
     dragState.isAdditive,
+    dragState.startPoint,
+    dragState.currentPoint,
     getSelectedNotes,
     onSelectionComplete,
     svgRef,

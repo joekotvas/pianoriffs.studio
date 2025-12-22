@@ -1,10 +1,17 @@
-import React, { forwardRef, useImperativeHandle, useState } from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+/**
+ * ScoreEditor Interaction Tests
+ *
+ * Integration tests for mouse/keyboard interaction with ScoreEditor.
+ * Covers: note entry, deletion, cursor advance, multi-select.
+ *
+ * @see ScoreEditor
+ */
+
+import React, { forwardRef, useImperativeHandle } from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ScoreEditor from '@components/Layout/ScoreEditor';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { createDefaultScore } from '@/types';
-import { CONFIG } from '@/config';
 
 // Fix JSDOM missing scrollTo
 Element.prototype.scrollTo = jest.fn();
@@ -136,7 +143,7 @@ describe('ScoreEditor Interactions', () => {
   test('User can delete a selected note', async () => {
     const score = createDefaultScore();
     // Setup: Add a note first
-    const { unmount } = render(
+    render(
       <ThemeProvider>
         <ScoreEditor label="Interaction Test" initialData={score} />
       </ThemeProvider>
@@ -180,8 +187,9 @@ describe('ScoreEditor Interactions', () => {
     // We need to wait for re-render.
     // Using `queryAllByTestId` to check absence.
     // Note: We need to wait for the DOM to update.
-    await act(async () => {
-      // Let effect queue flush
+    // Wait for re-render to complete
+    await waitFor(() => {
+      expect(screen.queryAllByTestId(/^chord-/)).toHaveLength(0);
     });
 
     const remainingChords = screen.queryAllByTestId(/^chord-/);

@@ -119,6 +119,8 @@ MAJOR_ROOTS.forEach((majorRoot) => {
 export interface KeySignatureOffsets {
   treble: { sharp: Record<string, number>; flat: Record<string, number> };
   bass: { sharp: Record<string, number>; flat: Record<string, number> };
+  alto: { sharp: Record<string, number>; flat: Record<string, number> };
+  tenor: { sharp: Record<string, number>; flat: Record<string, number> };
 }
 
 export const KEY_SIGNATURE_OFFSETS: KeySignatureOffsets = {
@@ -140,6 +142,48 @@ export const KEY_SIGNATURE_OFFSETS: KeySignatureOffsets = {
       G: STAFF_POSITION.line2,
       C: STAFF_POSITION.space3,
       F: STAFF_POSITION.space1,
+    },
+  },
+  alto: {
+    sharp: {
+      F: STAFF_POSITION.line3, // C-clef center is Line 3 (Middle C)
+      C: STAFF_POSITION.space1,
+      G: STAFF_POSITION.aboveStaff, // or space 5
+      D: STAFF_POSITION.line2,
+      A: STAFF_POSITION.space4,
+      E: STAFF_POSITION.space2,
+      B: STAFF_POSITION.line4,
+    },
+    flat: {
+      B: STAFF_POSITION.line4,
+      E: STAFF_POSITION.space2,
+      A: STAFF_POSITION.space4,
+      D: STAFF_POSITION.line2,
+      G: STAFF_POSITION.aboveStaff,
+      C: STAFF_POSITION.space2,
+      F: STAFF_POSITION.line1,
+    },
+  },
+  // Tenor Clef: Line 4 = C4 (Middle C)
+  // Line 1=D3, Space1=E3, Line2=F3, Space2=G3, Line3=A3, Space3=B3, Line4=C4, Space4=D4, Line5=E4
+  tenor: {
+    sharp: {
+      F: STAFF_POSITION.space4, // F4
+      C: STAFF_POSITION.line4, // C4 is Line 4, so C#4 is on Line 4
+      G: STAFF_POSITION.aboveStaff, // G4 is above staff
+      D: STAFF_POSITION.space4, // D4
+      A: STAFF_POSITION.line3, // A3
+      E: STAFF_POSITION.line5, // E4
+      B: STAFF_POSITION.space3, // B3
+    },
+    flat: {
+      B: STAFF_POSITION.space3, // B3
+      E: STAFF_POSITION.line5, // E4
+      A: STAFF_POSITION.line3, // A3
+      D: STAFF_POSITION.space4, // D4
+      G: STAFF_POSITION.aboveStaff, // G4
+      C: STAFF_POSITION.line4, // C4
+      F: STAFF_POSITION.space2, // F3
     },
   },
   bass: {
@@ -176,8 +220,18 @@ export interface ClefType {
 export const CLEF_TYPES: Record<string, ClefType> = {
   treble: { label: 'Treble' },
   bass: { label: 'Bass' },
+  alto: { label: 'Alto' },
+  tenor: { label: 'Tenor' },
   grand: { label: 'Grand', isGrand: true },
 };
+// =============================================================================
+// CLEF CONFIGURATION
+// =============================================================================
+
+// Clef configuration logic moved to utils/clef.ts for cleaner separation.
+// Re-exported here for backward compatibility.
+export { CLEF_CONFIG, getClefConfig } from './utils/clef';
+export type { ClefConfig } from './utils/clef';
 
 // =============================================================================
 // NOTE TYPES

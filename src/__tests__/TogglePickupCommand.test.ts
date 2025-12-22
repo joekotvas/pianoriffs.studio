@@ -1,3 +1,12 @@
+/**
+ * TogglePickupCommand Tests
+ *
+ * Tests for toggling pickup measure on first measure.
+ * Covers: single staff, grand staff, undo, empty measures.
+ *
+ * @see TogglePickupCommand
+ */
+
 import { TogglePickupCommand } from '@/commands/TogglePickupCommand';
 import { Score, createDefaultScore } from '@/types';
 

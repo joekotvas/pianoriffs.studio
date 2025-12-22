@@ -1,19 +1,8 @@
-import { useMemo, useRef } from 'react';
-import { ScoreEvent } from '@/types';
+import { useMemo } from 'react';
+import { ScoreEvent, PreviewNote, Selection } from '@/types';
 import { calculateChordLayout } from '@/engines/layout';
 import { HitZone } from '@/engines/layout/types';
 import { CONFIG } from '@/config';
-
-interface PreviewNote {
-  measureIndex: number;
-  index: number;
-  mode: 'CHORD' | 'INSERT' | 'APPEND';
-  duration: string;
-  dotted: boolean;
-  pitch?: string;
-  isRest?: boolean;
-  [key: string]: any;
-}
 
 interface UsePreviewRenderParams {
   previewNote: PreviewNote | null;
@@ -24,13 +13,15 @@ interface UsePreviewRenderParams {
   hitZones: HitZone[];
   eventPositions: Record<string, number>;
   totalWidth: number;
-  selectedNotes?: any[];
+  selectedNotes?: Selection['selectedNotes'];
 }
 
 interface PreviewRenderResult {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chordNotes: any[];
   quant: number;
   x: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chordLayout: any;
 }
 
@@ -54,8 +45,8 @@ export function usePreviewRender({
   totalWidth,
   selectedNotes,
 }: UsePreviewRenderParams): PreviewRenderResult | null {
-  // Cache for rest previews to prevent recalculation on pitch changes
-  const restPreviewCacheRef = useRef<{ key: string; result: PreviewRenderResult } | null>(null);
+  // Use useMemo to cache preview rendering instead of ref to avoid ref-access-during-render errors.
+  // This approach ensures proper React rendering lifecycle while maintaining performance.
 
   return useMemo(() => {
     if (!previewNote) return null;
@@ -69,20 +60,13 @@ export function usePreviewRender({
       return null;
     }
 
-    // For rests, use cached result if key fields haven't changed (ignore pitch)
-    if (previewNote.isRest) {
-      const cacheKey = `${previewNote.measureIndex}-${previewNote.index}-${previewNote.mode}-${previewNote.duration}-${previewNote.dotted}`;
-      if (restPreviewCacheRef.current && restPreviewCacheRef.current.key === cacheKey) {
-        return restPreviewCacheRef.current.result;
-      }
-    }
-
     const visualTempNote = {
       ...previewNote,
       quant: 0, // Not used for positioning anymore
       id: 'preview',
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let combinedNotes: any[] = [visualTempNote];
     let xPos = 0;
 
@@ -97,6 +81,7 @@ export function usePreviewRender({
       const existingEvent = events[previewNote.index];
       if (existingEvent) {
         xPos = eventPositions[existingEvent.id];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         combinedNotes = [...(existingEvent.notes as any[]), visualTempNote];
       }
     } else if (previewNote.mode === 'INSERT') {
@@ -117,6 +102,7 @@ export function usePreviewRender({
     }
 
     // Use any to match layout engine's flexible typing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chordLayout = calculateChordLayout(combinedNotes as any, clef);
 
     const result: PreviewRenderResult = {
@@ -125,12 +111,6 @@ export function usePreviewRender({
       x: xPos,
       chordLayout,
     };
-
-    // Cache rest preview result
-    if (previewNote.isRest) {
-      const cacheKey = `${previewNote.measureIndex}-${previewNote.index}-${previewNote.mode}-${previewNote.duration}-${previewNote.dotted}`;
-      restPreviewCacheRef.current = { key: cacheKey, result };
-    }
 
     return result;
   }, [

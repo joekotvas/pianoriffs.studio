@@ -1,5 +1,32 @@
 import { CONFIG } from '@/config';
 import { getNoteDuration, calculateTotalQuants } from './core';
+import { ScoreEvent } from '@/types';
+
+/**
+ * Regex pattern for scientific pitch notation.
+ * Matches: A-G, optional accidentals (# or b, double sharp ## or double flat bb), octave number (0 or higher)
+ * Examples: "C4", "F#5", "Bb3", "G##7", "Ebb2", "C10"
+ */
+const PITCH_PATTERN = /^[A-G](#{1,2}|b{1,2})?\d+$/;
+
+/**
+ * Validates if a pitch string is in valid scientific notation format.
+ * 
+ * @param pitch - The pitch string to validate (e.g., "C4", "F#5", "Bb3")
+ * @returns True if valid scientific notation, false otherwise
+ * 
+ * @example
+ * isValidPitch('C4');    // true
+ * isValidPitch('F#5');   // true  
+ * isValidPitch('Bb3');   // true
+ * isValidPitch('H4');    // false (H is not a valid note)
+ * isValidPitch('C');     // false (missing octave)
+ * isValidPitch('');      // false
+ */
+export const isValidPitch = (pitch: string): boolean => {
+  if (!pitch || typeof pitch !== 'string') return false;
+  return PITCH_PATTERN.test(pitch);
+};
 
 /**
  * Checks if a new event with the given duration can fit in the measure.
@@ -10,7 +37,7 @@ import { getNoteDuration, calculateTotalQuants } from './core';
  * @returns True if it fits, False otherwise
  */
 export const canAddEventToMeasure = (
-  events: any[],
+  events: ScoreEvent[],
   duration: string,
   dotted: boolean,
   maxQuants: number = CONFIG.quantsPerMeasure
@@ -29,18 +56,18 @@ export const canAddEventToMeasure = (
  * @returns True if valid, False otherwise
  */
 export const canModifyEventDuration = (
-  events: any[],
+  events: ScoreEvent[],
   eventId: string | number,
   targetDuration: string,
   maxQuants: number = CONFIG.quantsPerMeasure
 ): boolean => {
-  const eventIndex = events.findIndex((e: any) => e.id === eventId);
+  const eventIndex = events.findIndex((e: ScoreEvent) => e.id === eventId);
   if (eventIndex === -1) return true; // Defensive: If event doesn't exist, we can't strict check
 
   const currentEvent = events[eventIndex];
 
   // Calculate total of ALL OTHER events
-  const otherEventsQuants = events.reduce((acc: number, e: any, idx: number) => {
+  const otherEventsQuants = events.reduce((acc: number, e: ScoreEvent, idx: number) => {
     if (idx === eventIndex) return acc;
     return acc + getNoteDuration(e.duration, e.dotted, e.tuplet);
   }, 0);
@@ -59,17 +86,17 @@ export const canModifyEventDuration = (
  * @returns True if valid, False otherwise
  */
 export const canToggleEventDot = (
-  events: any[],
+  events: ScoreEvent[],
   eventId: string | number,
   maxQuants: number = CONFIG.quantsPerMeasure
 ): boolean => {
-  const eventIndex = events.findIndex((e: any) => e.id === eventId);
+  const eventIndex = events.findIndex((e: ScoreEvent) => e.id === eventId);
   if (eventIndex === -1) return true;
 
   const currentEvent = events[eventIndex];
 
   // Calculate total of ALL OTHER events
-  const otherEventsQuants = events.reduce((acc: number, e: any, idx: number) => {
+  const otherEventsQuants = events.reduce((acc: number, e: ScoreEvent, idx: number) => {
     if (idx === eventIndex) return acc;
     return acc + getNoteDuration(e.duration, e.dotted, e.tuplet);
   }, 0);

@@ -1,5 +1,14 @@
+/**
+ * SetSingleStaffCommand Tests
+ *
+ * Tests for converting grand staff back to single staff.
+ * Covers: keep treble, keep bass, undo, no-op when already single.
+ *
+ * @see SetSingleStaffCommand
+ */
+
 import { SetSingleStaffCommand } from '@/commands/SetSingleStaffCommand';
-import { Score, Staff, Measure } from '@/types';
+import { Score, Staff } from '@/types';
 
 describe('SetSingleStaffCommand', () => {
   const createGrandStaffScore = (): Score => {

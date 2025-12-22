@@ -1,3 +1,13 @@
+/**
+ * Anchor Selection Logic Tests
+ *
+ * Tests for calculateNoteRange and getLinearizedNotes utilities.
+ * Covers: forward/backward range, single item, not found.
+ *
+ * @see calculateNoteRange
+ * @see getLinearizedNotes
+ */
+
 import { calculateNoteRange, getLinearizedNotes } from '@/utils/selection';
 import { Score } from '@/types';
 

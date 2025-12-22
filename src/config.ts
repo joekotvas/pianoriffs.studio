@@ -26,6 +26,7 @@ export interface Config {
     logCommands: boolean;
     logStateChanges: boolean;
     logValidation: boolean;
+    showHitZones?: boolean;
   };
 }
 
@@ -45,5 +46,6 @@ export const CONFIG: Config = {
     logCommands: true,
     logStateChanges: true,
     logValidation: true,
+    showHitZones: false, // Show red/cyan debug rectangles for hit zones
   },
 };

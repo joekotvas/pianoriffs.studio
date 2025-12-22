@@ -38,8 +38,11 @@ const ClefIcon: React.FC<ClefIconProps> = ({ clef, ...props }) => {
       case 'bass':
         return { fontSize: 42, x: 28, y: 20 };
       case 'alto':
+        // C-clef centered on Line 3 (middle line)
+        return { fontSize: 42, x: 30, y: 30 };
       case 'tenor':
-        return { fontSize: 32, x: 30, y: 32 };
+        // C-clef centered on Line 4 (lower than alto)
+        return { fontSize: 42, x: 30, y: 40 };
       default:
         return { fontSize: 42, x: 30, y: 40 };
     }

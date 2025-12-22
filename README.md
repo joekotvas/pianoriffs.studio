@@ -32,7 +32,7 @@ That's it! RiffScore renders a fully interactive grand staff editor with sensibl
 ```tsx
 <RiffScore config={{
   score: { 
-    staff: 'treble',      // 'grand' | 'treble' | 'bass'
+    staff: 'treble',      // 'grand' | 'treble' | 'bass' | 'alto' | 'tenor'
     measureCount: 4,
     keySignature: 'G'
   }
@@ -48,8 +48,6 @@ That's it! RiffScore renders a fully interactive grand staff editor with sensibl
 }} />
 ```
 
-See the [Configuration Guide](./docs/CONFIGURATION.md) for all available options.
-
 ---
 
 ## Features
@@ -57,9 +55,9 @@ See the [Configuration Guide](./docs/CONFIGURATION.md) for all available options
 *   **Self-Hostable**: No external dependencies or platform lock-in.
 *   **Embeddable**: Drop it into any React application.
 *   **Configurable**: Full control over UI, interactions, and score content.
+*   **Imperative API**: Programmatically control the score via `window.riffScore` ([API Reference](./docs/API.md))
 *   **SMuFL Compliance**: Beautiful engraving using the [Bravura](https://github.com/steinbergmedia/bravura) font.
-*   **Interactive**: Full editing capabilities right in the browser.
-*   **Music Engine**: Powered by [Tonal.js](https://github.com/tonaljs/tonal) for music theory logic and [Tone.js](https://tonejs.github.io/) for accurate browser-based playback.
+*   **Music Engine**: Powered by [Tonal.js](https://github.com/tonaljs/tonal) for music theory and [Tone.js](https://tonejs.github.io/) for playback.
 *   **Export Options**: JSON, MusicXML, and ABC notation export.
 *   **Theming**: Built-in dark, light, cool, and warm themes.
 *   **MIDI Input**: Connect a MIDI keyboard for note entry.
@@ -68,13 +66,27 @@ See the [Configuration Guide](./docs/CONFIGURATION.md) for all available options
 
 ## Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `1`-`7` | Set note duration (64th to whole) |
-| `R` | Toggle note/rest mode |
-| `Space` | Play / Pause |
-| `Cmd+Z` | Undo |
-| `↑` / `↓` | Transpose selection |
+| Mac | Windows | Action |
+|-----|---------|--------|
+| **Entry & Editing** |||
+| `1`-`7` | `1`-`7` | Set duration (64th to whole) |
+| `.` | `.` | Toggle dotted |
+| `R` | `R` | Toggle note/rest mode |
+| `T` | `T` | Toggle tie |
+| `Enter` | `Enter` | Insert note/rest at cursor |
+| `↑` / `↓` | `↑` / `↓` | Transpose selection |
+| **Navigation & Selection** |||
+| `←` / `→` | `←` / `→` | Previous / Next event |
+| `Shift+←/→` | `Shift+←/→` | Extend selection horizontally |
+| `Cmd+↑/↓` | `Ctrl+↑/↓` | Navigate within chord |
+| `Cmd+Shift+↑/↓` | `Ctrl+Shift+↑/↓` | Extend selection vertically |
+| `Cmd+A` | `Ctrl+A` | Select all (progressive) |
+| `Esc` | `Esc` | Clear selection / Cancel |
+| **Playback** |||
+| `Space` | `Space` | Play / Pause |
+| **History** |||
+| `Cmd+Z` | `Ctrl+Z` | Undo |
+| `Cmd+Shift+Z` | `Ctrl+Y` | Redo |
 
 See the [Interaction Guide](./docs/INTERACTION.md) for the complete keyboard reference.
 
@@ -82,13 +94,57 @@ See the [Interaction Guide](./docs/INTERACTION.md) for the complete keyboard ref
 
 ## Documentation
 
+### Getting Started
+
 | Guide | Description |
 |-------|-------------|
-| 📖 [Configuration](./docs/CONFIGURATION.md) | Complete API reference for config options |
-| 📘 [Architecture](./docs/ARCHITECTURE.md) | Technical reference for developers |
-| 🎨 [Interaction Design](./docs/INTERACTION.md) | Guide to the intuitive editing behavior |
-| 🤝 [Contributing](./docs/CONTRIBUTING.md) | How to set up and contribute to the project |
+| 📖 [Configuration](./docs/CONFIGURATION.md) | All config options for `<RiffScore />` |
+| 🎹 [API Reference](./docs/API.md) | Imperative API for script control |
+| 📗 [Cookbook](./docs/COOKBOOK.md) | Task-oriented recipes and examples |
+
+### Deep Dives
+
+| Guide | Description |
+|-------|-------------|
+| 🎨 [Interaction Design](./docs/INTERACTION.md) | UX philosophy and editor states |
+| ⌨️ [Keyboard Navigation](./docs/KEYBOARD_NAVIGATION.md) | Navigation state machine details |
+| 🎯 [Selection Model](./docs/SELECTION.md) | Multi-selection and vertical extension |
+
+### Architecture
+
+| Guide | Description |
+|-------|-------------|
+| 📘 [Architecture](./docs/ARCHITECTURE.md) | Technical overview and design principles |
+| 🧱 [Data Model](./docs/DATA_MODEL.md) | Score schema and quant system |
+| 🔧 [Commands](./docs/COMMANDS.md) | Command pattern reference |
+| 🎼 [Layout Engine](./docs/LAYOUT_ENGINE.md) | Engraving and positioning |
+| 📜 [ADRs](./docs/adr/) | Architecture Decision Records |
+
+### Contributing
+
+| Guide | Description |
+|-------|-------------|
+| 🤝 [Contributing](./docs/CONTRIBUTING.md) | Dev setup and guidelines |
+| 🧪 [Testing](./docs/TESTING.md) | Test patterns and fixtures |
 | 📋 [Changelog](./CHANGELOG.md) | Release history |
+
+---
+
+## Imperative API
+
+Control the editor programmatically:
+
+```javascript
+const api = window.riffScore.active;
+
+api.select(1)              // Measure 1
+   .addNote('C4', 'quarter')
+   .addNote('E4')
+   .addNote('G4')
+   .addTone('C5');          // Stack into chord
+```
+
+See the [API Reference](./docs/API.md) for all available methods.
 
 ---
 
@@ -98,7 +154,7 @@ See the [Interaction Guide](./docs/INTERACTION.md) for the complete keyboard ref
 riffscore/
 ├── src/        ← Library source
 ├── demo/       ← Next.js demo app
-├── docs/       ← Documentation (architecture, configuration, etc.)
+├── docs/       ← Documentation
 ├── dist/       ← Built library (ESM/CJS/DTS)
 └── tsup.config.ts
 ```
@@ -121,6 +177,7 @@ npm run demo:dev
 
 ## Coming Soon
 
-*   **Imperative API**: Programmatically control the score (e.g., `score.addNote(...)`)
 *   **Chord Symbols**: Input and playback for lead sheets
 *   **Import**: ABC and MusicXML import
+*   **Clipboard API**: Copy, cut, and paste operations
+*   **Playback API**: Programmatic play/pause control

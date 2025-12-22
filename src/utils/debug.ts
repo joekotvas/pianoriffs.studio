@@ -25,7 +25,7 @@ export class DebugLogger {
     return true;
   }
 
-  public log(message: string, data?: any, level: LogLevel = LogLevel.INFO) {
+  public log(message: string, data?: unknown, level: LogLevel = LogLevel.INFO) {
     if (!this.shouldLog(level)) return;
 
     const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
@@ -59,7 +59,7 @@ export class DebugLogger {
     }
   }
 
-  public logCommand(commandType: string, payload?: any) {
+  public logCommand(commandType: string, payload?: unknown) {
     if (CONFIG.debug?.logCommands) {
       this.log(`COMMAND: ${commandType}`, payload, LogLevel.INFO);
     }
@@ -71,7 +71,7 @@ export class DebugLogger {
     }
   }
 
-  public logValidationFailure(reason: string, context?: any) {
+  public logValidationFailure(reason: string, context?: unknown) {
     if (CONFIG.debug?.logValidation) {
       this.log(`VALIDATION FAILED: ${reason}`, context, LogLevel.ERROR);
     }

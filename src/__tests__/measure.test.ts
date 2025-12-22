@@ -1,10 +1,20 @@
+/**
+ * Measure Layout Tests
+ *
+ * Comprehensive tests for measure layout engine.
+ * Covers: empty measures, positioning, accidentals, chords, tuplets, hit zones.
+ *
+ * @see calculateMeasureLayout
+ * @see analyzePlacement
+ */
+
 import {
   calculateMeasureLayout,
   calculateMeasureWidth,
   analyzePlacement,
 } from '@/engines/layout/measure';
 import { calculateSystemLayout } from '@/engines/layout/system';
-import { calculateChordLayout, calculateBeamingGroups } from '@/engines/layout';
+import { calculateChordLayout } from '@/engines/layout';
 import { Note, ScoreEvent } from '@/engines/layout/types';
 import { CONFIG } from '@/config';
 import { NOTE_SPACING_BASE_UNIT, WHOLE_REST_WIDTH } from '@/constants';

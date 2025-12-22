@@ -2,7 +2,28 @@ import { useEffect, useCallback } from 'react';
 import { handlePlayback } from './handlers/handlePlayback';
 import { handleNavigation } from './handlers/handleNavigation';
 import { handleMutation } from './handlers/handleMutation';
-import { getActiveStaff } from '@/types';
+import { getActiveStaff, ScoreEvent, Note, SelectedNote } from '@/types';
+import { UseScoreLogicGroupedReturn } from '@/hooks/score/types';
+import {
+  SelectAllInEventCommand,
+  ClearSelectionCommand,
+  SelectAllCommand,
+  ExtendSelectionVerticallyCommand,
+} from '@/commands/selection';
+
+/**
+ * Playback state returned by usePlayback hook
+ */
+interface PlaybackState {
+  isPlaying: boolean;
+  playbackPosition: { measureIndex: number | null; quant: number | null; duration: number };
+  playScore: (startMeasureIndex?: number, startQuant?: number) => Promise<void>;
+  stopPlayback: () => void;
+  pausePlayback: () => void;
+  handlePlayToggle: () => void;
+  lastPlayStart: { measureIndex: number; quant: number };
+  instrumentState: string;
+}
 
 /**
  * Hook to handle global keyboard shortcuts.
@@ -21,14 +42,18 @@ interface UIState {
   isDisabled?: boolean;
 }
 
-export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, handlers: any) => {
-  const { selection, score, moveSelection, setSelection, scoreRef, switchStaff } = logic;
+export const useKeyboardShortcuts = (logic: UseScoreLogicGroupedReturn, playback: PlaybackState, meta: UIState, handlers: { handleTitleCommit: () => void }) => {
+  // Access grouped API from logic
+  const { selection } = logic.state;
+  const score = logic.state.score;
+  const { move: moveSelection, switchStaff } = logic.navigation;
+  const { selectionEngine, scoreRef } = logic.engines;
 
   const { isEditingTitle, isHoveringScore, scoreContainerRef, isAnyMenuOpen } = meta;
   const { handleTitleCommit } = handlers;
 
   const handleKeyDown = useCallback(
-    (e: any) => {
+    (e: KeyboardEvent) => {
       const tagName = (e.target as HTMLElement).tagName?.toLowerCase() || '';
       if (tagName === 'input' || tagName === 'textarea') {
         if (e.key === 'Enter' && isEditingTitle) {
@@ -53,7 +78,6 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
 
       if (e.key === 'Escape') {
         e.preventDefault(); // Prevent default browser behavior for Escape key
-        console.log('ESC Pressed. Focused:', document.activeElement?.getAttribute('data-testid'));
 
         // First priority: Pause playback if playing
         if (playback.isPlaying) {
@@ -71,51 +95,51 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
           // If a single note is selected...
           const activeStaff = getActiveStaff(scoreRef.current);
           const measure = activeStaff.measures[selection.measureIndex!];
-          const event = measure.events.find((ev: any) => ev.id === selection.eventId);
+          const event = measure.events.find((ev: ScoreEvent) => ev.id === selection.eventId);
 
           if (event && event.notes.length > 1) {
             // Check if we already have ALL notes selected
-            const allSelected = event.notes.every((n: any) => {
+            const allSelected = event.notes.every((n: Note) => {
               if (String(n.id) === String(selection.noteId)) return true;
-              return selection.selectedNotes.some((sn: any) => String(sn.noteId) === String(n.id));
+              return selection.selectedNotes.some((sn: SelectedNote) => String(sn.noteId) === String(n.id));
             });
 
             if (!allSelected) {
-              // Select ALL notes in the chord
-              // We keep the current focus (noteId) but add everyone else to selectedNotes
-              const allNoteSelections = event.notes.map((n: any) => ({
+              // Select ALL notes in the chord via dispatch
+              selectionEngine.dispatch(new SelectAllInEventCommand({
                 staffIndex: selection.staffIndex || 0,
                 measureIndex: selection.measureIndex!,
                 eventId: selection.eventId!,
-                noteId: n.id,
               }));
-
-              setSelection({
-                ...selection,
-                selectedNotes: allNoteSelections,
-              });
               return;
             }
           }
 
-          // If all selected OR single note, clear selection
-          setSelection({
-            staffIndex: 0,
-            measureIndex: null,
-            eventId: null,
-            noteId: null,
-            selectedNotes: [],
-          });
+          // If all selected OR single note, clear selection via dispatch
+          selectionEngine.dispatch(new ClearSelectionCommand());
         } else if (selection.eventId) {
-          // If event is selected (fallback for rests), clear selection
-          setSelection({
-            staffIndex: 0,
-            measureIndex: null,
-            eventId: null,
-            noteId: null,
-            selectedNotes: [],
-          });
+          // If event is selected (fallback for rests), clear selection via dispatch
+          selectionEngine.dispatch(new ClearSelectionCommand());
         }
+        return;
+      }
+
+      // Cmd/Ctrl+A: Select all with progressive expansion
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        selectionEngine.dispatch(new SelectAllCommand({
+          expandIfSelected: true,
+          staffIndex: selection.staffIndex,
+          measureIndex: selection.measureIndex ?? undefined,
+        }));
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+Up/Down: Extend selection vertically
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const direction = e.key === 'ArrowUp' ? 'up' : 'down';
+        selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction }));
         return;
       }
 
@@ -131,16 +155,17 @@ export const useKeyboardShortcuts = (logic: any, playback: any, meta: UIState, h
     [
       logic,
       playback,
-      meta,
-      handlers,
       selection,
       score,
       moveSelection,
       switchStaff,
+      selectionEngine,
       isEditingTitle,
       handleTitleCommit,
       isHoveringScore,
       scoreContainerRef,
+      isAnyMenuOpen,
+      scoreRef,
     ]
   );
 

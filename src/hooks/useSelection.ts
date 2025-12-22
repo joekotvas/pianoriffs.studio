@@ -1,35 +1,182 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Selection, createDefaultSelection, Score, getActiveStaff } from '@/types';
-import { toggleNoteInSelection, calculateNoteRange, getLinearizedNotes } from '@/utils/selection';
+/**
+ * useSelection Hook
+ *
+ * Manages selection state for the score editor using the command pattern.
+ * All selection mutations go through engine.dispatch() for consistency.
+ *
+ * Key exports:
+ * - selection: Current selection state
+ * - select: Select an event/note
+ * - clearSelection: Clear current selection
+ * - selectAllInMeasure: Select all notes in a measure
+ * - engine: SelectionEngine instance for direct dispatch access
+ *
+ * @see SelectionEngine
+ * @see Issue #135
+ */
+
+import { useState, useCallback, useEffect } from 'react';
+import { Selection, createDefaultSelection, Score, getActiveStaff, Note, ScoreEvent, SelectedNote, Measure } from '@/types';
 import { playNote } from '@/engines/toneEngine';
+import { SelectionEngine } from '@/engines/SelectionEngine';
+import {
+  ClearSelectionCommand,
+  SelectAllInEventCommand,
+  ToggleNoteCommand,
+  RangeSelectCommand,
+  SelectEventCommand,
+  SelectAllInMeasureCommand,
+} from '@/commands/selection';
 
 interface UseSelectionProps {
   score: Score;
-  dispatch?: any;
+}
+
+/** Helper return type for looking up score data */
+interface SelectionTarget {
+  measure: Measure | undefined;
+  event: ScoreEvent | undefined;
+  note: Note | undefined;
+  eventIndex: number;
+  noteIndex: number;
 }
 
 export const useSelection = ({ score }: UseSelectionProps) => {
-  const [selection, setSelection] = useState<Selection>(createDefaultSelection());
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 1. Engine Initialization
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Using lazy initializer to avoid React Compiler side-effect warnings
+  const [engine] = useState(
+    () => new SelectionEngine(createDefaultSelection(), () => score)
+  );
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 2. Sync Engine with React State
+  // ─────────────────────────────────────────────────────────────────────────────
+  const [selection, setSelectionState] = useState<Selection>(() => engine.getState());
   const [lastSelection, setLastSelection] = useState<Selection | null>(null);
 
-  // --- Helpers ---
+  useEffect(() => {
+    engine.setScoreGetter(() => score);
+  }, [score, engine]);
 
-  const playAudioFeedback = useCallback((notes: any[]) => {
-    notes.filter((n) => n.pitch !== null).forEach((n) => playNote(n.pitch));
-  }, []);
+  useEffect(() => {
+    const unsubscribe = engine.subscribe(setSelectionState);
+    return unsubscribe;
+  }, [engine]);
 
-  // --- Actions ---
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. Helpers
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  const clearSelection = useCallback(() => {
-    setSelection((prev) => {
-      setLastSelection(prev);
-      return {
-        ...createDefaultSelection(),
-        staffIndex: prev.staffIndex, // Maintain current staff focus
-      };
+  /** Play audio feedback for notes */
+  const playAudioFeedback = useCallback((notes: Note[]) => {
+    notes.forEach((n) => {
+      if (n.pitch !== null) playNote(n.pitch);
     });
   }, []);
 
+  /**
+   * Resolves IDs to actual Score objects and indices.
+   * Centralizes the lookup logic used by multiple selection modes.
+   */
+  const getSelectionTarget = useCallback((
+    staffIndex: number,
+    measureIndex: number,
+    eventId: string | number,
+    noteId: string | number | null
+  ): SelectionTarget => {
+    const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
+    
+    // Find Event
+    const eventIndex = measure?.events.findIndex((e: ScoreEvent) => e.id === eventId) ?? -1;
+    const event = eventIndex >= 0 ? measure?.events[eventIndex] : undefined;
+
+    // Find Note
+    const noteIndex = (noteId && event)
+      ? event.notes.findIndex((n: Note) => n.id === noteId)
+      : -1;
+    const note = noteIndex >= 0 ? event?.notes[noteIndex] : undefined;
+
+    return { measure, event, note, eventIndex, noteIndex };
+  }, [score]);
+
+  /**
+   * Updates lastSelection state without changing the active engine selection.
+   * Used for "onlyHistory" actions.
+   */
+  const updateHistoryOnly = useCallback((
+    staffIndex: number, 
+    measureIndex: number, 
+    eventId: string | number, 
+    noteId: string | number | null,
+    notes: Note[]
+  ) => {
+    setLastSelection({
+      staffIndex,
+      measureIndex,
+      eventId,
+      noteId,
+      selectedNotes: notes.map(n => ({
+        staffIndex,
+        measureIndex,
+        eventId,
+        noteId: n.id
+      })),
+      anchor: { staffIndex, measureIndex, eventId, noteId }
+    });
+    // Ensure the engine is visually clear
+    engine.dispatch(new ClearSelectionCommand());
+  }, [engine]);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 4. Actions
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Clears the current selection via ClearSelectionCommand.
+   * Stores the previous selection in lastSelection for history.
+   */
+  const clearSelection = useCallback(() => {
+    setLastSelection(engine.getState());
+    engine.dispatch(new ClearSelectionCommand());
+  }, [engine]);
+
+  /**
+   * Selects all notes in a measure.
+   *
+   * Uses dispatch pattern via SelectAllInMeasureCommand.
+   *
+   * @param measureIndex - Index of measure to select
+   * @param staffIndex - Staff index (defaults to 0)
+   *
+   * @tested (via SelectAllInMeasureCommand tests)
+   */
+  const selectAllInMeasure = useCallback(
+    (measureIndex: number, staffIndex: number = 0) => {
+      engine.dispatch(new SelectAllInMeasureCommand({ staffIndex, measureIndex }));
+    },
+    [engine]
+  );
+
+  /**
+   * Selects an event or note in the score.
+   *
+   * Handles multiple selection modes:
+   * - **Standard selection**: Replaces current selection with target
+   * - **Multi-select (isMulti)**: Toggles target in selection
+   * - **Range select (isShift)**: Selects all notes between anchor and target
+   * - **Select all in event (selectAllInEvent)**: Selects all notes in the target event
+   * - **History only (onlyHistory)**: Updates lastSelection without visual selection
+   *
+   * All selection changes go through engine.dispatch() as the canonical pattern.
+   *
+   * @param measureIndex - Measure index (null to clear)
+   * @param eventId - Event ID (null to clear)
+   * @param noteId - Note ID (null for event-level selection)
+   * @param staffIndex - Staff index (defaults to 0)
+   * @param options - Selection mode options
+   */
   const select = useCallback(
     (
       measureIndex: number | null,
@@ -43,261 +190,110 @@ export const useSelection = ({ score }: UseSelectionProps) => {
         onlyHistory?: boolean;
       } = {}
     ) => {
-      const {
-        isMulti = false,
-        isShift = false,
-        selectAllInEvent = false,
-        onlyHistory = false,
-      } = options;
+      const { isMulti, isShift, selectAllInEvent, onlyHistory } = options;
 
+      // Guard: No target - clear selection
       if (!eventId || measureIndex === null) {
-        if (!onlyHistory) clearSelection();
+        if (!onlyHistory) engine.dispatch(new ClearSelectionCommand());
         return;
       }
 
-      const startStaffIndex = staffIndex !== undefined ? staffIndex : selection.staffIndex || 0;
+      const effectiveStaffIndex = staffIndex ?? selection.staffIndex ?? 0;
+      const target = getSelectionTarget(effectiveStaffIndex, measureIndex, eventId, noteId);
 
-      // 1. Handle Shift+Click (Range Selection)
+      // Guard: Invalid target (data out of sync?)
+      if (!target.event) return;
+
+      // ── Mode 1: Range Selection (Shift+Click) ──
       if (isShift && !onlyHistory) {
-        // ... (Logic from useNavigation)
-        const anchor = selection.anchor || {
-          staffIndex: selection.staffIndex || 0,
-          measureIndex: selection.measureIndex!,
-          eventId: selection.eventId!,
-          noteId: selection.noteId,
-        };
-
-        // If anchor is invalid (e.g. initial state), just select the target
-        if (!anchor.eventId) {
-          // Fallthrough to standard selection
-        } else {
-          const context = {
-            staffIndex: startStaffIndex,
-            measureIndex,
-            eventId,
-            noteId,
-          };
-
-          // Note: We need linearization logic here.
-          // We can import calculateNoteRange from utils/selection
-          const linearNotes = getLinearizedNotes(score);
-          // We need to make sure 'noteId' is not null for calculation.
-          // If noteId is null (event selection), pick first note of event.
-          let targetNoteId = noteId;
-          if (!targetNoteId) {
-            const measure = getActiveStaff(score, startStaffIndex).measures[measureIndex];
-            const event = measure?.events.find((e: any) => e.id === eventId);
-            if (event && event.notes.length > 0) targetNoteId = event.notes[0].id;
-          }
-
+        const currentState = engine.getState();
+        const anchor = currentState.anchor;
+        
+        // Only proceed with range selection if we have a valid anchor
+        if (anchor?.eventId && anchor.measureIndex !== null) {
+          // Resolve target note (default to first note if clicking event body)
+          const targetNoteId = noteId || (target.event.notes[0]?.id);
+          
           if (targetNoteId) {
-            const focus = { ...context, noteId: targetNoteId };
-            // Ensure anchor has noteId too
-            // ... (Assumption: anchor always has noteId if set correctly)
-
-            const selectedNotes = calculateNoteRange(anchor as any, focus, linearNotes);
-
-            setSelection((prev) => ({
-              ...prev,
-              staffIndex: startStaffIndex,
-              measureIndex,
-              eventId,
-              noteId: targetNoteId, // Update cursor
-              selectedNotes,
-              anchor, // Keep anchor
-            }));
-            return;
-          }
-        }
-      }
-
-      // 2. Resolve Event Selection (Select All Notes in Event)
-      // If selectAllInEvent is TRUE, OR if noteId is NULL (clicking stem/body), we select all notes.
-      // "Events cannot be independently selected."
-      let targetNoteId = noteId;
-      let notesToSelect: any[] = [];
-
-      const measure = getActiveStaff(score, startStaffIndex).measures[measureIndex];
-      const event = measure?.events.find((e: any) => e.id === eventId);
-
-      // Handle REST selection
-      // Previously, we treated rests as having NO notes (noteId: null).
-      // Now, rests are "pitchless notes", so they DO have a noteId.
-      // We only fallback to null if the event truly has no notes array (legacy).
-
-      // Check if we can use existing notes
-      const hasNotes = event && event.notes && event.notes.length > 0;
-
-      if (hasNotes) {
-        // Standard handling for both Notes and Rests (pitchless notes)
-        if (selectAllInEvent || !noteId) {
-          notesToSelect = event.notes.map((n: any) => ({
-            staffIndex: startStaffIndex,
-            measureIndex,
-            eventId,
-            noteId: n.id,
-          }));
-          // Set cursor to first note if not specified
-          if (!targetNoteId) targetNoteId = event.notes[0].id;
-        } else {
-          // Specific note selected (handled by toggleNoteInSelection or generic flow below)
-          // But if we are here in "Resolve Event Selection", we are building the list for a "Replace" or "Add" op?
-          // Actually, if noteId is provided and selectAllInEvent is false, we might skip this block
-          // and let step 4 handle it... UNLESS it's a rest and we need to ensure it works?
-          // If we have a specific noteId (even for rest), we're good.
-        }
-      }
-
-      // Capture the selection object that WOULD be set
-      let nextSelection: Selection | null = null;
-
-      // 3. Update State
-      if (notesToSelect.length > 0) {
-        if (isMulti && !onlyHistory) {
-          setSelection((prev) => {
-            const newSelectedNotes = prev.selectedNotes ? [...prev.selectedNotes] : [];
-            notesToSelect.forEach((n) => {
-              // Standard existence check (works for notes and pitchless rests)
-              const exists = newSelectedNotes.some((ex) => {
-                if (n.noteId) {
-                  return ex.noteId === n.noteId;
-                } else {
-                  // Fallback for null noteId (legacy rests)
-                  return ex.eventId === n.eventId && ex.noteId === null;
-                }
-              });
-
-              if (!exists) {
-                newSelectedNotes.push(n);
-              }
-            });
-            return {
-              ...prev,
-              staffIndex: startStaffIndex,
-              measureIndex,
-              eventId,
-              noteId: targetNoteId,
-              selectedNotes: newSelectedNotes,
-              anchor: prev.anchor, // Maintain anchor? Or reset?
-            };
-          });
-
-          // Only play audio if not a rest
-          if (!event?.isRest) playAudioFeedback(event?.notes || []);
-          return; // Multi-select handled directly via setSelection
-        } else {
-          // Single Select of Event -> Replace selection
-          nextSelection = {
-            staffIndex: startStaffIndex,
-            measureIndex,
-            eventId,
-            noteId: targetNoteId,
-            selectedNotes: notesToSelect,
-            anchor: { staffIndex: startStaffIndex, measureIndex, eventId, noteId: targetNoteId }, // New Anchor
-          };
-        }
-      } else {
-        // 4. Standard Note Toggle (Single Note)
-        if (onlyHistory) {
-          nextSelection = {
-            staffIndex: startStaffIndex,
-            measureIndex,
-            eventId,
-            noteId: targetNoteId,
-            selectedNotes: [
-              { staffIndex: startStaffIndex, measureIndex, eventId, noteId: targetNoteId },
-            ], // Mimic standard selection structure
-            anchor: { staffIndex: startStaffIndex, measureIndex, eventId, noteId: targetNoteId },
-          } as Selection;
-        } else {
-          // Standard Toggle Behavior (defer to functional update)
-          setSelection((prev) => {
-            const emptySelection = { ...createDefaultSelection(), staffIndex: startStaffIndex };
-            const base = prev || emptySelection;
-
-            const newSel = toggleNoteInSelection(
-              base,
-              {
-                staffIndex: startStaffIndex,
+            engine.dispatch(new RangeSelectCommand({
+              anchor: anchor as SelectedNote,
+              focus: {
+                staffIndex: effectiveStaffIndex,
                 measureIndex,
                 eventId,
                 noteId: targetNoteId,
-              },
-              isMulti
-            );
-            return newSel;
-          });
-
-          // Audio Feedback (Early return for toggle path)
-          if (targetNoteId) {
-            const note = event?.notes.find((n: any) => n.id === targetNoteId);
-            if (note) playAudioFeedback([note]);
+              }
+            }));
+            if (!target.event.isRest) playAudioFeedback(target.event.notes);
+            return;
           }
+        }
+        // No valid anchor - fall through to standard selection
+      }
+
+      // ── Mode 2: Event Selection (Click on Body/Stem OR selectAllInEvent) ──
+      if (selectAllInEvent || !noteId) {
+        if (onlyHistory) {
+          const notes = target.event.notes || [];
+          const firstNoteId = notes[0]?.id || null;
+          updateHistoryOnly(effectiveStaffIndex, measureIndex, eventId, firstNoteId, notes);
           return;
         }
-      }
 
-      // Apply Logic
-      if (onlyHistory && nextSelection) {
-        setLastSelection(nextSelection);
-        // Ensure visual selection is cleared
-        setSelection((prev) => ({
-          ...createDefaultSelection(),
-          staffIndex: startStaffIndex,
-        }));
-      } else if (nextSelection) {
-        setSelection(nextSelection);
-        playAudioFeedback(event?.notes || []);
-      }
-    },
-    [selection, score, playAudioFeedback, clearSelection]
-  );
-
-  const updateSelection = useCallback((partial: Partial<Selection>) => {
-    setSelection((prev) => ({ ...prev, ...partial }));
-  }, []);
-
-  const selectAllInMeasure = useCallback(
-    (measureIndex: number, staffIndex: number = 0) => {
-      const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
-      if (!measure) return;
-
-      const allNotes: any[] = [];
-      measure.events.forEach((event: any) => {
-        if (event.notes) {
-          event.notes.forEach((note: any) => {
-            allNotes.push({
-              staffIndex,
-              measureIndex,
-              eventId: event.id,
-              noteId: note.id,
-            });
-          });
-        }
-      });
-
-      if (allNotes.length > 0) {
-        const first = allNotes[0];
-        setSelection({
-          staffIndex,
+        engine.dispatch(new SelectAllInEventCommand({
+          staffIndex: effectiveStaffIndex,
           measureIndex,
-          eventId: first.eventId,
-          noteId: first.noteId,
-          selectedNotes: allNotes,
-          anchor: { ...first },
-        });
+          eventId,
+          addToSelection: !!isMulti,
+        }));
+
+        if (!target.event.isRest) playAudioFeedback(target.event.notes);
+        return;
+      }
+
+      // ── Mode 3: Toggle Selection (Cmd/Ctrl+Click) ──
+      if (isMulti && !onlyHistory) {
+        engine.dispatch(new ToggleNoteCommand({
+          staffIndex: effectiveStaffIndex,
+          measureIndex,
+          eventId,
+          noteId,
+        }));
+        if (target.note) playAudioFeedback([target.note]);
+        return;
+      }
+
+      // ── Mode 4: History Only ──
+      if (onlyHistory) {
+        const notes = target.note ? [target.note] : [];
+        updateHistoryOnly(effectiveStaffIndex, measureIndex, eventId, noteId, notes);
+        return;
+      }
+
+      // ── Mode 5: Standard Single Selection ──
+      engine.dispatch(new SelectEventCommand({
+        staffIndex: effectiveStaffIndex,
+        measureIndex,
+        eventIndex: Math.max(0, target.eventIndex),
+        noteIndex: Math.max(0, target.noteIndex),
+      }));
+
+      // Audio feedback
+      if (target.note) {
+        playAudioFeedback([target.note]);
+      } else if (!target.event.isRest) {
+        playAudioFeedback(target.event.notes);
       }
     },
-    [score]
+    [selection, engine, getSelectionTarget, playAudioFeedback, updateHistoryOnly]
   );
 
   return {
     selection,
-    setSelection, // Exposed for low-level overrides if absolutely needed
     select,
     clearSelection,
-    updateSelection,
     selectAllInMeasure,
     lastSelection,
+    engine,
   };
 };

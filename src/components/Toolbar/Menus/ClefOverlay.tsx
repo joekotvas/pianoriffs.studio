@@ -30,7 +30,7 @@ const ClefOverlay: React.FC<ClefOverlayProps> = ({
       className="w-[320px]"
     >
       <div className="p-2 grid grid-cols-3 gap-2">
-        {['grand', 'treble', 'bass'].map((key) => {
+        {['grand', 'treble', 'bass', 'alto', 'tenor'].map((key) => {
           const data = CLEF_TYPES[key];
           return (
             <button
