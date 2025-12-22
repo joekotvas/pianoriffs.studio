@@ -3,6 +3,7 @@ import { Score, Selection } from '@/types';
 import { Command } from '@/commands/types';
 import { InputMode } from './useEditorTools';
 import { useHoverPreview, useNoteEntry, useNoteDelete, useNotePitch, PreviewNote } from './note';
+import { NoteInput, PlacementOverride, ChordNoteInput, SelectOptions } from './note/useNoteEntry';
 
 /**
  * Props for the useNoteActions hook.
@@ -17,9 +18,9 @@ export interface UseNoteActionsProps {
     eventId: string | number | null,
     noteId: string | number | null,
     staffIndex?: number,
-    options?: any
+    options?: SelectOptions
   ) => void;
-  setPreviewNote: (note: PreviewNote | null | any) => void;
+  setPreviewNote: (note: PreviewNote | null | ((prev: PreviewNote | null) => PreviewNote | null)) => void;
   activeDuration: string;
   isDotted: boolean;
   activeAccidental: 'flat' | 'natural' | 'sharp' | null;
@@ -31,6 +32,8 @@ export interface UseNoteActionsProps {
 
 /**
  * Return type for useNoteActions hook.
+ *
+ * @deprecated For new code, prefer using individual hooks from hooks/note/
  */
 export interface UseNoteActionsReturn {
   handleMeasureHover: (
@@ -41,13 +44,13 @@ export interface UseNoteActionsReturn {
   ) => void;
   addNoteToMeasure: (
     measureIndex: number,
-    newNote: any,
+    newNote: NoteInput,
     shouldAutoAdvance?: boolean,
-    placementOverride?: any
+    placementOverride?: PlacementOverride | null
   ) => void;
   addChordToMeasure: (
     measureIndex: number,
-    notes: any[],
+    notes: ChordNoteInput[],
     duration: string,
     dotted: boolean
   ) => void;
@@ -75,8 +78,7 @@ export interface UseNoteActionsReturn {
 export const useNoteActions = ({
   scoreRef,
   selection,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setSelection, // Kept for interface compatibility but unused
+  setSelection: _setSelection, // Renamed to underscore to indicate unused
   select,
   setPreviewNote,
   activeDuration,
