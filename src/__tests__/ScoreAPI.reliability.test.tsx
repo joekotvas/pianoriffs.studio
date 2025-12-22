@@ -95,7 +95,6 @@ describe('ScoreAPI Reliability (Issue #140)', () => {
     const api = getAPI(TEST_ID);
     
     // Pass garbage arg
-    // Pass garbage arg
     api.addMeasure(999);
     
     const count = api.getScore().staves[0].measures.length;
