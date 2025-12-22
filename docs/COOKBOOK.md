@@ -68,12 +68,11 @@ api.select(1)
 
 ## 2. Editing Recipes
 
-### Transpose Selection Up an Octave ⏳
+### Transpose Selection Up an Octave ✅
 
 ```javascript
-// PENDING: transpose() not yet implemented
 api.selectAll('measure')
-   .transpose(12);  // +12 semitones = up one octave
+   .transposeDiatonic(7);  // +7 steps = up one octave (diatonic)
 ```
 
 ### Change Duration of Selected Notes ⏳
@@ -167,25 +166,23 @@ const json = api.export('json');
 localStorage.setItem('savedScore', json);
 ```
 
-### Save as MusicXML ⏳
+### Save as MusicXML ✅
 
 ```javascript
-// PENDING: MusicXML export throws "not yet implemented"
 const xml = api.export('musicxml');
 downloadFile('score.musicxml', xml, 'application/xml');
 ```
 
-### Load Saved Score ⏳
+### Load Saved Score ✅
 
 ```javascript
-// PENDING: loadScore() not yet implemented
 const saved = localStorage.getItem('savedScore');
 if (saved) {
   api.loadScore(JSON.parse(saved));
 }
 ```
 
-> **Workaround**: Use the `<RiffScore config={{ score: { staves } }} />` prop to pass initial data.
+> **Note**: `loadScore` replaces the entire current composition.
 
 ---
 
