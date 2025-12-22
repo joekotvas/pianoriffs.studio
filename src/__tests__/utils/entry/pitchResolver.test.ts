@@ -71,6 +71,18 @@ describe('resolvePitch', () => {
       });
       expect(result).toBe('F#4');
     });
+
+    it('returns raw pitch when pitch is invalid', () => {
+      // Invalid pitch format - can't be parsed by tonal
+      const result = resolvePitch({ rawPitch: 'invalid', accidental: 'sharp' });
+      expect(result).toBe('invalid');
+    });
+
+    it('handles pitch without octave', () => {
+      // Note.get('F') returns valid note but oct is undefined
+      const result = resolvePitch({ rawPitch: 'F', accidental: 'sharp' });
+      expect(result).toBe('F');
+    });
   });
 
   describe('multiple sharps/flats key signatures', () => {

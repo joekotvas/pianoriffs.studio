@@ -1,6 +1,5 @@
 import { MusicEditorAPI } from '@/api.types';
 import { APIContext } from './types';
-import { Note } from '@/types';
 import { AddEventCommand } from '@/commands/AddEventCommand';
 import { AddNoteToEventCommand } from '@/commands/AddNoteToEventCommand';
 import { ApplyTupletCommand } from '@/commands/TupletCommands';
@@ -8,6 +7,7 @@ import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
 import { UpdateNoteCommand } from '@/commands/UpdateNoteCommand';
 import { canAddEventToMeasure, isValidPitch } from '@/utils/validation';
 import { generateId } from '@/utils/core';
+import { createNotePayload } from '@/utils/entry';
 
 /**
  * Entry method names provided by this factory
@@ -62,14 +62,8 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         return this;
       }
 
-      // Create note payload
-      const noteId = generateId();
-      const note: Note = {
-        id: noteId,
-        pitch,
-        accidental: null,
-        tied: false,
-      };
+      // Create note payload using shared utility
+      const note = createNotePayload({ pitch, id: generateId() });
 
       // Dispatch AddEventCommand
       const eventId = generateId();
@@ -80,8 +74,8 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         staffIndex,
         measureIndex,
         eventId,
-        noteId,
-        selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
+        noteId: note.id,
+        selectedNotes: [{ staffIndex, measureIndex, eventId, noteId: note.id }],
         anchor: null,
       };
       syncSelection(newSelection);
@@ -152,14 +146,8 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
       const measureIndex = sel.measureIndex;
       const eventId = sel.eventId;
 
-      // Create note to add to chord
-      const noteId = generateId();
-      const note: Note = {
-        id: noteId,
-        pitch,
-        accidental: null,
-        tied: false,
-      };
+      // Create note using shared utility
+      const note = createNotePayload({ pitch, id: generateId() });
 
       // Dispatch AddNoteToEventCommand
       dispatch(new AddNoteToEventCommand(measureIndex, eventId, note, staffIndex));
@@ -167,8 +155,8 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
       // Update selection to include new note
       const newSelection = {
         ...sel,
-        noteId,
-        selectedNotes: [{ staffIndex, measureIndex, eventId, noteId }],
+        noteId: note.id,
+        selectedNotes: [{ staffIndex, measureIndex, eventId, noteId: note.id }],
       };
       syncSelection(newSelection);
 
