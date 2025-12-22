@@ -103,6 +103,57 @@ describe('ScoreAPI Configuration & State', () => {
     });
   });
 
-  // Note: setInputMode, setTheme, setScale affect UI state which is not easily observant via getScore().
-  // We verified the wiring in code.
+  // UI State setters (setTheme, setScale, setInputMode) affect internal context state,
+  // not the Score object. We verify they don't throw and support chaining.
+
+  describe('UI Configuration', () => {
+    test('setTheme returns this for chaining', () => {
+      render(<RiffScore id="theme-test" />);
+      const api = getAPI('theme-test');
+
+      let result: MusicEditorAPI | undefined;
+      act(() => {
+        result = api.setTheme('dark');
+      });
+
+      expect(result).toBe(api);
+    });
+
+    test('setScale returns this for chaining', () => {
+      render(<RiffScore id="scale-test" />);
+      const api = getAPI('scale-test');
+
+      let result: MusicEditorAPI | undefined;
+      act(() => {
+        result = api.setScale(1.5);
+      });
+
+      expect(result).toBe(api);
+    });
+
+    test('setInputMode returns this for chaining', () => {
+      render(<RiffScore id="input-mode-test" />);
+      const api = getAPI('input-mode-test');
+
+      let result: MusicEditorAPI | undefined;
+      act(() => {
+        result = api.setInputMode('rest');
+      });
+
+      expect(result).toBe(api);
+    });
+
+    test('UI setters can be chained together', () => {
+      render(<RiffScore id="chain-test" />);
+      const api = getAPI('chain-test');
+
+      // Should not throw and should return api at each step
+      act(() => {
+        api.setTheme('warm').setScale(1.2).setInputMode('note');
+      });
+
+      // If we got here without throwing, the test passes
+      expect(true).toBe(true);
+    });
+  });
 });

@@ -142,9 +142,9 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
       },
       config,
       // Wire setters:
-      setTheme: (name) => setTheme(name as any), // Cast if ThemeName alias is strict
+      setTheme: (name) => setTheme(name.toUpperCase() as 'LIGHT' | 'DARK' | 'WARM' | 'COOL'),
       setZoom,
-      setInputMode: ctx.tools.setInputMode,
+      setInputMode: (mode) => ctx.tools.setInputMode(mode.toUpperCase() as 'NOTE' | 'REST'),
     };
 
     // Factory methods access refs via context, not directly during render.
@@ -185,7 +185,7 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
     ctx.engines.engine,
     setTheme,
     setZoom,
-    ctx.tools.setInputMode,
+    ctx.tools,
   ]);
 
   // 5. Registry registration/cleanup
