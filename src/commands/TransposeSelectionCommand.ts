@@ -1,5 +1,5 @@
 import { Command } from './types';
-import { Score, getActiveStaff, Selection, Staff } from '@/types';
+import { Score, getActiveStaff, Selection, Staff, ScoreEvent, Note } from '@/types';
 import { movePitchVisual } from '@/services/MusicService';
 import { PIANO_RANGE } from '@/constants';
 
@@ -151,7 +151,9 @@ export class TransposeSelectionCommand implements Command {
         });
 
         notesByEvent.forEach((notesInEvent, eIdStr) => {
-          const eventIndex = newMeasure.events.findIndex((e: any) => String(e.id) === eIdStr);
+          const eventIndex = newMeasure.events.findIndex(
+            (e: ScoreEvent) => String(e.id) === eIdStr
+          );
           if (eventIndex === -1) return;
 
           const newEvent = {
@@ -161,7 +163,7 @@ export class TransposeSelectionCommand implements Command {
           newMeasure.events[eventIndex] = newEvent;
 
           notesInEvent.forEach((nTarget) => {
-            const noteIndex = newEvent.notes.findIndex((note: any) =>
+            const noteIndex = newEvent.notes.findIndex((note: Note) =>
               idsMatch(note.id, nTarget.noteId)
             );
             if (noteIndex !== -1) {

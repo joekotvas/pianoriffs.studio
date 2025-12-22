@@ -1,14 +1,15 @@
 import React from 'react';
+import { Note, ChordLayout } from '@/types';
 import { Rest } from './Rest';
 import ChordGroup from './ChordGroup';
 import { NOTE_TYPES } from '@/constants';
 
 interface GhostPreviewProps {
   previewRender: {
-    chordNotes: any[];
+    chordNotes: Note[];
     quant: number;
     x: number;
-    chordLayout: any;
+    chordLayout: ChordLayout;
   };
   previewNote: {
     duration: string;
@@ -17,8 +18,8 @@ interface GhostPreviewProps {
     isRest?: boolean;
   };
   baseY: number;
-  layout: any;
-  interaction: any;
+  layout: unknown;
+  interaction: unknown;
   measureIndex: number;
 }
 
@@ -34,7 +35,7 @@ const GhostPreview: React.FC<GhostPreviewProps> = ({
   interaction,
   measureIndex,
 }) => {
-  const { chordNotes, quant, x, chordLayout } = previewRender;
+  const { chordNotes, x, chordLayout } = previewRender;
 
   // Render rest preview when in REST mode
   if (previewNote?.isRest) {
