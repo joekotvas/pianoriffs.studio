@@ -19,7 +19,7 @@
 ## Completed Phases
 
 <details>
-<summary><strong>✅ Phase 0: Type Definitions</strong></summary>
+<summary><strong>✅ Phase 0: Type Definitions</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/86">#86</a> · <a href="https://github.com/joekotvas/RiffScore/pull/94">PR #94</a></summary>
 
 - [x] Define `MusicEditorAPI` interface in [`api.types.ts`](file:///Users/josephkotvas/Sites/Riffs/riffeasy/riffscore/src/api.types.ts)
 - [x] Define `RiffScoreRegistry` interface
@@ -27,7 +27,7 @@
 </details>
 
 <details>
-<summary><strong>✅ Phase 1: The Glue Layer</strong></summary>
+<summary><strong>✅ Phase 1: The Glue Layer</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/87">#87</a> · <a href="https://github.com/joekotvas/RiffScore/pull/95">PR #95</a></summary>
 
 - [x] Create [`useScoreAPI`](file:///Users/josephkotvas/Sites/Riffs/riffeasy/riffscore/src/hooks/useScoreAPI.ts) hook
 - [x] Modify `RiffScore.tsx` for Registry pattern
@@ -37,28 +37,28 @@
 </details>
 
 <details>
-<summary><strong>✅ Phase 2: Selection Engine (a-g)</strong></summary>
+<summary><strong>✅ Phase 2: Selection Engine (a-g)</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/89">#89</a> · PRs <a href="https://github.com/joekotvas/RiffScore/pull/97">#97</a>, <a href="https://github.com/joekotvas/RiffScore/pull/98">#98</a>, <a href="https://github.com/joekotvas/RiffScore/pull/105">#105</a>, <a href="https://github.com/joekotvas/RiffScore/pull/113">#113</a></summary>
 
 - [x] Create `SelectionEngine.ts` with command dispatch pattern
 - [x] Create all selection commands (Range, Toggle, SelectAll, Clear, etc.)
-- [x] Migrate all `setSelection` calls to dispatch pattern
-- [x] Implement vertical selection (note-based → slice-based)
-- [x] Testing enhancement (user-event, 75% coverage, antipatterns doc)
+- [x] Migrate all `setSelection` calls to dispatch pattern ([#100](https://github.com/joekotvas/RiffScore/issues/100))
+- [x] Implement vertical selection — slice-based ([ADR-001](../adr/001-slice-based-vertical-selection.md))
+- [x] Testing enhancement ([#112](https://github.com/joekotvas/RiffScore/issues/112))
 
 > **Decision:** `engine.dispatch()` is the canonical pattern. Direct `setState()` deprecated.
 </details>
 
 <details>
-<summary><strong>✅ Phase 3: Event Subscriptions</strong></summary>
+<summary><strong>✅ Phase 3: Event Subscriptions</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/90">#90</a> · <a href="https://github.com/joekotvas/RiffScore/pull/114">PR #114</a></summary>
 
 - [x] Implement `on(event, callback)` in useScoreAPI
 - [x] Write `ScoreAPI.events.test.tsx`
 - [x] Document ADR 002
-- [x] **#122 Fix:** Callbacks fire reliably via `useEffect` with correct data
+- [x] **Fix:** Callbacks fire reliably ([#122](https://github.com/joekotvas/RiffScore/issues/122) · [PR #123](https://github.com/joekotvas/RiffScore/pull/123))
 </details>
 
 <details>
-<summary><strong>✅ Phase 4: Transaction Batching</strong></summary>
+<summary><strong>✅ Phase 4: Transaction Batching</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/91">#91</a> · <a href="https://github.com/joekotvas/RiffScore/pull/115">PR #115</a></summary>
 
 - [x] Add batching to `ScoreEngine.ts`
 - [x] Write `ScoreAPI.transactions.test.tsx`
@@ -67,7 +67,7 @@
 </details>
 
 <details>
-<summary><strong>✅ Phase 5: Code Refactor (Components A, B, E)</strong></summary>
+<summary><strong>✅ Phase 5: Code Refactor (A, B, E)</strong> — PRs <a href="https://github.com/joekotvas/RiffScore/pull/117">#117</a>, <a href="https://github.com/joekotvas/RiffScore/pull/118">#118</a>, <a href="https://github.com/joekotvas/RiffScore/pull/120">#120</a></summary>
 
 - [x] **Component E:** `useScoreLogic.ts` slimming (−154 lines)
 - [x] **Component A:** `interaction.ts` modularization (facade pattern)
@@ -107,10 +107,13 @@
 
 | Issue | Severity | Status |
 |-------|----------|--------|
+| **[#124](https://github.com/joekotvas/RiffScore/issues/124): Horizontal selection drops other staves** | High | 🔲 |
 | **#1: `getScore()` returns stale data** | Medium | 🔲 |
 | **#2: Entry methods don't work with custom staves** | Medium | 🔲 |
 | **#3: Measure capacity validation untestable** | Low | Deferred |
 | **#4: `addRest()` orphaned noteId** | Info | Deferred |
+
+**Related:** [#101](https://github.com/joekotvas/RiffScore/issues/101) (Cross-staff selection extension)
 
 #### 6A: Fix Stale `getScore()` 
 - [ ] Investigate `scoreRef.current` sync in `useScoreAPI`
@@ -123,7 +126,7 @@
 
 ---
 
-### 🔄 Phase 7: API Completion
+### 🔄 Phase 7: API Completion — [#119](https://github.com/joekotvas/RiffScore/issues/119)
 
 **Goal:** Implement remaining API methods for full machine-addressability.
 
@@ -152,7 +155,7 @@
 
 ---
 
-### � Phase 8: Documentation & Polish
+### 🔲 Phase 8: Documentation & Polish — [#93](https://github.com/joekotvas/RiffScore/issues/93)
 
 **Goal:** Finalize all documentation for external consumption.
 
