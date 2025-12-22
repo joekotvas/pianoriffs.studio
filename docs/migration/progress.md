@@ -78,16 +78,21 @@
 
 ## Remaining Roadmap
 
-### 🔄 Phase 5C: Entry Hook Consolidation
+### 🔄 Phase 5C: Entry Hook Refactor — [Issue #125](https://github.com/joekotvas/RiffScore/issues/125)
 
-**Goal:** Consolidate entry-related hooks into a cohesive pattern.
+**Goal:** Refactor entry hooks for DRY, organization, and maintainability.
 
-| Task | Files | Priority |
-|------|-------|----------|
-| Audit entry-related hooks | `useNoteActions.ts`, `useMeasureActions.ts`, `useTupletActions.ts` | Medium |
-| Identify duplication with `hooks/api/entry.ts` | — | Medium |
-| Extract shared utilities or merge | — | Medium |
-| Ensure all entry paths use dispatch | — | High |
+**Analysis:** [phase-5c-entry-analysis.md](./phase-5c-entry-analysis.md)
+
+| Task | Priority |
+|------|----------|
+| Extract `src/utils/entry/` utilities (notePayload, previewNote, pitchResolver) | P1 |
+| Split `useNoteActions.ts` → `hooks/note/` (4 focused hooks) | P1 |
+| Add unit tests (80%+ coverage) | P1 |
+| Implement API stubs (makeTuplet, toggleTie, setInputMode) | P2 |
+| Add JSDoc with `@tested` annotations | P2 |
+
+**Effort:** 12-18 hours
 
 ### 🔄 Phase 5D: Selection Handler Consolidation
 
