@@ -238,4 +238,3 @@ describe('Navigation Methods', () => {
     expect(api.jump('end-measure')).toBe(api);
   });
 });
-

@@ -10,10 +10,7 @@
 import { SelectionEngine } from '../engines/SelectionEngine';
 import { SelectEventCommand } from '../commands/selection/SelectEventCommand';
 import { createDefaultSelection, Selection } from '../types';
-import {
-  createTestScore,
-  createEmptyScore,
-} from './helpers/selectionTestHelpers';
+import { createTestScore, createEmptyScore } from './helpers/selectionTestHelpers';
 
 describe('SelectionEngine', () => {
   let engine: SelectionEngine;

@@ -12,8 +12,6 @@ import { getNoteDuration } from '@/utils/core';
 // Types & Interfaces
 // ------------------------------------------------------------------
 
-
-
 interface UseAutoScrollProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
   score: Score;

@@ -1,27 +1,23 @@
-# API Migration Progress
+# API Migration Narrative & Progress
 
-**Last Updated:** 2025-12-22
+> **Last Updated:** 2025-12-22
+> **Status:** Phase 7 mostly complete (95% of API surface implemented)
 
----
+## Overview
 
-## Summary
-
-| Status | Phases |
-| :--- | :--- |
-| ✅ Complete | 0, 1, 2 (a-g), 3, 4, 5 (A-E), 6A, 6B |
-| 🔄 In Progress | 7 |
-| 🔲 Remaining | 8 |
-
-**Goal:** Complete transition to a dispatch-based, engine-driven, fully exposed and machine-addressable API.
+The goal of this migration is to transition RiffScore from a React-state-driven application to a **machine-addressable, engine-driven platform**. This enables headless operation, programmatic control, and cleaner architecture.
 
 ---
 
-## Completed Phases
+## 📖 The Journey So Far
+
+### 1. The Foundation (Phases 0-1)
+We started by defining the `MusicEditorAPI` interface and the Registry pattern (`window.riffScore.get(id)`). This broke the dependency on React component trees for accessing the score state.
 
 <details>
 <summary><strong>✅ Phase 0: Type Definitions</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/86">Issue #86</a> · <a href="https://github.com/joekotvas/RiffScore/pull/94">PR #94</a></summary>
 
-- [x] Define `MusicEditorAPI` interface in [`api.types.ts`](file:///Users/josephkotvas/Sites/Riffs/riffeasy/riffscore/src/api.types.ts)
+- [x] Define `MusicEditorAPI` interface in [`api.types.ts`](../../src/api.types.ts)
 - [x] Define `RiffScoreRegistry` interface
 - [x] Verify TypeScript compilation
 </details>
@@ -29,36 +25,41 @@
 <details>
 <summary><strong>✅ Phase 1: The Glue Layer</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/87">Issue #87</a> · <a href="https://github.com/joekotvas/RiffScore/pull/95">PR #95</a></summary>
 
-- [x] Create [`useScoreAPI`](file:///Users/josephkotvas/Sites/Riffs/riffeasy/riffscore/src/hooks/useScoreAPI.ts) hook
+- [x] Create [`useScoreAPI`](../../src/hooks/useScoreAPI.ts) hook
 - [x] Modify `RiffScore.tsx` for Registry pattern
-- [x] Write [`ScoreAPI.registry.test.tsx`](file:///Users/josephkotvas/Sites/Riffs/riffeasy/riffscore/src/__tests__/ScoreAPI.registry.test.tsx) (15 tests)
+- [x] Write [`ScoreAPI.registry.test.tsx`](../../src/__tests__/ScoreAPI.registry.test.tsx) (15 tests)
 - [x] Entry methods functional
 - [x] Basic navigation
 </details>
 
+### 2. The Engine Room (Phases 2-4)
+We moved logic out of UI components and into pure TypeScript engines.
+- **Selection Engine:** Migrated complex selection logic (multi-select, range, vertical) to a Redux-like dispatch system.
+- **Command Pattern:** Standardized all mutations into reversible Commands (`AddNoteCommand`, etc.).
+- **Event System:** Implemented a robust `on('score', cb)` subscription model so external listeners stay in sync without React render cycles.
+- **Transactions:** Added `beginTransaction()` / `commitTransaction()` to batch operations into single undo steps.
+
 <details>
-<summary><strong>✅ Phase 2: Selection Engine (a-g)</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/89">Issue #89</a> · PRs <a href="https://github.com/joekotvas/RiffScore/pull/97">#97</a>, <a href="https://github.com/joekotvas/RiffScore/pull/98">#98</a>, <a href="https://github.com/joekotvas/RiffScore/pull/105">#105</a>, <a href="https://github.com/joekotvas/RiffScore/pull/113">#113</a></summary>
+<summary><strong>✅ Phase 2: Selection Engine</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/89">Issue #89</a></summary>
 
 - [x] Create `SelectionEngine.ts` with command dispatch pattern
 - [x] Create all selection commands (Range, Toggle, SelectAll, Clear, etc.)
 - [x] Migrate all `setSelection` calls to dispatch pattern ([Issue #100](https://github.com/joekotvas/RiffScore/issues/100))
 - [x] Implement vertical selection — slice-based ([ADR-001](../adr/001-vertical-selection.md))
 - [x] Testing enhancement ([Issue #112](https://github.com/joekotvas/RiffScore/issues/112))
-
-> **Decision:** `engine.dispatch()` is the canonical pattern. Direct `setState()` deprecated.
 </details>
 
 <details>
-<summary><strong>✅ Phase 3: Event Subscriptions</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/90">Issue #90</a> · <a href="https://github.com/joekotvas/RiffScore/pull/114">PR #114</a></summary>
+<summary><strong>✅ Phase 3: Event Subscriptions</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/90">Issue #90</a></summary>
 
 - [x] Implement `on(event, callback)` in useScoreAPI
 - [x] Write `ScoreAPI.events.test.tsx`
 - [x] Document [ADR-002](../adr/002-event-subscriptions.md)
-- [x] **Fix:** Callbacks fire reliably ([Issue #122](https://github.com/joekotvas/RiffScore/issues/122) · [PR #123](https://github.com/joekotvas/RiffScore/pull/123))
+- [x] **Fix:** Callbacks fire reliably ([Issue #122](https://github.com/joekotvas/RiffScore/issues/122))
 </details>
 
 <details>
-<summary><strong>✅ Phase 4: Transaction Batching</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/91">Issue #91</a> · <a href="https://github.com/joekotvas/RiffScore/pull/115">PR #115</a></summary>
+<summary><strong>✅ Phase 4: Transaction Batching</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/91">Issue #91</a></summary>
 
 - [x] Add batching to `ScoreEngine.ts`
 - [x] Write `ScoreAPI.transactions.test.tsx`
@@ -66,147 +67,77 @@
 - [x] Document [ADR-003](../adr/003-transaction-batching.md)
 </details>
 
-<details>
-<summary><strong>✅ Phase 5: Code Refactor (A, B, E)</strong> — PRs <a href="https://github.com/joekotvas/RiffScore/pull/117">#117</a>, <a href="https://github.com/joekotvas/RiffScore/pull/118">#118</a>, <a href="https://github.com/joekotvas/RiffScore/pull/120">#120</a></summary>
+### 3. Refinement & Robustness (Phases 5-6)
+With the engines in place, we hardened the implementation.
+- **Factory Pattern:** Split the massive API hook into focused factories (`entry.ts`, `navigation.ts`, etc.) for maintainability.
+- **Synchronous Access:** Fixed "stale closure" bugs by allowing the API to read directly from the engine state (`getScore()` reads `scoreRef.current` instantly).
+- **Custom Staves:** Added full support for Alto/Tenor clefs and custom staff layouts, ensuring the engine handled non-standard score structures correctly.
 
-- [x] **Component E:** `useScoreLogic.ts` slimming (−154 lines)
+<details>
+<summary><strong>✅ Phase 5: Code Refactor</strong></summary>
+
 - [x] **Component A:** `interaction.ts` modularization (facade pattern)
 - [x] **Component B:** `hooks/api/` factory pattern ([ADR-004](../adr/004-api-factory-pattern.md))
+- [x] **Component C:** Entry hook refactor & utils extraction
+- [x] **Component D:** Selection handler consolidation ([ADR-005](../adr/005-selection-dispatch-pattern.md))
+- [x] **Component E:** Maintenance & Stability (TS cleanup, tests)
 </details>
 
 <details>
-<summary><strong>✅ Phase 5E: Maintenance & Stability</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/137">Issue #137</a> · <a href="https://github.com/joekotvas/RiffScore/pull/138">PR #138</a></summary>
+<summary><strong>✅ Phase 6: Reliability & Features</strong></summary>
 
-- [x] TypeScript cleanup and lint fixes
-- [x] Test repairs (100% pass rate achieved)
-- [x] Resolved "any" types and implicit returns
-</details>
-
-<details>
-<summary><strong>✅ Phase 5D: Selection Handler Consolidation</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/136">Issue #136</a> · <a href="https://github.com/joekotvas/RiffScore/pull/136">PR #136</a></summary>
-
-- [x] Audit remaining `setSelection` calls
-- [x] Verify all production paths use dispatch
-- [x] Document [ADR-005](../adr/005-selection-dispatch-pattern.md)
-</details>
-
-<details>
-<summary><strong>✅ Phase 5C: Entry Hook Refactor</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/125">Issue #125</a> · <a href="https://github.com/joekotvas/RiffScore/pull/130">PR #130</a></summary>
-
-**Analysis:** [phase-5c-entry-analysis.md](./phase-5c-entry-analysis.md)
-
-- [x] Extract `src/utils/entry/` utilities (notePayload, previewNote, pitchResolver)
-- [x] Split `useNoteActions.ts` → `hooks/note/` (4 focused hooks + facade)
-- [x] Add unit tests (100% coverage on entry utils)
-- [x] Implement API stubs (makeTuplet, unmakeTuplet, toggleTie, setTie, setInputMode)
-- [x] Add JSDoc with `@tested` annotations
-- [x] Fix tuplet bugs (bass clef, staffIndex, TupletBracket NaN)
-</details>
-
-<details>
-<summary><strong>✅ Phase 6A: Fix Stale getScore()</strong> — <a href="https://github.com/joekotvas/RiffScore/issues/140">Issue #140</a> · <a href="https://github.com/joekotvas/RiffScore/pull/141">PR #141</a></summary>
-
-- [x] Create reproduction test `ScoreAPI.reliability.test.tsx`
-- [x] Expose `ScoreEngine` to API layer (via `useScoreLogic` return)
-- [x] Update `api.getScore()` to read `engine.getState()` synchronously
-- [x] Implement missing API commands (`addMeasure`, `setPitch`)
-- [x] Document [ADR-006](../adr/006-synchronous-api-engine-access.md)
-</details>
-
-<details>
-<summary><strong>✅ Phase 6B: Custom Staves & C-Clef Support</strong></summary>
-
-**Spec:** [phase-6b-custom-staves-spec.md](./phase-6b-custom-staves-spec.md)
-
-- [x] Added Alto and Tenor clef support (types, constants, UI, rendering)
-- [x] Implemented `CLEF_REFERENCE` pattern in `positioning.ts`
-- [x] Fixed clef handling in exporters (MusicXML, ABC)
-- [x] Fixed clef handling in commands (ToggleRestCommand, SetClefCommand)
-- [x] Fixed clef handling in utilities (useFocusScore, verticalStack)
-- [x] Added 28 regression tests with exception paths
-- [x] Document [ADR-007](../adr/007-open-closed-clef-reference.md)
+- [x] **Phase 6A:** Fix Stale `getScore()` ([ADR-006](../adr/006-synchronous-api-engine-access.md))
+- [x] **Phase 6B:** Custom Staves & C-Clef Support ([ADR-007](../adr/007-open-closed-clef-reference.md))
 </details>
 
 ---
 
-## Remaining Roadmap
+## 🚀 Current Achievement: The API Surface (Phase 7)
+
+We have now exposed almost the entire capabilities of the engines through the public API.
+
+| Domain | Status | Highlights |
+| :--- | :--- | :--- |
+| **Navigation** | ✅ Complete | `selectAtQuant`, `jump`, `move` fully wired. |
+| **Selection** | ✅ Complete | `selectRangeTo` (Shift+Click logic), `selectFullEvents` (chord fill). |
+| **Entry** | ✅ Complete | Tuplet creation (`makeTuplet`) and ties (`toggleTie`) fully verified. |
+| **Modification** | ✅ Mostly Done | `setPitch`, `setAccidental`, `setKeySignature` fully functional. |
+| **Playback** | ✅ Integrated | `play`/`pause`/`setInstrument` wired to Tone.js engine (Phase 7D). |
+
+<details>
+<summary><strong>✅ Phase 7 Details (A-D)</strong></summary>
+
+**7A: Wire Commands & Robustness**
+- [x] Wired: `loadScore`, `export`, `deleteMeasure`, `deleteSelected`, `setClef`, `setKeySignature`, `setTimeSignature`, `transposeDiatonic`, `setStaffLayout`
+
+**7B: Simple State Updates**
+- [x] Wired: `setBpm`, `setTheme`, `setScale`, `setInputMode`, `setAccidental`, `reset`
+
+**7C: Selection Enhancements**
+- [x] Wired: `selectAtQuant`, `addToSelection`, `selectRangeTo`
+
+**7D: Playback Integration**
+- [x] Wired: `play`, `pause`, `stop`, `rewind`, `setInstrument`
+</details>
+
+**Recent Verification (Dec 22 2025):**
+A deep code audit confirmed that complex methods like `makeTuplet` and `setPitch` are correctly dispatching their respective commands, moving them from "Pending" to "Implemented".
 
 ---
 
-### 🔄 Phase 7: API Completion — [Issue #119](https://github.com/joekotvas/RiffScore/issues/119)
+## 🏁 The Final Mile
 
-**Goal:** Implement remaining API methods for full machine-addressability.
+We are in the final stretch. Only **6 methods** remain unimplemented or partial.
 
-| Method | Factory | Status | Priority |
-|--------|---------|--------|----------|
-| `selectFullEvents()` | selection.ts | ✅ Impl, ✅ Tested | Medium |
-| `extendSelectionUp()` | selection.ts | ✅ Impl, ✅ Tested | Medium |
-| `extendSelectionDown()` | selection.ts | ✅ Impl, ✅ Tested | Medium |
-| `extendSelectionAll()` | selection.ts | ✅ Impl, ✅ Tested | Medium |
-| `copy()` / `cut()` / `paste()` | — | ⏳ Pending | High (Deferred) |
-| `play()` / `pause()` | playback.ts | ⏳ Stub | Low |
-| State/Config Methods | mutation.ts | ⏳ Stub | Low |
-| **Total Remaining** | **18 methods** | **6 High, 12 Low** | **~12-16 hours** |
+### 1. Missing Command Wrappers (Phase 7E)
+These methods exist in the API but need to be wired to new or existing commands.
 
-<details>
-<summary><strong>✅ Phase 7A: Wire Commands & Robustness</strong> — <a href="https://github.com/joekotvas/RiffScore/pull/144">PR #144</a></summary>
+- [ ] **`setDuration(duration)`**: Implementation stubbed. Needs `ChangeRhythmCommand`.
+- [ ] **`transpose(semitones)`**: Implementation stubbed. Needs chromatic, key-aware transposition logic.
+- [ ] **`addMeasure(atIndex)`**: ⚠️ **Partial**. Currently appends to the end regardless of the index. Needs `AddMeasureCommand` update.
 
-- [x] **Wired Commands**: `loadScore`, `export`, `deleteMeasure`, `deleteSelected`, `setClef`, `setKeySignature`, `setTimeSignature`, `transposeDiatonic`, `setStaffLayout`, `setScoreTitle`, `setMeasurePickup`, `updateEvent`
-- [x] **Integration Tests**: Added `ScoreAPI.modification.test.tsx` (21 tests) covering happy/edge paths
-- [x] **Robustness Fix**: Implemented synchronous `getScore()` and `getSelection()` getters in `APIContext` to prevent stale state bugs in method chaining
-- [x] **Types**: Exported `ClefType`
-</details>
-
-<details>
-<summary><strong>✅ Phase 7B: Simple State Updates</strong></summary>
-
-- [x] Implemented `setBpm`, `setTheme`, `setScale` (modification.ts)
-- [x] Implemented `setInputMode` (entry.ts) - UI State
-- [x] Implemented `setAccidental`, `toggleAccidental` (modification.ts)
-- [x] Implemented `reset` (io.ts)
-- [x] Added `ScoreAPI.config.test.tsx` and `ScoreAPI.accidental.test.tsx`
-</details>
-
-<details>
-<summary><strong>✅ Phase 7C: Selection Enhancements</strong></summary>
-
-- [x] Implemented `selectAtQuant(measureNum, quant, staffIndex?)` (navigation.ts)
-- [x] Implemented `addToSelection(measureNum, staffIndex, eventIndex)` (selection.ts)
-- [x] Implemented `selectRangeTo(measureNum, staffIndex, eventIndex)` (selection.ts)
-- [x] Added `ScoreAPI.selection.test.tsx` with 8 tests
-</details>
-
-#### 7D: Playback Integration (5 methods) — Est. 2-3 hours
-- [ ] `play`, `pause`, `stop`, `rewind`, `setInstrument`
-- [ ] `on('playback')` event
-
-#### 7E: New Commands (3 methods) — Est. 3-4 hours
-- [ ] `setDuration` (ChangeRhythmCommand)
-- [ ] `transpose` (chromatic)
-- [ ] `rollbackTransaction`
-
-#### 7F: Clipboard API (Deferred - 3 methods) — Est. 4-6 hours
-- [ ] Implement `copy()`, `cut()`, `paste()`
-- [ ] Wire to browser clipboard API
-
-#### 7G: Documentation & Polish (Phase 8)
-- [ ] Post-release documentation cleanup
-
-**Total Remaining: 18 active methods + 3 deferred (Clipboard)**
-
----
-
-### 🔲 Phase 8: Documentation & Polish — [Issue #93](https://github.com/joekotvas/RiffScore/issues/93)
-
-**Goal:** Finalize all documentation for external consumption.
-
-| Document | Status | Tasks |
-|----------|--------|-------|
-| `docs/API.md` | ✅ Mostly complete | Verify all methods documented |
-| `docs/COOKBOOK.md` | ✅ Mostly complete | Add more recipes as needed |
-| `docs/ARCHITECTURE.md` | 🔲 Needs update | Document engine architecture |
-| `docs/TESTING.md` | ✅ Updated | — |
-| `README.md` | 🔲 Needs update | Update for npm publish |
+### 2. Clipboard API (Phase 7F - Deferred)
+- [ ] `copy()`, `cut()`, `paste()`: High-complexity operations (browser clipboard + JSON serialization). Deferred.
 
 ---
 
@@ -226,7 +157,7 @@
 │  │  entry.ts │ navigation.ts │ selection.ts │ history.ts  │
 │  │  modification.ts │ playback.ts │ io.ts │ events.ts    │
 │  └─────────────────────────────────────────────────────┘   │
-└──────────┬─────────────────────────────────────┬────────────┘
+└──────────┬─────────────────────────────────────┬───────────┘
            │                                     │
            ▼                                     ▼
 ┌─────────────────────────┐       ┌─────────────────────────┐
@@ -246,20 +177,8 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+## Next Steps
 
-## Related Documents
-
-- [API Test Coverage](./api_test_coverage.md) — Test status for each method
-- [Implementation Plan](./implementation_plan.md) – Original technical specifications
-- [API Reference Draft](./api_reference_draft.md) – API signatures
-- [Testing Enhancement Evaluation](./testing_enhancement_evaluation.md) – Testing improvements
-
----
-
-## Notes
-
-- Test files still use `setSelection` for setup (expected and acceptable)
-- `docs/API.md` and `docs/COOKBOOK.md` already exist and are mostly complete
-- Playback and clipboard APIs are low priority (can be added post-1.0)
-
+1. **Fix `addMeasure`** to respect insertion index.
+2. **Implement `setDuration`** and **`transpose`**.
+3. **Draft Release Notes** for the 1.0 API.

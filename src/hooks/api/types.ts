@@ -11,7 +11,7 @@ import { ScoreHistoryGroup } from '@/hooks/score/types';
 export interface APIContext {
   /** Mutable ref to the latest score state (authoritative) */
   scoreRef: React.MutableRefObject<Score>;
-  
+
   /** Mutable ref to the latest selection state (authoritative) */
   selectionRef: React.MutableRefObject<Selection>;
 
@@ -20,25 +20,32 @@ export interface APIContext {
 
   /** Synchronous getter for latest selection state */
   getSelection: () => Selection;
-  
+
   /** Helper to synchronize selection state between Ref and Engine */
   syncSelection: (sel: Selection) => void;
-  
+
   /** Command dispatcher */
   dispatch: React.Dispatch<Command>;
-  
+
   /** Selection engine instance */
   selectionEngine: SelectionEngine;
-  
+
   /** History API (undo/redo/transactions) */
   history: ScoreHistoryGroup;
-  
+
   /** Current configuration */
   config: RiffScoreConfig;
-  
-  /** UI / Editor State Setters */
-  setTheme?: (name: string) => void;
-  setZoom?: (zoom: number) => void;
-  setInputMode?: (mode: 'note' | 'rest') => void;
-}
 
+  /** UI / Editor State Setters (always provided by useScoreAPI) */
+  setTheme: (name: string) => void;
+  setZoom: (zoom: number) => void;
+  setInputMode: (mode: 'note' | 'rest') => void;
+
+  /** Playback controls (from usePlayback hook) */
+  playback?: {
+    playScore: (measureIndex?: number, quant?: number) => Promise<void>;
+    stopPlayback: () => void;
+    pausePlayback: () => void;
+    isPlaying: boolean;
+  };
+}

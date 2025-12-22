@@ -46,7 +46,7 @@ export class SelectFullEventsCommand implements SelectionCommand {
       const measure = staff.measures[measureIndex];
       if (!measure) continue;
 
-      const event = measure.events.find(e => e.id === eventId);
+      const event = measure.events.find((e) => e.id === eventId);
       if (!event) continue;
 
       // Add all notes from the event
@@ -98,7 +98,8 @@ export class SelectFullEventsCommand implements SelectionCommand {
     selectedNotes: SelectedNote[]
   ): Array<{ staffIndex: number; measureIndex: number; eventId: string | number }> {
     const seen = new Set<string>();
-    const result: Array<{ staffIndex: number; measureIndex: number; eventId: string | number }> = [];
+    const result: Array<{ staffIndex: number; measureIndex: number; eventId: string | number }> =
+      [];
 
     for (const note of selectedNotes) {
       const key = `${note.staffIndex}-${note.measureIndex}-${note.eventId}`;
@@ -120,7 +121,7 @@ export class SelectFullEventsCommand implements SelectionCommand {
    */
   private deduplicateNotes(notes: SelectedNote[]): SelectedNote[] {
     const seen = new Set<string>();
-    return notes.filter(note => {
+    return notes.filter((note) => {
       const key = `${note.staffIndex}-${note.measureIndex}-${note.eventId}-${note.noteId}`;
       if (seen.has(key)) return false;
       seen.add(key);

@@ -12,7 +12,9 @@ export interface UseHoverPreviewProps {
   /** Ref to the current score */
   scoreRef: RefObject<Score>;
   /** Setter for preview note state */
-  setPreviewNote: (note: PreviewNote | null | ((prev: PreviewNote | null) => PreviewNote | null)) => void;
+  setPreviewNote: (
+    note: PreviewNote | null | ((prev: PreviewNote | null) => PreviewNote | null)
+  ) => void;
   /** Currently selected duration */
   activeDuration: string;
   /** Whether dotted is active */
@@ -75,7 +77,12 @@ export function useHoverPreview({
   inputMode,
 }: UseHoverPreviewProps): UseHoverPreviewReturn {
   const handleMeasureHover = useCallback(
-    (measureIndex: number | null, hit: HitZone | null, rawPitch: string, staffIndex: number = 0) => {
+    (
+      measureIndex: number | null,
+      hit: HitZone | null,
+      rawPitch: string,
+      staffIndex: number = 0
+    ) => {
       if (measureIndex === null || !hit) {
         // Only clear preview if this call is from the same staff as current preview
         // This prevents staff B's mouseLeave from clearing staff A's preview

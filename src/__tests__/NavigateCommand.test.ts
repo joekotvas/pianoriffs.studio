@@ -9,10 +9,7 @@
 
 import { SelectionEngine } from '../engines/SelectionEngine';
 import { NavigateCommand } from '../commands/selection/NavigateCommand';
-import {
-  createTestScore,
-  createEmptyScore,
-} from './helpers/selectionTestHelpers';
+import { createTestScore, createEmptyScore } from './helpers/selectionTestHelpers';
 
 describe('NavigateCommand', () => {
   let engine: SelectionEngine;

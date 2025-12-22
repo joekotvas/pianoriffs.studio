@@ -99,7 +99,12 @@ describe('Navigation Helper Functions', () => {
     };
 
     test('returns null for event with no notes', () => {
-      expect(selectNoteInEventByDirection({ id: 'e1', duration: 'quarter', dotted: false, notes: [] }, 'up')).toBeNull();
+      expect(
+        selectNoteInEventByDirection(
+          { id: 'e1', duration: 'quarter', dotted: false, notes: [] },
+          'up'
+        )
+      ).toBeNull();
     });
 
     test('returns null for null event', () => {
@@ -107,7 +112,13 @@ describe('Navigation Helper Functions', () => {
     });
 
     test('returns null for rest event', () => {
-      const restEvent = { id: 'e1', duration: 'quarter', dotted: false, isRest: true, notes: [{ id: 'n1', pitch: 'B4' }] };
+      const restEvent = {
+        id: 'e1',
+        duration: 'quarter',
+        dotted: false,
+        isRest: true,
+        notes: [{ id: 'n1', pitch: 'B4' }],
+      };
       expect(selectNoteInEventByDirection(restEvent, 'up')).toBeNull();
     });
 
@@ -124,7 +135,12 @@ describe('Navigation Helper Functions', () => {
     });
 
     test('handles single note event', () => {
-      const singleNoteEvent = { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] };
+      const singleNoteEvent = {
+        id: 'e1',
+        duration: 'quarter',
+        dotted: false,
+        notes: [{ id: 'n1', pitch: 'C4' }],
+      };
       expect(selectNoteInEventByDirection(singleNoteEvent, 'up')).toBe('n1');
       expect(selectNoteInEventByDirection(singleNoteEvent, 'down')).toBe('n1');
     });
@@ -293,9 +309,27 @@ describe('calculateVerticalNavigation', () => {
     test('moves ghost cursor from treble to bass staff', () => {
       const score = createScore([trebleStaff, bassStaff]);
       const selection = { staffIndex: 0, measureIndex: null, eventId: null, noteId: null };
-      const previewNote = { measureIndex: 0, staffIndex: 0, quant: 0, visualQuant: 0, pitch: 'C5', duration: 'quarter', dotted: false, mode: 'APPEND' as const, index: 0, isRest: false };
+      const previewNote = {
+        measureIndex: 0,
+        staffIndex: 0,
+        quant: 0,
+        visualQuant: 0,
+        pitch: 'C5',
+        duration: 'quarter',
+        dotted: false,
+        mode: 'APPEND' as const,
+        index: 0,
+        isRest: false,
+      };
 
-      const result = calculateVerticalNavigation(score, selection, 'down', 'quarter', false, previewNote);
+      const result = calculateVerticalNavigation(
+        score,
+        selection,
+        'down',
+        'quarter',
+        false,
+        previewNote
+      );
 
       expect(result?.selection?.staffIndex).toBe(1);
       // Should find event at quant 0 in bass staff
@@ -305,9 +339,27 @@ describe('calculateVerticalNavigation', () => {
     test('creates adjusted ghost cursor when moving to empty staff', () => {
       const score = createScore([trebleStaff, emptyBassStaff]);
       const selection = { staffIndex: 0, measureIndex: null, eventId: null, noteId: null };
-      const previewNote = { measureIndex: 0, staffIndex: 0, quant: 0, visualQuant: 0, pitch: 'C5', duration: 'quarter', dotted: false, mode: 'APPEND' as const, index: 0, isRest: false };
+      const previewNote = {
+        measureIndex: 0,
+        staffIndex: 0,
+        quant: 0,
+        visualQuant: 0,
+        pitch: 'C5',
+        duration: 'quarter',
+        dotted: false,
+        mode: 'APPEND' as const,
+        index: 0,
+        isRest: false,
+      };
 
-      const result = calculateVerticalNavigation(score, selection, 'down', 'quarter', false, previewNote);
+      const result = calculateVerticalNavigation(
+        score,
+        selection,
+        'down',
+        'quarter',
+        false,
+        previewNote
+      );
 
       expect(result?.selection?.staffIndex).toBe(1);
       expect(result?.selection?.measureIndex).toBeNull(); // Ghost cursor state

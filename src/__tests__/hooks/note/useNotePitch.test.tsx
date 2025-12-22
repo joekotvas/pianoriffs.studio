@@ -19,9 +19,7 @@ describe('useNotePitch', () => {
       staffIndex: 0,
     };
 
-    const { result } = renderHook(() =>
-      useNotePitch({ selection, dispatch: mockDispatch })
-    );
+    const { result } = renderHook(() => useNotePitch({ selection, dispatch: mockDispatch }));
 
     act(() => {
       result.current.updateNotePitch(0, 'e1', 'n1', 'D4');
@@ -37,9 +35,7 @@ describe('useNotePitch', () => {
       staffIndex: 1, // Non-default staff
     };
 
-    const { result } = renderHook(() =>
-      useNotePitch({ selection, dispatch: mockDispatch })
-    );
+    const { result } = renderHook(() => useNotePitch({ selection, dispatch: mockDispatch }));
 
     act(() => {
       result.current.updateNotePitch(2, 'e5', 'n8', 'G#5');
@@ -50,9 +46,7 @@ describe('useNotePitch', () => {
 
   it('handles various pitch formats', () => {
     const selection = createDefaultSelection();
-    const { result } = renderHook(() =>
-      useNotePitch({ selection, dispatch: mockDispatch })
-    );
+    const { result } = renderHook(() => useNotePitch({ selection, dispatch: mockDispatch }));
 
     // Sharp
     act(() => {

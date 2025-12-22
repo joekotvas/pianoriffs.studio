@@ -195,10 +195,15 @@ export function useNoteEntry({
           // Auto-create new measure via Command
           dispatch(new AddMeasureCommand());
           // Recursive call will now target the new measure
-          addNoteToMeasureCallback(measureIndex + 1, { ...newNote, staffIndex: currentStaffIndex }, false, {
-            mode: 'APPEND',
-            index: 0,
-          });
+          addNoteToMeasureCallback(
+            measureIndex + 1,
+            { ...newNote, staffIndex: currentStaffIndex },
+            false,
+            {
+              mode: 'APPEND',
+              index: 0,
+            }
+          );
           return;
         } else {
           // Cannot add

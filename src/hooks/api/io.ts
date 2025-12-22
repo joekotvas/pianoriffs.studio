@@ -1,4 +1,5 @@
 import { MusicEditorAPI } from '@/api.types';
+import { Score } from '@/types';
 import { APIContext } from './types';
 import { LoadScoreCommand } from '@/commands';
 import { generateABC } from '@/exporters/abcExporter';
@@ -19,7 +20,9 @@ type IOMethodNames = 'loadScore' | 'reset' | 'export';
  * @param ctx - Shared API context
  * @returns Partial API implementation for I/O
  */
-export const createIOMethods = (ctx: APIContext): Pick<MusicEditorAPI, IOMethodNames> & ThisType<MusicEditorAPI> => {
+export const createIOMethods = (
+  ctx: APIContext
+): Pick<MusicEditorAPI, IOMethodNames> & ThisType<MusicEditorAPI> => {
   const { scoreRef } = ctx;
 
   return {
@@ -34,13 +37,15 @@ export const createIOMethods = (ctx: APIContext): Pick<MusicEditorAPI, IOMethodN
       const { dispatch } = ctx;
       // Default key signature 'C' (implied)
       const staves = generateStaves(template, measures, 'C');
-      
-      const newScore = {
+
+      // Create a fresh score with default values (including BPM)
+      const newScore: Score = {
         ...scoreRef.current,
         staves,
         title: 'New Score',
+        bpm: 120, // Reset BPM to default
       };
-      
+
       dispatch(new LoadScoreCommand(newScore));
       return this;
     },

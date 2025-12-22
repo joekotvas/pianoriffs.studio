@@ -32,7 +32,7 @@ describe('SelectAllCommand - explicit scope', () => {
       const result = command.execute(selection, score);
 
       expect(result.selectedNotes.length).toBe(4);
-      expect(result.selectedNotes.every(n => n.staffIndex === 0)).toBe(true);
+      expect(result.selectedNotes.every((n) => n.staffIndex === 0)).toBe(true);
     });
 
     it('should select all notes on staff 1 (bass)', () => {
@@ -41,7 +41,7 @@ describe('SelectAllCommand - explicit scope', () => {
       const result = command.execute(selection, score);
 
       expect(result.selectedNotes.length).toBe(2);
-      expect(result.selectedNotes.every(n => n.staffIndex === 1)).toBe(true);
+      expect(result.selectedNotes.every((n) => n.staffIndex === 1)).toBe(true);
     });
   });
 
@@ -56,7 +56,7 @@ describe('SelectAllCommand - explicit scope', () => {
       const result = command.execute(selection, score);
 
       expect(result.selectedNotes.length).toBe(3);
-      expect(result.selectedNotes.every(n => n.measureIndex === 0)).toBe(true);
+      expect(result.selectedNotes.every((n) => n.measureIndex === 0)).toBe(true);
     });
 
     it('should select from bass staff measure', () => {
@@ -81,7 +81,7 @@ describe('SelectAllCommand - explicit scope', () => {
       const result = command.execute(selection, score);
 
       expect(result.selectedNotes.length).toBe(2);
-      expect(result.selectedNotes.every(n => n.eventId === 'event-0-0-0')).toBe(true);
+      expect(result.selectedNotes.every((n) => n.eventId === 'event-0-0-0')).toBe(true);
     });
   });
 
@@ -119,7 +119,7 @@ describe('SelectAllCommand - explicit scope', () => {
       const command = new SelectAllCommand({ scope: 'score' });
       const result = command.execute(selection, scoreWithRests);
 
-      const rest = result.selectedNotes.find(n => n.eventId === 'event-rest');
+      const rest = result.selectedNotes.find((n) => n.eventId === 'event-rest');
       expect(rest).toBeDefined();
       expect(rest?.noteId).toBeNull();
     });

@@ -90,7 +90,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       anchor: null,
     };
 
-
     const setPreviewNote = jest.fn();
     const dispatch = jest.fn();
 
@@ -147,7 +146,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       anchor: null,
     };
 
-
     const setPreviewNote = jest.fn();
     const dispatch = jest.fn();
 
@@ -199,7 +197,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       selectedNotes: [],
       anchor: null,
     };
-
 
     const setPreviewNote = jest.fn();
     const dispatch = jest.fn();
@@ -317,7 +314,6 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
     };
 
     let capturedPreviewNote: any = null;
-
 
     const setPreviewNote = jest.fn((note) => {
       capturedPreviewNote = note;

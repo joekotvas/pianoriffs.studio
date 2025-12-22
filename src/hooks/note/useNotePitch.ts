@@ -42,10 +42,7 @@ export interface UseNotePitchReturn {
  *
  * @tested src/__tests__/hooks/note/useNotePitch.test.tsx
  */
-export function useNotePitch({
-  selection,
-  dispatch,
-}: UseNotePitchProps): UseNotePitchReturn {
+export function useNotePitch({ selection, dispatch }: UseNotePitchProps): UseNotePitchReturn {
   const updateNotePitch = useCallback(
     (measureIndex: number, eventId: string | number, noteId: string | number, newPitch: string) => {
       dispatch(

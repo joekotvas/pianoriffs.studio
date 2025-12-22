@@ -141,10 +141,32 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
         rollback: rollbackTransaction,
       },
       config,
-      // Wire setters:
-      setTheme: (name) => setTheme(name.toUpperCase() as 'LIGHT' | 'DARK' | 'WARM' | 'COOL'),
+      // Wire setters with validation:
+      setTheme: (name) => {
+        const normalized = name.trim().toUpperCase();
+        if (
+          normalized === 'LIGHT' ||
+          normalized === 'DARK' ||
+          normalized === 'WARM' ||
+          normalized === 'COOL'
+        ) {
+          setTheme(normalized as 'LIGHT' | 'DARK' | 'WARM' | 'COOL');
+        } else {
+          console.warn(
+            `RiffScore: Ignoring invalid theme name "${name}". Expected one of: LIGHT, DARK, WARM, COOL.`
+          );
+        }
+      },
       setZoom,
-      setInputMode: (mode) => ctx.tools.setInputMode(mode.toUpperCase() as 'NOTE' | 'REST'),
+      setInputMode: (mode) => {
+        if (mode === 'note' || mode === 'rest') {
+          ctx.tools.setInputMode(mode.toUpperCase() as 'NOTE' | 'REST');
+        } else {
+          console.warn(
+            `RiffScore: Ignoring invalid input mode "${mode}". Expected "note" or "rest".`
+          );
+        }
+      },
     };
 
     // Factory methods access refs via context, not directly during render.

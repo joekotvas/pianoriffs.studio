@@ -43,16 +43,13 @@ describe('MusicXML Clef Export', () => {
     ['bass', 'F', '4'],
     ['alto', 'C', '3'],
     ['tenor', 'C', '4'],
-  ])(
-    'exports %s clef with sign=%s, line=%s',
-    (clef, expectedSign, expectedLine) => {
-      const score = createScoreWithClef(clef);
-      const xml = generateMusicXML(score);
+  ])('exports %s clef with sign=%s, line=%s', (clef, expectedSign, expectedLine) => {
+    const score = createScoreWithClef(clef);
+    const xml = generateMusicXML(score);
 
-      expect(xml).toContain(`<sign>${expectedSign}</sign>`);
-      expect(xml).toContain(`<line>${expectedLine}</line>`);
-    }
-  );
+    expect(xml).toContain(`<sign>${expectedSign}</sign>`);
+    expect(xml).toContain(`<line>${expectedLine}</line>`);
+  });
 
   it('exports valid XML structure', () => {
     const score = createScoreWithClef('treble');

@@ -39,9 +39,7 @@ describe('ScoreAPI Entry Methods', () => {
         api.makeTuplet(3, 2);
       });
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('No selection')
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('No selection'));
     });
 
     test('creates tuplet on consecutive events', () => {
@@ -50,10 +48,7 @@ describe('ScoreAPI Entry Methods', () => {
 
       // Add 3 notes
       act(() => {
-        api.select(1)
-          .addNote('C4', 'eighth')
-          .addNote('D4', 'eighth')
-          .addNote('E4', 'eighth');
+        api.select(1).addNote('C4', 'eighth').addNote('D4', 'eighth').addNote('E4', 'eighth');
       });
 
       // Verify notes were added
@@ -89,10 +84,7 @@ describe('ScoreAPI Entry Methods', () => {
 
       // Add notes
       act(() => {
-        api.select(1)
-          .addNote('C4', 'eighth')
-          .addNote('D4', 'eighth')
-          .addNote('E4', 'eighth');
+        api.select(1).addNote('C4', 'eighth').addNote('D4', 'eighth').addNote('E4', 'eighth');
       });
 
       // Select first event and create tuplet
@@ -118,16 +110,14 @@ describe('ScoreAPI Entry Methods', () => {
       // Verify selection points to event with tuplet
       const sel = api.getSelection();
       score = api.getScore();
-      const event = score.staves[0].measures[0].events.find(e => e.id === sel.eventId);
+      const event = score.staves[0].measures[0].events.find((e) => e.id === sel.eventId);
       expect(event?.tuplet).toBeDefined();
 
       act(() => {
         api.makeTuplet(3, 2);
       });
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('already contain a tuplet')
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('already contain a tuplet'));
     });
 
     test('supports method chaining', () => {
@@ -136,10 +126,7 @@ describe('ScoreAPI Entry Methods', () => {
 
       // Should be able to chain after makeTuplet
       act(() => {
-        api.select(1)
-          .addNote('C4', 'eighth')
-          .addNote('D4', 'eighth')
-          .addNote('E4', 'eighth');
+        api.select(1).addNote('C4', 'eighth').addNote('D4', 'eighth').addNote('E4', 'eighth');
       });
 
       let result: MusicEditorAPI | undefined;
@@ -162,9 +149,7 @@ describe('ScoreAPI Entry Methods', () => {
         api.unmakeTuplet();
       });
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('not part of a tuplet')
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('not part of a tuplet'));
     });
 
     test('removes tuplet from events', () => {
@@ -173,10 +158,7 @@ describe('ScoreAPI Entry Methods', () => {
 
       // Create tuplet
       act(() => {
-        api.select(1)
-          .addNote('C4', 'eighth')
-          .addNote('D4', 'eighth')
-          .addNote('E4', 'eighth');
+        api.select(1).addNote('C4', 'eighth').addNote('D4', 'eighth').addNote('E4', 'eighth');
       });
 
       act(() => {
@@ -223,9 +205,7 @@ describe('ScoreAPI Entry Methods', () => {
         api.toggleTie();
       });
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('No note selected')
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('No note selected'));
     });
 
     test('toggles tie on selected note', () => {
@@ -264,9 +244,7 @@ describe('ScoreAPI Entry Methods', () => {
         api.setTie(true);
       });
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('No note selected')
-      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('No note selected'));
     });
 
     test('sets tie explicitly', () => {

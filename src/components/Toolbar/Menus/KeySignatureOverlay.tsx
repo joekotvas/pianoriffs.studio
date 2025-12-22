@@ -47,7 +47,15 @@ const CIRCLE_OF_FIFTHS = {
 /**
  * StaffPreview: Handles the SVG rendering of the staff lines and accidentals
  */
-const StaffPreview = ({ data, clef, theme }: { data: KeySignature; clef: string; theme: Theme }) => {
+const StaffPreview = ({
+  data,
+  clef,
+  theme,
+}: {
+  data: KeySignature;
+  clef: string;
+  theme: Theme;
+}) => {
   const { type, count, accidentals } = data;
   const accWidth = Math.max(40, count * 10 + 20);
 

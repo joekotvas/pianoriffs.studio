@@ -239,7 +239,12 @@ export const createSelectionWithNote = (
  * @param focusIndex - Index of the focus note (defaults to 0)
  */
 export const createMultiNoteSelection = (
-  notes: Array<{ staffIndex: number; measureIndex: number; eventId: string | number; noteId: string | number | null }>,
+  notes: Array<{
+    staffIndex: number;
+    measureIndex: number;
+    eventId: string | number;
+    noteId: string | number | null;
+  }>,
   focusIndex = 0
 ): Selection => {
   const focus = notes[focusIndex];

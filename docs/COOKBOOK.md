@@ -82,12 +82,11 @@ api.selectAll('measure')
 api.setDuration('eighth', true);  // true = dotted
 ```
 
-### Convert Notes to Rests ⏳
+### Convert Notes to Rests ✅
 
 ```javascript
-// PENDING: setInputMode() not yet implemented
 api.selectAll('measure')
-   .setInputMode('rest');
+   .setInputMode('rest');  // Switch to rest entry mode
 ```
 
 ---
@@ -144,15 +143,14 @@ api.on('selection', (selection) => {
 });
 ```
 
-### React to Playback Position ⏳
+### React to Playback Position ✅
 
 ```javascript
-// PENDING: on() and playback API not yet implemented
-api.on('playback', ({ isPlaying, currentMeasure }) => {
-  if (isPlaying) {
-    scrollToMeasure(currentMeasure);
-  }
-});
+// Playback API is now fully integrated with Tone.js
+api.play();  // Start playback
+api.pause(); // Pause (retains position)
+api.stop();  // Stop and reset to beginning
+api.rewind(2); // Jump to measure 2
 ```
 
 ---

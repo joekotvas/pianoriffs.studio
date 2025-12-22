@@ -28,19 +28,18 @@ export class SelectionEngine {
    * @param initialSelection - Starting selection state
    * @param scoreGetter - Function to get current score (for command execution)
    */
-  constructor(
-    initialSelection?: Selection,
-    scoreGetter?: () => Score
-  ) {
+  constructor(initialSelection?: Selection, scoreGetter?: () => Score) {
     this.state = initialSelection || createDefaultSelection();
     // Default score getter returns empty score (for testing)
-    this.scoreRef = scoreGetter || (() => ({
-      title: '',
-      timeSignature: '4/4',
-      keySignature: 'C',
-      bpm: 120,
-      staves: [],
-    }));
+    this.scoreRef =
+      scoreGetter ||
+      (() => ({
+        title: '',
+        timeSignature: '4/4',
+        keySignature: 'C',
+        bpm: 120,
+        staves: [],
+      }));
   }
 
   /**

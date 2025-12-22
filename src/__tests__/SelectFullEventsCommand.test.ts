@@ -24,7 +24,7 @@ describe('SelectFullEventsCommand', () => {
       const result = cmd.execute(state, score);
 
       expect(result.selectedNotes).toHaveLength(3);
-      expect(result.selectedNotes.map(n => n.noteId)).toEqual(
+      expect(result.selectedNotes.map((n) => n.noteId)).toEqual(
         expect.arrayContaining(['n0', 'n1', 'n2'])
       );
     });

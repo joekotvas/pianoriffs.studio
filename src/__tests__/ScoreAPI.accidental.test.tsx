@@ -41,18 +41,24 @@ describe('ScoreAPI Accidental Methods', () => {
         api.select(0).addNote('C4', 'quarter');
       });
 
-      // Default is natural/null
+      // By default, notes have no explicit accidental (follows key signature)
       expect(getNote(api).accidental).toBeFalsy();
 
       // Select note
-      act(() => { api.select(0, 0, 0, 0); });
+      act(() => {
+        api.select(0, 0, 0, 0);
+      });
 
       // Set Sharp
-      act(() => { api.setAccidental('sharp'); });
+      act(() => {
+        api.setAccidental('sharp');
+      });
       expect(getNote(api).accidental).toBe('sharp');
 
       // Set Flat
-      act(() => { api.setAccidental('flat'); });
+      act(() => {
+        api.setAccidental('flat');
+      });
       expect(getNote(api).accidental).toBe('flat');
     });
 
@@ -80,7 +86,9 @@ describe('ScoreAPI Accidental Methods', () => {
       expect(getNote(api, 0, 1, 0).accidental).toBe('sharp');
 
       // Undo should revert both (transaction)
-      act(() => { api.undo(); });
+      act(() => {
+        api.undo();
+      });
       expect(getNote(api, 0, 0, 0).accidental).toBeFalsy();
       expect(getNote(api, 0, 1, 0).accidental).toBeFalsy();
     });
@@ -96,31 +104,33 @@ describe('ScoreAPI Accidental Methods', () => {
         api.select(0, 0, 0, 0);
       });
 
-      // 1. Initial: Undefined/Null. First toggle -> Sharp?
-      // Logic in implementation: 
-      // if current=sharp -> flat
-      // if current=flat -> natural
-      // if current=natural -> null
-      // else (undefined) -> sharp
-      
-      // Since note created with 'C4' (no accidental), accidental is undefined.
-      // Logic "let next = 'sharp'; if (current==='sharp') ..." handles undefined as 'sharp'.
+      // Initial state: no accidental (undefined). First toggle applies 'sharp'.
+      // Cycle: (undefined) -> sharp -> flat -> natural -> null
+      // Note: 'natural' is an explicit marking that cancels sharps/flats.
 
-      // Toggle 1: Null -> Sharp
-      act(() => { api.toggleAccidental(); });
+      // Toggle 1: no accidental -> sharp
+      act(() => {
+        api.toggleAccidental();
+      });
       expect(getNote(api).accidental).toBe('sharp');
 
       // Toggle 2: Sharp -> Flat
-      act(() => { api.toggleAccidental(); });
+      act(() => {
+        api.toggleAccidental();
+      });
       expect(getNote(api).accidental).toBe('flat');
 
       // Toggle 3: Flat -> Natural
-      act(() => { api.toggleAccidental(); });
+      act(() => {
+        api.toggleAccidental();
+      });
       expect(getNote(api).accidental).toBe('natural');
 
       // Toggle 4: Natural -> Null
-      act(() => { api.toggleAccidental(); });
-      expect(getNote(api).accidental).toBeNull(); 
+      act(() => {
+        api.toggleAccidental();
+      });
+      expect(getNote(api).accidental).toBeNull();
       // Depending on implementation, might delete the key or set to null/undefined.
       // UpdateNoteCommand merges partial. If we pass {accidental: null}, it sets it to null.
     });

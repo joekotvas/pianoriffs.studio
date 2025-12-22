@@ -18,8 +18,11 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('ScoreAPI Transactions', () => {
   it('should group multiple commands into a single undo step', () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId: 'test', config: DEFAULT_RIFF_CONFIG }), { wrapper });
-    
+    const { result } = renderHook(
+      () => useScoreAPI({ instanceId: 'test', config: DEFAULT_RIFF_CONFIG }),
+      { wrapper }
+    );
+
     // 1. Start transaction
     act(() => {
       result.current.beginTransaction();
@@ -30,7 +33,7 @@ describe('ScoreAPI Transactions', () => {
     act(() => {
       result.current.addNote('C4');
     });
-    
+
     // Add another note (should be in same measure)
     act(() => {
       result.current.addNote('E4');
@@ -44,7 +47,7 @@ describe('ScoreAPI Transactions', () => {
     // Verify state: Should have 2 notes
     const score = result.current.getScore();
     const measure = score.staves[0].measures[0];
-    expect(measure.events.length).toBe(2); 
+    expect(measure.events.length).toBe(2);
 
     // 4. Undo once - should revert BOTH addNote calls
     act(() => {
@@ -57,16 +60,19 @@ describe('ScoreAPI Transactions', () => {
   });
 
   it('should support nested transactions flattening to single batch', () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId: 'test-nest', config: DEFAULT_RIFF_CONFIG }), { wrapper });
+    const { result } = renderHook(
+      () => useScoreAPI({ instanceId: 'test-nest', config: DEFAULT_RIFF_CONFIG }),
+      { wrapper }
+    );
 
     act(() => {
       result.current.beginTransaction(); // Depth 1
       result.current.addNote('C4');
-      
+
       result.current.beginTransaction(); // Depth 2
       result.current.addNote('E4');
       result.current.commitTransaction(); // Depth 1
-      
+
       result.current.commitTransaction(); // Depth 0 -> Commit
     });
 
@@ -82,7 +88,10 @@ describe('ScoreAPI Transactions', () => {
   });
 
   it('should allow rollback to clear pending changes', () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId: 'test-rollback', config: DEFAULT_RIFF_CONFIG }), { wrapper });
+    const { result } = renderHook(
+      () => useScoreAPI({ instanceId: 'test-rollback', config: DEFAULT_RIFF_CONFIG }),
+      { wrapper }
+    );
 
     act(() => {
       result.current.beginTransaction();
@@ -92,18 +101,21 @@ describe('ScoreAPI Transactions', () => {
 
     // State should be reverted
     expect(result.current.getScore().staves[0].measures[0].events.length).toBe(0);
-    
+
     // History should be empty (nothing committed)
     act(() => {
-        result.current.undo(); // Should do nothing if history empty
+      result.current.undo(); // Should do nothing if history empty
     });
     expect(result.current.getScore().staves[0].measures[0].events.length).toBe(0);
   });
 
   it('should notify listeners during batch (History-Only Strategy)', () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId: 'test-listeners', config: DEFAULT_RIFF_CONFIG }), { wrapper });
+    const { result } = renderHook(
+      () => useScoreAPI({ instanceId: 'test-listeners', config: DEFAULT_RIFF_CONFIG }),
+      { wrapper }
+    );
     const listener = jest.fn();
-    
+
     // Subscribe
     const unsubscribe = result.current.on('score', listener);
 
@@ -126,8 +138,11 @@ describe('ScoreAPI Transactions', () => {
   });
 
   it('should handle unbalanced commit calls gracefully', () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId: 'test-unbalanced', config: DEFAULT_RIFF_CONFIG }), { wrapper });
-    
+    const { result } = renderHook(
+      () => useScoreAPI({ instanceId: 'test-unbalanced', config: DEFAULT_RIFF_CONFIG }),
+      { wrapper }
+    );
+
     // Calling commit without begin should do nothing / not crash
     act(() => {
       result.current.commitTransaction();
@@ -137,10 +152,10 @@ describe('ScoreAPI Transactions', () => {
     // If history was populated, undo might change something or error if history was invalid
     const initialScore = result.current.getScore();
     let afterUndoScore;
-    
+
     act(() => {
-       result.current.undo();
-       afterUndoScore = result.current.getScore();
+      result.current.undo();
+      afterUndoScore = result.current.getScore();
     });
 
     // Score should be identical (mock score defaults)

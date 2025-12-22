@@ -1,11 +1,7 @@
 import { ScoreEvent } from '@/types';
 import { BeamGroup } from './types';
 import { getNoteDuration } from '@/utils/core';
-import {
-  getOffsetForPitch,
-  calculateChordLayout,
-  getStemOffset,
-} from './positioning';
+import { getOffsetForPitch, calculateChordLayout, getStemOffset } from './positioning';
 import { CONFIG } from '@/config';
 import { MIDDLE_LINE_Y, BEAMING } from '@/constants';
 

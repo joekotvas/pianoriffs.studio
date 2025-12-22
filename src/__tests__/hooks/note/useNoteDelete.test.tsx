@@ -45,9 +45,7 @@ describe('useNoteDelete', () => {
     it('deletes events when noteId is missing in selectedNotes', () => {
       const selection: Selection = {
         ...createDefaultSelection(),
-        selectedNotes: [
-          { staffIndex: 0, measureIndex: 0, eventId: 'e1', noteId: null },
-        ],
+        selectedNotes: [{ staffIndex: 0, measureIndex: 0, eventId: 'e1', noteId: null }],
       };
 
       const { result } = renderHook(() =>

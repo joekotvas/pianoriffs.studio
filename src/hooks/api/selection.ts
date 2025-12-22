@@ -12,7 +12,16 @@ import {
 /**
  * Selection method names provided by this factory
  */
-type SelectionMethodNames = 'addToSelection' | 'selectRangeTo' | 'selectAll' | 'selectEvent' | 'deselectAll' | 'selectFullEvents' | 'extendSelectionUp' | 'extendSelectionDown' | 'extendSelectionAllStaves';
+type SelectionMethodNames =
+  | 'addToSelection'
+  | 'selectRangeTo'
+  | 'selectAll'
+  | 'selectEvent'
+  | 'deselectAll'
+  | 'selectFullEvents'
+  | 'extendSelectionUp'
+  | 'extendSelectionDown'
+  | 'extendSelectionAllStaves';
 
 /**
  * Factory for creating Selection API methods.
@@ -23,7 +32,9 @@ type SelectionMethodNames = 'addToSelection' | 'selectRangeTo' | 'selectAll' | '
  * @param ctx - Shared API context
  * @returns Partial API implementation for selection
  */
-export const createSelectionMethods = (ctx: APIContext): Pick<MusicEditorAPI, SelectionMethodNames> & ThisType<MusicEditorAPI> => {
+export const createSelectionMethods = (
+  ctx: APIContext
+): Pick<MusicEditorAPI, SelectionMethodNames> & ThisType<MusicEditorAPI> => {
   const { scoreRef, selectionRef, syncSelection, selectionEngine } = ctx;
 
   return {
@@ -32,15 +43,17 @@ export const createSelectionMethods = (ctx: APIContext): Pick<MusicEditorAPI, Se
       const staff = scoreRef.current.staves[staffIndex];
       const event = staff?.measures[measureIndex]?.events[eventIndex];
       if (!event) return this;
-      
+
       const noteId = event.notes?.[noteIndex]?.id ?? null;
-      
-      selectionEngine.dispatch(new ToggleNoteCommand({
-        staffIndex,
-        measureIndex,
-        eventId: event.id,
-        noteId,
-      }));
+
+      selectionEngine.dispatch(
+        new ToggleNoteCommand({
+          staffIndex,
+          measureIndex,
+          eventId: event.id,
+          noteId,
+        })
+      );
       selectionRef.current = selectionEngine.getState();
       return this;
     },
@@ -50,10 +63,10 @@ export const createSelectionMethods = (ctx: APIContext): Pick<MusicEditorAPI, Se
       const staff = scoreRef.current.staves[staffIndex];
       const event = staff?.measures[measureIndex]?.events[eventIndex];
       if (!event) return this;
-      
+
       const noteId = event.notes?.[noteIndex]?.id ?? null;
       const sel = selectionRef.current;
-      
+
       // Use existing anchor or create one from current selection
       // Require valid eventId for anchor
       if (!sel.anchor && sel.eventId === null) {
@@ -63,30 +76,44 @@ export const createSelectionMethods = (ctx: APIContext): Pick<MusicEditorAPI, Se
           anchor: { staffIndex, measureIndex, eventId: event.id, noteId },
         });
       }
-      
-      const anchor = sel.anchor || {
-        staffIndex: sel.staffIndex,
-        measureIndex: sel.measureIndex ?? 0,
-        eventId: sel.eventId!,
-        noteId: sel.noteId,
-      };
-      
-      selectionEngine.dispatch(new RangeSelectCommand({
-        anchor,
-        focus: { staffIndex, measureIndex, eventId: event.id, noteId },
-      }));
+
+      // Use existing anchor, or derive from current selection, or create new from target
+      const anchor =
+        sel.anchor ??
+        (sel.eventId != null
+          ? {
+              staffIndex: sel.staffIndex,
+              measureIndex: sel.measureIndex ?? 0,
+              eventId: sel.eventId,
+              noteId: sel.noteId,
+            }
+          : {
+              staffIndex,
+              measureIndex,
+              eventId: event.id,
+              noteId,
+            });
+
+      selectionEngine.dispatch(
+        new RangeSelectCommand({
+          anchor,
+          focus: { staffIndex, measureIndex, eventId: event.id, noteId },
+        })
+      );
       selectionRef.current = selectionEngine.getState();
       return this;
     },
 
     selectAll(scope = 'score') {
       const sel = selectionRef.current;
-      selectionEngine.dispatch(new SelectAllCommand({
-        scope: scope as 'score' | 'staff' | 'measure' | 'event',
-        staffIndex: sel.staffIndex,
-        measureIndex: sel.measureIndex ?? undefined,
-        expandIfSelected: false, // API uses explicit scope
-      }));
+      selectionEngine.dispatch(
+        new SelectAllCommand({
+          scope: scope as 'score' | 'staff' | 'measure' | 'event',
+          staffIndex: sel.staffIndex,
+          measureIndex: sel.measureIndex ?? undefined,
+          expandIfSelected: false, // API uses explicit scope
+        })
+      );
       selectionRef.current = selectionEngine.getState();
       return this;
     },
@@ -96,25 +123,27 @@ export const createSelectionMethods = (ctx: APIContext): Pick<MusicEditorAPI, Se
       const sel = selectionRef.current;
       const sIdx = staffIndex ?? sel.staffIndex;
       const mIdx = measureNum !== undefined ? measureNum - 1 : sel.measureIndex;
-      
+
       if (mIdx === null) return this;
-      
+
       const staff = scoreRef.current.staves[sIdx];
       if (!staff) return this;
-      
+
       const measure = staff.measures[mIdx];
       if (!measure) return this;
-      
+
       // Get event
-      const eIdx = eventIndex ?? measure.events.findIndex(e => e.id === sel.eventId);
+      const eIdx = eventIndex ?? measure.events.findIndex((e) => e.id === sel.eventId);
       const event = measure.events[eIdx];
       if (!event) return this;
 
-      selectionEngine.dispatch(new SelectAllInEventCommand({
-        staffIndex: sIdx,
-        measureIndex: mIdx,
-        eventId: event.id,
-      }));
+      selectionEngine.dispatch(
+        new SelectAllInEventCommand({
+          staffIndex: sIdx,
+          measureIndex: mIdx,
+          eventId: event.id,
+        })
+      );
       selectionRef.current = selectionEngine.getState();
       return this;
     },

@@ -38,15 +38,12 @@ const createScoreWithClef = (clef: string): Score => ({
 });
 
 describe('ABC Clef Export', () => {
-  it.each(['treble', 'bass', 'alto', 'tenor'])(
-    'exports %s clef correctly',
-    (clef) => {
-      const score = createScoreWithClef(clef);
-      const abc = generateABC(score, 120);
+  it.each(['treble', 'bass', 'alto', 'tenor'])('exports %s clef correctly', (clef) => {
+    const score = createScoreWithClef(clef);
+    const abc = generateABC(score, 120);
 
-      expect(abc).toContain(`clef=${clef}`);
-    }
-  );
+    expect(abc).toContain(`clef=${clef}`);
+  });
 
   it('includes required ABC header fields', () => {
     const score = createScoreWithClef('treble');

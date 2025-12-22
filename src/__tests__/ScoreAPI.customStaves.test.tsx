@@ -16,7 +16,6 @@ const TEST_ID = 'api-test-score';
 Element.prototype.scrollTo = jest.fn();
 
 describe('ScoreAPI Custom Staves & Alto Clef (Phase 6B)', () => {
-
   beforeEach(() => {
     if (window.riffScore) {
       window.riffScore.instances.clear();
@@ -28,7 +27,7 @@ describe('ScoreAPI Custom Staves & Alto Clef (Phase 6B)', () => {
   it('api.addNote() works on single-staff score', async () => {
     const singleStaffScore = createSingleStaffScore();
     // singleStaffScore has 1 staff (Treble)
-    
+
     render(<RiffScore id={TEST_ID} config={{ score: { staves: singleStaffScore.staves } }} />);
     const api = getAPI(TEST_ID);
 
@@ -52,20 +51,20 @@ describe('ScoreAPI Custom Staves & Alto Clef (Phase 6B)', () => {
   // REPRODUCTION 2: Add note on 3rd staff (index 2)
   // Currently, logic might hardcode checking if index < 2 or similar
   it('api.addNote() works on staff index 2 (Multi-staff)', async () => {
-     // Manually create multi-staff score
-     const multiStaffScore = {
-       ...createSingleStaffScore(),
-       staves: [
-         { id: 's1', clef: 'treble', keySignature: 'C', measures: [{ id: 'm0-s1', events: [] }] },
-         { id: 's2', clef: 'treble', keySignature: 'C', measures: [{ id: 'm0-s2', events: [] }] },
-         { id: 's3', clef: 'treble', keySignature: 'C', measures: [{ id: 'm0-s3', events: [] }] },
-       ]
-     } as any; // Cast as any because createSingleStaffScore returns strictly typed Score
+    // Manually create multi-staff score
+    const multiStaffScore = {
+      ...createSingleStaffScore(),
+      staves: [
+        { id: 's1', clef: 'treble', keySignature: 'C', measures: [{ id: 'm0-s1', events: [] }] },
+        { id: 's2', clef: 'treble', keySignature: 'C', measures: [{ id: 'm0-s2', events: [] }] },
+        { id: 's3', clef: 'treble', keySignature: 'C', measures: [{ id: 'm0-s3', events: [] }] },
+      ],
+    } as any; // Cast as any because createSingleStaffScore returns strictly typed Score
 
-     render(<RiffScore id={TEST_ID} config={{ score: { staves: multiStaffScore.staves } }} />);
-     const api = getAPI(TEST_ID);
+    render(<RiffScore id={TEST_ID} config={{ score: { staves: multiStaffScore.staves } }} />);
+    const api = getAPI(TEST_ID);
 
-     // Select Staff 2 (3rd staff). Measure index 0 (1-based API = 1)
+    // Select Staff 2 (3rd staff). Measure index 0 (1-based API = 1)
     await act(async () => {
       api.select(1, 2);
     });

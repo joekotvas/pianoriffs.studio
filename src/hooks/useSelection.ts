@@ -16,7 +16,16 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { Selection, createDefaultSelection, Score, getActiveStaff, Note, ScoreEvent, SelectedNote, Measure } from '@/types';
+import {
+  Selection,
+  createDefaultSelection,
+  Score,
+  getActiveStaff,
+  Note,
+  ScoreEvent,
+  SelectedNote,
+  Measure,
+} from '@/types';
 import { playNote } from '@/engines/toneEngine';
 import { SelectionEngine } from '@/engines/SelectionEngine';
 import {
@@ -46,9 +55,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
   // 1. Engine Initialization
   // ─────────────────────────────────────────────────────────────────────────────
   // Using lazy initializer to avoid React Compiler side-effect warnings
-  const [engine] = useState(
-    () => new SelectionEngine(createDefaultSelection(), () => score)
-  );
+  const [engine] = useState(() => new SelectionEngine(createDefaultSelection(), () => score));
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 2. Sync Engine with React State
@@ -80,54 +87,58 @@ export const useSelection = ({ score }: UseSelectionProps) => {
    * Resolves IDs to actual Score objects and indices.
    * Centralizes the lookup logic used by multiple selection modes.
    */
-  const getSelectionTarget = useCallback((
-    staffIndex: number,
-    measureIndex: number,
-    eventId: string | number,
-    noteId: string | number | null
-  ): SelectionTarget => {
-    const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
-    
-    // Find Event
-    const eventIndex = measure?.events.findIndex((e: ScoreEvent) => e.id === eventId) ?? -1;
-    const event = eventIndex >= 0 ? measure?.events[eventIndex] : undefined;
+  const getSelectionTarget = useCallback(
+    (
+      staffIndex: number,
+      measureIndex: number,
+      eventId: string | number,
+      noteId: string | number | null
+    ): SelectionTarget => {
+      const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
 
-    // Find Note
-    const noteIndex = (noteId && event)
-      ? event.notes.findIndex((n: Note) => n.id === noteId)
-      : -1;
-    const note = noteIndex >= 0 ? event?.notes[noteIndex] : undefined;
+      // Find Event
+      const eventIndex = measure?.events.findIndex((e: ScoreEvent) => e.id === eventId) ?? -1;
+      const event = eventIndex >= 0 ? measure?.events[eventIndex] : undefined;
 
-    return { measure, event, note, eventIndex, noteIndex };
-  }, [score]);
+      // Find Note
+      const noteIndex = noteId && event ? event.notes.findIndex((n: Note) => n.id === noteId) : -1;
+      const note = noteIndex >= 0 ? event?.notes[noteIndex] : undefined;
+
+      return { measure, event, note, eventIndex, noteIndex };
+    },
+    [score]
+  );
 
   /**
    * Updates lastSelection state without changing the active engine selection.
    * Used for "onlyHistory" actions.
    */
-  const updateHistoryOnly = useCallback((
-    staffIndex: number, 
-    measureIndex: number, 
-    eventId: string | number, 
-    noteId: string | number | null,
-    notes: Note[]
-  ) => {
-    setLastSelection({
-      staffIndex,
-      measureIndex,
-      eventId,
-      noteId,
-      selectedNotes: notes.map(n => ({
+  const updateHistoryOnly = useCallback(
+    (
+      staffIndex: number,
+      measureIndex: number,
+      eventId: string | number,
+      noteId: string | number | null,
+      notes: Note[]
+    ) => {
+      setLastSelection({
         staffIndex,
         measureIndex,
         eventId,
-        noteId: n.id
-      })),
-      anchor: { staffIndex, measureIndex, eventId, noteId }
-    });
-    // Ensure the engine is visually clear
-    engine.dispatch(new ClearSelectionCommand());
-  }, [engine]);
+        noteId,
+        selectedNotes: notes.map((n) => ({
+          staffIndex,
+          measureIndex,
+          eventId,
+          noteId: n.id,
+        })),
+        anchor: { staffIndex, measureIndex, eventId, noteId },
+      });
+      // Ensure the engine is visually clear
+      engine.dispatch(new ClearSelectionCommand());
+    },
+    [engine]
+  );
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 4. Actions
@@ -208,22 +219,24 @@ export const useSelection = ({ score }: UseSelectionProps) => {
       if (isShift && !onlyHistory) {
         const currentState = engine.getState();
         const anchor = currentState.anchor;
-        
+
         // Only proceed with range selection if we have a valid anchor
         if (anchor?.eventId && anchor.measureIndex !== null) {
           // Resolve target note (default to first note if clicking event body)
-          const targetNoteId = noteId || (target.event.notes[0]?.id);
-          
+          const targetNoteId = noteId || target.event.notes[0]?.id;
+
           if (targetNoteId) {
-            engine.dispatch(new RangeSelectCommand({
-              anchor: anchor as SelectedNote,
-              focus: {
-                staffIndex: effectiveStaffIndex,
-                measureIndex,
-                eventId,
-                noteId: targetNoteId,
-              }
-            }));
+            engine.dispatch(
+              new RangeSelectCommand({
+                anchor: anchor as SelectedNote,
+                focus: {
+                  staffIndex: effectiveStaffIndex,
+                  measureIndex,
+                  eventId,
+                  noteId: targetNoteId,
+                },
+              })
+            );
             if (!target.event.isRest) playAudioFeedback(target.event.notes);
             return;
           }
@@ -240,12 +253,14 @@ export const useSelection = ({ score }: UseSelectionProps) => {
           return;
         }
 
-        engine.dispatch(new SelectAllInEventCommand({
-          staffIndex: effectiveStaffIndex,
-          measureIndex,
-          eventId,
-          addToSelection: !!isMulti,
-        }));
+        engine.dispatch(
+          new SelectAllInEventCommand({
+            staffIndex: effectiveStaffIndex,
+            measureIndex,
+            eventId,
+            addToSelection: !!isMulti,
+          })
+        );
 
         if (!target.event.isRest) playAudioFeedback(target.event.notes);
         return;
@@ -253,12 +268,14 @@ export const useSelection = ({ score }: UseSelectionProps) => {
 
       // ── Mode 3: Toggle Selection (Cmd/Ctrl+Click) ──
       if (isMulti && !onlyHistory) {
-        engine.dispatch(new ToggleNoteCommand({
-          staffIndex: effectiveStaffIndex,
-          measureIndex,
-          eventId,
-          noteId,
-        }));
+        engine.dispatch(
+          new ToggleNoteCommand({
+            staffIndex: effectiveStaffIndex,
+            measureIndex,
+            eventId,
+            noteId,
+          })
+        );
         if (target.note) playAudioFeedback([target.note]);
         return;
       }
@@ -271,12 +288,14 @@ export const useSelection = ({ score }: UseSelectionProps) => {
       }
 
       // ── Mode 5: Standard Single Selection ──
-      engine.dispatch(new SelectEventCommand({
-        staffIndex: effectiveStaffIndex,
-        measureIndex,
-        eventIndex: Math.max(0, target.eventIndex),
-        noteIndex: Math.max(0, target.noteIndex),
-      }));
+      engine.dispatch(
+        new SelectEventCommand({
+          staffIndex: effectiveStaffIndex,
+          measureIndex,
+          eventIndex: Math.max(0, target.eventIndex),
+          noteIndex: Math.max(0, target.noteIndex),
+        })
+      );
 
       // Audio feedback
       if (target.note) {

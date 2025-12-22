@@ -36,7 +36,8 @@ describe('Cookbook: Entry Recipes', () => {
     const api = getAPI('cookbook-scale');
 
     // Execute the documented recipe
-    api.select(1)
+    api
+      .select(1)
       .addNote('C4', 'quarter')
       .addNote('D4', 'quarter')
       .addNote('E4', 'quarter')
@@ -61,18 +62,14 @@ describe('Cookbook: Entry Recipes', () => {
     const api = getAPI('cookbook-chords');
 
     // Measure 1: C major chord
-    api.select(1)
-      .addNote('C4', 'half')
-      .addTone('E4')
-      .addTone('G4');
+    api.select(1).addNote('C4', 'half').addTone('E4').addTone('G4');
 
     // Cursor auto-advances; add F major
-    api.addNote('F4', 'half')
-      .addTone('A4')
-      .addTone('C5');
+    api.addNote('F4', 'half').addTone('A4').addTone('C5');
 
     // Measure 2: G major then C major
-    api.addNote('G4', 'half')
+    api
+      .addNote('G4', 'half')
       .addTone('B4')
       .addTone('D5')
       .addNote('C4', 'half')
@@ -91,7 +88,8 @@ describe('Cookbook: Entry Recipes', () => {
     render(<RiffScore id="cookbook-rests" />);
     const api = getAPI('cookbook-rests');
 
-    api.select(1)
+    api
+      .select(1)
       .addNote('C4', 'quarter')
       .addRest('quarter')
       .addNote('E4', 'quarter')
@@ -142,7 +140,8 @@ describe('Cookbook: Batch Operations', () => {
     render(<RiffScore id="cookbook-fill-rest" />);
     const api = getAPI('cookbook-fill-rest');
 
-    api.select(3)  // Measure 3
+    api
+      .select(3) // Measure 3
       .addRest('whole');
 
     expect(api.getSelection().eventId).toBeDefined();
@@ -167,7 +166,7 @@ describe('Cookbook: Integration Recipes', () => {
   test('Auto-Save to Backend (callback fires on mutation)', async () => {
     // Mock scrollTo for jsdom
     Element.prototype.scrollTo = jest.fn();
-    
+
     render(<RiffScore id="cookbook-autosave" />);
     const api = getAPI('cookbook-autosave');
 
@@ -181,11 +180,13 @@ describe('Cookbook: Integration Recipes', () => {
     await waitFor(() => {
       expect(callback).toHaveBeenCalled();
     });
-    
+
     // Verify callback was invoked with a score object
-    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
-      staves: expect.any(Array),
-    }));
+    expect(callback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        staves: expect.any(Array),
+      })
+    );
 
     // Cleanup
     unsub();
@@ -201,7 +202,7 @@ describe('Cookbook: Integration Recipes', () => {
   test('Sync Selection with External UI (callback fires on navigation)', async () => {
     // Mock scrollTo for jsdom
     Element.prototype.scrollTo = jest.fn();
-    
+
     render(<RiffScore id="cookbook-sync-selection" />);
     const api = getAPI('cookbook-sync-selection');
 
@@ -218,11 +219,13 @@ describe('Cookbook: Integration Recipes', () => {
     await waitFor(() => {
       expect(callback).toHaveBeenCalled();
     });
-    
+
     // Verify callback was invoked with selection data
-    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
-      staffIndex: expect.any(Number),
-    }));
+    expect(callback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        staffIndex: expect.any(Number),
+      })
+    );
 
     // Cleanup
     unsub();
@@ -246,7 +249,7 @@ describe('Cookbook: Export Recipes', () => {
     const api = getAPI('cookbook-export-json');
 
     const json = api.export('json');
-    
+
     // Should be valid JSON string
     expect(typeof json).toBe('string');
     expect(() => JSON.parse(json)).not.toThrow();
@@ -275,7 +278,7 @@ describe('Cookbook: Query Recipes', () => {
     const api = getAPI('cookbook-get-score');
 
     const score = api.getScore();
-    
+
     expect(score.title).toBeDefined();
     expect(score.staves).toBeDefined();
     expect(score.staves[0].measures.length).toBeGreaterThan(0);
@@ -290,7 +293,7 @@ describe('Cookbook: Query Recipes', () => {
     const api = getAPI('cookbook-get-selection');
 
     const sel = api.getSelection();
-    
+
     expect(sel.staffIndex).toBeDefined();
     expect(sel.selectedNotes).toBeDefined();
     // eventId may be null initially, but property exists
@@ -306,7 +309,7 @@ describe('Cookbook: Query Recipes', () => {
     const api = getAPI('cookbook-get-config');
 
     const config = api.getConfig();
-    
+
     expect(config).toBeDefined();
     expect(config.score).toBeDefined();
     expect(config.ui).toBeDefined();
@@ -355,7 +358,7 @@ describe('Cookbook: Multiple Instances', () => {
     render(<RiffScore id="active-test" />);
 
     const api = window.riffScore.active;
-    
+
     expect(api).toBeDefined();
     expect(api).toBe(window.riffScore.get('active-test'));
 

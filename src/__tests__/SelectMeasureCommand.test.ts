@@ -123,7 +123,12 @@ describe('SelectMeasureCommand', () => {
     });
 
     it('should preserve anchor when adding', () => {
-      const originalAnchor = { staffIndex: 0, measureIndex: 1, eventId: 'event-0-1-0', noteId: 'note-4' };
+      const originalAnchor = {
+        staffIndex: 0,
+        measureIndex: 1,
+        eventId: 'event-0-1-0',
+        noteId: 'note-4',
+      };
       const selection: Selection = {
         ...createDefaultSelection(),
         staffIndex: 0,

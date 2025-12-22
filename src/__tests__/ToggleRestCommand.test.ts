@@ -47,9 +47,7 @@ const createRestSelection = (): Selection => ({
   measureIndex: 0,
   eventId: 'event-1',
   noteId: 'rest-1',
-  selectedNotes: [
-    { staffIndex: 0, measureIndex: 0, eventId: 'event-1', noteId: 'rest-1' },
-  ],
+  selectedNotes: [{ staffIndex: 0, measureIndex: 0, eventId: 'event-1', noteId: 'rest-1' }],
   anchor: null,
 });
 
@@ -60,20 +58,17 @@ describe('ToggleRestCommand', () => {
       ['bass', 'D3'],
       ['alto', 'C4'],
       ['tenor', 'C4'],
-    ])(
-      'uses %s center pitch when converting rest to note',
-      (clef, expectedPitch) => {
-        const score = createScoreWithRest(clef);
-        const selection = createRestSelection();
+    ])('uses %s center pitch when converting rest to note', (clef, expectedPitch) => {
+      const score = createScoreWithRest(clef);
+      const selection = createRestSelection();
 
-        const command = new ToggleRestCommand(selection);
-        const newScore = command.execute(score);
+      const command = new ToggleRestCommand(selection);
+      const newScore = command.execute(score);
 
-        const event = newScore.staves[0].measures[0].events[0];
-        expect(event.isRest).toBe(false);
-        expect(event.notes[0].pitch).toBe(expectedPitch);
-      }
-    );
+      const event = newScore.staves[0].measures[0].events[0];
+      expect(event.isRest).toBe(false);
+      expect(event.notes[0].pitch).toBe(expectedPitch);
+    });
   });
 
   describe('rest to note conversion', () => {
@@ -165,7 +160,12 @@ describe('ToggleRestCommand', () => {
         eventId: 'nonexistent-event',
         noteId: 'nonexistent-note',
         selectedNotes: [
-          { staffIndex: 0, measureIndex: 0, eventId: 'nonexistent-event', noteId: 'nonexistent-note' },
+          {
+            staffIndex: 0,
+            measureIndex: 0,
+            eventId: 'nonexistent-event',
+            noteId: 'nonexistent-note',
+          },
         ],
         anchor: null,
       };

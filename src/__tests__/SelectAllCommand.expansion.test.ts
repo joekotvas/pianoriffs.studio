@@ -39,7 +39,7 @@ describe('SelectAllCommand - progressive expansion', () => {
       const result = command.execute(selection, score);
 
       expect(result.selectedNotes.length).toBe(4);
-      expect(result.selectedNotes.every(n => n.staffIndex === 0)).toBe(true);
+      expect(result.selectedNotes.every((n) => n.staffIndex === 0)).toBe(true);
     });
 
     /**
@@ -64,12 +64,12 @@ describe('SelectAllCommand - progressive expansion', () => {
       expect(result.selectedNotes.length).toBe(4);
 
       const trebleM0Notes = result.selectedNotes.filter(
-        n => n.staffIndex === 0 && n.measureIndex === 0
+        (n) => n.staffIndex === 0 && n.measureIndex === 0
       );
       expect(trebleM0Notes.length).toBe(3);
 
       const bassM0Notes = result.selectedNotes.filter(
-        n => n.staffIndex === 1 && n.measureIndex === 0
+        (n) => n.staffIndex === 1 && n.measureIndex === 0
       );
       expect(bassM0Notes.length).toBe(1);
     });
@@ -97,10 +97,10 @@ describe('SelectAllCommand - progressive expansion', () => {
 
       expect(result.selectedNotes.length).toBe(6);
 
-      const trebleNotes = result.selectedNotes.filter(n => n.staffIndex === 0);
+      const trebleNotes = result.selectedNotes.filter((n) => n.staffIndex === 0);
       expect(trebleNotes.length).toBe(4);
 
-      const bassNotes = result.selectedNotes.filter(n => n.staffIndex === 1);
+      const bassNotes = result.selectedNotes.filter((n) => n.staffIndex === 1);
       expect(bassNotes.length).toBe(2);
     });
 

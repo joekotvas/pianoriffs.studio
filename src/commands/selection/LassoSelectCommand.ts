@@ -38,9 +38,7 @@ export class LassoSelectCommand implements SelectionCommand {
       // Merge with existing selection, avoiding duplicates
       const existingNotes = state.selectedNotes;
       const newNotes = notes.filter(
-        (n) => !existingNotes.some(
-          (sn) => sn.noteId === n.noteId && sn.eventId === n.eventId
-        )
+        (n) => !existingNotes.some((sn) => sn.noteId === n.noteId && sn.eventId === n.eventId)
       );
 
       const mergedNotes = [...existingNotes, ...newNotes];

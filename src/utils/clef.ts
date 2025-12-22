@@ -25,10 +25,10 @@ interface ClefReference {
  */
 const CLEF_REFERENCES: Record<string, ClefReference> = {
   treble: { referencePitch: 'G4', referenceLine: 2 },
-  bass:   { referencePitch: 'F3', referenceLine: 4 },
-  alto:   { referencePitch: 'C4', referenceLine: 3 },
-  tenor:  { referencePitch: 'C4', referenceLine: 4 },
-  grand:  { referencePitch: 'G4', referenceLine: 2 }, // Uses treble clef
+  bass: { referencePitch: 'F3', referenceLine: 4 },
+  alto: { referencePitch: 'C4', referenceLine: 3 },
+  tenor: { referencePitch: 'C4', referenceLine: 4 },
+  grand: { referencePitch: 'G4', referenceLine: 2 }, // Uses treble clef
 };
 
 // =============================================================================
@@ -42,14 +42,20 @@ const MIDI_BASE: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, 
 const getPitchAtOffset = (referencePitch: string, steps: number): string => {
   const match = referencePitch.match(/^([A-G])(\d)$/);
   if (!match) return 'C4';
-  
+
   let noteIndex = NOTES.indexOf(match[1]);
   let octave = parseInt(match[2], 10);
-  
+
   noteIndex += steps;
-  while (noteIndex >= 7) { noteIndex -= 7; octave++; }
-  while (noteIndex < 0) { noteIndex += 7; octave--; }
-  
+  while (noteIndex >= 7) {
+    noteIndex -= 7;
+    octave++;
+  }
+  while (noteIndex < 0) {
+    noteIndex += 7;
+    octave--;
+  }
+
   return `${NOTES[noteIndex]}${octave}`;
 };
 
@@ -92,21 +98,22 @@ export interface ClefConfig {
 /** Derive full clef config from just reference pitch and line */
 const deriveClefConfig = (ref: ClefReference): ClefConfig => {
   const staffLines = generateStaffLines(ref.referencePitch, ref.referenceLine);
-  
+
   // centerPitch: For C-clefs (reference is C4), use the reference pitch (C4 is musically central)
   // For other clefs, use the middle line (Line 3)
   const isCClef = ref.referencePitch === 'C4';
   const centerPitch = isCClef ? ref.referencePitch : staffLines[2];
-  
+
   // restMidi: MIDI value of center pitch - used for vertical stack sorting
   const restMidi = pitchToMidi(centerPitch);
-  
+
   // defaultPitch: 'C' in the clef's primary octave
   // Find which octave of 'C' is closest to the center of the staff
   const centerMidi = restMidi;
-  const c3Midi = 48, c4Midi = 60;
+  const c3Midi = 48,
+    c4Midi = 60;
   const defaultPitch = Math.abs(centerMidi - c3Midi) < Math.abs(centerMidi - c4Midi) ? 'C3' : 'C4';
-  
+
   return { defaultPitch, centerPitch, restMidi, staffLines };
 };
 
@@ -118,5 +125,4 @@ export const CLEF_CONFIG: Record<string, ClefConfig> = Object.fromEntries(
 /**
  * Get clef configuration, falling back to treble for unknown clefs.
  */
-export const getClefConfig = (clef: string): ClefConfig =>
-  CLEF_CONFIG[clef] || CLEF_CONFIG.treble;
+export const getClefConfig = (clef: string): ClefConfig => CLEF_CONFIG[clef] || CLEF_CONFIG.treble;

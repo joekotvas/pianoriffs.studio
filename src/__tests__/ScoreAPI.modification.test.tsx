@@ -32,18 +32,20 @@ describe('ScoreAPI Modification & IO Methods', () => {
     test('replaces the current score', () => {
       render(<RiffScore id="load-score" />);
       const api = getAPI('load-score');
-      
+
       const newScore: Score = {
         title: 'New Score',
-        staves: [{
-          id: 'staff-1',
-          clef: 'bass',
-          keySignature: 'C',
-          measures: []
-        }],
+        staves: [
+          {
+            id: 'staff-1',
+            clef: 'bass',
+            keySignature: 'C',
+            measures: [],
+          },
+        ],
         timeSignature: '4/4',
         keySignature: 'C',
-        bpm: 100
+        bpm: 100,
       };
 
       act(() => {
@@ -92,9 +94,9 @@ describe('ScoreAPI Modification & IO Methods', () => {
       act(() => {
         api.addMeasure().addMeasure();
       });
-      
+
       const countBefore = api.getScore().staves[0].measures.length;
-      
+
       act(() => {
         api.deleteMeasure(0);
       });
@@ -115,7 +117,7 @@ describe('ScoreAPI Modification & IO Methods', () => {
 
       // Select the note
       act(() => {
-        api.select(1, 0, 0, 0); 
+        api.select(1, 0, 0, 0);
       });
 
       act(() => {
@@ -158,8 +160,8 @@ describe('ScoreAPI Modification & IO Methods', () => {
       const api = getAPI('set-clef');
 
       const clefs: ClefType[] = ['bass', 'alto', 'tenor', 'treble'];
-      
-      clefs.forEach(clef => {
+
+      clefs.forEach((clef) => {
         act(() => {
           api.setClef(clef);
         });
@@ -192,21 +194,27 @@ describe('ScoreAPI Modification & IO Methods', () => {
     test('setKeySignature', () => {
       render(<RiffScore id="set-key" />);
       const api = getAPI('set-key');
-      act(() => { api.setKeySignature('G'); });
+      act(() => {
+        api.setKeySignature('G');
+      });
       expect(api.getScore().staves[0].keySignature).toBe('G');
     });
 
     test('setTimeSignature', () => {
       render(<RiffScore id="set-time" />);
       const api = getAPI('set-time');
-      act(() => { api.setTimeSignature('3/4'); });
+      act(() => {
+        api.setTimeSignature('3/4');
+      });
       expect(api.getScore().timeSignature).toBe('3/4');
     });
 
     test('setScoreTitle', () => {
       render(<RiffScore id="set-title" />);
       const api = getAPI('set-title');
-      act(() => { api.setScoreTitle('My Song'); });
+      act(() => {
+        api.setScoreTitle('My Song');
+      });
       expect(api.getScore().title).toBe('My Song');
     });
   });
@@ -219,18 +227,24 @@ describe('ScoreAPI Modification & IO Methods', () => {
       act(() => {
         api.select(1).addNote('C4', 'quarter');
       });
-      
+
       // Select
-      act(() => { api.select(1, 0, 0, 0); });
+      act(() => {
+        api.select(1, 0, 0, 0);
+      });
 
       // Transpose +2 steps (C -> E)
-      act(() => { api.transposeDiatonic(2); });
-      
+      act(() => {
+        api.transposeDiatonic(2);
+      });
+
       let note = api.getScore().staves[0].measures[0].events[0].notes[0];
       expect(note.pitch).toBe('E4');
 
       // Transpose -1 step (E -> D)
-      act(() => { api.transposeDiatonic(-1); });
+      act(() => {
+        api.transposeDiatonic(-1);
+      });
 
       note = api.getScore().staves[0].measures[0].events[0].notes[0];
       expect(note.pitch).toBe('D4');
@@ -246,16 +260,18 @@ describe('ScoreAPI Modification & IO Methods', () => {
         api.select(1).addRest('quarter');
       });
 
-      act(() => { api.select(1, 0, 0); }); // Select the rest
+      act(() => {
+        api.select(1, 0, 0);
+      }); // Select the rest
 
       // Update color (custom prop simulation) or verified prop
       // Since ScoreEvent is typed, we should update a valid prop.
       // e.g. duration. But API has setDuration.
       // Let's try updating 'isRest' to false? That might break things if notes are missing.
       // Maybe just verify it can update 'duration' property directly.
-      
-      act(() => { 
-        api.updateEvent({ duration: 'half' } as any); 
+
+      act(() => {
+        api.updateEvent({ duration: 'half' } as any);
       });
 
       const event = api.getScore().staves[0].measures[0].events[0];
@@ -274,7 +290,7 @@ describe('ScoreAPI Modification & IO Methods', () => {
       act(() => {
         api.setMeasurePickup(true);
       });
-      
+
       m1 = api.getScore().staves[0].measures[0];
       expect(m1.isPickup).toBe(true);
 
@@ -300,15 +316,21 @@ describe('ScoreAPI Modification & IO Methods', () => {
       const api = getAPI('layout');
 
       // Default is single or grand depending on init. Let's force grand.
-      act(() => { api.reset('grand'); });
-      // Reset is a stub? "TODO: Implement" in io.ts. 
+      act(() => {
+        api.reset('grand');
+      });
+      // Reset is a stub? "TODO: Implement" in io.ts.
       // Oops, I didn't verify reset implementation. The test will fail if reset isn't implemented.
       // But setStaffLayout IS implemented.
-      
-      act(() => { api.setStaffLayout('grand'); });
+
+      act(() => {
+        api.setStaffLayout('grand');
+      });
       expect(api.getScore().staves.length).toBe(2);
 
-      act(() => { api.setStaffLayout('single'); });
+      act(() => {
+        api.setStaffLayout('single');
+      });
       expect(api.getScore().staves.length).toBe(1);
     });
   });
@@ -317,9 +339,9 @@ describe('ScoreAPI Modification & IO Methods', () => {
     test('deleteMeasure: handles invalid index gracefully', () => {
       render(<RiffScore id="edge-del-measure" />);
       const api = getAPI('edge-del-measure');
-      
+
       const countBefore = api.getScore().staves[0].measures.length;
-      
+
       act(() => {
         api.deleteMeasure(999); // Out of bounds
       });
@@ -331,11 +353,11 @@ describe('ScoreAPI Modification & IO Methods', () => {
     test('deleteSelected: handles no selection gracefully', () => {
       render(<RiffScore id="edge-del-sel" />);
       const api = getAPI('edge-del-sel');
-      
+
       // Clear selection manually or assume init is empty?
       // Init has default selection usually. Let's ensure deselect.
       act(() => {
-        // api.deselect()? No deselect API. 
+        // api.deselect()? No deselect API.
         // We can select something invalid or assume start state?
         // Default start state usually selects first measure.
         // But if we don't 'select' anything explicitly, we check robustness of the command.
@@ -390,9 +412,9 @@ describe('ScoreAPI Modification & IO Methods', () => {
       act(() => {
         api.setStaffLayout('grand');
       });
-      
+
       // Add note to second staff (staffIndex 1)
-      // Need to select second staff. 
+      // Need to select second staff.
       // api.select(measureNum, staffIndex, eventIndex, noteIndex)
       act(() => {
         api.select(1, 1, 0, 0); // Measure 1, Staff 1
@@ -409,7 +431,7 @@ describe('ScoreAPI Modification & IO Methods', () => {
 
       score = api.getScore();
       expect(score.staves.length).toBe(1);
-      
+
       // Switch back to Grand (should be empty new staff?)
       act(() => {
         api.setStaffLayout('grand');
@@ -418,9 +440,8 @@ describe('ScoreAPI Modification & IO Methods', () => {
       score = api.getScore();
       expect(score.staves.length).toBe(2);
       // Data usually lost unless implementation preserves it (unlikely for "SetSingleStaff")
-      const eventsC3 = score.staves[1].measures[0].events.filter(e => !e.isRest);
+      const eventsC3 = score.staves[1].measures[0].events.filter((e) => !e.isRest);
       expect(eventsC3.length).toBe(0); // Expect data loss
     });
   });
-
 });

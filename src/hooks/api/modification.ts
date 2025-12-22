@@ -22,7 +22,26 @@ import {
 /**
  * Modification method names provided by this factory
  */
-type ModificationMethodNames = 'setPitch' | 'setDuration' | 'setAccidental' | 'toggleAccidental' | 'transpose' | 'transposeDiatonic' | 'updateEvent' | 'addMeasure' | 'deleteMeasure' | 'deleteSelected' | 'setKeySignature' | 'setTimeSignature' | 'setMeasurePickup' | 'setClef' | 'setScoreTitle' | 'setBpm' | 'setTheme' | 'setScale' | 'setStaffLayout';
+type ModificationMethodNames =
+  | 'setPitch'
+  | 'setDuration'
+  | 'setAccidental'
+  | 'toggleAccidental'
+  | 'transpose'
+  | 'transposeDiatonic'
+  | 'updateEvent'
+  | 'addMeasure'
+  | 'deleteMeasure'
+  | 'deleteSelected'
+  | 'setKeySignature'
+  | 'setTimeSignature'
+  | 'setMeasurePickup'
+  | 'setClef'
+  | 'setScoreTitle'
+  | 'setBpm'
+  | 'setTheme'
+  | 'setScale'
+  | 'setStaffLayout';
 
 /**
  * Factory for creating Modification API methods.
@@ -33,36 +52,24 @@ type ModificationMethodNames = 'setPitch' | 'setDuration' | 'setAccidental' | 't
  * @param ctx - Shared API context
  * @returns Partial API implementation for modification
  */
-export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI, ModificationMethodNames> & ThisType<MusicEditorAPI> => {
+export const createModificationMethods = (
+  ctx: APIContext
+): Pick<MusicEditorAPI, ModificationMethodNames> & ThisType<MusicEditorAPI> => {
   const { dispatch, selectionRef, scoreRef } = ctx;
 
   return {
     setPitch(pitch) {
       const sel = selectionRef.current;
       if (sel.eventId && sel.noteId && sel.measureIndex !== null) {
-        dispatch(new ChangePitchCommand(
-          sel.measureIndex,
-          sel.eventId,
-          sel.noteId,
-          pitch,
-          sel.staffIndex
-        ));
+        dispatch(
+          new ChangePitchCommand(sel.measureIndex, sel.eventId, sel.noteId, pitch, sel.staffIndex)
+        );
       }
       return this;
     },
 
     setDuration(_duration, _dotted) {
       // TODO: Dispatch ChangeRhythmCommand
-      return this;
-    },
-
-    setAccidental(_type) {
-      // TODO: Implement
-      return this;
-    },
-
-    toggleAccidental() {
-      // TODO: Implement
       return this;
     },
 
@@ -82,12 +89,7 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
       /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
       const sel = selectionRef.current;
       if (sel.eventId && sel.measureIndex !== null) {
-        dispatch(new UpdateEventCommand(
-          sel.measureIndex,
-          sel.eventId,
-          props,
-          sel.staffIndex
-        ));
+        dispatch(new UpdateEventCommand(sel.measureIndex, sel.eventId, props, sel.staffIndex));
       }
       return this;
     },
@@ -111,18 +113,9 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
       /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
       const sel = selectionRef.current;
       if (sel.eventId && sel.noteId && sel.measureIndex !== null) {
-        dispatch(new DeleteNoteCommand(
-          sel.measureIndex,
-          sel.eventId,
-          sel.noteId,
-          sel.staffIndex
-        ));
+        dispatch(new DeleteNoteCommand(sel.measureIndex, sel.eventId, sel.noteId, sel.staffIndex));
       } else if (sel.eventId && sel.measureIndex !== null) {
-        dispatch(new DeleteEventCommand(
-          sel.measureIndex,
-          sel.eventId,
-          sel.staffIndex
-        ));
+        dispatch(new DeleteEventCommand(sel.measureIndex, sel.eventId, sel.staffIndex));
       }
       return this;
     },
@@ -143,7 +136,7 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
       /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
       const firstMeasure = scoreRef.current.staves[0]?.measures[0];
       const currentlyPickup = !!firstMeasure?.isPickup;
-      
+
       if (currentlyPickup !== isPickup) {
         dispatch(new TogglePickupCommand());
       }
@@ -170,64 +163,104 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
     setAccidental(type) {
       const sel = selectionRef.current;
       const { selectedNotes } = sel;
-      
+
       // Batch update for multiple selection
       if (selectedNotes.length > 0) {
         ctx.history.begin();
-        selectedNotes.forEach(note => {
-          if (note.noteId) { // Skip if invalid
-             dispatch(new UpdateNoteCommand(
-               note.measureIndex,
-               note.eventId,
-               note.noteId,
-               { accidental: type },
-               note.staffIndex
-             ));
+        selectedNotes.forEach((note) => {
+          // Validate all required properties before dispatch
+          if (note.noteId && note.eventId && note.measureIndex != null && note.staffIndex != null) {
+            dispatch(
+              new UpdateNoteCommand(
+                note.measureIndex,
+                note.eventId,
+                note.noteId,
+                { accidental: type },
+                note.staffIndex
+              )
+            );
           }
         });
-        ctx.history.commit('Set Accidental');
+        ctx.history.commit();
       } else if (sel.eventId && sel.noteId && sel.measureIndex !== null) {
         // Single selection
-        dispatch(new UpdateNoteCommand(
-          sel.measureIndex,
-          sel.eventId,
-          sel.noteId,
-          { accidental: type },
-          sel.staffIndex
-        ));
+        dispatch(
+          new UpdateNoteCommand(
+            sel.measureIndex,
+            sel.eventId,
+            sel.noteId,
+            { accidental: type },
+            sel.staffIndex
+          )
+        );
       }
       return this;
     },
 
     toggleAccidental() {
       const sel = selectionRef.current;
-      // For toggling, we need the current state.
-      // Easiest is to target the primary selection or iterate.
-      // Logic: sharp -> flat -> natural -> null
-      // Implementation Note: Requires resolving current note. 
-      // For Phase 7B, implementing for single selection primarily.
-      
-      if (sel.eventId && sel.noteId && sel.measureIndex !== null) {
-        const score = ctx.getScore();
+      const { selectedNotes } = sel;
+      const score = ctx.getScore();
+
+      /**
+       * Determines the next accidental in the cycle:
+       * (none/undefined) -> sharp -> flat -> natural -> null
+       */
+      const getNextAccidental = (
+        current: 'sharp' | 'flat' | 'natural' | null | undefined
+      ): 'sharp' | 'flat' | 'natural' | null => {
+        if (current === 'sharp') return 'flat';
+        if (current === 'flat') return 'natural';
+        if (current === 'natural') return null;
+        return 'sharp'; // undefined or null -> sharp
+      };
+
+      // Multi-select: toggle each note independently
+      if (selectedNotes.length > 0) {
+        ctx.history.begin();
+        selectedNotes.forEach((noteRef) => {
+          if (
+            noteRef.noteId &&
+            noteRef.eventId &&
+            noteRef.measureIndex != null &&
+            noteRef.staffIndex != null
+          ) {
+            const staff = score.staves[noteRef.staffIndex];
+            const measure = staff?.measures[noteRef.measureIndex];
+            const event = measure?.events.find((e) => e.id === noteRef.eventId);
+            const note = event?.notes.find((n) => n.id === noteRef.noteId);
+
+            if (note) {
+              dispatch(
+                new UpdateNoteCommand(
+                  noteRef.measureIndex,
+                  noteRef.eventId,
+                  noteRef.noteId,
+                  { accidental: getNextAccidental(note.accidental) },
+                  noteRef.staffIndex
+                )
+              );
+            }
+          }
+        });
+        ctx.history.commit();
+      } else if (sel.eventId && sel.noteId && sel.measureIndex !== null) {
+        // Single selection fallback
         const staff = score.staves[sel.staffIndex];
         const measure = staff?.measures[sel.measureIndex];
-        const event = measure?.events.find(e => e.id === sel.eventId);
-        const note = event?.notes.find(n => n.id === sel.noteId);
-        
+        const event = measure?.events.find((e) => e.id === sel.eventId);
+        const note = event?.notes.find((n) => n.id === sel.noteId);
+
         if (note) {
-          const current = note.accidental;
-          let next: 'sharp' | 'flat' | 'natural' | null = 'sharp';
-          if (current === 'sharp') next = 'flat';
-          else if (current === 'flat') next = 'natural';
-          else if (current === 'natural') next = null;
-          
-          dispatch(new UpdateNoteCommand(
-            sel.measureIndex,
-            sel.eventId,
-            sel.noteId,
-            { accidental: next },
-            sel.staffIndex
-          ));
+          dispatch(
+            new UpdateNoteCommand(
+              sel.measureIndex,
+              sel.eventId,
+              sel.noteId,
+              { accidental: getNextAccidental(note.accidental) },
+              sel.staffIndex
+            )
+          );
         }
       }
       return this;
@@ -239,16 +272,12 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
     },
 
     setTheme(themeName) {
-      if (ctx.setTheme) {
-        ctx.setTheme(themeName);
-      }
+      ctx.setTheme(themeName);
       return this;
     },
 
     setScale(scale) {
-      if (ctx.setZoom) {
-        ctx.setZoom(scale);
-      }
+      ctx.setZoom(scale);
       return this;
     },
 

@@ -35,22 +35,29 @@ export const generateMusicXML = (score: Score) => {
   staves.forEach((staff: Staff, staffIndex: number) => {
     const partId = `P${staffIndex + 1}`;
     const clef = staff.clef || 'treble';
-    
+
     // Clef logic - C-clef for alto/tenor
     const getClefSign = (c: string) => {
       switch (c) {
-        case 'bass': return 'F';
+        case 'bass':
+          return 'F';
         case 'alto':
-        case 'tenor': return 'C';
-        default: return 'G';
+        case 'tenor':
+          return 'C';
+        default:
+          return 'G';
       }
     };
     const getClefLine = (c: string) => {
       switch (c) {
-        case 'bass': return '4';
-        case 'alto': return '3';
-        case 'tenor': return '4';
-        default: return '2';
+        case 'bass':
+          return '4';
+        case 'alto':
+          return '3';
+        case 'tenor':
+          return '4';
+        default:
+          return '2';
       }
     };
     const clefSign = getClefSign(clef);

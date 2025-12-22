@@ -21,7 +21,6 @@ interface UseMeasureInteractionParams {
 }
 
 interface UseMeasureInteractionReturn {
-
   handleMeasureMouseMove: (e: React.MouseEvent) => void;
   handleMeasureMouseLeave: () => void;
   handleMeasureClick: (e: React.MouseEvent) => void;

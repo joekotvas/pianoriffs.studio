@@ -6,9 +6,9 @@ describe('MeasureCommands', () => {
     test('adds a measure to all staves', () => {
       const score = createDefaultScore(); // 2 staves, 2 measures each
       const command = new AddMeasureCommand();
-      
+
       const newScore = command.execute(score);
-      
+
       expect(newScore.staves[0].measures.length).toBe(3);
       expect(newScore.staves[1].measures.length).toBe(3);
       // Check IDs are unique/exist
@@ -19,10 +19,10 @@ describe('MeasureCommands', () => {
     test('undo removes the added measure', () => {
       const score = createDefaultScore();
       const command = new AddMeasureCommand();
-      
+
       const executedScore = command.execute(score);
       expect(executedScore.staves[0].measures.length).toBe(3);
-      
+
       const undoneScore = command.undo(executedScore);
       expect(undoneScore.staves[0].measures.length).toBe(2);
       expect(undoneScore.staves[0].measures[1].id).toBe(score.staves[0].measures[1].id);
@@ -33,7 +33,7 @@ describe('MeasureCommands', () => {
       const score = createDefaultScore();
       const command = new AddMeasureCommand();
       const executedScore = command.execute(score);
-      
+
       // Simulate external modification: added another measure
       const undoneScore = command.undo(executedScore);
       expect(undoneScore.staves[0].measures.length).toBe(2);
@@ -44,11 +44,11 @@ describe('MeasureCommands', () => {
       // Add a measure manually to simulate state where we might want to pop
       score.staves[0].measures.push({ id: 'extra', events: [] });
       score.staves[1].measures.push({ id: 'extra-bass', events: [] });
-      
+
       const command = new AddMeasureCommand();
       // Undo without having executed (so no IDs recorded)
       const undoneScore = command.undo(score);
-      
+
       expect(undoneScore.staves[0].measures.length).toBe(2);
       expect(undoneScore.staves[1].measures.length).toBe(2);
     });
@@ -58,7 +58,7 @@ describe('MeasureCommands', () => {
     test('deletes the last measure by default', () => {
       const score = createDefaultScore(); // 2 measures
       const command = new DeleteMeasureCommand(); // default: last
-      
+
       const newScore = command.execute(score);
       expect(newScore.staves[0].measures.length).toBe(1);
       expect(newScore.staves[0].measures[0].id).toBe('m1'); // m2 deleted
@@ -67,7 +67,7 @@ describe('MeasureCommands', () => {
     test('deletes measure at specific index', () => {
       const score = createDefaultScore();
       const command = new DeleteMeasureCommand(0); // delete first
-      
+
       const newScore = command.execute(score);
       expect(newScore.staves[0].measures.length).toBe(1);
       expect(newScore.staves[0].measures[0].id).toBe('m2'); // m1 deleted
@@ -76,7 +76,7 @@ describe('MeasureCommands', () => {
     test('does nothing if index invalid', () => {
       const score = createDefaultScore();
       const command = new DeleteMeasureCommand(10);
-      
+
       const newScore = command.execute(score);
       expect(newScore).toBe(score); // Referentially equal if no change
     });
@@ -84,10 +84,10 @@ describe('MeasureCommands', () => {
     test('undo restores the deleted measure', () => {
       const score = createDefaultScore();
       const command = new DeleteMeasureCommand();
-      
+
       const executedScore = command.execute(score);
       const undoneScore = command.undo(executedScore);
-      
+
       expect(undoneScore.staves[0].measures.length).toBe(2);
       expect(undoneScore.staves[0].measures[1].id).toBe('m2');
     });
@@ -95,10 +95,10 @@ describe('MeasureCommands', () => {
     test('undo restores measure at correct index', () => {
       const score = createDefaultScore();
       const command = new DeleteMeasureCommand(0);
-      
+
       const executedScore = command.execute(score);
       const undoneScore = command.undo(executedScore);
-      
+
       expect(undoneScore.staves[0].measures.length).toBe(2);
       expect(undoneScore.staves[0].measures[0].id).toBe('m1');
     });

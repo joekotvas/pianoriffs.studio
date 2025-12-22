@@ -53,7 +53,7 @@ export class ScoreEngine {
         this.history.push(command);
         this.redoStack = []; // Clear redo stack on new action
       }
-      
+
       this.setState(newState);
       return true;
     } catch (error) {

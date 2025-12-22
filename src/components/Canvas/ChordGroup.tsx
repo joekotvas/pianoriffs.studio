@@ -215,9 +215,9 @@ const ChordGroup = ({
         });
 
         // DEBUG: Check if this is the primary cursor note
-        const isCursor = 
-          selection.eventId === eventId && 
-          selection.measureIndex === measureIndex && 
+        const isCursor =
+          selection.eventId === eventId &&
+          selection.measureIndex === measureIndex &&
           selection.noteId === note.id &&
           selection.staffIndex === staffIndex;
 

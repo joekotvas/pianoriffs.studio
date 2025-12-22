@@ -107,7 +107,7 @@ export class SelectAllCommand implements SelectionCommand {
 
   /**
    * Implements the hierarchical expansion logic from the specification
-   * 
+   *
    * OPTIMIZATION: We build the selected notes Set once upfront (O(N)),
    * then pass it to completeness checks (O(M)) for O(N+M) total.
    */
@@ -120,7 +120,7 @@ export class SelectAllCommand implements SelectionCommand {
     }
 
     // OPTIMIZATION: Build the Set of selected note IDs once
-    const selectedIds = new Set(selectedNotes.map(n => this.getNoteKey(n)));
+    const selectedIds = new Set(selectedNotes.map((n) => this.getNoteKey(n)));
 
     // Get unique touched measures and staves
     const touchedMeasures = this.getUniqueTouchedMeasures(selectedNotes);
@@ -139,7 +139,7 @@ export class SelectAllCommand implements SelectionCommand {
     }
 
     // Case 3: All touched measures are full, check if any touched staff is partial
-    const hasPartialStaves = touchedStaves.some(staffIndex => {
+    const hasPartialStaves = touchedStaves.some((staffIndex) => {
       const allNotesInStaff = this.collectNotesInStaff(score, staffIndex);
       return !this.isContainerFullySelected(selectedIds, allNotesInStaff);
     });
@@ -169,7 +169,7 @@ export class SelectAllCommand implements SelectionCommand {
     measureIndex: number
   ): Selection {
     const selectedNotes = this.collectNotesInScope(score, scope, staffIndex, measureIndex);
-    
+
     if (selectedNotes.length === 0) {
       return state;
     }
@@ -232,7 +232,7 @@ export class SelectAllCommand implements SelectionCommand {
     containerNotes: SelectedNote[]
   ): boolean {
     if (containerNotes.length === 0) return true;
-    return containerNotes.every(n => selectedIds.has(this.getNoteKey(n)));
+    return containerNotes.every((n) => selectedIds.has(this.getNoteKey(n)));
   }
 
   /**
@@ -243,7 +243,7 @@ export class SelectAllCommand implements SelectionCommand {
     measures: Array<{ staffIndex: number; measureIndex: number }>
   ): SelectedNote[] {
     const notes: SelectedNote[] = [];
-    
+
     for (const { staffIndex, measureIndex } of measures) {
       notes.push(...this.collectNotesInMeasure(score, staffIndex, measureIndex));
     }
@@ -256,7 +256,7 @@ export class SelectAllCommand implements SelectionCommand {
    */
   private collectNotesInTouchedStaves(score: Score, staves: number[]): SelectedNote[] {
     const notes: SelectedNote[] = [];
-    
+
     for (const staffIndex of staves) {
       notes.push(...this.collectNotesInStaff(score, staffIndex));
     }

@@ -4,7 +4,7 @@
 
 Thank you for your interest in contributing to RiffScore!
 
-> **See also**: [Architecture](./ARCHITECTURE.md) • [Testing](./TESTING.md) • [Commands](./COMMANDS.md)
+> **See also**: [Architecture](./ARCHITECTURE.md) • [Testing](./TESTING.md) • [Commands](./COMMANDS.md) • [Quality Check](./QUALITY_CHECK.md)
 
 ---
 

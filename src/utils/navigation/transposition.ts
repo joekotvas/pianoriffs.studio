@@ -137,7 +137,11 @@ export const calculateTranspositionWithPreview = (
     if (selection.noteId) {
       const note = event.notes.find((n: Note) => n.id === selection.noteId);
       if (note && note.pitch) {
-        audio = { notes: [{ pitch: note.pitch, id: note.id }], duration: event.duration, dotted: event.dotted };
+        audio = {
+          notes: [{ pitch: note.pitch, id: note.id }],
+          duration: event.duration,
+          dotted: event.dotted,
+        };
       }
     } else {
       const audioNotes = notesToAudioNotes(event.notes);

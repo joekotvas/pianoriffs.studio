@@ -107,12 +107,8 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
 
   // --- ENGINE INTEGRATION ---
   const { score, engine } = useScoreEngine(migratedInitialScore);
-  const {
-    dispatch,
-    beginTransaction,
-    commitTransaction,
-    rollbackTransaction,
-  } = useTransactionBatching(engine);
+  const { dispatch, beginTransaction, commitTransaction, rollbackTransaction } =
+    useTransactionBatching(engine);
 
   const undo = useCallback(() => engine.undo(), [engine]);
   const redo = useCallback(() => engine.redo(), [engine]);
@@ -179,7 +175,6 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
     setActiveTie,
     setInputMode,
   });
-
 
   // --- COMPOSED HOOKS ---
 

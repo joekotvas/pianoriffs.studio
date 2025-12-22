@@ -61,9 +61,7 @@ const MockNoteTrigger = () => {
       />
       <button
         data-testid="simulate-add-note"
-        onClick={() =>
-          handleNoteSelection(0, 'e1', 'n1', 0)
-        }
+        onClick={() => handleNoteSelection(0, 'e1', 'n1', 0)}
       />
       <button data-testid="transpose-up" onClick={() => transposeSelection('up', false)} />
     </div>

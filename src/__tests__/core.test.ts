@@ -83,9 +83,30 @@ describe('core.ts utilities', () => {
 
     it('should handle tuplet events', () => {
       const events = [
-        { duration: 'quarter', dotted: false, tuplet: { ratio: [3, 2] as [number, number], groupSize: 3, position: 0 }, id: 'e1', notes: [], isRest: false },
-        { duration: 'quarter', dotted: false, tuplet: { ratio: [3, 2] as [number, number], groupSize: 3, position: 1 }, id: 'e2', notes: [], isRest: false },
-        { duration: 'quarter', dotted: false, tuplet: { ratio: [3, 2] as [number, number], groupSize: 3, position: 2 }, id: 'e3', notes: [], isRest: false },
+        {
+          duration: 'quarter',
+          dotted: false,
+          tuplet: { ratio: [3, 2] as [number, number], groupSize: 3, position: 0 },
+          id: 'e1',
+          notes: [],
+          isRest: false,
+        },
+        {
+          duration: 'quarter',
+          dotted: false,
+          tuplet: { ratio: [3, 2] as [number, number], groupSize: 3, position: 1 },
+          id: 'e2',
+          notes: [],
+          isRest: false,
+        },
+        {
+          duration: 'quarter',
+          dotted: false,
+          tuplet: { ratio: [3, 2] as [number, number], groupSize: 3, position: 2 },
+          id: 'e3',
+          notes: [],
+          isRest: false,
+        },
       ];
       // Each is ~10.67 quants, total ~32 (fits in half note space)
       expect(calculateTotalQuants(events)).toBeCloseTo(32, 0);
@@ -146,21 +167,55 @@ describe('core.ts utilities', () => {
   // ---------------------------------------------------
   describe('isRestEvent / isNoteEvent', () => {
     it('should identify rest events', () => {
-      expect(isRestEvent({ isRest: true, notes: [], id: 'r1', duration: 'quarter', dotted: false })).toBe(true);
-      expect(isRestEvent({ isRest: true, notes: [{ id: 'rest-1', pitch: null }], id: 'r1', duration: 'quarter', dotted: false })).toBe(true);
+      expect(
+        isRestEvent({ isRest: true, notes: [], id: 'r1', duration: 'quarter', dotted: false })
+      ).toBe(true);
+      expect(
+        isRestEvent({
+          isRest: true,
+          notes: [{ id: 'rest-1', pitch: null }],
+          id: 'r1',
+          duration: 'quarter',
+          dotted: false,
+        })
+      ).toBe(true);
     });
 
     it('should identify note events', () => {
-      expect(isNoteEvent({ isRest: false, notes: [{ id: 'n1', pitch: 'C4' }], id: 'e1', duration: 'quarter', dotted: false })).toBe(true);
+      expect(
+        isNoteEvent({
+          isRest: false,
+          notes: [{ id: 'n1', pitch: 'C4' }],
+          id: 'e1',
+          duration: 'quarter',
+          dotted: false,
+        })
+      ).toBe(true);
     });
 
     it('should return false for empty note event', () => {
-      expect(isNoteEvent({ isRest: false, notes: [], id: 'e1', duration: 'quarter', dotted: false })).toBe(false);
+      expect(
+        isNoteEvent({ isRest: false, notes: [], id: 'e1', duration: 'quarter', dotted: false })
+      ).toBe(false);
     });
 
     it('should handle undefined isRest (defaults to note)', () => {
-      expect(isRestEvent({ notes: [{ id: 'n1', pitch: 'C4' }], id: 'e1', duration: 'quarter', dotted: false } as any)).toBe(false);
-      expect(isNoteEvent({ notes: [{ id: 'n1', pitch: 'C4' }], id: 'e1', duration: 'quarter', dotted: false } as any)).toBe(true);
+      expect(
+        isRestEvent({
+          notes: [{ id: 'n1', pitch: 'C4' }],
+          id: 'e1',
+          duration: 'quarter',
+          dotted: false,
+        } as any)
+      ).toBe(false);
+      expect(
+        isNoteEvent({
+          notes: [{ id: 'n1', pitch: 'C4' }],
+          id: 'e1',
+          duration: 'quarter',
+          dotted: false,
+        } as any)
+      ).toBe(true);
     });
   });
 
@@ -169,19 +224,42 @@ describe('core.ts utilities', () => {
   // ---------------------------------------------------
   describe('getFirstNoteId', () => {
     it('should return first note ID', () => {
-      expect(getFirstNoteId({ notes: [{ id: 'n1', pitch: 'C4' }, { id: 'n2', pitch: 'E4' }], id: 'e1', duration: 'quarter', dotted: false, isRest: false })).toBe('n1');
+      expect(
+        getFirstNoteId({
+          notes: [
+            { id: 'n1', pitch: 'C4' },
+            { id: 'n2', pitch: 'E4' },
+          ],
+          id: 'e1',
+          duration: 'quarter',
+          dotted: false,
+          isRest: false,
+        })
+      ).toBe('n1');
     });
 
     it('should return null for empty notes array', () => {
-      expect(getFirstNoteId({ notes: [], id: 'e1', duration: 'quarter', dotted: false, isRest: false })).toBe(null);
+      expect(
+        getFirstNoteId({ notes: [], id: 'e1', duration: 'quarter', dotted: false, isRest: false })
+      ).toBe(null);
     });
 
     it('should return null for undefined notes', () => {
-      expect(getFirstNoteId({ id: 'e1', duration: 'quarter', dotted: false, isRest: false } as any)).toBe(null);
+      expect(
+        getFirstNoteId({ id: 'e1', duration: 'quarter', dotted: false, isRest: false } as any)
+      ).toBe(null);
     });
 
     it('should work with rest events (pitchless notes)', () => {
-      expect(getFirstNoteId({ notes: [{ id: 'rest-1', pitch: null }], id: 'e1', duration: 'quarter', dotted: false, isRest: true })).toBe('rest-1');
+      expect(
+        getFirstNoteId({
+          notes: [{ id: 'rest-1', pitch: null }],
+          id: 'e1',
+          duration: 'quarter',
+          dotted: false,
+          isRest: true,
+        })
+      ).toBe('rest-1');
     });
   });
 
@@ -208,16 +286,19 @@ describe('core.ts utilities', () => {
       },
       {
         id: 'measure-1',
-        events: [
-          createMockEvent('e4', 'F4'),
-          createMockEvent('e5', 'G4'),
-        ],
+        events: [createMockEvent('e4', 'F4'), createMockEvent('e5', 'G4')],
       },
     ];
 
     it('should navigate right within measure', () => {
       const measures = createMeasures();
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'note-e1', staffIndex: 0, selectedNotes: [] };
+      const selection = {
+        measureIndex: 0,
+        eventId: 'e1',
+        noteId: 'note-e1',
+        staffIndex: 0,
+        selectedNotes: [],
+      };
       const result = navigateSelection(measures, selection, 'right');
       expect(result.eventId).toBe('e2');
       expect(result.noteId).toBe('note-e2');
@@ -225,7 +306,13 @@ describe('core.ts utilities', () => {
 
     it('should navigate left within measure', () => {
       const measures = createMeasures();
-      const selection = { measureIndex: 0, eventId: 'e2', noteId: 'note-e2', staffIndex: 0, selectedNotes: [] };
+      const selection = {
+        measureIndex: 0,
+        eventId: 'e2',
+        noteId: 'note-e2',
+        staffIndex: 0,
+        selectedNotes: [],
+      };
       const result = navigateSelection(measures, selection, 'left');
       expect(result.eventId).toBe('e1');
       expect(result.noteId).toBe('note-e1');
@@ -233,7 +320,13 @@ describe('core.ts utilities', () => {
 
     it('should cross measure boundary going right', () => {
       const measures = createMeasures();
-      const selection = { measureIndex: 0, eventId: 'e3', noteId: 'note-e3', staffIndex: 0, selectedNotes: [] };
+      const selection = {
+        measureIndex: 0,
+        eventId: 'e3',
+        noteId: 'note-e3',
+        staffIndex: 0,
+        selectedNotes: [],
+      };
       const result = navigateSelection(measures, selection, 'right');
       expect(result.measureIndex).toBe(1);
       expect(result.eventId).toBe('e4');
@@ -241,7 +334,13 @@ describe('core.ts utilities', () => {
 
     it('should cross measure boundary going left', () => {
       const measures = createMeasures();
-      const selection = { measureIndex: 1, eventId: 'e4', noteId: 'note-e4', staffIndex: 0, selectedNotes: [] };
+      const selection = {
+        measureIndex: 1,
+        eventId: 'e4',
+        noteId: 'note-e4',
+        staffIndex: 0,
+        selectedNotes: [],
+      };
       const result = navigateSelection(measures, selection, 'left');
       expect(result.measureIndex).toBe(0);
       expect(result.eventId).toBe('e3');
@@ -249,21 +348,39 @@ describe('core.ts utilities', () => {
 
     it('should not navigate past first event', () => {
       const measures = createMeasures();
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'note-e1', staffIndex: 0, selectedNotes: [] };
+      const selection = {
+        measureIndex: 0,
+        eventId: 'e1',
+        noteId: 'note-e1',
+        staffIndex: 0,
+        selectedNotes: [],
+      };
       const result = navigateSelection(measures, selection, 'left');
       expect(result).toEqual(selection);
     });
 
     it('should not navigate past last event', () => {
       const measures = createMeasures();
-      const selection = { measureIndex: 1, eventId: 'e5', noteId: 'note-e5', staffIndex: 0, selectedNotes: [] };
+      const selection = {
+        measureIndex: 1,
+        eventId: 'e5',
+        noteId: 'note-e5',
+        staffIndex: 0,
+        selectedNotes: [],
+      };
       const result = navigateSelection(measures, selection, 'right');
       expect(result).toEqual(selection);
     });
 
     it('should return unchanged selection for null measureIndex', () => {
       const measures = createMeasures();
-      const selection = { measureIndex: null, eventId: null, noteId: null, staffIndex: 0, selectedNotes: [] };
+      const selection = {
+        measureIndex: null,
+        eventId: null,
+        noteId: null,
+        staffIndex: 0,
+        selectedNotes: [],
+      };
       const result = navigateSelection(measures, selection, 'right');
       expect(result).toEqual(selection);
     });
@@ -287,10 +404,34 @@ describe('core.ts utilities', () => {
         {
           id: 1,
           events: [
-            { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }], isRest: false },
-            { id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }], isRest: false },
-            { id: 'e3', duration: 'quarter', dotted: false, notes: [{ id: 'n3', pitch: 'E4' }], isRest: false },
-            { id: 'e4', duration: 'quarter', dotted: false, notes: [{ id: 'n4', pitch: 'F4' }], isRest: false },
+            {
+              id: 'e1',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'n1', pitch: 'C4' }],
+              isRest: false,
+            },
+            {
+              id: 'e2',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'n2', pitch: 'D4' }],
+              isRest: false,
+            },
+            {
+              id: 'e3',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'n3', pitch: 'E4' }],
+              isRest: false,
+            },
+            {
+              id: 'e4',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'n4', pitch: 'F4' }],
+              isRest: false,
+            },
           ],
           isPickup: false,
         },
@@ -328,7 +469,13 @@ describe('core.ts utilities', () => {
         {
           id: 1,
           events: [
-            { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }], isRest: false },
+            {
+              id: 'e1',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'n1', pitch: 'C4' }],
+              isRest: false,
+            },
           ],
           isPickup: true,
         },

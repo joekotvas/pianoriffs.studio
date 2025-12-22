@@ -17,7 +17,17 @@ export const generateId = (): string =>
  * @param tuplet - Optional tuplet ratio (e.g., [3, 2] for triplet)
  * @returns Duration in quants
  */
-export const getNoteDuration = (duration: string, dotted: boolean = false, tuplet?: { ratio: [number, number]; groupSize?: number; position?: number; baseDuration?: string; id?: string }): number => {
+export const getNoteDuration = (
+  duration: string,
+  dotted: boolean = false,
+  tuplet?: {
+    ratio: [number, number];
+    groupSize?: number;
+    position?: number;
+    baseDuration?: string;
+    id?: string;
+  }
+): number => {
   const base = NOTE_TYPES[duration].duration;
   const dottedValue = dotted ? base * 1.5 : base;
 
@@ -133,56 +143,42 @@ export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
     // NO, a pickup measure is usually *shorter* than the time signature.
     // So we should probably just take the events that were *already* in the pickup measure?
     // But we flattened everything.
-
     // Let's assume we want to preserve the *duration* of the pickup if possible, or just fill it up to the max of the new time sig?
     // If we change 4/4 to 3/4, and pickup was 1 beat. It should stay 1 beat.
     // If we change 4/4 to 3/4, and pickup was 3 beats. It fits.
     // If we change 4/4 to 2/4, and pickup was 3 beats. It overflows.
-
     // BETTER STRATEGY:
     // We need to know which events belonged to the pickup.
     // But we flattened them.
-
     // Note: originalPickupEvents was removed as dead code (only used for unused pickupQuants)
-
     // We consume events from `allEvents` that match the original pickup's duration (or as much as fits in new time sig)
     // Actually, since we flattened `allEvents`, the first N events are from the pickup.
-
     // We iterate `allEvents`. We fill the first measure until we reach the duration of the original pickup,
     // BUT constrained by `maxQuants` of the new time signature.
-
     // TODO: pickupQuants and pickupFilled were removed as dead code.
     // The actual pickup handling uses targetPickupDuration calculated below.
-
     // Let's set a "target duration" for the first measure.
     // If isPickup, target = min(originalPickupDuration, maxQuants).
     // Else target = maxQuants.
-
     // Wait, if we just change time sig, we might want to keep the pickup as is.
     // So target = originalPickupDuration.
     // If originalPickupDuration > maxQuants (e.g. 3 beats pickup going to 2/4), then it MUST be split.
     // So target = min(originalPickupDuration, maxQuants).
-
     // However, `reflowScore` is also used when we add/remove notes?
     // If we add a note to a pickup, it grows.
     // If we add a note to a normal measure, it overflows.
-
     // If `reflowScore` is called, it means we want to re-distribute.
     // If we have a pickup, we generally want to preserve it as a distinct container that doesn't accept overflow from previous (none) or give overflow to next (unless it exceeds time sig).
-
     // Actually, if we are just reflowing, we should treat the pickup as a "short measure".
     // But how do we know how short it *should* be?
     // It is defined by its content.
-
     // If we are reflowing because of a Time Sig change:
     // We want to preserve the musical content of the pickup.
     // So we calculate the duration of the original pickup.
     // We fill the new first measure up to that duration.
     // Then we close it and mark it as pickup.
-
     // We need to pull events from `allEvents` until we hit `targetPickupDuration`.
     // Since `allEvents` is ordered, we just process them.
-
     // We need a flag in the loop to know we are filling the pickup.
   }
 
@@ -312,11 +308,7 @@ export const getFirstNoteId = (event: ScoreEvent | undefined | null): string | n
  * Navigates the selection horizontally (left/right).
  * Vertical navigation (up/down) is handled by calculateVerticalNavigation in interaction.ts.
  */
-export const navigateSelection = (
-  measures: Measure[],
-  selection: Selection,
-  direction: string
-) => {
+export const navigateSelection = (measures: Measure[], selection: Selection, direction: string) => {
   const { measureIndex, eventId } = selection;
   if (measureIndex === null || !eventId) return selection;
 

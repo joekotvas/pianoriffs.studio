@@ -11,13 +11,13 @@ const PITCH_PATTERN = /^[A-G](#{1,2}|b{1,2})?\d+$/;
 
 /**
  * Validates if a pitch string is in valid scientific notation format.
- * 
+ *
  * @param pitch - The pitch string to validate (e.g., "C4", "F#5", "Bb3")
  * @returns True if valid scientific notation, false otherwise
- * 
+ *
  * @example
  * isValidPitch('C4');    // true
- * isValidPitch('F#5');   // true  
+ * isValidPitch('F#5');   // true
  * isValidPitch('Bb3');   // true
  * isValidPitch('H4');    // false (H is not a valid note)
  * isValidPitch('C');     // false (missing octave)

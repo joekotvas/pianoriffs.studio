@@ -112,10 +112,10 @@ The most recently focused or mounted instance.
 | `addNote` | `addNote(pitch, duration?, dotted?)` | ✅ | Append note at cursor; auto-advances. |
 | `addRest` | `addRest(duration?, dotted?)` | ✅ | Append rest at cursor. |
 | `addTone` | `addTone(pitch)` | ✅ | Stack pitch onto existing chord. |
-| `makeTuplet` | `makeTuplet(numNotes, inSpaceOf)` | ⏳ | Convert selection to tuplet. |
-| `unmakeTuplet` | `unmakeTuplet()` | ⏳ | Remove tuplet grouping. |
-| `toggleTie` | `toggleTie()` | ⏳ | Toggle tie to next note. |
-| `setTie` | `setTie(boolean)` | ⏳ | Explicit tie setting. |
+| `makeTuplet` | `makeTuplet(numNotes, inSpaceOf)` | ✅ | Convert selection to tuplet. |
+| `unmakeTuplet` | `unmakeTuplet()` | ✅ | Remove tuplet grouping. |
+| `toggleTie` | `toggleTie()` | ✅ | Toggle tie to next note. |
+| `setTie` | `setTie(boolean)` | ✅ | Explicit tie setting. |
 | `setInputMode` | `setInputMode('note' \| 'rest')` | ✅ | Set entry mode (UI state). |
 
 ---
@@ -124,7 +124,7 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `setPitch` | `setPitch(pitch)` | ⏳ | Update selected note(s). |
+| `setPitch` | `setPitch(pitch)` | ✅ | Update selected note(s). |
 | `setDuration` | `setDuration(duration, dotted?)` | ⏳ | Update selected event(s). |
 | `setAccidental` | `setAccidental(type)` | ✅ | `'sharp'`, `'flat'`, `'natural'`, `null`. |
 | `toggleAccidental` | `toggleAccidental()` | ✅ | Cycle accidental. |
@@ -138,7 +138,7 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `addMeasure` | `addMeasure(atIndex?)` | ⏳ | Add measure (default: end). |
+| `addMeasure` | `addMeasure(atIndex?)` | ⚠️ Partial | Add measure at end (atIndex ignored). |
 | `deleteMeasure` | `deleteMeasure(measureIndex?)` | ✅ | Delete measure (default: selected). |
 | `deleteSelected` | `deleteSelected()` | ✅ | Smart delete. |
 | `setKeySignature` | `setKeySignature(key)` | ✅ | Change key signature. |
@@ -174,11 +174,11 @@ The most recently focused or mounted instance.
 
 | Method | Signature | Status | Description |
 | :--- | :--- | :--- | :--- |
-| `play` | `play()` | ⏳ | Start playback. |
-| `pause` | `pause()` | ⏳ | Pause playback. |
-| `stop` | `stop()` | ⏳ | Stop and rewind. |
-| `rewind` | `rewind(measureNum?)` | ⏳ | Jump playback position. |
-| `setInstrument` | `setInstrument(instrumentId)` | ⏳ | Change instrument. |
+| `play` | `play(startMeasure?, startQuant?)` | ✅ | Start/resume playback (async). |
+| `pause` | `pause()` | ✅ | Pause (retains position). |
+| `stop` | `stop()` | ✅ | Stop and reset to beginning. |
+| `rewind` | `rewind(measureNum?)` | ✅ | Jump playback position. |
+| `setInstrument` | `setInstrument(instrumentId)` | ✅ | `'bright'`, `'mellow'`, `'organ'`, `'piano'`. |
 
 ---
 

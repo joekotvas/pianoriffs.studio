@@ -247,7 +247,9 @@ export const useModifiers = ({
       const noteObjects = targets
         .map((t) => {
           const staff = score.staves[t.staffIndex] || getActiveStaff(score);
-          const event = staff.measures[t.measureIndex]?.events.find((e: ScoreEvent) => e.id === t.eventId);
+          const event = staff.measures[t.measureIndex]?.events.find(
+            (e: ScoreEvent) => e.id === t.eventId
+          );
           // Explicitly cast or check if it matches ScoreNote interface roughly
           return event?.notes.find((n: ScoreNote) => n.id === t.noteId);
         })

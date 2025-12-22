@@ -97,9 +97,9 @@ const createChordStaves = (): Staff[] => [
             duration: 'quarter',
             dotted: false,
             notes: [
-              { id: 'chord-n1', pitch: 'C4' },  // Bottom note
-              { id: 'chord-n2', pitch: 'E4' },  // Middle note
-              { id: 'chord-n3', pitch: 'G4' },  // Top note
+              { id: 'chord-n1', pitch: 'C4' }, // Bottom note
+              { id: 'chord-n2', pitch: 'E4' }, // Middle note
+              { id: 'chord-n3', pitch: 'G4' }, // Top note
             ],
           },
         ],
@@ -122,7 +122,9 @@ describe('Navigation - Horizontal Boundaries', () => {
   });
 
   test('move("left") at start of score stays at first event', () => {
-    render(<RiffScore id="nav-left-boundary" config={configWithStaves(createSingleStaffStaves())} />);
+    render(
+      <RiffScore id="nav-left-boundary" config={configWithStaves(createSingleStaffStaves())} />
+    );
     const api = getAPI('nav-left-boundary');
 
     // Select first event
@@ -137,7 +139,9 @@ describe('Navigation - Horizontal Boundaries', () => {
   });
 
   test('move("right") at end of measure advances to next measure', () => {
-    render(<RiffScore id="nav-right-measure" config={configWithStaves(createGrandStaffStaves())} />);
+    render(
+      <RiffScore id="nav-right-measure" config={configWithStaves(createGrandStaffStaves())} />
+    );
     const api = getAPI('nav-right-measure');
 
     // Select last event in first measure
@@ -152,7 +156,9 @@ describe('Navigation - Horizontal Boundaries', () => {
   });
 
   test('move("right") at end of score stays at last event', () => {
-    render(<RiffScore id="nav-right-boundary" config={configWithStaves(createGrandStaffStaves())} />);
+    render(
+      <RiffScore id="nav-right-boundary" config={configWithStaves(createGrandStaffStaves())} />
+    );
     const api = getAPI('nav-right-boundary');
 
     // Select last event in last measure (measure 2, event 0)
@@ -244,7 +250,9 @@ describe('Navigation - Vertical (Cross-Staff)', () => {
   });
 
   test('move("up"/"down") is no-op on single-staff score', () => {
-    render(<RiffScore id="nav-single-staff" config={configWithStaves(createSingleStaffStaves())} />);
+    render(
+      <RiffScore id="nav-single-staff" config={configWithStaves(createSingleStaffStaves())} />
+    );
     const api = getAPI('nav-single-staff');
 
     // Select first event
@@ -348,20 +356,24 @@ describe('Navigation - selectById', () => {
   });
 
   test('selectById with non-existent ID gracefully handles (no crash)', () => {
-    render(<RiffScore id="selectbyid-missing" config={configWithStaves(createSingleStaffStaves())} />);
+    render(
+      <RiffScore id="selectbyid-missing" config={configWithStaves(createSingleStaffStaves())} />
+    );
     const api = getAPI('selectbyid-missing');
 
     const initialSelection = api.getSelection();
-    
+
     // Should not crash
     api.selectById('non-existent-id');
-    
+
     // Selection should be unchanged
     expect(api.getSelection().eventId).toBe(initialSelection.eventId);
   });
 
   test('selectById returns this for chaining', () => {
-    render(<RiffScore id="selectbyid-chain" config={configWithStaves(createSingleStaffStaves())} />);
+    render(
+      <RiffScore id="selectbyid-chain" config={configWithStaves(createSingleStaffStaves())} />
+    );
     const api = getAPI('selectbyid-chain');
 
     const result = api.selectById('e1');
@@ -407,7 +419,9 @@ describe('Navigation - jump() Edge Cases', () => {
   });
 
   test('jump("start-measure") stays in current measure', () => {
-    render(<RiffScore id="jump-measure-start" config={configWithStaves(createGrandStaffStaves())} />);
+    render(
+      <RiffScore id="jump-measure-start" config={configWithStaves(createGrandStaffStaves())} />
+    );
     const api = getAPI('jump-measure-start');
 
     // Select second event in first measure

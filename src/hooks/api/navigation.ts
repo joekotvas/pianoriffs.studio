@@ -17,7 +17,9 @@ type NavigationMethodNames = 'move' | 'jump' | 'select' | 'selectById' | 'select
  * @param ctx - Shared API context
  * @returns Partial API implementation for navigation
  */
-export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, NavigationMethodNames> & ThisType<MusicEditorAPI> => {
+export const createNavigationMethods = (
+  ctx: APIContext
+): Pick<MusicEditorAPI, NavigationMethodNames> & ThisType<MusicEditorAPI> => {
   const { scoreRef, selectionRef, syncSelection, selectionEngine } = ctx;
 
   return {
@@ -35,16 +37,17 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
 
         const fullSelection = {
           ...newSel,
-          selectedNotes: newSel.eventId && newSel.measureIndex !== null
-            ? [
-                {
-                  staffIndex: newSel.staffIndex,
-                  measureIndex: newSel.measureIndex,
-                  eventId: newSel.eventId,
-                  noteId: newSel.noteId,
-                },
-              ]
-            : [],
+          selectedNotes:
+            newSel.eventId && newSel.measureIndex !== null
+              ? [
+                  {
+                    staffIndex: newSel.staffIndex,
+                    measureIndex: newSel.measureIndex,
+                    eventId: newSel.eventId,
+                    noteId: newSel.noteId,
+                  },
+                ]
+              : [],
           anchor: null,
         };
         syncSelection(fullSelection);
@@ -56,23 +59,24 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
           sel,
           direction,
           'quarter', // Default duration for ghost cursor creation
-          false,     // Default dotted state
-          null       // No preview note in API context
+          false, // Default dotted state
+          null // No preview note in API context
         );
 
         if (result?.selection) {
           const fullSelection = {
             ...result.selection,
-            selectedNotes: result.selection.eventId && result.selection.measureIndex !== null
-              ? [
-                  {
-                    staffIndex: result.selection.staffIndex,
-                    measureIndex: result.selection.measureIndex,
-                    eventId: result.selection.eventId,
-                    noteId: result.selection.noteId,
-                  },
-                ]
-              : [],
+            selectedNotes:
+              result.selection.eventId && result.selection.measureIndex !== null
+                ? [
+                    {
+                      staffIndex: result.selection.staffIndex,
+                      measureIndex: result.selection.measureIndex,
+                      eventId: result.selection.eventId,
+                      noteId: result.selection.noteId,
+                    },
+                  ]
+                : [],
             anchor: null,
           };
           syncSelection(fullSelection);
@@ -138,12 +142,14 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
       const measureIndex = measureNum - 1;
 
       // Use SelectEventCommand for proper selection
-      selectionEngine.dispatch(new SelectEventCommand({
-        staffIndex,
-        measureIndex,
-        eventIndex,
-        noteIndex,
-      }));
+      selectionEngine.dispatch(
+        new SelectEventCommand({
+          staffIndex,
+          measureIndex,
+          eventIndex,
+          noteIndex,
+        })
+      );
 
       // Sync the ref for chaining
       selectionRef.current = selectionEngine.getState();
@@ -155,23 +161,25 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
       const measureIndex = measureNum - 1;
       const staff = scoreRef.current.staves[staffIndex];
       if (!staff?.measures[measureIndex]) return this;
-      
+
       const measure = staff.measures[measureIndex];
-      
+
       // Walk events to find event at quant position
       let currentQuant = 0;
       for (let i = 0; i < measure.events.length; i++) {
         const event = measure.events[i];
         const eventDuration = getNoteDuration(event.duration, event.dotted);
-        
+
         if (currentQuant <= quant && quant < currentQuant + eventDuration) {
           // Found the event at this quant position
-          selectionEngine.dispatch(new SelectEventCommand({
-            staffIndex,
-            measureIndex,
-            eventIndex: i,
-            noteIndex: 0,
-          }));
+          selectionEngine.dispatch(
+            new SelectEventCommand({
+              staffIndex,
+              measureIndex,
+              eventIndex: i,
+              noteIndex: 0,
+            })
+          );
           selectionRef.current = selectionEngine.getState();
           break;
         }
@@ -189,21 +197,23 @@ export const createNavigationMethods = (ctx: APIContext): Pick<MusicEditorAPI, N
       // TODO: Optimize lookup map
       for (let mIdx = 0; mIdx < staff.measures.length; mIdx++) {
         const measure = staff.measures[mIdx];
-        const eIdx = measure.events.findIndex(e => e.id === eventId);
+        const eIdx = measure.events.findIndex((e) => e.id === eventId);
         if (eIdx !== -1) {
           const event = measure.events[eIdx];
           // Find note index if noteId provided
           let noteIndex = 0;
           if (noteId && event.notes) {
-            const nIdx = event.notes.findIndex(n => n.id === noteId);
+            const nIdx = event.notes.findIndex((n) => n.id === noteId);
             if (nIdx !== -1) noteIndex = nIdx;
           }
-          selectionEngine.dispatch(new SelectEventCommand({
-            staffIndex: sel.staffIndex,
-            measureIndex: mIdx,
-            eventIndex: eIdx,
-            noteIndex,
-          }));
+          selectionEngine.dispatch(
+            new SelectEventCommand({
+              staffIndex: sel.staffIndex,
+              measureIndex: mIdx,
+              eventIndex: eIdx,
+              noteIndex,
+            })
+          );
           selectionRef.current = selectionEngine.getState();
           break;
         }

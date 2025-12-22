@@ -55,7 +55,7 @@ const ScoreEditorContent = ({
   // --- Context & Theme ---
   const { theme } = useTheme();
   const scoreLogic = useScoreContext();
-  
+
   // Grouped API destructuring
   const { score, selection } = scoreLogic.state;
   const { dispatch, scoreRef } = scoreLogic.engines;

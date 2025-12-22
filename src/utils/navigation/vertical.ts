@@ -299,7 +299,9 @@ export const calculateVerticalNavigation = (
 
   const currentEvent = measure.events[eventIdx];
   const sortedNotes = currentEvent.notes?.length
-    ? [...currentEvent.notes].sort((a: Note, b: Note) => getMidi(a.pitch ?? 'C4') - getMidi(b.pitch ?? 'C4'))
+    ? [...currentEvent.notes].sort(
+        (a: Note, b: Note) => getMidi(a.pitch ?? 'C4') - getMidi(b.pitch ?? 'C4')
+      )
     : [];
 
   // 1. Try chord navigation first
@@ -358,11 +360,7 @@ export const calculateVerticalNavigation = (
         // No event at this quant - show ghost cursor with adjusted duration
         const totalQuants = calculateTotalQuants(targetMeasure.events);
         const availableQuants = currentQuantsPerMeasure - totalQuants;
-        const adjusted = getAdjustedDuration(
-          availableQuants,
-          activeDuration,
-          isDotted
-        );
+        const adjusted = getAdjustedDuration(availableQuants, activeDuration, isDotted);
 
         if (adjusted) {
           const defaultPitch = getDefaultPitchForClef(targetStaff.clef || 'treble');
@@ -424,11 +422,7 @@ export const calculateVerticalNavigation = (
       // No event - show ghost cursor with adjusted duration
       const totalQuants = calculateTotalQuants(cycleMeasure.events);
       const availableQuants = currentQuantsPerMeasure - totalQuants;
-      const adjusted = getAdjustedDuration(
-        availableQuants,
-        activeDuration,
-        isDotted
-      );
+      const adjusted = getAdjustedDuration(availableQuants, activeDuration, isDotted);
 
       if (adjusted) {
         const defaultPitch = getDefaultPitchForClef(cycleStaff.clef || 'treble');

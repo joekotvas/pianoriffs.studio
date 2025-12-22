@@ -39,13 +39,19 @@ export class ToggleNoteCommand implements SelectionCommand {
 
     // If selectedNotes is empty but cursor is positioned, infer current selection from cursor
     let currentSelectedNotes = [...state.selectedNotes];
-    if (currentSelectedNotes.length === 0 && state.eventId !== null && state.measureIndex !== null) {
-      currentSelectedNotes = [{
-        staffIndex: state.staffIndex,
-        measureIndex: state.measureIndex,
-        eventId: state.eventId,
-        noteId: state.noteId,
-      }];
+    if (
+      currentSelectedNotes.length === 0 &&
+      state.eventId !== null &&
+      state.measureIndex !== null
+    ) {
+      currentSelectedNotes = [
+        {
+          staffIndex: state.staffIndex,
+          measureIndex: state.measureIndex,
+          eventId: state.eventId,
+          noteId: state.noteId,
+        },
+      ];
     }
 
     // Check if note is already selected

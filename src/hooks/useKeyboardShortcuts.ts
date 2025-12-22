@@ -42,7 +42,12 @@ interface UIState {
   isDisabled?: boolean;
 }
 
-export const useKeyboardShortcuts = (logic: UseScoreLogicGroupedReturn, playback: PlaybackState, meta: UIState, handlers: { handleTitleCommit: () => void }) => {
+export const useKeyboardShortcuts = (
+  logic: UseScoreLogicGroupedReturn,
+  playback: PlaybackState,
+  meta: UIState,
+  handlers: { handleTitleCommit: () => void }
+) => {
   // Access grouped API from logic
   const { selection } = logic.state;
   const score = logic.state.score;
@@ -101,16 +106,20 @@ export const useKeyboardShortcuts = (logic: UseScoreLogicGroupedReturn, playback
             // Check if we already have ALL notes selected
             const allSelected = event.notes.every((n: Note) => {
               if (String(n.id) === String(selection.noteId)) return true;
-              return selection.selectedNotes.some((sn: SelectedNote) => String(sn.noteId) === String(n.id));
+              return selection.selectedNotes.some(
+                (sn: SelectedNote) => String(sn.noteId) === String(n.id)
+              );
             });
 
             if (!allSelected) {
               // Select ALL notes in the chord via dispatch
-              selectionEngine.dispatch(new SelectAllInEventCommand({
-                staffIndex: selection.staffIndex || 0,
-                measureIndex: selection.measureIndex!,
-                eventId: selection.eventId!,
-              }));
+              selectionEngine.dispatch(
+                new SelectAllInEventCommand({
+                  staffIndex: selection.staffIndex || 0,
+                  measureIndex: selection.measureIndex!,
+                  eventId: selection.eventId!,
+                })
+              );
               return;
             }
           }
@@ -127,16 +136,22 @@ export const useKeyboardShortcuts = (logic: UseScoreLogicGroupedReturn, playback
       // Cmd/Ctrl+A: Select all with progressive expansion
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
         e.preventDefault();
-        selectionEngine.dispatch(new SelectAllCommand({
-          expandIfSelected: true,
-          staffIndex: selection.staffIndex,
-          measureIndex: selection.measureIndex ?? undefined,
-        }));
+        selectionEngine.dispatch(
+          new SelectAllCommand({
+            expandIfSelected: true,
+            staffIndex: selection.staffIndex,
+            measureIndex: selection.measureIndex ?? undefined,
+          })
+        );
         return;
       }
 
       // Cmd/Ctrl+Shift+Up/Down: Extend selection vertically
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey &&
+        (e.key === 'ArrowUp' || e.key === 'ArrowDown')
+      ) {
         e.preventDefault();
         const direction = e.key === 'ArrowUp' ? 'up' : 'down';
         selectionEngine.dispatch(new ExtendSelectionVerticallyCommand({ direction }));

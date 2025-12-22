@@ -28,7 +28,9 @@ export interface EventsContext {
  * @param ctx - Events context with subscription function
  * @returns Partial API implementation for events
  */
-export const createEventsMethods = (ctx: EventsContext): Pick<MusicEditorAPI, EventMethodNames> & ThisType<MusicEditorAPI> => {
+export const createEventsMethods = (
+  ctx: EventsContext
+): Pick<MusicEditorAPI, EventMethodNames> & ThisType<MusicEditorAPI> => {
   return {
     on: ctx.on,
   };

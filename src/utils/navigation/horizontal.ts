@@ -19,7 +19,11 @@ import {
   HorizontalNavigationResult,
   Selection as ScoreSelection,
 } from '@/types';
-import { getAppendPreviewNote, getDefaultPitchForClef, createGhostCursorResult } from './previewNote';
+import {
+  getAppendPreviewNote,
+  getDefaultPitchForClef,
+  createGhostCursorResult,
+} from './previewNote';
 import { notesToAudioNotes } from './transposition';
 
 /**
@@ -161,13 +165,14 @@ export const calculateNextSelection = (
             ? null
             : lastEventBeforeGhost.notes[0].id;
         const audioNotes = notesToAudioNotes(lastEventBeforeGhost.notes);
-        const audio: AudioFeedback | null = lastEventBeforeGhost.isRest || audioNotes.length === 0
-          ? null
-          : {
-              notes: audioNotes,
-              duration: lastEventBeforeGhost.duration,
-              dotted: lastEventBeforeGhost.dotted,
-            };
+        const audio: AudioFeedback | null =
+          lastEventBeforeGhost.isRest || audioNotes.length === 0
+            ? null
+            : {
+                notes: audioNotes,
+                duration: lastEventBeforeGhost.duration,
+                dotted: lastEventBeforeGhost.dotted,
+              };
         return {
           selection: { staffIndex, measureIndex, eventId: lastEventBeforeGhost.id, noteId },
           previewNote: null,
@@ -207,9 +212,10 @@ export const calculateNextSelection = (
         const lastEvent = prevMeasure.events[prevMeasure.events.length - 1];
         const noteId = lastEvent.isRest || !lastEvent.notes?.length ? null : lastEvent.notes[0].id;
         const audioNotes = notesToAudioNotes(lastEvent.notes);
-        const audio: AudioFeedback | null = lastEvent.isRest || audioNotes.length === 0
-          ? null
-          : { notes: audioNotes, duration: lastEvent.duration, dotted: lastEvent.dotted };
+        const audio: AudioFeedback | null =
+          lastEvent.isRest || audioNotes.length === 0
+            ? null
+            : { notes: audioNotes, duration: lastEvent.duration, dotted: lastEvent.dotted };
         return {
           selection: { staffIndex, measureIndex: measureIndex - 1, eventId: lastEvent.id, noteId },
           previewNote: null,
@@ -259,7 +265,9 @@ export const calculateNextSelection = (
   // 2a. Boundary Left: At first event → ghost cursor in previous measure
   if (direction === 'left' && selection.measureIndex !== null && selection.measureIndex > 0) {
     const currentMeasure = measures[selection.measureIndex];
-    const eventIdx = currentMeasure?.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
+    const eventIdx = currentMeasure?.events.findIndex(
+      (e: ScoreEvent) => e.id === selection.eventId
+    );
 
     if (eventIdx === 0) {
       // At first event - check if previous measure has space for ghost cursor
@@ -296,7 +304,9 @@ export const calculateNextSelection = (
   // This MUST come before navigateSelection so we don't skip to next measure
   if (direction === 'right' && selection.measureIndex !== null && selection.eventId) {
     const currentMeasure = measures[selection.measureIndex];
-    const eventIdx = currentMeasure?.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
+    const eventIdx = currentMeasure?.events.findIndex(
+      (e: ScoreEvent) => e.id === selection.eventId
+    );
 
     if (eventIdx === currentMeasure?.events.length - 1) {
       // At last event - check if current measure has space for ghost cursor
@@ -345,7 +355,12 @@ export const calculateNextSelection = (
   if (newSelection !== selection) {
     // Find the event to play audio
     if (newSelection.measureIndex === null) {
-      return { selection: { ...newSelection, staffIndex }, previewNote: null, audio: null, shouldCreateMeasure: false };
+      return {
+        selection: { ...newSelection, staffIndex },
+        previewNote: null,
+        audio: null,
+        shouldCreateMeasure: false,
+      };
     }
     const measure = measures[newSelection.measureIndex];
     let audio: AudioFeedback | null = null;
@@ -355,7 +370,11 @@ export const calculateNextSelection = (
         if (newSelection.noteId) {
           const note = event.notes.find((n: Note) => n.id === newSelection.noteId);
           if (note && note.pitch) {
-            audio = { notes: [{ pitch: note.pitch, id: note.id }], duration: event.duration, dotted: event.dotted };
+            audio = {
+              notes: [{ pitch: note.pitch, id: note.id }],
+              duration: event.duration,
+              dotted: event.dotted,
+            };
           }
         } else {
           const audioNotes = notesToAudioNotes(event.notes);
@@ -365,7 +384,12 @@ export const calculateNextSelection = (
         }
       }
     }
-    return { selection: { ...newSelection, staffIndex }, previewNote: null, audio, shouldCreateMeasure: false };
+    return {
+      selection: { ...newSelection, staffIndex },
+      previewNote: null,
+      audio,
+      shouldCreateMeasure: false,
+    };
   }
 
   // 4. End of Score: Navigate right past last event → ghost or new measure

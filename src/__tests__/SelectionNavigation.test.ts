@@ -147,7 +147,7 @@ describe('Selection Navigation - Horizontal', () => {
 describe('Selection Navigation - Vertical (Chord Cycling)', () => {
   // NOTE: Vertical navigation is deferred to Phase 7
   // These tests document expected behavior for when it's implemented
-  
+
   test.skip('CMD+Up within chord → select higher note', () => {
     // Will be implemented in Phase 7
   });
@@ -183,41 +183,51 @@ describe('Selection - Toggle (Cmd+Click)', () => {
 
   test('toggle adds note to selection when not selected', () => {
     // Select first note
-    engine.dispatch(new SelectEventCommand({ staffIndex: 0, measureIndex: 0, eventIndex: 0, noteIndex: 0 }));
+    engine.dispatch(
+      new SelectEventCommand({ staffIndex: 0, measureIndex: 0, eventIndex: 0, noteIndex: 0 })
+    );
     expect(engine.getState().selectedNotes).toHaveLength(1);
 
     // Toggle second event
-    engine.dispatch(new ToggleNoteCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventId: 'e2',
-      noteId: 'n2',
-    }));
+    engine.dispatch(
+      new ToggleNoteCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e2',
+        noteId: 'n2',
+      })
+    );
 
     // Should have both notes selected
     expect(engine.getState().selectedNotes).toHaveLength(2);
-    expect(engine.getState().selectedNotes.map(n => n.noteId)).toContain('n1a');
-    expect(engine.getState().selectedNotes.map(n => n.noteId)).toContain('n2');
+    expect(engine.getState().selectedNotes.map((n) => n.noteId)).toContain('n1a');
+    expect(engine.getState().selectedNotes.map((n) => n.noteId)).toContain('n2');
   });
 
   test('toggle removes note from selection when already selected', () => {
     // Setup: two notes selected
-    engine.dispatch(new SelectEventCommand({ staffIndex: 0, measureIndex: 0, eventIndex: 0, noteIndex: 0 }));
-    engine.dispatch(new ToggleNoteCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventId: 'e2',
-      noteId: 'n2',
-    }));
+    engine.dispatch(
+      new SelectEventCommand({ staffIndex: 0, measureIndex: 0, eventIndex: 0, noteIndex: 0 })
+    );
+    engine.dispatch(
+      new ToggleNoteCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e2',
+        noteId: 'n2',
+      })
+    );
     expect(engine.getState().selectedNotes).toHaveLength(2);
 
     // Toggle first note (remove it)
-    engine.dispatch(new ToggleNoteCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventId: 'e1',
-      noteId: 'n1a',
-    }));
+    engine.dispatch(
+      new ToggleNoteCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e1',
+        noteId: 'n1a',
+      })
+    );
 
     // Should only have second note
     expect(engine.getState().selectedNotes).toHaveLength(1);
@@ -226,16 +236,20 @@ describe('Selection - Toggle (Cmd+Click)', () => {
 
   test('toggle last note clears selection', () => {
     // Select one note
-    engine.dispatch(new SelectEventCommand({ staffIndex: 0, measureIndex: 0, eventIndex: 0, noteIndex: 0 }));
+    engine.dispatch(
+      new SelectEventCommand({ staffIndex: 0, measureIndex: 0, eventIndex: 0, noteIndex: 0 })
+    );
     expect(engine.getState().selectedNotes).toHaveLength(1);
 
     // Toggle it off
-    engine.dispatch(new ToggleNoteCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventId: 'e1',
-      noteId: 'n1a',
-    }));
+    engine.dispatch(
+      new ToggleNoteCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e1',
+        noteId: 'n1a',
+      })
+    );
 
     // Selection should be cleared
     expect(engine.getState().selectedNotes).toHaveLength(0);
@@ -254,17 +268,19 @@ describe('Selection - Toggle (Cmd+Click)', () => {
     });
 
     // Toggle second note - should infer n1a is selected
-    engine.dispatch(new ToggleNoteCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventId: 'e2',
-      noteId: 'n2',
-    }));
+    engine.dispatch(
+      new ToggleNoteCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e2',
+        noteId: 'n2',
+      })
+    );
 
     // Should have both notes
     expect(engine.getState().selectedNotes).toHaveLength(2);
-    expect(engine.getState().selectedNotes.map(n => n.noteId)).toContain('n1a');
-    expect(engine.getState().selectedNotes.map(n => n.noteId)).toContain('n2');
+    expect(engine.getState().selectedNotes.map((n) => n.noteId)).toContain('n1a');
+    expect(engine.getState().selectedNotes.map((n) => n.noteId)).toContain('n2');
   });
 });
 
@@ -306,34 +322,40 @@ describe('Selection - Select All In Event', () => {
   });
 
   test('selects all notes in a chord event', () => {
-    engine.dispatch(new SelectAllInEventCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventId: 'e1',
-    }));
+    engine.dispatch(
+      new SelectAllInEventCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e1',
+      })
+    );
 
     const state = engine.getState();
     expect(state.selectedNotes).toHaveLength(2);
-    expect(state.selectedNotes.map(n => n.noteId)).toContain('n1a');
-    expect(state.selectedNotes.map(n => n.noteId)).toContain('n1b');
+    expect(state.selectedNotes.map((n) => n.noteId)).toContain('n1a');
+    expect(state.selectedNotes.map((n) => n.noteId)).toContain('n1b');
   });
 
   test('addToSelection adds without removing existing', () => {
     // First select note in e2
-    engine.dispatch(new SelectEventCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventIndex: 1,
-    }));
+    engine.dispatch(
+      new SelectEventCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventIndex: 1,
+      })
+    );
     expect(engine.getState().selectedNotes).toHaveLength(1);
 
     // Add all notes in e1
-    engine.dispatch(new SelectAllInEventCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventId: 'e1',
-      addToSelection: true,
-    }));
+    engine.dispatch(
+      new SelectAllInEventCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e1',
+        addToSelection: true,
+      })
+    );
 
     // Should have 3 notes total
     expect(engine.getState().selectedNotes).toHaveLength(3);
@@ -349,11 +371,13 @@ describe('Selection - Clear', () => {
 
   test('clears selection and preserves staff index', () => {
     // Setup: select something in staff 0
-    engine.dispatch(new SelectEventCommand({
-      staffIndex: 0,
-      measureIndex: 0,
-      eventIndex: 0,
-    }));
+    engine.dispatch(
+      new SelectEventCommand({
+        staffIndex: 0,
+        measureIndex: 0,
+        eventIndex: 0,
+      })
+    );
     expect(engine.getState().eventId).toBe('e1');
 
     // Clear

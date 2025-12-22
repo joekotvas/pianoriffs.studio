@@ -20,7 +20,9 @@ export interface UseNoteActionsProps {
     staffIndex?: number,
     options?: SelectOptions
   ) => void;
-  setPreviewNote: (note: PreviewNote | null | ((prev: PreviewNote | null) => PreviewNote | null)) => void;
+  setPreviewNote: (
+    note: PreviewNote | null | ((prev: PreviewNote | null) => PreviewNote | null)
+  ) => void;
   activeDuration: string;
   isDotted: boolean;
   activeAccidental: 'flat' | 'natural' | 'sharp' | null;

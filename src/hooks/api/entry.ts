@@ -12,7 +12,15 @@ import { createNotePayload } from '@/utils/entry';
 /**
  * Entry method names provided by this factory
  */
-type EntryMethodNames = 'addNote' | 'addRest' | 'addTone' | 'makeTuplet' | 'unmakeTuplet' | 'toggleTie' | 'setTie' | 'setInputMode';
+type EntryMethodNames =
+  | 'addNote'
+  | 'addRest'
+  | 'addTone'
+  | 'makeTuplet'
+  | 'unmakeTuplet'
+  | 'toggleTie'
+  | 'setTie'
+  | 'setInputMode';
 
 /**
  * Factory for creating Entry API methods.
@@ -23,14 +31,18 @@ type EntryMethodNames = 'addNote' | 'addRest' | 'addTone' | 'makeTuplet' | 'unma
  * @param ctx - Shared API context
  * @returns Partial API implementation for entry
  */
-export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryMethodNames> & ThisType<MusicEditorAPI> => {
+export const createEntryMethods = (
+  ctx: APIContext
+): Pick<MusicEditorAPI, EntryMethodNames> & ThisType<MusicEditorAPI> => {
   const { getScore, getSelection, syncSelection, dispatch } = ctx;
 
   return {
     addNote(pitch, duration = 'quarter', dotted = false) {
       // Validate pitch format
       if (!isValidPitch(pitch)) {
-        console.warn(`[RiffScore API] addNote failed: Invalid pitch format '${pitch}'. Expected format: 'C4', 'F#5', 'Bb3', etc.`);
+        console.warn(
+          `[RiffScore API] addNote failed: Invalid pitch format '${pitch}'. Expected format: 'C4', 'F#5', 'Bb3', etc.`
+        );
         return this;
       }
 
@@ -58,7 +70,9 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
 
       // Check if measure has capacity for this note
       if (!canAddEventToMeasure(measure.events, duration, dotted)) {
-        console.warn(`[RiffScore API] addNote failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${duration} note.`);
+        console.warn(
+          `[RiffScore API] addNote failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${duration} note.`
+        );
         return this;
       }
 
@@ -67,7 +81,18 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
 
       // Dispatch AddEventCommand
       const eventId = generateId();
-      dispatch(new AddEventCommand(measureIndex, false, note, duration, dotted, undefined, eventId, staffIndex));
+      dispatch(
+        new AddEventCommand(
+          measureIndex,
+          false,
+          note,
+          duration,
+          dotted,
+          undefined,
+          eventId,
+          staffIndex
+        )
+      );
 
       // Advance cursor to the new event
       const newSelection = {
@@ -79,7 +104,6 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         anchor: null,
       };
       syncSelection(newSelection);
-
 
       return this;
     },
@@ -109,13 +133,26 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
 
       // Check if measure has capacity for this rest
       if (!canAddEventToMeasure(measure.events, duration, dotted)) {
-        console.warn(`[RiffScore API] addRest failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${duration} rest.`);
+        console.warn(
+          `[RiffScore API] addRest failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${duration} rest.`
+        );
         return this;
       }
 
       // Dispatch AddEventCommand with isRest=true
       const eventId = generateId();
-      dispatch(new AddEventCommand(measureIndex, true, null, duration, dotted, undefined, eventId, staffIndex));
+      dispatch(
+        new AddEventCommand(
+          measureIndex,
+          true,
+          null,
+          duration,
+          dotted,
+          undefined,
+          eventId,
+          staffIndex
+        )
+      );
 
       // Advance cursor - use the same rest note ID pattern as AddEventCommand
       const restNoteId = `${eventId}-rest`;
@@ -135,7 +172,9 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
     addTone(pitch) {
       // Validate pitch format
       if (!isValidPitch(pitch)) {
-        console.warn(`[RiffScore API] addTone failed: Invalid pitch format '${pitch}'. Expected format: 'C4', 'F#5', 'Bb3', etc.`);
+        console.warn(
+          `[RiffScore API] addTone failed: Invalid pitch format '${pitch}'. Expected format: 'C4', 'F#5', 'Bb3', etc.`
+        );
         return this;
       }
 
@@ -186,7 +225,9 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
 
       // Check if we have enough events for the tuplet
       if (eventIndex + numNotes > measure.events.length) {
-        console.warn(`[RiffScore API] makeTuplet failed: Not enough events (need ${numNotes}, have ${measure.events.length - eventIndex})`);
+        console.warn(
+          `[RiffScore API] makeTuplet failed: Not enough events (need ${numNotes}, have ${measure.events.length - eventIndex})`
+        );
         return this;
       }
 
@@ -198,13 +239,15 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         }
       }
 
-      dispatch(new ApplyTupletCommand(
-        sel.measureIndex,
-        eventIndex,
-        numNotes,
-        [numNotes, inSpaceOf] as [number, number],
-        sel.staffIndex
-      ));
+      dispatch(
+        new ApplyTupletCommand(
+          sel.measureIndex,
+          eventIndex,
+          numNotes,
+          [numNotes, inSpaceOf] as [number, number],
+          sel.staffIndex
+        )
+      );
 
       return this;
     },
@@ -231,11 +274,7 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         return this;
       }
 
-      dispatch(new RemoveTupletCommand(
-        sel.measureIndex,
-        eventIndex,
-        sel.staffIndex
-      ));
+      dispatch(new RemoveTupletCommand(sel.measureIndex, eventIndex, sel.staffIndex));
 
       return this;
     },
@@ -257,13 +296,15 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         return this;
       }
 
-      dispatch(new UpdateNoteCommand(
-        sel.measureIndex,
-        sel.eventId,
-        sel.noteId,
-        { tied: !note.tied },
-        sel.staffIndex
-      ));
+      dispatch(
+        new UpdateNoteCommand(
+          sel.measureIndex,
+          sel.eventId,
+          sel.noteId,
+          { tied: !note.tied },
+          sel.staffIndex
+        )
+      );
 
       return this;
     },
@@ -285,13 +326,9 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         return this;
       }
 
-      dispatch(new UpdateNoteCommand(
-        sel.measureIndex,
-        sel.eventId,
-        sel.noteId,
-        { tied },
-        sel.staffIndex
-      ));
+      dispatch(
+        new UpdateNoteCommand(sel.measureIndex, sel.eventId, sel.noteId, { tied }, sel.staffIndex)
+      );
 
       return this;
     },

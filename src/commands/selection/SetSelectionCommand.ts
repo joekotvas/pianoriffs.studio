@@ -45,12 +45,14 @@ export class SetSelectionCommand implements SelectionCommand {
     let finalSelectedNotes = selectedNotes;
     if (!finalSelectedNotes && eventId !== null && measureIndex !== null) {
       // Single selection - create selectedNotes from cursor position
-      finalSelectedNotes = [{
-        staffIndex,
-        measureIndex,
-        eventId,
-        noteId,
-      }];
+      finalSelectedNotes = [
+        {
+          staffIndex,
+          measureIndex,
+          eventId,
+          noteId,
+        },
+      ];
     } else if (!finalSelectedNotes) {
       finalSelectedNotes = [];
     }

@@ -39,7 +39,7 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(
     const [showClefMenu, setShowClefMenu] = useState(false);
     const [showKeySig, setShowKeySig] = useState(false);
     const [showTimeSig, setShowTimeSig] = useState(false);
-    
+
     // Store menu positions in state to avoid reading refs during render
     const [clefMenuPos, setClefMenuPos] = useState({ x: 0, y: 0 });
     const [timeSigMenuPos, setTimeSigMenuPos] = useState({ x: 0, y: 0 });
@@ -47,7 +47,7 @@ const StaffControls = forwardRef<StaffControlsHandle, StaffControlsProps>(
     const clefBtnRef = useRef<HTMLButtonElement>(null);
     const keySigBtnRef = useRef<HTMLButtonElement>(null);
     const timeSigBtnRef = useRef<HTMLButtonElement>(null);
-    
+
     // Helper to calculate position from a ref (only called in event handlers)
     const getPositionFromRef = (btnRef: React.RefObject<HTMLButtonElement | null>) => {
       const rect = btnRef.current?.getBoundingClientRect();

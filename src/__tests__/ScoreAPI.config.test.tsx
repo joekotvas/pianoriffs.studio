@@ -92,14 +92,9 @@ describe('ScoreAPI Configuration & State', () => {
       expect(score.title).toBe('New Score'); // Default form reset
       expect(score.staves.length).toBe(2); // Grand staff
       expect(score.staves[0].measures.length).toBe(2);
-      
-      // Note: BPM is preserved in some implementations of reset/load, 
-      // but our reset implementation creates a partial score with just staves and title.
-      // LoadScoreCommand usually merges or replaces.
-      // API reset() implementation: 
-      // const newScore = { ...scoreRef.current, staves, title: 'New Score' };
-      // So BPM should be PRESERVED from previous scoreRef.current!
-      expect(score.bpm).toBe(150); 
+
+      // reset() now fully resets all score properties including BPM to defaults
+      expect(score.bpm).toBe(120);
     });
   });
 

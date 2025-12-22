@@ -77,12 +77,22 @@ export interface MusicEditorAPI {
    * Add an event to the current selection (Cmd+Click toggle behavior).
    * @status implemented
    */
-  addToSelection(measureNum: number, staffIndex: number, eventIndex: number, noteIndex?: number): this;
+  addToSelection(
+    measureNum: number,
+    staffIndex: number,
+    eventIndex: number,
+    noteIndex?: number
+  ): this;
   /**
    * Extend selection from anchor to target (Shift+Click range behavior).
    * @status implemented
    */
-  selectRangeTo(measureNum: number, staffIndex: number, eventIndex: number, noteIndex?: number): this;
+  selectRangeTo(
+    measureNum: number,
+    staffIndex: number,
+    eventIndex: number,
+    noteIndex?: number
+  ): this;
   /**
    * Select all events in the specified scope.
    * @status implemented
@@ -281,28 +291,31 @@ export interface MusicEditorAPI {
 
   // --- Playback ---
   /**
-   * Start playback.
-   * @status stub
+   * Start playback from specified position (or current/beginning).
+   * @param startMeasure - Optional measure index to start from
+   * @param startQuant - Optional quant position within measure
+   * @status implemented
    */
-  play(): this;
+  play(startMeasure?: number, startQuant?: number): Promise<this>;
   /**
-   * Pause playback.
-   * @status stub
+   * Pause playback (retains position for resume).
+   * @status implemented
    */
   pause(): this;
   /**
-   * Stop playback and rewind.
-   * @status stub
+   * Stop playback and reset to beginning.
+   * @status implemented
    */
   stop(): this;
   /**
    * Jump playback to a specific measure.
-   * @status stub
+   * @status implemented
    */
   rewind(measureNum?: number): this;
   /**
    * Change the playback instrument.
-   * @status stub
+   * @param instrumentId - One of: 'bright', 'mellow', 'organ', 'piano'
+   * @status implemented
    */
   setInstrument(instrumentId: string): this;
 
@@ -377,4 +390,3 @@ export interface MusicEditorAPI {
   on(event: 'playback', callback: (state: unknown) => void): Unsubscribe;
   on(event: APIEventType, callback: (state: unknown) => void): Unsubscribe;
 }
-

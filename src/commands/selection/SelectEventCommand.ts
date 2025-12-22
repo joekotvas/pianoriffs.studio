@@ -30,7 +30,13 @@ export class SelectEventCommand implements SelectionCommand {
   }
 
   execute(state: Selection, score: Score): Selection {
-    const { staffIndex, measureIndex, eventIndex = 0, noteIndex = 0, addToSelection = false } = this.options;
+    const {
+      staffIndex,
+      measureIndex,
+      eventIndex = 0,
+      noteIndex = 0,
+      addToSelection = false,
+    } = this.options;
 
     // Validate staff
     const staff = score.staves[staffIndex];
@@ -56,9 +62,7 @@ export class SelectEventCommand implements SelectionCommand {
     }
 
     // Build selected note entry
-    const selectedNote = eventId
-      ? { staffIndex, measureIndex, eventId, noteId }
-      : null;
+    const selectedNote = eventId ? { staffIndex, measureIndex, eventId, noteId } : null;
 
     // Build new selection
     if (addToSelection && selectedNote) {

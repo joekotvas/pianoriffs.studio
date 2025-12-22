@@ -30,8 +30,8 @@ describe('ExtendSelectionVerticallyCommand', () => {
 
       // Anchor stays at G4, cursor moves to E4
       expect(result.selectedNotes).toHaveLength(2);
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n2'); // G4 still selected
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n1'); // E4 added
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n2'); // G4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 added
     });
 
     test('extend down from middle note adds lower note', () => {
@@ -43,8 +43,8 @@ describe('ExtendSelectionVerticallyCommand', () => {
 
       // Should add C4 (below E4)
       expect(result.selectedNotes).toHaveLength(2);
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n1'); // E4 still selected
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n0'); // C4 added
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n0'); // C4 added
     });
 
     test('extend up from middle note adds higher note', () => {
@@ -56,8 +56,8 @@ describe('ExtendSelectionVerticallyCommand', () => {
 
       // Should add G4 (above E4)
       expect(result.selectedNotes).toHaveLength(2);
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n1'); // E4 still selected
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n2'); // G4 added
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n2'); // G4 added
     });
 
     test('extend up from bottom note moves cursor to middle', () => {
@@ -69,8 +69,8 @@ describe('ExtendSelectionVerticallyCommand', () => {
 
       // Anchor stays at C4, cursor moves to E4
       expect(result.selectedNotes).toHaveLength(2);
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n0'); // C4 still selected
-      expect(result.selectedNotes.map(n => n.noteId)).toContain('n1'); // E4 added
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n0'); // C4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 added
     });
 
     test('extend down at bottom of chord goes to cross-staff (no cycling)', () => {
@@ -81,7 +81,7 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const result = cmd.execute(state, score);
 
       // Should go to bass staff, not cycle within treble
-      expect(result.selectedNotes.some(n => n.staffIndex === 1)).toBe(true);
+      expect(result.selectedNotes.some((n) => n.staffIndex === 1)).toBe(true);
     });
 
     test('extend up at top of chord returns unchanged (at boundary)', () => {
@@ -105,8 +105,8 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const result = cmd.execute(state, score);
 
       // Should include bass notes from quant-aligned event
-      expect(result.selectedNotes.some(n => n.staffIndex === 1)).toBe(true);
-      expect(result.selectedNotes.some(n => n.eventId === 'bass-e0')).toBe(true);
+      expect(result.selectedNotes.some((n) => n.staffIndex === 1)).toBe(true);
+      expect(result.selectedNotes.some((n) => n.eventId === 'bass-e0')).toBe(true);
     });
 
     test('does not fill anchor chord when crossing to bass', () => {
@@ -118,14 +118,16 @@ describe('ExtendSelectionVerticallyCommand', () => {
 
       // Should ONLY select C4 and the next note down (G3 in bass)
       // E4 and G4 should NOT be selected
-      const trebleNotes = result.selectedNotes.filter(n => n.staffIndex === 0 && n.eventId === 'e0');
+      const trebleNotes = result.selectedNotes.filter(
+        (n) => n.staffIndex === 0 && n.eventId === 'e0'
+      );
       expect(trebleNotes).toHaveLength(1); // C4 only
       expect(trebleNotes[0].noteId).toBe('n0');
-      
-      const bassNotes = result.selectedNotes.filter(n => n.staffIndex === 1);
+
+      const bassNotes = result.selectedNotes.filter((n) => n.staffIndex === 1);
       expect(bassNotes.length).toBeGreaterThan(0);
       // G3 is bass-n1
-      expect(bassNotes.map(n => n.noteId)).toContain('bass-n1');
+      expect(bassNotes.map((n) => n.noteId)).toContain('bass-n1');
     });
 
     test('at bottom staff lowest note, extend down is no-op', () => {
@@ -148,7 +150,7 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const result = cmd.execute(state, score);
 
       // Should include both staves - all quant-aligned notes
-      const staffIndices = new Set(result.selectedNotes.map(n => n.staffIndex));
+      const staffIndices = new Set(result.selectedNotes.map((n) => n.staffIndex));
       expect(staffIndices.size).toBeGreaterThan(0); // At least original staff
     });
   });
@@ -157,19 +159,19 @@ describe('ExtendSelectionVerticallyCommand', () => {
     test('anchor preserved while cursor moves', () => {
       const score = createTestScore();
       const state = createSelectionWithNote(0, 0, 'e0', 'n2'); // G4 (top)
-      
+
       // Extend down to add more notes
       let cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
       let result = cmd.execute(state, score);
-      
+
       // First extension: should have at least 2 notes
       expect(result.selectedNotes.length).toBeGreaterThanOrEqual(2);
       expect(result.anchor?.noteId).toBe('n2'); // anchor preserved
-      
+
       // Second extension
       cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
       result = cmd.execute(result, score);
-      
+
       // Selection should grow or stay same (not shrink)
       expect(result.selectedNotes.length).toBeGreaterThanOrEqual(2);
       expect(result.anchor?.noteId).toBe('n2'); // anchor still preserved
@@ -225,9 +227,9 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const result = cmd.execute(state, score);
 
       // Both events should be extended: G4+E4 from e0, G4+E4 from e2
-      const e0Notes = result.selectedNotes.filter(n => n.eventId === 'e0');
-      const e2Notes = result.selectedNotes.filter(n => n.eventId === 'e2');
-      
+      const e0Notes = result.selectedNotes.filter((n) => n.eventId === 'e0');
+      const e2Notes = result.selectedNotes.filter((n) => n.eventId === 'e2');
+
       expect(e0Notes.length).toBe(2); // G4 + E4
       expect(e2Notes.length).toBe(2); // G4 + E4
       expect(result.selectedNotes).toHaveLength(4);
@@ -253,7 +255,7 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const result = cmd.execute(state, score);
 
       // Should go to bass (single note = no room to move within chord)
-      expect(result.selectedNotes.some(n => n.staffIndex === 1)).toBe(true);
+      expect(result.selectedNotes.some((n) => n.staffIndex === 1)).toBe(true);
     });
 
     test('preserves anchor on extension', () => {
@@ -339,15 +341,15 @@ describe('ExtendSelectionVerticallyCommand', () => {
       // Expectation: Expand to Bass.
       const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
       const result = cmd.execute(state, score);
-      
+
       // Should include Bass note (n3 in m0 e0 on staff 1)
-      const hasBass = result.selectedNotes.some(n => n.staffIndex === 1);
-      
+      const hasBass = result.selectedNotes.some((n) => n.staffIndex === 1);
+
       // Also check that we didn't lose the Treble notes (which contraction would do)
-      const trebleNotes = result.selectedNotes.filter(n => n.staffIndex === 0);
+      const trebleNotes = result.selectedNotes.filter((n) => n.staffIndex === 0);
 
       expect(hasBass).toBe(true);
-      expect(trebleNotes.length).toBe(3); 
+      expect(trebleNotes.length).toBe(3);
     });
   });
 
@@ -358,14 +360,14 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const score = createScoreWithRest();
       // Select bottom note C4, extend down should add bass rest
       const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4
-      
+
       const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
       const result = cmd.execute(state, score);
-      
+
       // Should now include the bass rest
       expect(result.selectedNotes.length).toBe(2);
       const hasBassRest = result.selectedNotes.some(
-        n => n.staffIndex === 1 && n.eventId === 'bass-e0' && n.noteId === 'rest-0'
+        (n) => n.staffIndex === 1 && n.eventId === 'bass-e0' && n.noteId === 'rest-0'
       );
       expect(hasBassRest).toBe(true);
     });
@@ -374,13 +376,13 @@ describe('ExtendSelectionVerticallyCommand', () => {
       const score = createScoreWithRest();
       // Start with bass rest selected, extend up should add treble notes
       const state = createSelectionWithNote(1, 0, 'bass-e0', 'rest-0');
-      
+
       const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
       const result = cmd.execute(state, score);
-      
+
       // Should now include treble note(s)
       expect(result.selectedNotes.length).toBeGreaterThan(1);
-      const hasTreble = result.selectedNotes.some(n => n.staffIndex === 0);
+      const hasTreble = result.selectedNotes.some((n) => n.staffIndex === 0);
       expect(hasTreble).toBe(true);
     });
 
@@ -408,11 +410,11 @@ describe('ExtendSelectionVerticallyCommand', () => {
           ],
         },
       };
-      
+
       // Extend UP should contract (move cursor up toward anchor, removing rest)
       const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
       const result = cmd.execute(state, score);
-      
+
       // Should now have only the treble note (rest removed via contraction)
       expect(result.selectedNotes.length).toBe(1);
       expect(result.selectedNotes[0].noteId).toBe('n0');

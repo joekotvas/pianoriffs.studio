@@ -53,7 +53,7 @@ const RiffScoreInner: React.FC<RiffScoreProps> = ({ id, config: userConfig }) =>
   // Container style for interaction master switch
   const containerStyle: React.CSSProperties = useMemo(
     () => ({
-      pointerEvents: config.interaction.isEnabled ? 'auto' as const : 'none' as const,
+      pointerEvents: config.interaction.isEnabled ? ('auto' as const) : ('none' as const),
       userSelect: 'none' as const,
     }),
     [config.interaction.isEnabled]

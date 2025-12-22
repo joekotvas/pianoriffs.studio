@@ -152,10 +152,7 @@ describe('ScoreAPI Selection Enhancements (Phase 7C)', () => {
 
       // Add three notes
       act(() => {
-        api.select(1)
-          .addNote('C4', 'quarter')
-          .addNote('D4', 'quarter')
-          .addNote('E4', 'quarter');
+        api.select(1).addNote('C4', 'quarter').addNote('D4', 'quarter').addNote('E4', 'quarter');
       });
 
       // Select first note (sets anchor)

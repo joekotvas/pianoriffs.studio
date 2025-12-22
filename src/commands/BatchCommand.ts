@@ -44,7 +44,7 @@ export class BatchCommand implements Command {
   undo(score: Score): Score {
     // Clone array to avoid mutating the command list during reverse
     const reversedCommands = [...this.commands].reverse();
-    
+
     return reversedCommands.reduce((currentScore, command) => {
       return command.undo(currentScore);
     }, score);

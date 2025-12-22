@@ -38,16 +38,17 @@ export class NavigateCommand implements SelectionCommand {
 
       return {
         ...newSel,
-        selectedNotes: newSel.eventId && newSel.measureIndex !== null
-          ? [
-              {
-                staffIndex: newSel.staffIndex,
-                measureIndex: newSel.measureIndex,
-                eventId: newSel.eventId,
-                noteId: newSel.noteId,
-              },
-            ]
-          : [],
+        selectedNotes:
+          newSel.eventId && newSel.measureIndex !== null
+            ? [
+                {
+                  staffIndex: newSel.staffIndex,
+                  measureIndex: newSel.measureIndex,
+                  eventId: newSel.eventId,
+                  noteId: newSel.noteId,
+                },
+              ]
+            : [],
         anchor: null,
       };
     } else if (this.direction === 'up' || this.direction === 'down') {
@@ -57,7 +58,7 @@ export class NavigateCommand implements SelectionCommand {
       // - Ghost cursor handling
       // - Staff cycling at boundaries
       // - Entry-point note selection by direction
-      // 
+      //
       // Currently, vertical navigation is a no-op until Phase 7 wiring.
       // See: src/utils/interaction.ts calculateVerticalNavigation()
       return state;

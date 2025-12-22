@@ -9,10 +9,7 @@
 
 import { SelectEventCommand } from '../commands/selection/SelectEventCommand';
 import { createDefaultSelection, Selection } from '../types';
-import {
-  createTestScore,
-  createScoreWithEmptyMeasure,
-} from './helpers/selectionTestHelpers';
+import { createTestScore, createScoreWithEmptyMeasure } from './helpers/selectionTestHelpers';
 
 describe('SelectEventCommand', () => {
   let initialState: Selection;
@@ -124,7 +121,12 @@ describe('SelectEventCommand', () => {
 
     test('addToSelection preserves existing anchor', () => {
       const testScore = createTestScore();
-      const existingAnchor = { staffIndex: 0, measureIndex: 0, eventId: 'anchor-event', noteId: 'anchor-note' };
+      const existingAnchor = {
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'anchor-event',
+        noteId: 'anchor-note',
+      };
       const existingState: Selection = {
         ...initialState,
         anchor: existingAnchor,
@@ -193,7 +195,13 @@ describe('SelectEventCommand', () => {
               {
                 id: 'measure-1',
                 events: [
-                  { id: 'empty-event', isRest: false, duration: 'quarter', dotted: false, notes: [] },
+                  {
+                    id: 'empty-event',
+                    isRest: false,
+                    duration: 'quarter',
+                    dotted: false,
+                    notes: [],
+                  },
                 ],
               },
             ],

@@ -17,7 +17,7 @@ import { BatchCommand } from '../commands/BatchCommand';
 export function useTransactionBatching(engine: ScoreEngine) {
   // Use ref for buffer to allow synchronous updates without re-renders
   const bufferRef = useRef<Command[]>([]);
-  
+
   // Use ref for depth to rely on imperative API logic
   const depthRef = useRef(0);
 
@@ -27,24 +27,27 @@ export function useTransactionBatching(engine: ScoreEngine) {
   /**
    * Dispatches a command, respecting the current transaction state.
    */
-  const dispatch = useCallback((command: Command) => {
-    if (depthRef.current > 0) {
-      // In a transaction: Execute immediately to update state, 
-      // but DO NOT add to history yet. Buffer it instead.
-      const success = engine.dispatch(command, { addToHistory: false });
-      
-      // Only buffer if execution succeeded
-      if (success) {
-        bufferRef.current.push(command);
+  const dispatch = useCallback(
+    (command: Command) => {
+      if (depthRef.current > 0) {
+        // In a transaction: Execute immediately to update state,
+        // but DO NOT add to history yet. Buffer it instead.
+        const success = engine.dispatch(command, { addToHistory: false });
+
+        // Only buffer if execution succeeded
+        if (success) {
+          bufferRef.current.push(command);
+        } else {
+          // If execution fails, throw so consumer knows to rollback
+          throw new Error(`Command execution failed: ${command.type}`);
+        }
       } else {
-        // If execution fails, throw so consumer knows to rollback
-        throw new Error(`Command execution failed: ${command.type}`);
+        // Normal operation
+        engine.dispatch(command);
       }
-    } else {
-      // Normal operation
-      engine.dispatch(command);
-    }
-  }, [engine]);
+    },
+    [engine]
+  );
 
   /**
    * Starts a new transaction. Supports nesting.
@@ -59,24 +62,27 @@ export function useTransactionBatching(engine: ScoreEngine) {
   /**
    * Commits the current transaction.
    */
-  const commitTransaction = useCallback((label?: string) => {
-    if (depthRef.current === 0) {
-      console.warn('[RiffScore] commitTransaction called with no active transaction');
-      return;
-    }
-
-    depthRef.current--;
-
-    if (depthRef.current === 0) {
-      // Outermost transaction closed. Flush buffer.
-      if (bufferRef.current.length > 0) {
-        const batchCommand = new BatchCommand([...bufferRef.current], label);
-        engine.commitBatch(batchCommand);
-        bufferRef.current = [];
+  const commitTransaction = useCallback(
+    (label?: string) => {
+      if (depthRef.current === 0) {
+        console.warn('[RiffScore] commitTransaction called with no active transaction');
+        return;
       }
-      setIsBatching(false);
-    }
-  }, [engine]);
+
+      depthRef.current--;
+
+      if (depthRef.current === 0) {
+        // Outermost transaction closed. Flush buffer.
+        if (bufferRef.current.length > 0) {
+          const batchCommand = new BatchCommand([...bufferRef.current], label);
+          engine.commitBatch(batchCommand);
+          bufferRef.current = [];
+        }
+        setIsBatching(false);
+      }
+    },
+    [engine]
+  );
 
   /**
    * Rolls back the current transaction.
@@ -85,14 +91,14 @@ export function useTransactionBatching(engine: ScoreEngine) {
     if (depthRef.current === 0 && bufferRef.current.length === 0) return;
 
     const buffer = bufferRef.current;
-    
+
     // Create a temporary batch to reuse the undo logic
     const tempBatch = new BatchCommand(buffer);
     const currentState = engine.getState();
     const restoredState = tempBatch.undo(currentState);
-    
+
     // Force state update without history.
-    // NOTE: This intentionally triggers listeners so the UI reverts 
+    // NOTE: This intentionally triggers listeners so the UI reverts
     // from the optimistic state back to the pre-transaction state.
     engine.setState(restoredState);
 
@@ -107,6 +113,6 @@ export function useTransactionBatching(engine: ScoreEngine) {
     beginTransaction,
     commitTransaction,
     rollbackTransaction,
-    isBatching
+    isBatching,
   };
 }

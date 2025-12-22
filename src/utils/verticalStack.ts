@@ -17,7 +17,7 @@ import { getClefConfig } from '../constants';
 /**
  * Get the default MIDI value for a rest in a given clef.
  * Used for vertical stack sorting.
- * 
+ *
  * @see CLEF_CONFIG in constants.ts
  */
 const getRestMidi = (clef: string): number => {
@@ -66,7 +66,7 @@ export interface VerticalPoint {
  * @returns Combined metric suitable for vertical sorting
  */
 export function calculateVerticalMetric(staffIndex: number, midi: number): number {
-  return ((100 - staffIndex) * 1000) + midi;
+  return (100 - staffIndex) * 1000 + midi;
 }
 
 /**
@@ -84,7 +84,7 @@ export function toVerticalPoint(note: SelectedNote, score: Score): VerticalPoint
   if (!staff) return null;
   const measure = staff.measures[note.measureIndex];
   if (!measure) return null;
-  
+
   // Find event and time
   let time = 0;
   let foundEvent: ScoreEvent | undefined;
@@ -94,7 +94,7 @@ export function toVerticalPoint(note: SelectedNote, score: Score): VerticalPoint
     const duration = getNoteDuration(e.duration, e.dotted, e.tuplet);
     if (e.id === note.eventId) {
       foundEvent = e;
-      time = (note.measureIndex * 100000) + currentQuant;
+      time = note.measureIndex * 100000 + currentQuant;
       break;
     }
     currentQuant += duration;
@@ -105,15 +105,15 @@ export function toVerticalPoint(note: SelectedNote, score: Score): VerticalPoint
   // Resolve pitch
   let midi = 60; // Default
   let realNoteId = note.noteId;
-  
+
   if (foundEvent.isRest) {
-    midi = getRestMidi(staff.clef); 
+    midi = getRestMidi(staff.clef);
   } else if (note.noteId) {
     const n = foundEvent.notes.find((n) => n.id === note.noteId);
     if (n) midi = getMidi(n.pitch || 'C4');
   } else if (foundEvent.notes.length > 0) {
-     midi = getMidi(foundEvent.notes[0].pitch || 'C4');
-     realNoteId = foundEvent.notes[0].id;
+    midi = getMidi(foundEvent.notes[0].pitch || 'C4');
+    realNoteId = foundEvent.notes[0].id;
   }
 
   return {
@@ -122,7 +122,7 @@ export function toVerticalPoint(note: SelectedNote, score: Score): VerticalPoint
     eventId: note.eventId,
     noteId: realNoteId,
     midi,
-    time
+    time,
   };
 }
 
@@ -139,7 +139,7 @@ export function toVerticalPoint(note: SelectedNote, score: Score): VerticalPoint
  */
 export function collectVerticalStack(score: Score, globalTime: number): VerticalPoint[] {
   const stack: VerticalPoint[] = [];
-  
+
   const mIndex = Math.floor(globalTime / 100000);
   const timeQuant = globalTime % 100000;
 
@@ -151,8 +151,8 @@ export function collectVerticalStack(score: Score, globalTime: number): Vertical
     let q = 0;
     for (const event of measure.events) {
       const dur = getNoteDuration(event.duration, event.dotted, event.tuplet);
-      
-      if (q === timeQuant) { 
+
+      if (q === timeQuant) {
         // Handle Rests - they have notes array with pitch: null
         // IMPORTANT: Rests DO have noteId in their notes array
         if (event.isRest && event.notes && event.notes.length > 0) {
@@ -164,26 +164,26 @@ export function collectVerticalStack(score: Score, globalTime: number): Vertical
             eventId: event.id,
             noteId: restNote.id,
             midi: midi,
-            time: globalTime
+            time: globalTime,
           });
         }
         // Handle regular notes
         else if (event.notes) {
           for (const note of event.notes) {
-             stack.push({
-               staffIndex: sIdx,
-               measureIndex: mIndex,
-               eventId: event.id,
-               noteId: note.id,
-               midi: getMidi(note.pitch || 'C4'),
-               time: globalTime
-             });
+            stack.push({
+              staffIndex: sIdx,
+              measureIndex: mIndex,
+              eventId: event.id,
+              noteId: note.id,
+              midi: getMidi(note.pitch || 'C4'),
+              time: globalTime,
+            });
           }
         }
       }
-      
+
       q += dur;
-      
+
       // OPTIMIZATION: Early break if we've passed the target quant
       if (q > timeQuant) break;
     }
@@ -213,17 +213,18 @@ export type VerticalDirection = 'up' | 'down' | 'all';
  * @returns New cursor position, or current if at boundary or not found
  */
 export function moveCursorInStack(
-  stack: VerticalPoint[], 
-  current: VerticalPoint, 
+  stack: VerticalPoint[],
+  current: VerticalPoint,
   direction: VerticalDirection
 ): VerticalPoint {
   if (stack.length === 0) return current;
 
   // Find index
-  const idx = stack.findIndex(p => 
-    p.staffIndex === current.staffIndex &&
-    p.eventId === current.eventId &&
-    p.noteId === current.noteId
+  const idx = stack.findIndex(
+    (p) =>
+      p.staffIndex === current.staffIndex &&
+      p.eventId === current.eventId &&
+      p.noteId === current.noteId
   );
 
   if (idx === -1) {
@@ -236,7 +237,7 @@ export function moveCursorInStack(
   } else if (direction === 'down') {
     newIdx = Math.min(stack.length - 1, idx + 1);
   } else if (direction === 'all') {
-    newIdx = stack.length - 1; 
+    newIdx = stack.length - 1;
   }
 
   return stack[newIdx];
@@ -254,10 +255,9 @@ export function moveCursorInStack(
  */
 export function selectionsMatch(a: SelectedNote[], b: SelectedNote[]): boolean {
   if (a.length !== b.length) return false;
-  
-  const toKey = (n: SelectedNote) => 
-    `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`;
-  
+
+  const toKey = (n: SelectedNote) => `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`;
+
   const setA = new Set(a.map(toKey));
-  return b.every(note => setA.has(toKey(note)));
+  return b.every((note) => setA.has(toKey(note)));
 }

@@ -8,7 +8,11 @@
  */
 
 // Exported hooks
-export { useHoverPreview, type UseHoverPreviewProps, type UseHoverPreviewReturn } from './useHoverPreview';
+export {
+  useHoverPreview,
+  type UseHoverPreviewProps,
+  type UseHoverPreviewReturn,
+} from './useHoverPreview';
 export { useNoteEntry, type UseNoteEntryProps, type UseNoteEntryReturn } from './useNoteEntry';
 export { useNoteDelete, type UseNoteDeleteProps, type UseNoteDeleteReturn } from './useNoteDelete';
 export { useNotePitch, type UseNotePitchProps, type UseNotePitchReturn } from './useNotePitch';

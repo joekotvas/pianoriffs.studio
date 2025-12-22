@@ -53,10 +53,14 @@ export const generateABC = (score: Score, bpm: number) => {
     // ABC notation supports: treble, bass, alto, tenor
     const getAbcClef = (c: string) => {
       switch (c) {
-        case 'bass': return 'bass';
-        case 'alto': return 'alto';
-        case 'tenor': return 'tenor';
-        default: return 'treble';
+        case 'bass':
+          return 'bass';
+        case 'alto':
+          return 'alto';
+        case 'tenor':
+          return 'tenor';
+        default:
+          return 'treble';
       }
     };
     const abcClef = getAbcClef(clef);

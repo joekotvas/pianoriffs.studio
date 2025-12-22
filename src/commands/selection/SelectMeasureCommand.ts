@@ -72,10 +72,10 @@ export class SelectMeasureCommand implements SelectionCommand {
     if (addToSelection) {
       // Merge with existing selection, avoiding duplicates
       const existingIds = new Set(
-        state.selectedNotes.map(n => `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`)
+        state.selectedNotes.map((n) => `${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`)
       );
       const newNotes = measureNotes.filter(
-        n => !existingIds.has(`${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`)
+        (n) => !existingIds.has(`${n.staffIndex}-${n.measureIndex}-${n.eventId}-${n.noteId}`)
       );
 
       return {

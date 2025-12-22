@@ -36,9 +36,7 @@ const defaultScore = createDefaultScore();
 // Wrapper to provide context
 const wrapper = ({ children }: any) => (
   <ThemeProvider>
-    <ScoreProvider initialScore={defaultScore}>
-      {children}
-    </ScoreProvider>
+    <ScoreProvider initialScore={defaultScore}>{children}</ScoreProvider>
   </ThemeProvider>
 );
 
@@ -46,10 +44,12 @@ describe('ScoreAPI Events', () => {
   const instanceId = 'test-instance';
 
   test('notifies selection listeners on navigation', async () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), { wrapper });
-    
+    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), {
+      wrapper,
+    });
+
     const callback = jest.fn();
-    
+
     // Subscribe
     act(() => {
       result.current.on('selection', callback);
@@ -61,7 +61,7 @@ describe('ScoreAPI Events', () => {
     // Trigger change via navigation
     await act(async () => {
       // Assuming selecting a measure triggers a selection update
-      result.current.select(1, 0, 0, 0); 
+      result.current.select(1, 0, 0, 0);
     });
 
     // Callback should fire with new selection state
@@ -70,10 +70,12 @@ describe('ScoreAPI Events', () => {
   });
 
   test('notifies score listeners on mutation', async () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), { wrapper });
-    
+    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), {
+      wrapper,
+    });
+
     const callback = jest.fn();
-    
+
     // Subscribe
     act(() => {
       result.current.on('score', callback);
@@ -89,11 +91,13 @@ describe('ScoreAPI Events', () => {
   });
 
   test('unsubscribe stops notifications', async () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), { wrapper });
-    
+    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), {
+      wrapper,
+    });
+
     const callback = jest.fn();
     let unsubscribe: () => void;
-    
+
     act(() => {
       unsubscribe = result.current.on('selection', callback);
     });
@@ -113,17 +117,19 @@ describe('ScoreAPI Events', () => {
     await act(async () => {
       result.current.select(1); // Re-selecting same or different
     });
-    
+
     // Callback count remains 1
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
   test('supports multiple independent listeners', async () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), { wrapper });
-    
+    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), {
+      wrapper,
+    });
+
     const cb1 = jest.fn();
     const cb2 = jest.fn();
-    
+
     act(() => {
       result.current.on('selection', cb1);
       result.current.on('selection', cb2);
@@ -138,13 +144,15 @@ describe('ScoreAPI Events', () => {
   });
 
   test('isolates errors from buggy subscribers', async () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), { wrapper });
-    
+    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), {
+      wrapper,
+    });
+
     const safeCallback = jest.fn();
     const buggyCallback = () => {
       throw new Error('Subscriber crashed!');
     };
-    
+
     act(() => {
       result.current.on('selection', buggyCallback);
       result.current.on('selection', safeCallback);
@@ -157,16 +165,18 @@ describe('ScoreAPI Events', () => {
 
     // Safe callback should still run despite the other one crashing
     expect(safeCallback).toHaveBeenCalledTimes(1);
-    
+
     // Verify console.error was called for the crash (suppressed in test output)
     expect(console.error).toHaveBeenCalled();
   });
 
   test('API object identity remains stable when adding listeners', () => {
-    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), { wrapper });
-    
+    const { result } = renderHook(() => useScoreAPI({ instanceId, config: defaultConfig }), {
+      wrapper,
+    });
+
     const initialApi = result.current;
-    
+
     act(() => {
       result.current.on('score', jest.fn());
     });

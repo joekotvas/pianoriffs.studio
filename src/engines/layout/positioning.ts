@@ -1,10 +1,4 @@
-import {
-  MIDDLE_LINE_Y,
-  NOTE_SPACING_BASE_UNIT,
-  KEY_SIGNATURES,
-  LAYOUT,
-  STEM,
-} from '@/constants';
+import { MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES, LAYOUT, STEM } from '@/constants';
 import { CONFIG } from '@/config';
 import { getNoteDuration } from '@/utils/core';
 import { Note, ChordLayout, HeaderLayout } from './types';

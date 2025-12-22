@@ -4,7 +4,15 @@ import { APIContext } from './types';
 /**
  * History method names provided by this factory
  */
-type HistoryMethodNames = 'undo' | 'redo' | 'beginTransaction' | 'commitTransaction' | 'rollbackTransaction' | 'copy' | 'cut' | 'paste';
+type HistoryMethodNames =
+  | 'undo'
+  | 'redo'
+  | 'beginTransaction'
+  | 'commitTransaction'
+  | 'rollbackTransaction'
+  | 'copy'
+  | 'cut'
+  | 'paste';
 
 /**
  * Factory for creating History API methods.
@@ -15,7 +23,9 @@ type HistoryMethodNames = 'undo' | 'redo' | 'beginTransaction' | 'commitTransact
  * @param ctx - Shared API context
  * @returns Partial API implementation for history
  */
-export const createHistoryMethods = (ctx: APIContext): Pick<MusicEditorAPI, HistoryMethodNames> & ThisType<MusicEditorAPI> => {
+export const createHistoryMethods = (
+  ctx: APIContext
+): Pick<MusicEditorAPI, HistoryMethodNames> & ThisType<MusicEditorAPI> => {
   const { history } = ctx;
   const { undo, redo, begin, commit, rollback } = history;
 
