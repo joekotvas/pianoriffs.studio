@@ -1,5 +1,6 @@
 import React from 'react';
-import { Note, ChordLayout } from '@/types';
+import { Note } from '@/types';
+import { ChordLayout } from '@/engines/layout';
 import { Rest } from './Rest';
 import ChordGroup from './ChordGroup';
 import { NOTE_TYPES } from '@/constants';
