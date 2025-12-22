@@ -71,7 +71,7 @@
 
 - [x] **Component E:** `useScoreLogic.ts` slimming (−154 lines)
 - [x] **Component A:** `interaction.ts` modularization (facade pattern)
-- [x] **Component B:** `hooks/api/` factory pattern (10 files)
+- [x] **Component B:** `hooks/api/` factory pattern ([ADR-004](../adr/004-api-factory-pattern.md))
 </details>
 
 ---
