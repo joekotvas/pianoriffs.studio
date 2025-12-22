@@ -1,5 +1,8 @@
 import { MusicEditorAPI } from '@/api.types';
 import { APIContext } from './types';
+import { LoadScoreCommand } from '@/commands';
+import { generateABC } from '@/exporters/abcExporter';
+import { generateMusicXML } from '@/exporters/musicXmlExporter';
 
 /**
  * IO method names provided by this factory
@@ -19,8 +22,10 @@ export const createIOMethods = (ctx: APIContext): Pick<MusicEditorAPI, IOMethodN
   const { scoreRef } = ctx;
 
   return {
-    loadScore(_newScore) {
-      // TODO: Implement
+    loadScore(newScore) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      const { dispatch } = ctx;
+      dispatch(new LoadScoreCommand(newScore));
       return this;
     },
 
@@ -30,10 +35,16 @@ export const createIOMethods = (ctx: APIContext): Pick<MusicEditorAPI, IOMethodN
     },
 
     export(format) {
+      const score = scoreRef.current;
       if (format === 'json') {
-        return JSON.stringify(scoreRef.current, null, 2);
+        return JSON.stringify(score, null, 2);
       }
-      // TODO: ABC and MusicXML export
+      if (format === 'abc') {
+        return generateABC(score, score.bpm);
+      }
+      if (format === 'musicxml') {
+        return generateMusicXML(score);
+      }
       throw new Error(`Export format '${format}' not yet implemented`);
     },
   };

@@ -124,6 +124,8 @@ export function useScoreAPI({ instanceId, config }: UseScoreAPIProps): MusicEdit
     const context: APIContext = {
       scoreRef,
       selectionRef,
+      getScore: () => ctx.engines.engine.getState(),
+      getSelection: () => selectionEngine.getState(),
       syncSelection,
       dispatch,
       selectionEngine,

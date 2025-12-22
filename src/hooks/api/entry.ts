@@ -24,7 +24,7 @@ type EntryMethodNames = 'addNote' | 'addRest' | 'addTone' | 'makeTuplet' | 'unma
  * @returns Partial API implementation for entry
  */
 export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryMethodNames> & ThisType<MusicEditorAPI> => {
-  const { scoreRef, selectionRef, syncSelection, dispatch } = ctx;
+  const { getScore, getSelection, syncSelection, dispatch } = ctx;
 
   return {
     addNote(pitch, duration = 'quarter', dotted = false) {
@@ -34,7 +34,7 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         return this;
       }
 
-      const sel = selectionRef.current;
+      const sel = getSelection();
       let staffIndex = sel.staffIndex;
       let measureIndex = sel.measureIndex;
 
@@ -44,7 +44,7 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         measureIndex = 0;
       }
 
-      const staff = scoreRef.current.staves[staffIndex];
+      const staff = getScore().staves[staffIndex];
       if (!staff || staff.measures.length === 0) {
         console.warn('[RiffScore API] addNote failed: No measures exist in the score');
         return this;
@@ -85,7 +85,7 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
     },
 
     addRest(duration = 'quarter', dotted = false) {
-      const sel = selectionRef.current;
+      const sel = getSelection();
       let staffIndex = sel.staffIndex;
       let measureIndex = sel.measureIndex;
 
@@ -95,7 +95,7 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         measureIndex = 0;
       }
 
-      const staff = scoreRef.current.staves[staffIndex];
+      const staff = getScore().staves[staffIndex];
       if (!staff || staff.measures.length === 0) {
         console.warn('[RiffScore API] addRest failed: No measures exist in the score');
         return this;
@@ -139,7 +139,7 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
         return this;
       }
 
-      const sel = selectionRef.current;
+      const sel = getSelection();
       if (sel.measureIndex === null || sel.eventId === null) return this;
 
       const staffIndex = sel.staffIndex;
@@ -164,13 +164,13 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
     },
 
     makeTuplet(numNotes = 3, inSpaceOf = 2) {
-      const sel = selectionRef.current;
+      const sel = getSelection();
       if (sel.measureIndex === null || sel.eventId === null) {
         console.warn('[RiffScore API] makeTuplet failed: No selection');
         return this;
       }
 
-      const staff = scoreRef.current.staves[sel.staffIndex];
+      const staff = getScore().staves[sel.staffIndex];
       const measure = staff?.measures[sel.measureIndex];
       if (!measure) {
         console.warn('[RiffScore API] makeTuplet failed: Measure not found');
@@ -210,13 +210,13 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
     },
 
     unmakeTuplet() {
-      const sel = selectionRef.current;
+      const sel = getSelection();
       if (sel.measureIndex === null || sel.eventId === null) {
         console.warn('[RiffScore API] unmakeTuplet failed: No selection');
         return this;
       }
 
-      const staff = scoreRef.current.staves[sel.staffIndex];
+      const staff = getScore().staves[sel.staffIndex];
       const measure = staff?.measures[sel.measureIndex];
       if (!measure) {
         console.warn('[RiffScore API] unmakeTuplet failed: Measure not found');
@@ -241,13 +241,13 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
     },
 
     toggleTie() {
-      const sel = selectionRef.current;
+      const sel = getSelection();
       if (sel.measureIndex === null || sel.eventId === null || sel.noteId === null) {
         console.warn('[RiffScore API] toggleTie failed: No note selected');
         return this;
       }
 
-      const staff = scoreRef.current.staves[sel.staffIndex];
+      const staff = getScore().staves[sel.staffIndex];
       const measure = staff?.measures[sel.measureIndex];
       const event = measure?.events.find((e) => e.id === sel.eventId);
       const note = event?.notes?.find((n) => n.id === sel.noteId);
@@ -269,13 +269,13 @@ export const createEntryMethods = (ctx: APIContext): Pick<MusicEditorAPI, EntryM
     },
 
     setTie(tied) {
-      const sel = selectionRef.current;
+      const sel = getSelection();
       if (sel.measureIndex === null || sel.eventId === null || sel.noteId === null) {
         console.warn('[RiffScore API] setTie failed: No note selected');
         return this;
       }
 
-      const staff = scoreRef.current.staves[sel.staffIndex];
+      const staff = getScore().staves[sel.staffIndex];
       const measure = staff?.measures[sel.measureIndex];
       const event = measure?.events.find((e) => e.id === sel.eventId);
       const note = event?.notes?.find((n) => n.id === sel.noteId);

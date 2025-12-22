@@ -148,6 +148,10 @@ export function useNoteEntry({
   dispatch,
   inputMode,
 }: UseNoteEntryProps): UseNoteEntryReturn {
+  /*
+   * Named function expression used here to support self-recursion.
+   * We cannot reference 'addNoteToMeasure' directly as it's not yet initialized in the useCallback closure.
+   */
   const addNoteToMeasure = useCallback(
     function addNoteToMeasureCallback(
       measureIndex: number,

@@ -150,9 +150,17 @@
 #### 7A: Selection Expansion Tests
 - [x] Test `selectFullEvents()` 
 - [x] Test `extendSelectionUp/Down/All`
-- [ ] Test `selectAll()` with different scopes
+- [x] Test `selectAll()` with different scopes
 
-#### 7B: Clipboard API (Deferred)
+#### 7B: Wire Modification & IO Commands (Done)
+- [x] Wire `setClef`, `setKeySignature`, `setTimeSignature`
+- [x] Wire `deleteMeasure`, `deleteSelected`
+- [x] Wire `loadScore`, `export`
+- [x] Wire `transposeDiatonic` (via `TransposeSelectionCommand`)
+- [x] Verified with `ScoreAPI.modification.test.tsx` (21 tests, edge cases included)
+- [x] Robustness: Fixed stale state chaining bug via synchronous getters
+
+#### 7C: Clipboard API (Deferred)
 - [ ] Implement `copy()`, `cut()`, `paste()`
 - [ ] Wire to browser clipboard API
 

@@ -189,12 +189,12 @@ export interface MusicEditorAPI {
   transpose(semitones: number): this;
   /**
    * Transpose selected notes by scale degrees (diatonic).
-   * @status stub
+   * @status implemented
    */
   transposeDiatonic(steps: number): this;
   /**
    * Generic event update (escape hatch).
-   * @status stub
+   * @status implemented
    */
   updateEvent(props: Partial<ScoreEvent>): this;
 
@@ -206,39 +206,39 @@ export interface MusicEditorAPI {
   addMeasure(atIndex?: number): this;
   /**
    * Delete a measure by index (default: selected).
-   * @status stub
+   * @status implemented
    */
   deleteMeasure(measureIndex?: number): this;
   /**
    * Delete selected events intelligently.
-   * @status stub
+   * @status implemented
    */
   deleteSelected(): this;
   /**
    * Change the key signature.
-   * @status stub
+   * @status implemented
    */
   setKeySignature(key: string): this;
   /**
    * Change the time signature.
-   * @status stub
+   * @status implemented
    */
   setTimeSignature(sig: string): this;
   /**
    * Mark/unmark a measure as pickup.
-   * @status stub
+   * @status implemented
    */
   setMeasurePickup(isPickup: boolean): this;
 
   // --- Configuration ---
   /**
    * Change the clef.
-   * @status stub
+   * @status implemented
    */
-  setClef(clef: 'treble' | 'bass' | 'grand'): this;
+  setClef(clef: 'treble' | 'bass' | 'alto' | 'tenor' | 'grand'): this;
   /**
    * Update the score title.
-   * @status stub
+   * @status implemented
    */
   setScoreTitle(title: string): this;
   /**
@@ -258,14 +258,14 @@ export interface MusicEditorAPI {
   setScale(scale: number): this;
   /**
    * Switch between grand and single staff layouts.
-   * @status stub
+   * @status implemented
    */
   setStaffLayout(type: 'grand' | 'single'): this;
 
   // --- Lifecycle & IO ---
   /**
    * Load or replace the current score.
-   * @status stub
+   * @status implemented
    */
   loadScore(score: Score): this;
   /**
@@ -275,7 +275,7 @@ export interface MusicEditorAPI {
   reset(template?: 'grand' | 'treble' | 'bass', measures?: number): this;
   /**
    * Export the score in the specified format.
-   * @status partial - json works, abc/musicxml throw
+   * @status implemented
    */
   export(format: 'json' | 'abc' | 'musicxml'): string;
 

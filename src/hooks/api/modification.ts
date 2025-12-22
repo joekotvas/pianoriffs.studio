@@ -1,6 +1,21 @@
 import { MusicEditorAPI } from '@/api.types';
 import { APIContext } from './types';
-import { ChangePitchCommand, AddMeasureCommand } from '@/commands';
+import {
+  ChangePitchCommand,
+  AddMeasureCommand,
+  DeleteMeasureCommand,
+  DeleteEventCommand,
+  DeleteNoteCommand,
+  SetClefCommand,
+  SetKeySignatureCommand,
+  SetTimeSignatureCommand,
+  TogglePickupCommand,
+  SetGrandStaffCommand,
+  SetSingleStaffCommand,
+  UpdateTitleCommand,
+  TransposeSelectionCommand,
+  UpdateEventCommand,
+} from '@/commands';
 
 /**
  * Modification method names provided by this factory
@@ -17,7 +32,7 @@ type ModificationMethodNames = 'setPitch' | 'setDuration' | 'setAccidental' | 't
  * @returns Partial API implementation for modification
  */
 export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI, ModificationMethodNames> & ThisType<MusicEditorAPI> => {
-  const { dispatch, selectionRef } = ctx;
+  const { dispatch, selectionRef, scoreRef } = ctx;
 
   return {
     setPitch(pitch) {
@@ -50,17 +65,28 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
     },
 
     transpose(_semitones) {
-      // TODO: Dispatch TransposeCommand
+      // TODO: Implement chromatic transposition
       return this;
     },
 
-    transposeDiatonic(_steps) {
-      // TODO: Implement
+    transposeDiatonic(steps) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      const sel = selectionRef.current;
+      dispatch(new TransposeSelectionCommand(sel, steps));
       return this;
     },
 
-    updateEvent(_props) {
-      // TODO: Generic update
+    updateEvent(props) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      const sel = selectionRef.current;
+      if (sel.eventId && sel.measureIndex !== null) {
+        dispatch(new UpdateEventCommand(
+          sel.measureIndex,
+          sel.eventId,
+          props,
+          sel.staffIndex
+        ));
+      }
       return this;
     },
 
@@ -70,39 +96,72 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
       return this;
     },
 
-    deleteMeasure(_measureIndex) {
-      // TODO: Dispatch DeleteMeasureCommand
+    deleteMeasure(measureIndex) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      const idx = measureIndex ?? selectionRef.current.measureIndex ?? -1;
+      if (idx >= 0) {
+        dispatch(new DeleteMeasureCommand(idx));
+      }
       return this;
     },
 
     deleteSelected() {
-      // TODO: Implement smart delete
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      const sel = selectionRef.current;
+      if (sel.eventId && sel.noteId && sel.measureIndex !== null) {
+        dispatch(new DeleteNoteCommand(
+          sel.measureIndex,
+          sel.eventId,
+          sel.noteId,
+          sel.staffIndex
+        ));
+      } else if (sel.eventId && sel.measureIndex !== null) {
+        dispatch(new DeleteEventCommand(
+          sel.measureIndex,
+          sel.eventId,
+          sel.staffIndex
+        ));
+      }
       return this;
     },
 
-    setKeySignature(_key) {
-      // TODO: Implement
+    setKeySignature(key) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      dispatch(new SetKeySignatureCommand(key));
       return this;
     },
 
-    setTimeSignature(_sig) {
-      // TODO: Implement
+    setTimeSignature(sig) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      dispatch(new SetTimeSignatureCommand(sig));
       return this;
     },
 
-    setMeasurePickup(_isPickup) {
-      // TODO: Implement
+    setMeasurePickup(isPickup) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      const firstMeasure = scoreRef.current.staves[0]?.measures[0];
+      const currentlyPickup = !!firstMeasure?.isPickup;
+      
+      if (currentlyPickup !== isPickup) {
+        dispatch(new TogglePickupCommand());
+      }
       return this;
     },
 
     // ========== CONFIGURATION ==========
-    setClef(_clef) {
-      // TODO: Dispatch SetClefCommand
+    setClef(clef) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      if (clef === 'grand') {
+        dispatch(new SetGrandStaffCommand());
+      } else {
+        dispatch(new SetClefCommand(clef, selectionRef.current.staffIndex));
+      }
       return this;
     },
 
-    setScoreTitle(_title) {
-      // TODO: Implement
+    setScoreTitle(title) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      dispatch(new UpdateTitleCommand(title));
       return this;
     },
 
@@ -121,8 +180,13 @@ export const createModificationMethods = (ctx: APIContext): Pick<MusicEditorAPI,
       return this;
     },
 
-    setStaffLayout(_type) {
-      // TODO: Implement
+    setStaffLayout(type) {
+      /** @tested src/__tests__/ScoreAPI.modification.test.tsx */
+      if (type === 'grand') {
+        dispatch(new SetGrandStaffCommand());
+      } else {
+        dispatch(new SetSingleStaffCommand('treble'));
+      }
       return this;
     },
   };

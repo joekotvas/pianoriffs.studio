@@ -14,6 +14,12 @@ export interface APIContext {
   
   /** Mutable ref to the latest selection state (authoritative) */
   selectionRef: React.MutableRefObject<Selection>;
+
+  /** Synchronous getter for latest score state */
+  getScore: () => Score;
+
+  /** Synchronous getter for latest selection state */
+  getSelection: () => Selection;
   
   /** Helper to synchronize selection state between Ref and Engine */
   syncSelection: (sel: Selection) => void;

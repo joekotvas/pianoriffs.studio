@@ -44,9 +44,11 @@ export interface Measure {
 
 // ========== STAFF ==========
 
+export type ClefType = 'treble' | 'bass' | 'alto' | 'tenor' | 'grand';
+
 export interface Staff {
   id: string | number;
-  clef: 'treble' | 'bass' | 'alto' | 'tenor' | 'grand';
+  clef: ClefType;
   keySignature: string; // e.g., 'C', 'G', 'F', 'Bb'
   measures: Measure[];
 }
