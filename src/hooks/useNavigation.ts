@@ -1,3 +1,19 @@
+/**
+ * useNavigation Hook
+ *
+ * Handles keyboard and mouse navigation within the score editor.
+ * Provides handlers for note selection, arrow key movement, transposition,
+ * and cross-staff navigation.
+ *
+ * Key exports:
+ * - handleNoteSelection: Handle click on note/event
+ * - moveSelection: Arrow key navigation
+ * - transposeSelection: Pitch transposition
+ * - switchStaff: Cross-staff navigation
+ *
+ * @see useSelection
+ */
+
 import { useCallback, RefObject } from 'react';
 import { Selection, Score, getActiveStaff, PreviewNote } from '@/types';
 import {

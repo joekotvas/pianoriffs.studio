@@ -1,3 +1,22 @@
+/**
+ * useScoreLogic Hook
+ *
+ * Main orchestration hook for the score editor. Composes multiple
+ * specialized hooks and exposes a unified API for score manipulation.
+ *
+ * Groups functionality into:
+ * - state: Score and selection state
+ * - navigation: Movement and selection handlers
+ * - entry: Note/chord/rest creation and deletion
+ * - modifiers: Duration, accidentals, dots, ties
+ * - measures: Add/remove measures
+ * - tuplets: Tuplet creation and removal
+ * - historyAPI: Undo/redo operations
+ * - engines: Low-level engine access
+ *
+ * @see ScoreLogicReturn for full API
+ */
+
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { TIME_SIGNATURES } from '@/constants';
 import { CONFIG } from '@/config';

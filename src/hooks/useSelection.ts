@@ -1,3 +1,20 @@
+/**
+ * useSelection Hook
+ *
+ * Manages selection state for the score editor using the command pattern.
+ * All selection mutations go through engine.dispatch() for consistency.
+ *
+ * Key exports:
+ * - selection: Current selection state
+ * - select: Select an event/note
+ * - clearSelection: Clear current selection
+ * - selectAllInMeasure: Select all notes in a measure
+ * - engine: SelectionEngine instance for direct dispatch access
+ *
+ * @see SelectionEngine
+ * @see Issue #135
+ */
+
 import { useState, useCallback, useEffect } from 'react';
 import { Selection, createDefaultSelection, Score, getActiveStaff, Note, ScoreEvent, SelectedNote } from '@/types';
 import { playNote } from '@/engines/toneEngine';
