@@ -48,6 +48,8 @@ describe('interactionUtils', () => {
         eventId: 'e2',
         noteId: 'n2',
         staffIndex: 0,
+        anchor: null,
+        selectedNotes: [],
       });
     });
 
