@@ -552,6 +552,13 @@ This unified model allows natural rectangular selection and predictable expand/c
 
 See [verticalStack.ts](../src/utils/verticalStack.ts) for the `calculateVerticalMetric()` formula and [KEYBOARD_NAVIGATION.md](./KEYBOARD_NAVIGATION.md#vertical-selection-cmd--shift--updown) for the full algorithm.
 
+See [verticalStack.ts](../src/utils/verticalStack.ts) for the `calculateVerticalMetric()` formula and [KEYBOARD_NAVIGATION.md](./KEYBOARD_NAVIGATION.md#vertical-selection-cmd--shift--updown) for the full algorithm.
+
+### Observability Patterns
+The system separates **Transactional Observability** (success) from **Failure Observability** (logging).
+- **Batch Events**: Emitted by `ScoreEngine` to signal complete units of work (transactions), decoupling external listeners from internal micro-mutations.
+- **Fail-Soft Validation**: API methods return `this` and log warnings instead of crashing, ensuring stability for external scripts.
+
 </details>
 
 ---
@@ -572,6 +579,7 @@ Key architectural decisions are documented as ADRs with explicit design principl
 | [ADR-005](./adr/005-selection-dispatch-pattern.md) | Command Pattern | Selection via dispatch, single source of truth |
 | [ADR-006](./adr/006-synchronous-api-engine-access.md) | Least Astonishment (POLA) | API queries reflect immediate mutations |
 | [ADR-007](./adr/007-open-closed-clef-reference.md) | Open-Closed (OCP) | Extensible clef support via reference pattern |
+| [ADR-008](./adr/008-observability-patterns.md) | Monitorability | Separation of Transactional vs Failure signals |
 
 </details>
 

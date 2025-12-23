@@ -91,7 +91,17 @@ api.selectAll('measure')
 
 ---
 
-## 3. Batch Operations ⏳
+## 3. Observability & Batch Operations ⏳
+
+### Monitor System Health (Observability) ✅
+
+Listen to the `batch` event to track high-level modifying actions for analytics or debugging, decoupling logic from low-level state changes.
+
+```javascript
+api.on('batch', (payload) => {
+  console.log(`[${payload.timestamp}] Action: ${payload.label}`);
+});
+```
 
 ### Batch with Transaction (Single Undo Step) ✅
 
