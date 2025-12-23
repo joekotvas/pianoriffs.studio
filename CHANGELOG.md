@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
     - ADR-006: Synchronous API engine access ([#141](https://github.com/joekotvas/RiffScore/pull/141))
     - ADR-007: Open-closed clef reference pattern ([#142](https://github.com/joekotvas/RiffScore/pull/142))
     - ADR-008: Observability patterns ([#152](https://github.com/joekotvas/RiffScore/pull/152))
-- **Copilot Instructions**: Added `.github/copilot-instructions.md` ([#104](https://github.com/joekotvas/RiffScore/pull/104), [#134](https://github.com/joekotvas/RiffScore/pull/134), [#103](https://github.com/joekotvas/RiffScore/issues/103))
+- **Copilot Instructions**: Added `.github/copilot-instructions.md` and [QUALITY_CHECK.md](docs/QUALITY_CHECK.md) for LLM coding agents ([#104](https://github.com/joekotvas/RiffScore/pull/104), [#134](https://github.com/joekotvas/RiffScore/pull/134), [#103](https://github.com/joekotvas/RiffScore/issues/103))
 
 ### Testing
 - **200+ New Tests**: Comprehensive coverage for SelectionEngine, API methods, validation utilities, and batch events
