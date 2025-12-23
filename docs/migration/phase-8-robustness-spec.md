@@ -1,7 +1,7 @@
 # Phase 8: Robustness & Stability Specification
 
-> **Status**: Planning
-> **Version**: 1.0.0-alpha.4 Candidate
+> **Status**: ✅ Complete (Merged to dev 2025-12-23)
+> **Version**: 1.0.0-alpha.4
 
 ## Overview
 Phase 8 focuses on hardening the API for public release. The goal is to prevent the engine from reaching invalid states due to bad input and to provide better observability for plugins.

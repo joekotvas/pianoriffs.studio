@@ -6,7 +6,7 @@
 
 > **See also**: [Cookbook](./COOKBOOK.md) • [Configuration](./CONFIGURATION.md) • [Architecture](./ARCHITECTURE.md)
 
-**Version:** 1.0.0-alpha.3  
+**Version:** 1.0.0-alpha.4  
 **Access:**
 -   **React**: `const ref = useRef<MusicEditorAPI>(null)`
 -   **Global**: `window.riffScore.get('my-score-id')` or `window.riffScore.active`

@@ -1,7 +1,7 @@
 # API Migration Narrative & Progress
 
-> **Last Updated:** 2025-12-22
-> **Status:** Phase 7 mostly complete (95% of API surface implemented)
+> **Last Updated:** 2025-12-23
+> **Status:** Phase 8 complete (v1.0.0-alpha.4 candidate)
 
 ## Overview
 
@@ -153,9 +153,10 @@ With the API surface complete, the focus shifts to hardening the implementation 
 > [!NOTE]
 > Detailed error handling (breaking changes like `APIResult` return types) is deferred to v1.1 to preserve the fluent chaining API for the initial release.
 
-- [ ] **Data Validation**: Add validation to critical methods (e.g., `setBpm` range, `addNote` pitch format).
-- [ ] **Event Emission**: Implement `batch` event type in `ScoreEngine`.
-- [ ] **Documentation**: Update [COOKBOOK.md](../COOKBOOK.md) with new 7E/D features.
+- [x] **Data Validation**: Added fail-soft validation for `addNote` (pitch), `setBpm` (range), `setDuration` (format), `setInstrument` (registry). See [ADR-008](../adr/008-observability-patterns.md).
+- [x] **Event Emission**: Implemented `on('batch')` event with `BatchEventPayload` for transaction observability.
+- [x] **Labeled Transactions**: `commitTransaction(label)` now accepts an optional label for debugging/analytics.
+- [x] **Documentation**: Updated [COOKBOOK.md](../COOKBOOK.md), [API.md](../API.md), and added [ADR-008](../adr/008-observability-patterns.md).
 
 ---
 
@@ -207,6 +208,6 @@ With the API surface complete, the focus shifts to hardening the implementation 
 
 ## Next Steps
 
-1. **Phase 8: Robustness Audit** (Validation & Events).
-2. **Documentation Scrub** (Update for 7E features).
-3. **v1.0 Release Candidate**.
+1. **v1.0 Release Candidate**: Finalize version bump and changelog.
+2. **Phase 9: Advanced Features**: Clipboard API (`copy`/`paste`), MIDI input hooks.
+3. **Community Feedback**: Gather early adopter feedback before stable release.
