@@ -1,23 +1,23 @@
 # The Machine-Addressable API: A Migration Story
 
-> **Status:** ✅ Phase 8 Complete (v1.0.0-alpha.4 Candidate)
-> **Timeframe:** December 15-23, 2025 (~8 days intensive development)
+> **Status:** Phase 8 Complete (v1.0.0-alpha.4 Candidate)
+> **Timeframe:** December 15-23, 2025 (~8 days)
 > **Scope:** 36 PRs merged, 33 issues closed, 8 ADRs documented
 
 ---
 
 ## The Vision
 
-RiffScore began as a React-first sheet music editor—powerful for interactive use, but tightly coupled to the React render cycle. As adoption grew, a clear need emerged: **external scripts, plugins, and automation tools needed to control the editor without touching React internals**.
+RiffScore began as a React-first sheet music editor. It worked well for interactive use, but external scripts and plugins couldn't control the editor without diving into React internals.
 
-The goal was ambitious: Transform RiffScore from a standalone application into a **machine-addressable platform** where any JavaScript environment could:
+The goal was straightforward: expose a JavaScript API that external code could call:
 
 ```javascript
 const api = window.riffScore.get('my-editor');
 api.select(1).addNote('C4').addNote('E4').addNote('G4').play();
 ```
 
-This document tells the story of that transformation.
+This document chronicles what we built, what worked, and where the rough edges remain.
 
 ---
 
@@ -25,53 +25,48 @@ This document tells the story of that transformation.
 
 **December 15-19, 2025**
 
-### The Challenge
+### What We Did
 
-Before we could expose any functionality, we needed to define *what* the API should look like. Music notation is complex—50+ methods spanning navigation, selection, entry, modification, playback, and configuration. Getting the interface wrong early would haunt us forever.
+We started by defining the complete API interface before writing implementation code.
 
-### The Approach
+- **[PR #94](https://github.com/joekotvas/RiffScore/pull/94)** introduced `api.types.ts` with ~50 method signatures ([Issue #86](https://github.com/joekotvas/RiffScore/issues/86)).
+- **[PR #95](https://github.com/joekotvas/RiffScore/pull/95)** built the Registry pattern and `useScoreAPI` hook ([Issue #87](https://github.com/joekotvas/RiffScore/issues/87)).
 
-We started with pure abstraction: define the types first, implement later.
+### Where It's Rough
 
-- **[PR #94](https://github.com/joekotvas/RiffScore/pull/94)** introduced `api.types.ts` with the complete `MusicEditorAPI` interface—50 method signatures covering every planned capability ([Issue #86](https://github.com/joekotvas/RiffScore/issues/86)).
+The upfront type definitions looked comprehensive, but many assumptions were wrong. As we implemented methods, we discovered:
+- Some method signatures needed to change (e.g., `select()` gained a fourth parameter)
+- The original grouping didn't match how the code naturally organized
+- **19 methods remain stubs** (`copy`, `cut`, `paste`, and several `setStyle*` methods)—they compile but do nothing
 
-- **[PR #95](https://github.com/joekotvas/RiffScore/pull/95)** built the "glue layer": `useScoreAPI` hook and the Registry pattern ([Issue #87](https://github.com/joekotvas/RiffScore/issues/87)). Now any script could call `window.riffScore.get('my-id')` and receive a typed API handle.
-
-### The Result
-
-A fully typed, chainable API skeleton. Methods returned `this` for fluent chaining, but most were stubs. The foundation was solid; now we needed to fill it in.
+The Registry pattern works, but there's no cleanup when components unmount unexpectedly for errors. Orphaned registrations could accumulate.
 
 ---
 
-## Phase 2: The Selection Engine Revolution
+## Phase 2: The Selection Engine
 
 **December 19-21, 2025**
 
-### The Challenge
+### What We Did
 
-Selection in a music editor is deceptively complex. Users can:
-- Click a single note
-- Shift+click to extend a range
-- Cmd+click to toggle multi-selection
-- Drag to lasso-select
-- Press Cmd+A repeatedly to expand scope (note → chord → measure → staff → score)
-- Press Cmd+Shift+Up/Down to extend vertically across staves
+Selection logic was scattered across UI components. We centralized it into `SelectionEngine`—a synchronous state machine with command dispatch.
 
-All of this was scattered across UI components, tightly coupled to React state. Exposing it through an API meant **centralizing selection logic into a testable, synchronous engine**.
+- **[PR #97](https://github.com/joekotvas/RiffScore/pull/97)**: Core engine with `SelectEventCommand`, `NavigateCommand` ([Issue #89](https://github.com/joekotvas/RiffScore/issues/89))
+- **[PR #98](https://github.com/joekotvas/RiffScore/pull/98)**: Six additional commands (lasso, range, toggle, etc.)
+- **[PR #105](https://github.com/joekotvas/RiffScore/pull/105)**: `SelectAllCommand` with progressive expansion, Shift+Arrow gap fix ([Issue #100](https://github.com/joekotvas/RiffScore/issues/100))
+- **[PR #111](https://github.com/joekotvas/RiffScore/pull/111)**: Slice-based vertical selection algorithm ([ADR-001](../adr/001-vertical-selection.md))
 
-### The Approach
+### Where It's Rough
 
-We introduced `SelectionEngine`—a Redux-like state machine that processes selection commands:
+The `SelectionEngine` works, but its design has limitations:
 
-- **[PR #97](https://github.com/joekotvas/RiffScore/pull/97)**: Core engine with `SelectEventCommand` and `NavigateCommand` ([Issue #89](https://github.com/joekotvas/RiffScore/issues/89))
-- **[PR #98](https://github.com/joekotvas/RiffScore/pull/98)**: Six additional commands for every selection pattern
-- **[PR #105](https://github.com/joekotvas/RiffScore/pull/105)**: `SelectAllCommand` with progressive expansion and the critical **Shift+Arrow gap resilience** bug fix ([Issue #100](https://github.com/joekotvas/RiffScore/issues/100))
+1. **No undo for selection**: Unlike `ScoreEngine`, selection changes aren't tracked in history. This is intentional (selection is ephemeral), but it means Cmd+Z won't restore your previous selection.
 
-The hardest problem was **vertical selection**. When you press Cmd+Shift+Down on a chord, which notes should be selected? We developed a "slice-based" algorithm that treats the score as a 2D grid (time × pitch), documented in **[ADR-001](../adr/001-vertical-selection.md)** ([PR #111](https://github.com/joekotvas/RiffScore/pull/111)).
+2. **Vertical selection edge cases**: The slice-based algorithm handles most scenarios, but [Issue #124](https://github.com/joekotvas/RiffScore/issues/124) documents cases where extending horizontally after a vertical extension behaves unexpectedly.
 
-### The Result
+3. **The engine still depends on callbacks**: Despite being a "pure" state machine, `SelectionEngine` takes a `scoreGetter` callback that couples it to external state. This was pragmatic but isn't as clean as we'd like.
 
-41 new tests. A unified command-dispatch architecture. Selection logic that could be tested in isolation and called from scripts.
+4. **41 tests, but gaps remain**: Selection interactions with playback, MIDI input, and undo aren't well-tested.
 
 ---
 
@@ -79,26 +74,20 @@ The hardest problem was **vertical selection**. When you press Cmd+Shift+Down on
 
 **December 21, 2025**
 
-### The Challenge
+### What We Did
 
-External scripts need to know when things change. React's `useEffect` works inside components, but what about a plugin running in a `<script>` tag? 
+- **[PR #114](https://github.com/joekotvas/RiffScore/pull/114)**: Event subscriptions with `api.on('score', callback)` ([Issue #90](https://github.com/joekotvas/RiffScore/issues/90))
+- **[PR #115](https://github.com/joekotvas/RiffScore/pull/115)**: Transaction batching with `beginTransaction`/`commitTransaction` ([Issue #91](https://github.com/joekotvas/RiffScore/issues/91))
 
-Additionally, when a script adds 16 notes in a loop, that shouldn't create 16 undo steps. We needed **atomic transactions**.
+### Where It's Rough
 
-### The Approach
+1. **Callbacks are async**: Subscription callbacks fire via `useEffect`, not synchronously. This is documented behavior, but it surprised us during development and will likely surprise users. The callback might fire after subsequent code has already run.
 
-- **[PR #114](https://github.com/joekotvas/RiffScore/pull/114)**: Event subscriptions with `api.on('score', callback)` ([Issue #90](https://github.com/joekotvas/RiffScore/issues/90), [ADR-002](../adr/002-event-subscriptions.md))
-- **[PR #115](https://github.com/joekotvas/RiffScore/pull/115)**: Transaction batching with `beginTransaction`/`commitTransaction` ([Issue #91](https://github.com/joekotvas/RiffScore/issues/91), [ADR-003](../adr/003-transaction-batching.md))
+2. **No `playback` event yet**: We defined the type but never wired it. Scripts can't be notified when playback starts/stops.
 
-### The Result
+3. **Transaction nesting**: If you call `beginTransaction()` twice without committing, behavior is undefined. We should either support nesting or throw an error—currently we do neither.
 
-Scripts could now react to state changes and batch operations atomically:
-
-```javascript
-api.beginTransaction();
-for (let i = 0; i < 16; i++) api.addNote(`C${i % 3 + 4}`, 'sixteenth');
-api.commitTransaction('Scale Run'); // Single undo step
-```
+4. **Memory leaks possible**: If you call `on()` but lose the unsubscribe function, listeners accumulate. There's no automatic cleanup or limit.
 
 ---
 
@@ -106,22 +95,23 @@ api.commitTransaction('Scale Run'); // Single undo step
 
 **December 21-22, 2025**
 
-### The Challenge
+### What We Did
 
-`useScoreAPI` had grown to 800+ lines. `interaction.ts` was 600+ lines of tangled navigation logic. The codebase worked, but it was becoming unmaintainable.
+`useScoreAPI` had grown to 800+ lines. We split it into domain-specific factories:
 
-### The Approach
+- **[PR #118](https://github.com/joekotvas/RiffScore/pull/118)**: Modularized `interaction.ts` ([Issue #79](https://github.com/joekotvas/RiffScore/issues/79))
+- **[PR #120](https://github.com/joekotvas/RiffScore/pull/120)**: Factory pattern for API ([ADR-004](../adr/004-api-factory-pattern.md))
+- **[PR #128](https://github.com/joekotvas/RiffScore/pull/128)-[#130](https://github.com/joekotvas/RiffScore/pull/130)**: Entry utilities extraction ([Issues #125](https://github.com/joekotvas/RiffScore/issues/125)-[#127](https://github.com/joekotvas/RiffScore/issues/127))
 
-A multi-stage refactoring effort:
+### Where It's Rough
 
-- **[PR #118](https://github.com/joekotvas/RiffScore/pull/118)**: Extracted `interaction.ts` into navigation modules ([Issue #79](https://github.com/joekotvas/RiffScore/issues/79))
-- **[PR #120](https://github.com/joekotvas/RiffScore/pull/120)**: Split `useScoreAPI` into domain-specific factories (`entry.ts`, `navigation.ts`, `selection.ts`, etc.) ([ADR-004](../adr/004-api-factory-pattern.md))
-- **[PR #128](https://github.com/joekotvas/RiffScore/pull/128)-[#130](https://github.com/joekotvas/RiffScore/pull/130)**: Extracted entry utilities and updated all consumers ([Issues #125](https://github.com/joekotvas/RiffScore/issues/125), [#126](https://github.com/joekotvas/RiffScore/issues/126), [#127](https://github.com/joekotvas/RiffScore/issues/127))
-- **[PR #136](https://github.com/joekotvas/RiffScore/pull/136)**: Consolidated selection handlers ([Issue #135](https://github.com/joekotvas/RiffScore/issues/135))
+1. **60 TypeScript errors in test files**: The refactors changed interfaces, but we didn't update all test mocks. The tests still run (Jest ignores type errors), but `tsc --noEmit` fails. This is technical debt we're carrying.
 
-### The Result
+2. **Unused imports**: `parseDuration` is imported but unused in `entry.ts`. Small, but indicative of rushed changes.
 
-Clean, single-responsibility modules. Each API domain in its own file. Navigation logic tested independently. The codebase was ready to scale.
+3. **Factory pattern adds indirection**: The API is now split across 10 files. This is good for maintainability but harder to trace when debugging.
+
+4. **`interaction.ts` still complex**: The facade pattern helped, but the core file is still ~400 lines of navigation logic that could be further simplified.
 
 ---
 
@@ -129,21 +119,18 @@ Clean, single-responsibility modules. Each API domain in its own file. Navigatio
 
 **December 22, 2025**
 
-### The Challenge
+### What We Did
 
-Two critical issues surfaced:
+- **[PR #141](https://github.com/joekotvas/RiffScore/pull/141)**: Synchronous `getScore()` via direct engine access ([Issue #140](https://github.com/joekotvas/RiffScore/issues/140), [ADR-006](../adr/006-synchronous-api-engine-access.md))
+- **[PR #142](https://github.com/joekotvas/RiffScore/pull/142)**: Alto and tenor clef support ([ADR-007](../adr/007-open-closed-clef-reference.md))
 
-1. **Stale State Bug**: `api.getScore()` sometimes returned outdated data because it read from React state, which updates asynchronously ([Issue #140](https://github.com/joekotvas/RiffScore/issues/140)).
-2. **Missing Clefs**: Alto and tenor clefs (essential for viola, cello, trombone) weren't supported.
+### Where It's Rough
 
-### The Approach
+1. **`getScore()` is synchronous, but mutations trigger async renders**: This works for reading, but the mental model is confusing. You mutate synchronously, the engine updates synchronously, but React re-renders asynchronously. Users need to understand this.
 
-- **[PR #141](https://github.com/joekotvas/RiffScore/pull/141)**: Made `getScore()` read directly from `ScoreEngine.getState()`, bypassing React's render cycle ([ADR-006](../adr/006-synchronous-api-engine-access.md))
-- **[PR #142](https://github.com/joekotvas/RiffScore/pull/142)**: Full C-clef support with an extensible `CLEF_REFERENCE` pattern ([ADR-007](../adr/007-open-closed-clef-reference.md))
+2. **Clef support is incomplete**: We added alto/tenor, but percussion clef, tab clef, and octave-transposing clefs (8va treble) aren't supported. The `CLEF_REFERENCE` pattern makes adding them easy, but they're not there yet.
 
-### The Result
-
-Queries became synchronous and reliable. Adding new clefs now requires a single line of configuration. 28 new tests covered edge cases.
+3. **No import support**: We can export to MusicXML, but we can't import it. Users can only load scores via JSON.
 
 ---
 
@@ -151,25 +138,27 @@ Queries became synchronous and reliable. Adding new clefs now requires a single 
 
 **December 22, 2025**
 
-### The Challenge
+### What We Did
 
-We had the infrastructure, but most API methods were still stubs. Time to wire everything up.
+A systematic sweep to implement remaining stubs:
 
-### The Approach
-
-A systematic sweep through every stub:
-
-| Phase | PR | Methods Wired |
+| Phase | PR | What We Wired |
 |:------|:---|:--------------|
-| 7A | [#144](https://github.com/joekotvas/RiffScore/pull/144) | `loadScore`, `export`, `deleteMeasure`, `setClef`, `setKeySignature`, `setTimeSignature` |
-| 7B | [#145](https://github.com/joekotvas/RiffScore/pull/145) | `setBpm`, `setTheme`, `setScale`, `setInputMode`, `setAccidental`, `reset` |
-| 7C | [#147](https://github.com/joekotvas/RiffScore/pull/147) | `selectAtQuant`, `addToSelection`, `selectRangeTo`, `selectFullEvents` |
+| 7A | [#144](https://github.com/joekotvas/RiffScore/pull/144) | `loadScore`, `export`, `deleteMeasure`, `setClef`, etc. |
+| 7B | [#145](https://github.com/joekotvas/RiffScore/pull/145) | `setBpm`, `setTheme`, `setScale`, `setInputMode`, etc. |
+| 7C | [#147](https://github.com/joekotvas/RiffScore/pull/147) | `selectAtQuant`, `addToSelection`, `selectRangeTo` |
 | 7D | [#149](https://github.com/joekotvas/RiffScore/pull/149) | `play`, `pause`, `stop`, `rewind`, `setInstrument` |
 | 7E | [#151](https://github.com/joekotvas/RiffScore/pull/151) | `setDuration`, `transpose`, `addMeasure(atIndex)` |
 
-### The Result
+### Where It's Rough
 
-95%+ of the API surface implemented. Only clipboard operations (`copy`/`cut`/`paste`) remain deferred to v1.1.
+1. **19 methods still stubbed**: Particularly the clipboard operations (`copy`/`cut`/`paste`) and styling methods (`hideStems`, `setBeamGrouping`). These compile but silently do nothing.
+
+2. **Playback is fire-and-forget**: `play()` returns `this` immediately, but playback is async. There's no way to `await` it or get a promise. If the sampler isn't loaded, playback silently fails.
+
+3. **`export('musicxml')` throws on tuplets**: The MusicXML exporter has known gaps with complex rhythms.
+
+4. **Limited error feedback**: Methods silently succeed or warn to console. There's no structured way to know if an operation actually did anything.
 
 ---
 
@@ -177,44 +166,37 @@ A systematic sweep through every stub:
 
 **December 22-23, 2025**
 
-### The Challenge
+### What We Did
 
-The API worked, but it wasn't safe. Invalid inputs could cause silent failures or cryptic errors. External tools had no visibility into what was happening inside transactions.
+- **[PR #152](https://github.com/joekotvas/RiffScore/pull/152)** & **[#153](https://github.com/joekotvas/RiffScore/pull/153)**: Input validation, batch events, labeled transactions ([ADR-008](../adr/008-observability-patterns.md))
 
-### The Approach
+### Where It's Rough
 
-We implemented a "fail-soft" philosophy ([ADR-008](../adr/008-observability-patterns.md)):
+1. **Validation is partial**: We validate `addNote`, `setBpm`, `setDuration`, and `setInstrument`. But `setKeySignature`, `setTimeSignature`, and others accept invalid input without warning.
 
-- **[PR #152](https://github.com/joekotvas/RiffScore/pull/152)** & **[#153](https://github.com/joekotvas/RiffScore/pull/153)**: 
-  - Input validation for `addNote`, `setBpm`, `setDuration`, `setInstrument`
-  - Batch events (`on('batch')`) with labeled transactions
-  - Structured warnings instead of exceptions
+2. **Batch events require discipline**: You only get `batch` events if you use `beginTransaction`/`commitTransaction`. Individual method calls don't emit anything—the user has to opt in.
 
-### The Result
+3. **`affectedMeasures` isn't populated**: The `BatchEventPayload` has an `affectedMeasures` field, but it's always an empty array. We defined the interface but didn't implement the tracking.
 
-```javascript
-api.setBpm(500); // Logs warning, clamps to 300, continues
-api.on('batch', (e) => console.log(`Completed: ${e.label}`));
-```
-
-The API is now production-ready: stable, observable, and developer-friendly.
+4. **Console warnings aren't enough**: Developers who ignore their console will wonder why scripts silently fail. A proper logging/callback system would be better.
 
 ---
 
 ## By The Numbers
 
-| Metric | Value |
-|:-------|------:|
-| PRs Merged | 36 |
-| Issues Closed | 33 |
-| ADRs Written | 8 |
-| New Tests | 200+ |
-| API Methods Implemented | ~50 |
-| Days of Development | 8 |
+| Metric | Value | Notes |
+|:-------|------:|:------|
+| PRs Merged | 36 | |
+| Issues Closed | 33 | 2 remain open (edge cases) |
+| ADRs Written | 8 | |
+| Methods Implemented | ~30 | Of ~50 defined |
+| Methods Stubbed | 19 | Clipboard, styling, etc. |
+| TypeScript Errors | 60 | In test files only |
+| Test Suites | 43+ | Coverage varies widely |
 
 ---
 
-## Architecture Summary
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -236,7 +218,7 @@ The API is now production-ready: stable, observable, and developer-friendly.
 ┌─────────────────────────┐       ┌─────────────────────────┐
 │    ScoreEngine          │       │   SelectionEngine       │
 │   dispatch(Command)     │       │   dispatch(Command)     │
-│   transactions          │       │   anchor tracking       │
+│   transactions          │       │   (no history)          │
 │   undo/redo history     │       │   multi-note selection  │
 └─────────────────────────┘       └─────────────────────────┘
 ```
@@ -245,17 +227,19 @@ The API is now production-ready: stable, observable, and developer-friendly.
 
 ## What's Next
 
-### For v1.0 Stable
-- [ ] Final documentation review
-- [ ] Version bump to `1.0.0`
-- [ ] npm publish
+### Before v1.0 Stable
+- [ ] Fix the 60 TypeScript errors in test files
+- [ ] Implement `playback` event subscription
+- [ ] Add validation to `setKeySignature`, `setTimeSignature`
+- [ ] Document which methods are stubs
 
-### For v1.1 (Phase 9)
-- [ ] **Clipboard API**: `copy()`, `cut()`, `paste()` with serialization format
-- [ ] **MIDI Input Hook**: `onMidi` for real-time note entry
-- [ ] **Keyboard Shortcut API**: Programmatic triggering
+### For v1.1
+- [ ] **Clipboard API**: `copy()`, `cut()`, `paste()`
+- [ ] **MusicXML Import**: Currently export-only
+- [ ] **Promise-based playback**: `await api.play()`
+- [ ] **Transaction nesting or error handling**
 
-### Known Deferred Issues
+### Known Issues (Deferred)
 - [#124](https://github.com/joekotvas/RiffScore/issues/124): Horizontal selection extension edge case
 - [#131](https://github.com/joekotvas/RiffScore/issues/131): Tuplet bracket visual alignment
 
@@ -263,18 +247,22 @@ The API is now production-ready: stable, observable, and developer-friendly.
 
 ## Lessons Learned
 
-1. **Types First, Implementation Later**: Defining `MusicEditorAPI` upfront forced us to think holistically before coding.
+1. **Types first helped, but types lie**: The upfront interface looked complete, but implementation revealed gaps. The stubs let us ship, but they're not honest.
 
-2. **Commands Are Worth It**: The overhead of creating command classes paid dividends in testability and undo/redo.
+2. **Synchronous engines, async React**: The engine pattern works, but the React integration creates timing confusion that we've documented but not solved.
 
-3. **Synchronous Queries, Async Events**: Users expect `getScore()` to be instant; event callbacks can wait for React.
+3. **Refactoring under pressure creates debt**: The Phase 5 refactor improved structure but left test files broken. We prioritized shipping over correctness.
 
-4. **Fail Soft, Log Loud**: Chained APIs can't throw exceptions, but they can warn developers.
+4. **Fail-soft is a tradeoff**: Silent failures with console warnings are stable, but they're also easy to ignore. A more opinionated error system might serve users better.
 
-5. **ADRs Preserve Context**: Eight design documents now explain *why* we made each architectural choice.
+5. **ADRs are worth it**: Writing down *why* we made decisions has already saved time when revisiting code.
 
 ---
 
-> *"The best APIs are invisible. You don't notice them—you just get things done."*
+## Conclusion
 
-The Machine-Addressable API is complete. RiffScore is now a platform.
+The machine-addressable API exists and is usable. Scripts can navigate, add notes, modify scores, and trigger playback. The architecture is sound, and the patterns are documented.
+
+But calling this "complete" would be misleading. A significant portion of the defined interface is unimplemented. Test coverage has gaps. TypeScript errors linger. The API works for common cases but will surprise users at the edges.
+
+This is an alpha. It's ready for experimentation, not production.
