@@ -75,7 +75,7 @@ The hardest problem was **vertical selection**. When you press Cmd+Shift+Down on
 
 41 new tests. A unified command-dispatch architecture. Selection logic that could be tested in isolation and called from scripts.
 
-> **Room for growth**: The slice-based vertical selection handles most cases well, but edge cases remain ([#124](https://github.com/joekotvas/RiffScore/issues/124)). Selection also lacks undo—an intentional design choice, but one users occasionally find surprising.
+> **Room for growth**: The slice-based vertical selection handles most cases well, but edge cases remain ([#124](https://github.com/joekotvas/RiffScore/issues/124), [#109](https://github.com/joekotvas/RiffScore/issues/109)).
 
 ---
 
@@ -104,7 +104,7 @@ for (let i = 0; i < 16; i++) api.addNote(`C${i % 3 + 4}`, 'sixteenth');
 api.commitTransaction('Scale Run'); // Single undo step
 ```
 
-> **Room for growth**: Event callbacks fire asynchronously via React's `useEffect`. This is documented, but can surprise developers expecting immediate notification. Transaction nesting also isn't supported yet.
+> **Room for growth**: `batch` events fire synchronously, but `score` and `selection` events still fire via React's `useEffect` (by design). Transaction nesting also isn't supported yet.
 
 ---
 
