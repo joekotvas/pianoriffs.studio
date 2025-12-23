@@ -52,15 +52,25 @@ That's it! RiffScore renders a fully interactive grand staff editor with sensibl
 
 ## Features
 
+### Core Editing
 *   **Self-Hostable**: No external dependencies or platform lock-in.
 *   **Embeddable**: Drop it into any React application.
 *   **Configurable**: Full control over UI, interactions, and score content.
-*   **Imperative API**: Programmatically control the score via `window.riffScore` ([API Reference](./docs/API.md))
 *   **SMuFL Compliance**: Beautiful engraving using the [Bravura](https://github.com/steinbergmedia/bravura) font.
-*   **Music Engine**: Powered by [Tonal.js](https://github.com/tonaljs/tonal) for music theory and [Tone.js](https://tonejs.github.io/) for playback.
 *   **Export Options**: JSON, MusicXML, and ABC notation export.
 *   **Theming**: Built-in dark, light, cool, and warm themes.
-*   **MIDI Input**: Connect a MIDI keyboard for note entry.
+
+### Machine-Addressable API
+*   **Imperative Control**: Programmatically control the score via `window.riffScore` ([API Reference](./docs/API.md))
+*   **Fluent Chaining**: `api.select(1).addNote('C4').play()` — chainable methods for concise scripting.
+*   **Event Subscriptions**: React to state changes with `api.on('score', callback)` and `api.on('batch', callback)`.
+*   **Transaction Batching**: Atomic operations with `beginTransaction`/`commitTransaction` for single undo steps.
+*   **Playback API**: `play()`, `pause()`, `stop()`, `rewind()`, `setInstrument()` for programmatic audio control.
+
+### Engines
+*   **Music Theory**: Powered by [Tonal.js](https://github.com/tonaljs/tonal) for scales, chords, and transposition.
+*   **Audio Playback**: [Tone.js](https://tonejs.github.io/) sampler with multiple instrument support.
+*   **MIDI Input**: Connect a MIDI keyboard for note entry (experimental).
 
 ---
 
@@ -132,19 +142,30 @@ See the [Interaction Guide](./docs/INTERACTION.md) for the complete keyboard ref
 
 ## Imperative API
 
-Control the editor programmatically:
+Control the editor programmatically from external scripts:
 
 ```javascript
-const api = window.riffScore.active;
+const api = window.riffScore.get('my-editor');
 
+// Build a chord
 api.select(1)              // Measure 1
    .addNote('C4', 'quarter')
    .addNote('E4')
    .addNote('G4')
    .addTone('C5');          // Stack into chord
+
+// Batch operations (single undo step)
+api.beginTransaction();
+for (let i = 0; i < 16; i++) {
+  api.addNote(`C${(i % 3) + 4}`, 'sixteenth');
+}
+api.commitTransaction('Scale run');
+
+// Subscribe to changes
+api.on('batch', (e) => console.log(`Committed: ${e.label}`));
 ```
 
-See the [API Reference](./docs/API.md) for all available methods.
+See the [API Reference](./docs/API.md) and [Cookbook](./docs/COOKBOOK.md) for all available methods.
 
 ---
 
@@ -180,4 +201,4 @@ npm run demo:dev
 *   **Chord Symbols**: Input and playback for lead sheets
 *   **Import**: ABC and MusicXML import
 *   **Clipboard API**: Copy, cut, and paste operations
-*   **Playback API**: Programmatic play/pause control
+*   **Move Operations**: Drag-and-drop and keyboard-based event moving
