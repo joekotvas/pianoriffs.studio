@@ -50,7 +50,7 @@ See [Configuration](./docs/CONFIGURATION.md) for all options.
 }} />
 ```
 
-See [Configuration — Interaction](./docs/CONFIGURATION.md#interaction) for more display modes.
+See [Interaction Configuration](./docs/CONFIGURATION.md#interaction-configuration) for more display modes.
 
 ### Programmatic Control
 
