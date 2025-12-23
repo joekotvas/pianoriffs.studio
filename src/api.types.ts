@@ -74,7 +74,7 @@ export interface MusicEditorAPI {
   select(measureNum: number, staffIndex?: number, eventIndex?: number, noteIndex?: number): this;
   /**
    * Select by rhythmic position within a measure.
-   * @status stub
+   * @status implemented
    */
   selectAtQuant(measureNum: number, quant: number, staffIndex?: number): this;
   /**
@@ -158,54 +158,54 @@ export interface MusicEditorAPI {
   addTone(pitch: string): this;
   /**
    * Convert selected notes to a tuplet.
-   * @status stub
+   * @status implemented
    */
   makeTuplet(numNotes: number, inSpaceOf: number): this;
   /**
    * Remove tuplet grouping from selected notes.
-   * @status stub
+   * @status implemented
    */
   unmakeTuplet(): this;
   /**
    * Toggle tie on the selected note.
-   * @status stub
+   * @status implemented
    */
   toggleTie(): this;
   /**
    * Set tie state explicitly.
-   * @status stub
+   * @status implemented
    */
   setTie(tied: boolean): this;
   /**
    * Set input mode for next entry.
-   * @status stub
+   * @status implemented
    */
   setInputMode(mode: 'note' | 'rest'): this;
 
   // --- Modification (Update) ---
   /**
    * Update pitch of selected note(s).
-   * @status stub
+   * @status implemented
    */
   setPitch(pitch: string): this;
   /**
    * Update duration of selected event(s).
-   * @status stub
+   * @status implemented
    */
   setDuration(duration: string, dotted?: boolean): this;
   /**
    * Set accidental on selected note(s).
-   * @status stub
+   * @status implemented
    */
   setAccidental(type: 'sharp' | 'flat' | 'natural' | null): this;
   /**
    * Cycle through accidental states.
-   * @status stub
+   * @status implemented
    */
   toggleAccidental(): this;
   /**
    * Transpose selected notes by semitones (chromatic).
-   * @status stub
+   * @status implemented
    */
   transpose(semitones: number): this;
   /**
@@ -222,7 +222,7 @@ export interface MusicEditorAPI {
   // --- Structure ---
   /**
    * Add a measure at the specified index (default: end).
-   * @status stub
+   * @status implemented
    */
   addMeasure(atIndex?: number): this;
   /**
@@ -264,17 +264,17 @@ export interface MusicEditorAPI {
   setScoreTitle(title: string): this;
   /**
    * Set the tempo in BPM.
-   * @status stub
+   * @status implemented
    */
   setBpm(bpm: number): this;
   /**
    * Change the visual theme.
-   * @status stub
+   * @status implemented
    */
   setTheme(theme: string): this;
   /**
    * Set the zoom scale.
-   * @status stub
+   * @status implemented
    */
   setScale(scale: number): this;
   /**
@@ -291,7 +291,7 @@ export interface MusicEditorAPI {
   loadScore(score: Score): this;
   /**
    * Reset to a blank score.
-   * @status stub
+   * @status implemented
    */
   reset(template?: 'grand' | 'treble' | 'bass', measures?: number): this;
   /**

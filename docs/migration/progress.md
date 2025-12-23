@@ -37,9 +37,10 @@ We started by defining the complete API interface before writing implementation 
 The upfront type definitions looked comprehensive, but many assumptions were wrong. As we implemented methods, we discovered:
 - Some method signatures needed to change (e.g., `select()` gained a fourth parameter)
 - The original grouping didn't match how the code naturally organized
-- **19 methods remain stubs** (`copy`, `cut`, `paste`, and several `setStyle*` methods)—they compile but do nothing
+- **3 methods remain true stubs** (`copy`, `cut`, `paste`)—they compile but do nothing
+- **16 `@status` annotations were stale**—methods were implemented but never updated (fixed in this audit)
 
-The Registry pattern works, but there's no cleanup when components unmount unexpectedly for errors. Orphaned registrations could accumulate.
+The Registry pattern works, but there's no cleanup when components unmount unexpectedly. Orphaned registrations could accumulate.
 
 ---
 
@@ -152,11 +153,11 @@ A systematic sweep to implement remaining stubs:
 
 ### Where It's Rough
 
-1. **19 methods still stubbed**: Particularly the clipboard operations (`copy`/`cut`/`paste`) and styling methods (`hideStems`, `setBeamGrouping`). These compile but silently do nothing.
+1. **3 methods still stubbed**: The clipboard operations (`copy`/`cut`/`paste`) would require a serialization format for score fragments—deferred to v1.1.
 
 2. **Playback is fire-and-forget**: `play()` returns `this` immediately, but playback is async. There's no way to `await` it or get a promise. If the sampler isn't loaded, playback silently fails.
 
-3. **`export('musicxml')` throws on tuplets**: The MusicXML exporter has known gaps with complex rhythms.
+3. **`export('musicxml')` has gaps**: The MusicXML exporter doesn't handle all tuplet configurations.
 
 4. **Limited error feedback**: Methods silently succeed or warn to console. There's no structured way to know if an operation actually did anything.
 
@@ -189,8 +190,8 @@ A systematic sweep to implement remaining stubs:
 | PRs Merged | 36 | |
 | Issues Closed | 33 | 2 remain open (edge cases) |
 | ADRs Written | 8 | |
-| Methods Implemented | ~30 | Of ~50 defined |
-| Methods Stubbed | 19 | Clipboard, styling, etc. |
+| Methods Implemented | ~47 | Of ~50 defined |
+| Methods Stubbed | 3 | Clipboard only (`copy`, `cut`, `paste`) |
 | TypeScript Errors | 60 | In test files only |
 | Test Suites | 43+ | Coverage varies widely |
 
@@ -247,7 +248,7 @@ A systematic sweep to implement remaining stubs:
 
 ## Lessons Learned
 
-1. **Types first helped, but types lie**: The upfront interface looked complete, but implementation revealed gaps. The stubs let us ship, but they're not honest.
+1. **Types first helped, but annotations got stale**: The upfront interface looked complete, but as we implemented, we forgot to update `@status` tags. This audit revealed 16 methods marked as stubs that were actually working.
 
 2. **Synchronous engines, async React**: The engine pattern works, but the React integration creates timing confusion that we've documented but not solved.
 
@@ -263,6 +264,6 @@ A systematic sweep to implement remaining stubs:
 
 The machine-addressable API exists and is usable. Scripts can navigate, add notes, modify scores, and trigger playback. The architecture is sound, and the patterns are documented.
 
-But calling this "complete" would be misleading. A significant portion of the defined interface is unimplemented. Test coverage has gaps. TypeScript errors linger. The API works for common cases but will surprise users at the edges.
+~47 of ~50 defined methods are implemented. Only clipboard operations remain stubbed. However, test coverage has gaps, TypeScript errors linger in test files, and the API will surprise users at the edges.
 
 This is an alpha. It's ready for experimentation, not production.
