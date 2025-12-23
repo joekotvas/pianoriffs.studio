@@ -1,3 +1,13 @@
+/**
+ * Interaction Utils Tests
+ *
+ * Tests for navigation and transposition calculation utilities.
+ * Covers: selection nav, ghost cursor, transposition preview.
+ *
+ * @see calculateNextSelection
+ * @see calculateTranspositionWithPreview
+ */
+
 import { calculateNextSelection, calculateTranspositionWithPreview } from '@/utils/interaction';
 
 // Mock utils dependencies if needed, or rely on them being pure functions
@@ -38,6 +48,8 @@ describe('interactionUtils', () => {
         eventId: 'e2',
         noteId: 'n2',
         staffIndex: 0,
+        anchor: null,
+        selectedNotes: [],
       });
     });
 
@@ -90,7 +102,18 @@ describe('interactionUtils', () => {
 
     test('should navigate left from ghost note to select last event in same measure', () => {
       // Ghost cursor in measure 1 at quant 16 (APPEND position after the quarter note e3)
-      const previewNote = { measureIndex: 1, staffIndex: 0, quant: 16, visualQuant: 16, pitch: 'E4', duration: 'quarter', dotted: false, mode: 'APPEND' as const, index: 1, isRest: false };
+      const previewNote = {
+        measureIndex: 1,
+        staffIndex: 0,
+        quant: 16,
+        visualQuant: 16,
+        pitch: 'E4',
+        duration: 'quarter',
+        dotted: false,
+        mode: 'APPEND' as const,
+        index: 1,
+        isRest: false,
+      };
       const selection = { staffIndex: 0, measureIndex: null, eventId: null, noteId: null };
       const result = calculateNextSelection(
         mockMeasures,
@@ -126,7 +149,18 @@ describe('interactionUtils', () => {
     });
 
     test('should transpose preview note', () => {
-      const previewNote = { measureIndex: 0, staffIndex: 0, quant: 0, visualQuant: 0, pitch: 'C4', duration: 'quarter', dotted: false, mode: 'APPEND' as const, index: 0, isRest: false };
+      const previewNote = {
+        measureIndex: 0,
+        staffIndex: 0,
+        quant: 0,
+        visualQuant: 0,
+        pitch: 'C4',
+        duration: 'quarter',
+        dotted: false,
+        mode: 'APPEND' as const,
+        index: 0,
+        isRest: false,
+      };
       const selection = { staffIndex: 0, measureIndex: null, eventId: null, noteId: null };
       const result = calculateTranspositionWithPreview(
         mockMeasures,

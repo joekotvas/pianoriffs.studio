@@ -1,3 +1,13 @@
+/**
+ * Tuplet Commands Tests
+ *
+ * Tests for ApplyTupletCommand and RemoveTupletCommand.
+ * Covers: triplets, quintuplets, undo/redo, edge cases.
+ *
+ * @see ApplyTupletCommand
+ * @see RemoveTupletCommand
+ */
+
 import { ApplyTupletCommand } from '@/commands/TupletCommands';
 import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
 import { Score, createDefaultScore } from '@/types';

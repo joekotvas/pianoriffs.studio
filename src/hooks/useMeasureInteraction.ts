@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { getPitchForOffset } from '@/engines/layout';
 import { HitZone } from '@/engines/layout/types';
 import { CLAMP_LIMITS, MOUSE_OFFSET_SNAP } from '@/constants';
+import { PreviewNote, Selection } from '@/types';
+import { NoteInput } from './note/useNoteEntry';
 
 interface UseMeasureInteractionParams {
   hitZones: HitZone[];
@@ -12,11 +14,10 @@ interface UseMeasureInteractionParams {
   mouseLimits?: { min: number; max: number };
   measureIndex: number;
   isLast: boolean;
-  activeDuration: string;
-  previewNote: any;
-  selection: { selectedNotes?: any[] };
-  onHover?: (measureIndex: number | null, hit: any, pitch: string | null) => void;
-  onAddNote?: (measureIndex: number, note: any, autoAdvance: boolean) => void;
+  previewNote: PreviewNote | null;
+  selection: Selection;
+  onHover?: (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void;
+  onAddNote?: (measureIndex: number, note: NoteInput, autoAdvance: boolean) => void;
 }
 
 interface UseMeasureInteractionReturn {
@@ -46,7 +47,6 @@ export function useMeasureInteraction({
   mouseLimits,
   measureIndex,
   isLast,
-  activeDuration,
   previewNote,
   selection,
   onHover,
@@ -102,8 +102,9 @@ export function useMeasureInteraction({
         onHover?.(measureIndex, hit, pitch);
         setCursorStyle(hit.type === 'EVENT' ? 'default' : 'crosshair');
       } else {
-        // Gap hit
-        onHover?.(measureIndex, { x, quant: 0, duration: activeDuration }, pitch);
+        // Gap hit - we pass null for hit, meaning "no valid insert position"
+        // This effectively clears the preview when hovering in dead space
+        onHover?.(measureIndex, null, pitch);
         setCursorStyle('crosshair');
       }
     },
@@ -116,7 +117,7 @@ export function useMeasureInteraction({
       topMargin,
       mouseLimits,
       measureIndex,
-      activeDuration,
+      hoveredMeasure,
       onHover,
     ]
   );

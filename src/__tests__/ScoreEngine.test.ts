@@ -1,9 +1,18 @@
+/**
+ * ScoreEngine Tests
+ *
+ * Tests for the central score state management engine.
+ * Covers: initialization, command dispatch, undo/redo.
+ *
+ * @see ScoreEngine
+ */
+
 import { ScoreEngine } from '@/engines/ScoreEngine';
 import { AddEventCommand } from '@/commands/AddEventCommand';
 import { DeleteNoteCommand } from '@/commands/DeleteNoteCommand';
 import { ChangePitchCommand } from '@/commands/ChangePitchCommand';
 import { AddMeasureCommand, DeleteMeasureCommand } from '@/commands/MeasureCommands';
-import { createDefaultScore, Note } from '@/types';
+import { Note } from '@/types';
 
 describe('ScoreEngine', () => {
   it('should initialize with default score', () => {

@@ -3,7 +3,7 @@ import { movePitchVisual } from '@/services/MusicService';
 import { CONFIG } from '@/config';
 import { PIANO_RANGE } from '@/constants';
 import { isNoteSelected } from '@/utils/selection';
-import { Selection } from '@/types';
+import { Selection, Score, ScoreEvent, Note } from '@/types';
 
 interface DragState {
   active: boolean;
@@ -18,7 +18,7 @@ interface DragState {
 }
 
 interface UseScoreInteractionProps {
-  scoreRef: React.MutableRefObject<any>;
+  scoreRef: React.MutableRefObject<Score>;
   selection: Selection;
   onUpdatePitch: (
     measureIndex: number,
@@ -95,11 +95,11 @@ export const useScoreInteraction = ({
         nId: string | number | null
       ) => {
         const m = scoreRef.current.staves[sIndex]?.measures[mIndex];
-        const e = m?.events.find((ev: any) => String(ev.id) === String(eId));
+        const e = m?.events.find((ev: ScoreEvent) => String(ev.id) === String(eId));
         if (nId) {
-          return e?.notes.find((n: any) => String(n.id) === String(nId))?.pitch;
+          return e?.notes?.find((n: Note) => String(n.id) === String(nId))?.pitch;
         }
-        return e?.notes[0]?.pitch;
+        return e?.notes?.[0]?.pitch;
       };
 
       const isNoteInSelection = isNoteSelected(selection, {
@@ -111,16 +111,16 @@ export const useScoreInteraction = ({
 
       if (isNoteInSelection && selection.selectedNotes && selection.selectedNotes.length > 0) {
         // Multi-move: capture all currently selected notes
-        selection.selectedNotes.forEach((n: any) => {
-          const p = getPitch(n.staffIndex, n.measureIndex, n.eventId, n.noteId);
+        selection.selectedNotes.forEach((n) => {
+          const p = getPitch(n.staffIndex, n.measureIndex, String(n.eventId), n.noteId);
           if (p) initialPitches.set(String(n.noteId), p);
         });
       } else if (selectAllInEvent) {
         // Selecting all notes in event - capture all of them for drag
         const measure = scoreRef.current.staves[staffIndex]?.measures[measureIndex];
-        const event = measure?.events.find((ev: any) => String(ev.id) === String(eventId));
+        const event = measure?.events.find((ev: ScoreEvent) => String(ev.id) === String(eventId));
         if (event && event.notes) {
-          event.notes.forEach((n: any) => {
+          event.notes.forEach((n: Note) => {
             if (n.pitch) initialPitches.set(String(n.id), n.pitch);
           });
         }
@@ -176,9 +176,9 @@ export const useScoreInteraction = ({
         // Otherwise, all notes share the same event as dragState
         if (selection.selectedNotes && selection.selectedNotes.length > 1) {
           // Multi-select: find note in selection for its context
-          const noteInfo = selection.selectedNotes.find((n: any) => String(n.noteId) === noteIdStr);
+          const noteInfo = selection.selectedNotes.find((n) => String(n.noteId) === noteIdStr);
           if (noteInfo && noteInfo.noteId !== null) {
-            onUpdatePitch(noteInfo.measureIndex, noteInfo.eventId, noteInfo.noteId, newP);
+            onUpdatePitch(noteInfo.measureIndex, String(noteInfo.eventId), noteInfo.noteId, newP);
           } else if (dragState.measureIndex !== null && dragState.eventId) {
             // Fallback: note is in same event as drag target
             onUpdatePitch(dragState.measureIndex, dragState.eventId, noteIdStr, newP);

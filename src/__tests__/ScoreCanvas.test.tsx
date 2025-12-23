@@ -1,5 +1,12 @@
+/**
+ * ScoreCanvas Tests
+ *
+ * Tests for ScoreCanvas component rendering and measure interaction.
+ *
+ * @see ScoreCanvas
+ */
+
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import ScoreCanvas from '@/components/Canvas/ScoreCanvas';
 import { createDefaultScore } from '@/types';
 import { ThemeProvider } from '@/context/ThemeContext';
@@ -33,21 +40,88 @@ describe('ScoreCanvas', () => {
   const mockScore = createDefaultScore();
 
   const mockContextValue: any = {
-    score: mockScore,
-    selection: { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 },
-    setSelection: jest.fn(),
-    handleNoteSelection: jest.fn(),
-    handleMeasureHover: jest.fn(),
-    addNoteToMeasure: jest.fn(),
-    activeDuration: 'quarter',
-    isDotted: false,
-    previewNote: null,
+    // Grouped API
+    state: {
+      score: mockScore,
+      selection: { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 },
+      previewNote: null,
+      editorState: 'IDLE',
+      history: [],
+      redoStack: [],
+    },
+    tools: {
+      activeDuration: 'quarter',
+      isDotted: false,
+      activeAccidental: null,
+      activeTie: false,
+      inputMode: 'NOTE',
+      setActiveDuration: jest.fn(),
+      setIsDotted: jest.fn(),
+      setInputMode: jest.fn(),
+      toggleInputMode: jest.fn(),
+    },
+    navigation: {
+      select: jest.fn(),
+      move: jest.fn(),
+      transpose: jest.fn(),
+      switchStaff: jest.fn(),
+      focus: jest.fn(),
+    },
+    entry: {
+      addNote: jest.fn(),
+      addChord: jest.fn(),
+      delete: jest.fn(),
+      handleMeasureHover: jest.fn(),
+      updatePitch: jest.fn(),
+    },
+    modifiers: {
+      duration: jest.fn(),
+      dot: jest.fn(),
+      accidental: jest.fn(),
+      tie: jest.fn(),
+      checkDurationValidity: jest.fn(() => true),
+      checkDotValidity: jest.fn(() => true),
+    },
+    measures: {
+      add: jest.fn(),
+      remove: jest.fn(),
+      setTimeSignature: jest.fn(),
+      setKeySignature: jest.fn(),
+      togglePickup: jest.fn(),
+      setGrandStaff: jest.fn(),
+    },
+    tuplets: {
+      apply: jest.fn(),
+      remove: jest.fn(),
+      canApply: jest.fn(() => false),
+      activeRatio: null,
+    },
+    historyAPI: {
+      undo: jest.fn(),
+      redo: jest.fn(),
+      begin: jest.fn(),
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    },
+    engines: {
+      dispatch: jest.fn(),
+      selectionEngine: { dispatch: jest.fn() },
+      scoreRef: { current: mockScore },
+    },
+    derived: {
+      selectedDurations: [],
+      selectedDots: [],
+      selectedTies: [],
+      selectedAccidentals: [],
+    },
+    // Additional exports
     setPreviewNote: jest.fn(),
-    handleTimeSignatureChange: jest.fn(),
-    handleKeySignatureChange: jest.fn(),
+    clearSelection: jest.fn(),
+    currentQuantsPerMeasure: 64,
+    // UI state from ScoreContext
+    pendingClefChange: null,
+    setPendingClefChange: jest.fn(),
     handleClefChange: jest.fn(),
-    scoreRef: { current: mockScore },
-    updateNotePitch: jest.fn(),
   };
 
   const mockHandlers = {
@@ -91,9 +165,9 @@ describe('ScoreCanvas', () => {
 
     fireEvent.click(screen.getByTestId('measure-0-staff-0'));
 
-    expect(mockContextValue.handleNoteSelection).toHaveBeenCalled();
+    expect(mockContextValue.navigation.select).toHaveBeenCalled();
     // Now uses separate args: (measureIndex, eventId, noteId, staffIndex)
-    expect(mockContextValue.handleNoteSelection).toHaveBeenCalledWith(
+    expect(mockContextValue.navigation.select).toHaveBeenCalledWith(
       0,
       undefined,
       undefined,

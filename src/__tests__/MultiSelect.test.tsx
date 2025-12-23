@@ -1,12 +1,20 @@
+/**
+ * Multi-Note Selection Tests
+ *
+ * Integration tests for CMD+Click multi-selection behavior.
+ * Covers: add to selection, toggle, single-click reset.
+ *
+ * @see handleNoteSelection
+ */
+
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import ScoreEditor from '@components/Layout/ScoreEditor';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { createDefaultScore } from '@/types';
 
 // Mocks
-jest.mock('../components/Toolbar/Toolbar', () => (props: any) => (
+jest.mock('../components/Toolbar/Toolbar', () => (_props: unknown) => (
   <div data-testid="score-toolbar" />
 ));
 jest.mock('../hooks/usePlayback', () => ({
@@ -31,8 +39,9 @@ jest.mock('../engines/toneEngine', () => ({
 
 // Mock Component to consume context and trigger actions
 const MockNoteTrigger = () => {
-  const { handleNoteSelection, selection, setSelection, transposeSelection } =
-    require('../context/ScoreContext').useScoreContext();
+  const ctx = require('../context/ScoreContext').useScoreContext();
+  const { selection } = ctx.state;
+  const { select: handleNoteSelection, transpose: transposeSelection } = ctx.navigation;
 
   return (
     <div>
@@ -52,15 +61,7 @@ const MockNoteTrigger = () => {
       />
       <button
         data-testid="simulate-add-note"
-        onClick={() =>
-          setSelection({
-            staffIndex: 0,
-            measureIndex: 0,
-            eventId: 'e1',
-            noteId: 'n1',
-            selectedNotes: [],
-          })
-        }
+        onClick={() => handleNoteSelection(0, 'e1', 'n1', 0)}
       />
       <button data-testid="transpose-up" onClick={() => transposeSelection('up', false)} />
     </div>

@@ -1,3 +1,12 @@
+/**
+ * SetGrandStaffCommand Tests
+ *
+ * Tests for converting single staff to grand staff (treble + bass).
+ * Covers: treble→grand, bass→grand, note placement, undo, idempotency.
+ *
+ * @see SetGrandStaffCommand
+ */
+
 import { SetGrandStaffCommand } from '@/commands/SetGrandStaffCommand';
 import { Score, Staff, Measure } from '@/types';
 

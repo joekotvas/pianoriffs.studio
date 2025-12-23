@@ -1,10 +1,16 @@
+/**
+ * Comprehensive Rendering Tests
+ *
+ * Smoke test ensuring beams, tuplets, and rests render without crash.
+ *
+ * @see ScoreEditor
+ */
+
 import React from 'react';
 import { render } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { ThemeProvider } from '@/context/ThemeContext';
 import ScoreEditor from '@components/Layout/ScoreEditor';
 import { Score, ScoreEvent } from '@/types';
-import { CONFIG } from '@/config';
 
 // Create a score with Beams, Tuplets, and Rests to force rendering of all Measure sub-components
 const createComplexScore = (): Score => {

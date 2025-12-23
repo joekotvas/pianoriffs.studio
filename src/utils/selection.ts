@@ -1,4 +1,4 @@
-import { Selection, createDefaultSelection, Score } from '@/types';
+import { Selection, createDefaultSelection, Score, Note } from '@/types';
 
 interface NoteContext {
   staffIndex: number;
@@ -56,7 +56,7 @@ export const areAllNotesSelected = (
   staffIndex: number,
   measureIndex: number,
   eventId: string | number,
-  notes: any[]
+  notes: Note[]
 ): boolean => {
   if (!notes || notes.length === 0) return false;
   return notes.every((note) =>

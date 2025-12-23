@@ -1,10 +1,9 @@
-// @ts-nocheck
 import { NOTE_TYPES } from '@/constants';
-import { getActiveStaff } from '@/types';
+import { getActiveStaff, Score, ScoreEvent, Measure, Staff, Note } from '@/types';
 import { isRestEvent } from '@/utils/core';
 
 // ABC notation pitch mapping - Algorithmic
-const toAbcPitch = (pitch: string, clef: string = 'treble'): string => {
+const toAbcPitch = (pitch: string, _clef: string = 'treble'): string => {
   // Extract letter and octave
   const match = pitch.match(/^([A-G])(#{1,2}|b{1,2})?(\d+)$/);
   if (!match) return 'C'; // Fallback
@@ -35,7 +34,7 @@ const toAbcPitch = (pitch: string, clef: string = 'treble'): string => {
   return abcPitch;
 };
 
-export const generateABC = (score: any, bpm: number) => {
+export const generateABC = (score: Score, bpm: number) => {
   // Phase 2: Iterate over all staves
   const staves = score.staves || [getActiveStaff(score)]; // Fallback for safety
   const timeSig = score.timeSignature || '4/4';
@@ -49,16 +48,29 @@ export const generateABC = (score: any, bpm: number) => {
     abc += `%%staves {${staves.map((_, i) => i + 1).join(' ')}}\n`;
   }
 
-  staves.forEach((staff: any, staffIndex: number) => {
+  staves.forEach((staff: Staff, staffIndex: number) => {
     const clef = staff.clef || 'treble';
-    const abcClef = clef === 'bass' ? 'bass' : 'treble';
+    // ABC notation supports: treble, bass, alto, tenor
+    const getAbcClef = (c: string) => {
+      switch (c) {
+        case 'bass':
+          return 'bass';
+        case 'alto':
+          return 'alto';
+        case 'tenor':
+          return 'tenor';
+        default:
+          return 'treble';
+      }
+    };
+    const abcClef = getAbcClef(clef);
     const voiceId = staffIndex + 1;
 
     // Voice Header
     abc += `V:${voiceId} clef=${abcClef}\n`;
 
-    staff.measures.forEach((measure: any, i: number) => {
-      measure.events.forEach((event: any) => {
+    staff.measures.forEach((measure: Measure, i: number) => {
+      measure.events.forEach((event: ScoreEvent) => {
         // Calculate Duration
         let durationString = '';
         const base = NOTE_TYPES[event.duration]?.abcDuration || '';
@@ -105,14 +117,16 @@ export const generateABC = (score: any, bpm: number) => {
           abc += `${prefix}z${durationString} `;
         } else {
           // Notes/Chords
-          const formatNote = (n: any) => {
+          const formatNote = (n: Note) => {
+            if (!n.pitch) return '';
+
             let acc = '';
             // 1. Check explicit property
             if (n.accidental === 'sharp') acc = '^';
             else if (n.accidental === 'flat') acc = '_';
             else if (n.accidental === 'natural') acc = '=';
-            else if (n.accidental === 'double-sharp') acc = '^^';
-            else if (n.accidental === 'double-flat') acc = '__';
+            // Note: double-sharp and double-flat are not standard Note.accidental values
+            // They would need to be parsed from the pitch string if needed
 
             // 2. Fallback: Check Pitch String
             // If no explicit accidental property, parse from "F#4", "Bb4", etc.

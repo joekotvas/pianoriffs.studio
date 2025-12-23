@@ -1,16 +1,16 @@
 import { useCallback } from 'react';
 import { ApplyTupletCommand } from '@/commands/TupletCommands';
 import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
-import { getActiveStaff } from '@/types';
 import { Command } from '@/commands/types';
+import { Score, Selection, ScoreEvent } from '@/types';
 
 /**
  * Hook providing tuplet manipulation actions.
  * Handles applying and removing tuplets from selected events.
  */
 export const useTupletActions = (
-  scoreRef: any,
-  selection: any,
+  scoreRef: React.MutableRefObject<Score>,
+  selection: Selection,
   dispatch: (command: Command) => void
 ) => {
   /**
@@ -31,8 +31,9 @@ export const useTupletActions = (
       }
 
       const currentScore = scoreRef.current;
-      const activeStaff = getActiveStaff(currentScore);
-      const measure = activeStaff.measures[selection.measureIndex];
+      const staffIndex = selection.staffIndex ?? 0;
+      const staff = currentScore.staves[staffIndex];
+      const measure = staff?.measures[selection.measureIndex];
 
       if (!measure) {
         console.warn('Selected measure not found');
@@ -40,7 +41,7 @@ export const useTupletActions = (
       }
 
       // Find the index of the selected event
-      const eventIndex = measure.events.findIndex((e: any) => e.id === selection.eventId);
+      const eventIndex = measure.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
 
       if (eventIndex === -1) {
         console.warn('Selected event not found in measure');
@@ -56,7 +57,9 @@ export const useTupletActions = (
       }
 
       // Apply the tuplet
-      dispatch(new ApplyTupletCommand(selection.measureIndex, eventIndex, groupSize, ratio));
+      dispatch(
+        new ApplyTupletCommand(selection.measureIndex, eventIndex, groupSize, ratio, staffIndex)
+      );
 
       return true;
     },
@@ -78,8 +81,9 @@ export const useTupletActions = (
     }
 
     const currentScore = scoreRef.current;
-    const activeStaff = getActiveStaff(currentScore);
-    const measure = activeStaff.measures[selection.measureIndex];
+    const staffIndex = selection.staffIndex ?? 0;
+    const staff = currentScore.staves[staffIndex];
+    const measure = staff?.measures[selection.measureIndex];
 
     if (!measure) {
       console.warn('Selected measure not found');
@@ -87,7 +91,7 @@ export const useTupletActions = (
     }
 
     // Find the index of the selected event
-    const eventIndex = measure.events.findIndex((e: any) => e.id === selection.eventId);
+    const eventIndex = measure.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
 
     if (eventIndex === -1) {
       console.warn('Selected event not found in measure');
@@ -102,7 +106,7 @@ export const useTupletActions = (
     }
 
     // Remove the tuplet
-    dispatch(new RemoveTupletCommand(selection.measureIndex, eventIndex));
+    dispatch(new RemoveTupletCommand(selection.measureIndex, eventIndex, staffIndex));
 
     return true;
   }, [selection, scoreRef, dispatch]);
@@ -120,12 +124,13 @@ export const useTupletActions = (
       }
 
       const currentScore = scoreRef.current;
-      const activeStaff = getActiveStaff(currentScore);
-      const measure = activeStaff.measures[selection.measureIndex];
+      const staffIndex = selection.staffIndex ?? 0;
+      const staff = currentScore.staves[staffIndex];
+      const measure = staff?.measures[selection.measureIndex];
 
       if (!measure) return false;
 
-      const eventIndex = measure.events.findIndex((e: any) => e.id === selection.eventId);
+      const eventIndex = measure.events.findIndex((e: ScoreEvent) => e.id === selection.eventId);
       if (eventIndex === -1) return false;
 
       // Check if we have enough consecutive events
@@ -148,12 +153,13 @@ export const useTupletActions = (
     }
 
     const currentScore = scoreRef.current;
-    const activeStaff = getActiveStaff(currentScore);
-    const measure = activeStaff.measures[selection.measureIndex];
+    const staffIndex = selection.staffIndex ?? 0;
+    const staff = currentScore.staves[staffIndex];
+    const measure = staff?.measures[selection.measureIndex];
 
     if (!measure) return null;
 
-    const event = measure.events.find((e: any) => e.id === selection.eventId);
+    const event = measure.events.find((e: ScoreEvent) => e.id === selection.eventId);
     return event?.tuplet?.ratio || null;
   }, [selection, scoreRef]);
 

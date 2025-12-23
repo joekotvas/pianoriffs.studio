@@ -2,7 +2,8 @@ import { ScoreEvent, TupletBracketGroup } from './types';
 import { getNoteDuration } from '@/utils/core';
 import { getOffsetForPitch } from './positioning';
 import { CONFIG } from '@/config';
-import { MIDDLE_LINE_Y, TUPLET, STEM } from '@/constants';
+
+import { TUPLET, STEM } from '@/constants';
 
 /**
  * Helper to determine the events belonging to a tuplet group starting at a given index.
@@ -13,7 +14,7 @@ export const getTupletGroup = (events: ScoreEvent[], startIndex: number): ScoreE
   if (!startEvent.tuplet) return [];
 
   const groupEvents: ScoreEvent[] = [];
-  const { groupSize, ratio } = startEvent.tuplet;
+  const { groupSize } = startEvent.tuplet;
 
   // Priority 1: ID-based grouping (Robust)
   if (startEvent.tuplet.id) {
@@ -29,9 +30,9 @@ export const getTupletGroup = (events: ScoreEvent[], startIndex: number): ScoreE
   }
   // Priority 2: BaseDuration-based grouping (Dynamic)
   else if (startEvent.tuplet.baseDuration) {
-    const { ratio, baseDuration } = startEvent.tuplet;
+    const { ratio: r, baseDuration } = startEvent.tuplet;
     const baseQuants = getNoteDuration(baseDuration, false);
-    const targetQuants = ratio[0] * baseQuants;
+    const targetQuants = r[0] * baseQuants;
 
     let currentQuants = 0;
 
@@ -64,7 +65,7 @@ export const calculateTupletBrackets = (
   const brackets: TupletBracketGroup[] = [];
 
   // Helper to get Y bounds of an event (top and bottom of everything: notes, stems)
-  const getEventYBounds = (event: ScoreEvent, dir: 'up' | 'down') => {
+  const getEventYBounds = (event: ScoreEvent, _dir: 'up' | 'down') => {
     // 1. Noteheads - filter out rest notes (null pitch)
     const realNotes = event.notes.filter((n) => n.pitch !== null);
     if (realNotes.length === 0) {
@@ -149,9 +150,9 @@ export const calculateTupletBrackets = (
       const endX = maxX + TUPLET.VISUAL_NOTE_RADIUS;
 
       // Calculate Y bounds (top and bottom of the group)
-      const yBounds = groupEvents.map((e) => getEventYBounds(e, direction));
-      const topY = Math.min(...yBounds.map((b) => b.topY));
-      const bottomY = Math.max(...yBounds.map((b) => b.bottomY));
+      // const yBounds = groupEvents.map((e) => getEventYBounds(e, direction));
+      // const topY = Math.min(...yBounds.map((b) => b.topY)); // Unused
+      // const bottomY = Math.max(...yBounds.map((b) => b.bottomY)); // Unused
 
       // Calculate "Limit Y" for each event on the bracket side
       // If Up: Limit is topY (lowest value). We want bracket Y < topY.

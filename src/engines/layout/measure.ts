@@ -22,7 +22,7 @@ const HIT_RADIUS = LAYOUT.HIT_ZONE_RADIUS;
 const ACCIDENTAL_PADDING = NOTE_SPACING_BASE_UNIT * 0.8;
 
 /** Minimum width factors for short-duration notes relative to NOTE_SPACING_BASE_UNIT */
-const MIN_WIDTH_FACTORS = LAYOUT.MIN_WIDTH_FACTORS;
+// const MIN_WIDTH_FACTORS = LAYOUT.MIN_WIDTH_FACTORS;
 
 // --- TYPES ---
 
@@ -387,7 +387,7 @@ const processTupletGroup = (
  */
 export const calculateMeasureLayout = (
   events: ScoreEvent[],
-  totalQuants: number = CONFIG.quantsPerMeasure,
+  _totalQuants: number = CONFIG.quantsPerMeasure,
   clef: string = 'treble',
   isPickup: boolean = false,
   forcedEventPositions?: Record<number, number>

@@ -82,6 +82,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
       onBpmChange,
       errorMsg,
       onToggleHelp,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       midiStatus = { connected: false, deviceName: null, error: null },
       melodies,
       selectedInstrument,
@@ -100,45 +101,51 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
     const [showLibrary, setShowLibrary] = useState(false);
     const [isToolbarFocused, setIsToolbarFocused] = useState(false);
 
-    // -- Score Context (Grouped for Clarity) --
-    const scoreCtx = useScoreContext();
+    // -- Score Context (Grouped API) --
+    const ctx = useScoreContext();
 
     // 1. Core Data
-    const { score, dispatch, inputMode, toggleInputMode, selection, editorState } = scoreCtx;
+    const { score, selection, editorState } = ctx.state;
+    const { dispatch } = ctx.engines;
+    const { inputMode, toggleInputMode } = ctx.tools;
 
     // 2. History
-    const { history, undo, redoStack, redo } = scoreCtx;
+    const { history, redoStack } = ctx.state;
+    const { undo, redo } = ctx.historyAPI;
 
     // 3. Duration & Rhythms
+    const { activeDuration, isDotted, activeTie } = ctx.tools;
     const {
-      activeDuration,
-      handleDurationChange,
+      duration: handleDurationChange,
+      dot: handleDotToggle,
+      tie: handleTieToggle,
       checkDurationValidity,
-      selectedDurations,
-      isDotted,
-      handleDotToggle,
       checkDotValidity,
-      selectedDots,
-      activeTie,
-      handleTieToggle,
-      selectedTies,
-    } = scoreCtx;
+    } = ctx.modifiers;
+    const { selectedDurations, selectedDots, selectedTies } = ctx.derived;
 
     // 4. Pitch & Accidentals
-    const { activeAccidental, handleAccidentalToggle, selectedAccidentals } = scoreCtx;
+    const { activeAccidental } = ctx.tools;
+    const { accidental: handleAccidentalToggle } = ctx.modifiers;
+    const { selectedAccidentals } = ctx.derived;
 
     // 5. Structure (Measures, Staff)
     const {
-      addMeasure,
-      removeMeasure,
+      add: addMeasure,
+      remove: removeMeasure,
       togglePickup,
-      handleTimeSignatureChange,
-      handleKeySignatureChange,
-      handleClefChange,
-    } = scoreCtx;
+      setTimeSignature: handleTimeSignatureChange,
+      setKeySignature: handleKeySignatureChange,
+    } = ctx.measures;
+    const { handleClefChange } = ctx; // Get from ScoreContext which has proper clef handling logic
 
     // 6. Advanced (Tuplets)
-    const { applyTuplet, removeTuplet, canApplyTuplet, activeTupletRatio } = scoreCtx;
+    const {
+      apply: applyTuplet,
+      remove: removeTuplet,
+      canApply: canApplyTuplet,
+      activeRatio: activeTupletRatio,
+    } = ctx.tuplets;
 
     // -- Handlers --
 
@@ -158,6 +165,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
 
     // -- Derived Logic --
 
+    // eslint-disable-next-line react-hooks/refs
     const isAnyMenuOpen = showLibrary || (staffControlsRef.current?.isMenuOpen() ?? false);
     const activeStaff = getActiveStaff(score);
 
@@ -169,7 +177,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
         openClefMenu: () => staffControlsRef.current?.openClefMenu(),
         isMenuOpen: () => isAnyMenuOpen,
       }),
-      [showLibrary, isAnyMenuOpen]
+      [isAnyMenuOpen]
     );
 
     useFocusTrap({
@@ -241,6 +249,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
               height={TOP_ROW_HEIGHT}
             />
             {showLibrary && (
+              /* eslint-disable react-hooks/refs */
               <MelodyLibrary
                 melodies={melodies}
                 onSelectMelody={handleMelodySelect}
@@ -251,6 +260,7 @@ const Toolbar = forwardRef<ToolbarHandle, ToolbarProps>(
                 }}
                 triggerRef={melodyLibBtnRef as React.RefObject<HTMLElement>}
               />
+              /* eslint-enable react-hooks/refs */
             )}
           </div>
           {/* 

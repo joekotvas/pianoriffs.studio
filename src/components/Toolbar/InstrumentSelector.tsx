@@ -57,12 +57,14 @@ const InstrumentSelector: React.FC<InstrumentSelectorProps> = ({
       />
 
       {isOpen && (
+        /* eslint-disable react-hooks/refs */
         <DropdownOverlay
           onClose={() => setIsOpen(false)}
           position={getPosition()}
           triggerRef={buttonRef as React.RefObject<HTMLElement>}
           width={176}
         >
+          /* eslint-enable react-hooks/refs */
           <div className="p-1">
             {options.map((option) => (
               <DropdownItem

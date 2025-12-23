@@ -1,6 +1,14 @@
+/**
+ * Smoke Tests
+ *
+ * Basic rendering and interaction tests for ScoreEditor.
+ * Verifies component mounts and handles clef clicks.
+ *
+ * @see ScoreEditor
+ */
+
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import ScoreEditor from '@components/Layout/ScoreEditor';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { createDefaultScore } from '@/types';

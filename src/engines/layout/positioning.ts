@@ -1,11 +1,4 @@
-import {
-  NOTE_TYPES,
-  MIDDLE_LINE_Y,
-  NOTE_SPACING_BASE_UNIT,
-  KEY_SIGNATURES,
-  LAYOUT,
-  STEM,
-} from '@/constants';
+import { MIDDLE_LINE_Y, NOTE_SPACING_BASE_UNIT, KEY_SIGNATURES, LAYOUT, STEM } from '@/constants';
 import { CONFIG } from '@/config';
 import { getNoteDuration } from '@/utils/core';
 import { Note, ChordLayout, HeaderLayout } from './types';
@@ -143,8 +136,10 @@ export const getYToPitch = (clef: string = 'treble'): Record<number, string> => 
  * Reference points for each clef
  */
 const CLEF_REFERENCE: Record<string, { pitch: string; offset: number }> = {
-  treble: { pitch: 'C4', offset: 60 }, // Middle C on treble
-  bass: { pitch: 'E2', offset: 60 }, // E2 on bass at same position
+  treble: { pitch: 'C4', offset: 60 }, // Middle C on treble (1 line below)
+  bass: { pitch: 'E2', offset: 60 }, // E2 on bass (1 line below)
+  alto: { pitch: 'C4', offset: 24 }, // Middle C on alto (Line 3 / Middle Line)
+  tenor: { pitch: 'C4', offset: 18 }, // Middle C on tenor (Line 4)
 };
 
 /**

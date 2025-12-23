@@ -30,7 +30,7 @@ const ClefOverlay: React.FC<ClefOverlayProps> = ({
       className="w-[320px]"
     >
       <div className="p-2 grid grid-cols-3 gap-2">
-        {['grand', 'treble', 'bass'].map((key) => {
+        {['grand', 'treble', 'bass', 'alto', 'tenor'].map((key) => {
           const data = CLEF_TYPES[key];
           return (
             <button
@@ -53,7 +53,10 @@ const ClefOverlay: React.FC<ClefOverlayProps> = ({
               }}
             >
               <div className="mb-1 h-20 flex items-center justify-center w-full relative">
-                <ClefIcon clef={key} style={{ width: '56px', height: '56px', overflow: 'visible' }} />
+                <ClefIcon
+                  clef={key}
+                  style={{ width: '56px', height: '56px', overflow: 'visible' }}
+                />
               </div>
               <span className="text-xs font-medium">{data.label}</span>
             </button>

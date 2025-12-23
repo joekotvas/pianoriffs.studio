@@ -6,10 +6,7 @@ import { Note, Key } from 'tonal';
  * e.g. F in G Major -> 'natural' (even though it's an accidental relative to key)
  * e.g. Bb in F Major -> 'flat'
  */
-export const getEffectiveAccidental = (
-  pitch: string,
-  keySignature: string
-): 'sharp' | 'flat' | 'natural' => {
+export const getEffectiveAccidental = (pitch: string): 'sharp' | 'flat' | 'natural' => {
   const note = Note.get(pitch);
   if (note.empty) return 'natural';
 

@@ -4,7 +4,8 @@ import { useTheme } from '@/context/ThemeContext';
 import { calculateHeaderLayout, getOffsetForPitch, calculateMeasureLayout } from '@/engines/layout';
 import { isRestEvent, getFirstNoteId } from '@/utils/core';
 import Staff, { calculateStaffWidth } from './Staff';
-import { getActiveStaff, createDefaultSelection } from '@/types';
+import { getActiveStaff, Staff as StaffType, Measure, ScoreEvent, Note } from '@/types';
+import { HitZone } from '@/engines/layout/types';
 import { useScoreContext } from '@/context/ScoreContext';
 import { useScoreInteraction } from '@/hooks/useScoreInteraction';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
@@ -12,6 +13,7 @@ import { useGrandStaffLayout } from '@/hooks/useGrandStaffLayout';
 import { useDragToSelect } from '@/hooks/useDragToSelect';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
 import { LAYOUT, CLAMP_LIMITS, STAFF_HEIGHT } from '@/constants';
+import { LassoSelectCommand } from '@/commands/selection';
 
 interface ScoreCanvasProps {
   scale: number;
@@ -40,21 +42,14 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 }) => {
   const { theme } = useTheme();
 
-  // Consume Score Context
-  const {
-    score,
-    selection,
-    setSelection,
-    handleNoteSelection,
-    addNoteToMeasure,
-    activeDuration,
-    isDotted,
-    previewNote,
-    setPreviewNote,
-    handleMeasureHover,
-    scoreRef,
-    updateNotePitch,
-  } = useScoreContext();
+  // Consume Score Context (Grouped API)
+  const ctx = useScoreContext();
+  const { score, selection, previewNote } = ctx.state;
+  const { selectionEngine, scoreRef } = ctx.engines;
+  const { activeDuration, isDotted } = ctx.tools;
+  const { select: handleNoteSelection } = ctx.navigation;
+  const { addNote: addNoteToMeasure, handleMeasureHover, updatePitch: updateNotePitch } = ctx.entry;
+  const { clearSelection, setPreviewNote } = ctx;
 
   // --- INTERACTION LOGIC MOVED FROM SCORE EDITOR ---
 
@@ -156,7 +151,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
     if (synchronizedLayoutData) {
       const measuresWidth = synchronizedLayoutData.reduce(
-        (sum: any, layout: any) => sum + layout.width,
+        (sum: number, layout: { width: number }) => sum + layout.width,
         0
       );
       return startOfMeasures + measuresWidth + 50;
@@ -186,26 +181,26 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
 
     const { startOfMeasures } = calculateHeaderLayout(keySignature);
 
-    score.staves.forEach((staff: any, staffIdx: number) => {
+    score.staves.forEach((staff: StaffType, staffIdx: number) => {
       const staffBaseY = CONFIG.baseY + staffIdx * CONFIG.staffSpacing;
       const staffClef = staff.clef || (staffIdx === 0 ? 'treble' : 'bass');
       let measureX = startOfMeasures;
 
-      staff.measures.forEach((measure: any, measureIdx: number) => {
+      staff.measures.forEach((measure: Measure, measureIdx: number) => {
         // Get forced positions from synchronized layout if available
         const forcedPositions = synchronizedLayoutData?.[measureIdx]?.forcedPositions;
 
         // Calculate actual layout to get event positions
-
+        // IMPORTANT: Use measure.isPickup to match visual rendering!
         const layout = calculateMeasureLayout(
           measure.events,
           undefined,
           staffClef,
-          false,
+          measure.isPickup || false,
           forcedPositions
         );
 
-        measure.events.forEach((event: any) => {
+        measure.events.forEach((event: ScoreEvent) => {
           const eventX = measureX + (layout.eventPositions?.[event.id] || 0);
 
           // Handle rest events (isRest flag set)
@@ -230,7 +225,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
             });
           } else {
             // Handle notes
-            event.notes?.forEach((note: any) => {
+            event.notes?.forEach((note: Note) => {
               const noteY = staffBaseY + getOffsetForPitch(note.pitch, staffClef);
 
               positions.push({
@@ -267,50 +262,24 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     onSelectionComplete: (notes, isAdditive) => {
       if (notes.length === 0) return;
 
-      if (isAdditive) {
-        // Add to existing selection
-        setSelection((prev) => ({
-          ...prev,
-          selectedNotes: [
-            ...prev.selectedNotes,
-            ...notes.filter(
-              (n) =>
-                !prev.selectedNotes.some((sn) => sn.noteId === n.noteId && sn.eventId === n.eventId)
-            ),
-          ],
-          // Update focus to first new note
-          measureIndex: notes[0].measureIndex,
-          eventId: notes[0].eventId,
-          noteId: notes[0].noteId,
-          staffIndex: notes[0].staffIndex,
-        }));
-      } else {
-        // Replace selection
-        setSelection({
-          staffIndex: notes[0].staffIndex,
-          measureIndex: notes[0].measureIndex,
-          eventId: notes[0].eventId,
-          noteId: notes[0].noteId,
-          selectedNotes: notes,
-          anchor: {
-            staffIndex: notes[0].staffIndex,
-            measureIndex: notes[0].measureIndex,
-            eventId: notes[0].eventId,
-            noteId: notes[0].noteId,
-          },
-        });
-      }
+      // Use dispatch for lasso selection
+      selectionEngine.dispatch(
+        new LassoSelectCommand({
+          notes,
+          addToSelection: isAdditive,
+        })
+      );
     },
     scale,
   });
 
-  const handleBackgroundClick = (e: React.MouseEvent) => {
+  const handleBackgroundClick = (_e: React.MouseEvent) => {
     // Don't deselect if we were dragging or just finished dragging
     if (isDragging || justFinishedDrag) return;
 
     onBackgroundClick?.();
-    // Default: deselect
-    setSelection(createDefaultSelection());
+    // Default: deselect via dispatch
+    clearSelection();
     containerRef.current?.focus();
   };
 
@@ -334,38 +303,62 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   );
 
   const memoizedOnDragStart = useCallback(
-    (args: any) => {
+    (args: {
+      measureIndex: number;
+      eventId: string | number;
+      noteId: string | number;
+      startPitch: string;
+      startY: number;
+      isMulti?: boolean;
+      isShift?: boolean;
+      selectAllInEvent?: boolean;
+      staffIndex?: number;
+    }) => {
       handleDragStart(args);
     },
     [handleDragStart]
   );
 
-  // Ref to track latest handler to avoid stale closures in the cached wrappers
-  const handleMeasureHoverRef = useRef(handleMeasureHover);
-  useEffect(() => {
-    handleMeasureHoverRef.current = handleMeasureHover;
-  }, [handleMeasureHover]);
+  // Create stable onHover handlers for each staff index
+  const staffHoverHandlers = useMemo(() => {
+    const handlers = new Map<
+      number,
+      (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => void
+    >();
 
-  // Cache per-staff onHover handlers to prevent recreation (stable identity for memoized children)
-  const hoverHandlersRef = useRef<
-    Map<number, (measureIndex: number | null, hit: any, pitch: string | null) => void>
-  >(new Map());
+    const createHandler =
+      (sIdx: number) =>
+      (measureIndex: number | null, hit: HitZone | null, pitch: string | null) => {
+        if (!dragState.active) {
+          handleMeasureHover(measureIndex, hit, pitch || '', sIdx);
+        }
+      };
+
+    score.staves.forEach((_, index) => {
+      handlers.set(index, createHandler(index));
+    });
+
+    return handlers;
+  }, [dragState.active, score.staves, handleMeasureHover]);
 
   const getHoverHandler = useCallback(
     (staffIndex: number) => {
-      if (!hoverHandlersRef.current.has(staffIndex)) {
-        hoverHandlersRef.current.set(
-          staffIndex,
-          (measureIndex: number | null, hit: any, pitch: string | null) => {
-            if (!dragState.active) {
-              handleMeasureHoverRef.current(measureIndex, hit, pitch || '', staffIndex);
-            }
-          }
-        );
+      const handler = staffHoverHandlers.get(staffIndex);
+      if (!handler) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(
+            `ScoreCanvas: hover handler requested for non-existent staff index ${staffIndex}.`
+          );
+        }
+        return (() => {}) as (
+          measureIndex: number | null,
+          hit: HitZone | null,
+          pitch: string | null
+        ) => void;
       }
-      return hoverHandlersRef.current.get(staffIndex)!;
+      return handler;
     },
-    [dragState.active]
+    [staffHoverHandlers]
   );
 
   return (
@@ -395,13 +388,12 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                   CONFIG.baseY +
                   (score.staves.length - 1) * CONFIG.staffSpacing +
                   CONFIG.lineHeight * 4;
-                const midY = (topY + bottomY) / 2;
                 return <GrandStaffBracket topY={topY} bottomY={bottomY} x={-20} />;
               })()}
             </>
           )}
 
-          {score.staves?.map((staff: any, staffIndex: number) => {
+          {score.staves?.map((staff: StaffType, staffIndex: number) => {
             const staffBaseY = CONFIG.baseY + staffIndex * CONFIG.staffSpacing;
 
             // Construct Interaction State - using memoized callbacks for stable references
@@ -497,6 +489,23 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
               style={{ pointerEvents: 'none' }}
             />
           )}
+
+          {/* DEBUG: Lasso hit zone positions (cyan) - compare to red Note hit zones */}
+          {CONFIG.debug?.showHitZones &&
+            notePositions.map((pos, idx) => (
+              <rect
+                key={`debug-lasso-${idx}`}
+                x={pos.x}
+                y={pos.y}
+                width={pos.width}
+                height={pos.height}
+                fill="cyan"
+                fillOpacity={0.3}
+                stroke="cyan"
+                strokeWidth={1}
+                style={{ pointerEvents: 'none' }}
+              />
+            ))}
         </g>
       </svg>
     </div>

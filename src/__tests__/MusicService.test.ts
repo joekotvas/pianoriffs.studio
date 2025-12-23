@@ -1,3 +1,12 @@
+/**
+ * MusicService Tests
+ *
+ * Tests for music theory utilities: analysis, theory, notation, interaction.
+ * Covers: frequency/MIDI conversion, scales, accidentals, pitch movement.
+ *
+ * @see MusicService
+ */
+
 import {
   getFrequency,
   getMidi,

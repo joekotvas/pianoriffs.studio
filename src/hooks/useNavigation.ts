@@ -1,5 +1,21 @@
-import React, { useCallback, RefObject } from 'react';
-import { Selection, Score, getActiveStaff } from '@/types';
+/**
+ * useNavigation Hook
+ *
+ * Handles keyboard and mouse navigation within the score editor.
+ * Provides handlers for note selection, arrow key movement, transposition,
+ * and cross-staff navigation.
+ *
+ * Key exports:
+ * - handleNoteSelection: Handle click on note/event
+ * - moveSelection: Arrow key navigation
+ * - transposeSelection: Pitch transposition
+ * - switchStaff: Cross-staff navigation
+ *
+ * @see useSelection
+ */
+
+import { useCallback, RefObject } from 'react';
+import { Selection, Score, getActiveStaff, PreviewNote } from '@/types';
 import {
   calculateNextSelection,
   calculateTranspositionWithPreview,
@@ -14,17 +30,15 @@ import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand'
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;
   selection: Selection;
-  lastSelection?: Selection | null;
-  setSelection: React.Dispatch<React.SetStateAction<Selection>>;
   select: (
     measureIndex: number | null,
     eventId: string | number | null,
     noteId: string | number | null,
     staffIndex?: number,
-    options?: any
+    options?: { isMulti?: boolean; selectAllInEvent?: boolean; isShift?: boolean }
   ) => void;
-  previewNote: any;
-  setPreviewNote: (note: any) => void;
+  previewNote: PreviewNote | null;
+  setPreviewNote: (note: PreviewNote | null) => void;
   activeDuration: string;
   isDotted: boolean;
   currentQuantsPerMeasure: number;
@@ -50,7 +64,6 @@ interface UseNavigationReturn {
 export const useNavigation = ({
   scoreRef,
   selection,
-  lastSelection,
   select,
   previewNote,
   setPreviewNote,
@@ -62,9 +75,11 @@ export const useNavigation = ({
 }: UseNavigationProps): UseNavigationReturn => {
   // --- Internal Helpers ---
 
-  const playAudioFeedback = useCallback((notes: any[]) => {
+  const playAudioFeedback = useCallback((notes: { pitch: string | null }[]) => {
     if (!notes || notes.length === 0) return;
-    notes.forEach((n) => playNote(n.pitch));
+    notes.forEach((n) => {
+      if (n.pitch) playNote(n.pitch);
+    });
   }, []);
 
   // --- Public Handlers ---
@@ -136,11 +151,11 @@ export const useNavigation = ({
           if (vertResult.selection?.eventId && vertResult.selection?.measureIndex !== null) {
             const staff = getActiveStaff(scoreRef.current, vertResult.selection.staffIndex || 0);
             const event = staff.measures[vertResult.selection.measureIndex]?.events.find(
-              (e: any) => e.id === vertResult.selection.eventId
+              (e) => e.id === vertResult.selection.eventId
             );
             if (event && !event.isRest) {
               const noteToPlay = vertResult.selection.noteId
-                ? event.notes?.find((n: any) => n.id === vertResult.selection.noteId)
+                ? event.notes?.find((n) => n.id === vertResult.selection.noteId)
                 : event.notes?.[0];
               if (noteToPlay) playAudioFeedback([noteToPlay]);
             }
@@ -169,8 +184,56 @@ export const useNavigation = ({
       if (navResult.selection) {
         const { measureIndex, eventId, noteId, staffIndex } = navResult.selection;
 
-        // Simply pass the calculated target to select().
-        // We assume select() handles a null noteId (selecting the whole event/rest) correctly.
+        // SIMPLIFIED UX: When Shift+Arrow lands on a gap (no event),
+        // skip the gap and extend selection directly to the next actual note.
+        // This was chosen because previous behavior could leave the selection on empty
+        // positions (or appear to clear it), which confused users and made keyboard
+        // navigation feel broken; skipping gaps keeps selection behavior predictable
+        // while also avoiding complex state preservation.
+        if (isShift && !eventId && navResult.previewNote) {
+          // Navigate AGAIN from the ghost position to find the next note
+          const ghostSelection: Selection = {
+            ...selection,
+            staffIndex: staffIndex || 0,
+            measureIndex: null,
+            eventId: null,
+            noteId: null,
+            selectedNotes: selection.selectedNotes,
+            anchor: selection.anchor,
+          };
+
+          const secondNav = calculateNextSelection(
+            activeStaff.measures,
+            ghostSelection,
+            direction as 'left' | 'right',
+            navResult.previewNote,
+            activeDuration,
+            isDotted,
+            currentQuantsPerMeasure,
+            activeStaff.clef,
+            activeStaffIndex,
+            inputMode
+          );
+
+          if (secondNav?.selection?.eventId) {
+            // Found the next note - extend selection to it
+            select(
+              secondNav.selection.measureIndex,
+              secondNav.selection.eventId,
+              secondNav.selection.noteId || null,
+              secondNav.selection.staffIndex,
+              { isShift }
+            );
+            // Play audio for the found note
+            if (secondNav.audio) {
+              playAudioFeedback(secondNav.audio.notes);
+            }
+          }
+          // If no next note found, don't change anything - selection stays put
+          return;
+        }
+
+        // Standard case: Navigate to the calculated target
         select(measureIndex, eventId, noteId || null, staffIndex, { isShift });
       }
 

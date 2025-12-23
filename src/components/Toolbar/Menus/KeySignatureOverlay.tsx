@@ -9,6 +9,7 @@ import {
 } from '@/constants';
 import { useTheme } from '@/context/ThemeContext';
 import { ACCIDENTALS, BRAVURA_FONT } from '@/constants/SMuFL';
+import { Theme } from '@/config';
 
 // ==========================================
 // 1. TYPES & INTERFACES
@@ -46,7 +47,15 @@ const CIRCLE_OF_FIFTHS = {
 /**
  * StaffPreview: Handles the SVG rendering of the staff lines and accidentals
  */
-const StaffPreview = ({ data, clef, theme }: { data: KeySignature; clef: string; theme: any }) => {
+const StaffPreview = ({
+  data,
+  clef,
+  theme,
+}: {
+  data: KeySignature;
+  clef: string;
+  theme: Theme;
+}) => {
   const { type, count, accidentals } = data;
   const accWidth = Math.max(40, count * 10 + 20);
 
@@ -109,7 +118,7 @@ const KeyOptionButton = ({
   keyId: string;
   current: string;
   clef: string;
-  theme: any;
+  theme: Theme;
   onSelect: (key: string) => void;
 }) => {
   const data = KEY_SIGNATURES[keyId];
@@ -152,7 +161,7 @@ const ModeToggle = ({
 }: {
   mode: 'major' | 'minor';
   setMode: (mode: 'major' | 'minor') => void;
-  theme: any;
+  theme: Theme;
 }) => (
   <div className="flex rounded-lg p-1 mb-4" style={{ backgroundColor: theme.buttonBackground }}>
     <button
@@ -194,7 +203,7 @@ const KeySection = ({
   keys: [string, string][]; // [majorKey, minorKey]
   current: string;
   clef: string;
-  theme: any;
+  theme: Theme;
   onSelect: (key: string) => void;
   mode: 'major' | 'minor';
 }) => (

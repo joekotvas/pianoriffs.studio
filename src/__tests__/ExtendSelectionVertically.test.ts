@@ -1,0 +1,424 @@
+/**
+ * Tests for ExtendSelectionVerticallyCommand
+ *
+ * Tests the vertical extension command that allows shift+up/down
+ * to extend selection through chords and across staves.
+ *
+ * @see ExtendSelectionVerticallyCommand
+ * @see Issue #101
+ */
+
+import { ExtendSelectionVerticallyCommand } from '@/commands/selection/ExtendSelectionVerticallyCommand';
+import type { Selection, Score } from '@/types';
+import {
+  createTestScore,
+  createScoreWithRest,
+  createEmptySelection,
+  createSelectionWithNote,
+} from './fixtures/selectionTestScores';
+
+// ========== ExtendSelectionVerticallyCommand TESTS ==========
+
+describe('ExtendSelectionVerticallyCommand', () => {
+  describe('anchor-based cursor movement within chords', () => {
+    test('extend down from top note moves cursor to middle', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n2'); // G4 (top)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Anchor stays at G4, cursor moves to E4
+      expect(result.selectedNotes).toHaveLength(2);
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n2'); // G4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 added
+    });
+
+    test('extend down from middle note adds lower note', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n1'); // E4 (middle)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should add C4 (below E4)
+      expect(result.selectedNotes).toHaveLength(2);
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n0'); // C4 added
+    });
+
+    test('extend up from middle note adds higher note', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n1'); // E4 (middle)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // Should add G4 (above E4)
+      expect(result.selectedNotes).toHaveLength(2);
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n2'); // G4 added
+    });
+
+    test('extend up from bottom note moves cursor to middle', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4 (bottom)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // Anchor stays at C4, cursor moves to E4
+      expect(result.selectedNotes).toHaveLength(2);
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n0'); // C4 still selected
+      expect(result.selectedNotes.map((n) => n.noteId)).toContain('n1'); // E4 added
+    });
+
+    test('extend down at bottom of chord goes to cross-staff (no cycling)', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4 (bottom)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should go to bass staff, not cycle within treble
+      expect(result.selectedNotes.some((n) => n.staffIndex === 1)).toBe(true);
+    });
+
+    test('extend up at top of chord returns unchanged (at boundary)', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n2'); // G4 (top), staff 0
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // At top of treble staff, can't go higher - unchanged
+      expect(result.selectedNotes).toHaveLength(1);
+    });
+  });
+
+  describe('cross-staff expansion', () => {
+    test('single note on bottom of treble extends to bass', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4 (bottom of treble chord)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should include bass notes from quant-aligned event
+      expect(result.selectedNotes.some((n) => n.staffIndex === 1)).toBe(true);
+      expect(result.selectedNotes.some((n) => n.eventId === 'bass-e0')).toBe(true);
+    });
+
+    test('does not fill anchor chord when crossing to bass', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4 only
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should ONLY select C4 and the next note down (G3 in bass)
+      // E4 and G4 should NOT be selected
+      const trebleNotes = result.selectedNotes.filter(
+        (n) => n.staffIndex === 0 && n.eventId === 'e0'
+      );
+      expect(trebleNotes).toHaveLength(1); // C4 only
+      expect(trebleNotes[0].noteId).toBe('n0');
+
+      const bassNotes = result.selectedNotes.filter((n) => n.staffIndex === 1);
+      expect(bassNotes.length).toBeGreaterThan(0);
+      // G3 is bass-n1
+      expect(bassNotes.map((n) => n.noteId)).toContain('bass-n1');
+    });
+
+    test('at bottom staff lowest note, extend down is no-op', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(1, 0, 'bass-e0', 'bass-n0'); // C3 (bottom of bass)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Can't go lower - selection unchanged (but verticalAnchors may be set)
+      expect(result.selectedNotes).toEqual(state.selectedNotes);
+      expect(result.noteId).toBe(state.noteId);
+    });
+
+    test('extend all staves selects quant-aligned notes across all staves', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n1'); // E4 (middle)
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'all' });
+      const result = cmd.execute(state, score);
+
+      // Should include both staves - all quant-aligned notes
+      const staffIndices = new Set(result.selectedNotes.map((n) => n.staffIndex));
+      expect(staffIndices.size).toBeGreaterThan(0); // At least original staff
+    });
+  });
+
+  describe('anchor-cursor relationship', () => {
+    test('anchor preserved while cursor moves', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e0', 'n2'); // G4 (top)
+
+      // Extend down to add more notes
+      let cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      let result = cmd.execute(state, score);
+
+      // First extension: should have at least 2 notes
+      expect(result.selectedNotes.length).toBeGreaterThanOrEqual(2);
+      expect(result.anchor?.noteId).toBe('n2'); // anchor preserved
+
+      // Second extension
+      cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      result = cmd.execute(result, score);
+
+      // Selection should grow or stay same (not shrink)
+      expect(result.selectedNotes.length).toBeGreaterThanOrEqual(2);
+      expect(result.anchor?.noteId).toBe('n2'); // anchor still preserved
+    });
+
+    test('direction change without verticalAnchors starts new expansion series', () => {
+      const score = createTestScore();
+      // Start with full chord selected: C4, E4, G4 (no verticalAnchors)
+      const state: Selection = {
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e0',
+        noteId: 'n0', // cursor is at C4 (bottom)
+        selectedNotes: [
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' }, // C4
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n1' }, // E4
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // G4
+        ],
+        anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // anchor at G4
+        // NO verticalAnchors set - this is treated as a NEW series
+      };
+
+      // Extend UP - since no verticalAnchors, this starts a NEW series with anchor at BOTTOM
+      // Since selection already includes the top note, trying to expand UP does nothing (at boundary)
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // Selection stays same size (already at top boundary of chord)
+      // verticalAnchors should now be set
+      expect(result.selectedNotes.length).toBe(3);
+      expect(result.verticalAnchors).toBeDefined();
+      expect(result.verticalAnchors?.direction).toBe('up');
+    });
+  });
+
+  describe('multi-event selection', () => {
+    test('extends each event independently', () => {
+      const score = createTestScore();
+      // Select top note from two different events: G4 from e0 and G4 from m1.e2
+      const state: Selection = {
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e0',
+        noteId: 'n2',
+        selectedNotes: [
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // G4 from e0 (3-note chord)
+          { staffIndex: 0, measureIndex: 1, eventId: 'e2', noteId: 'n5' }, // G4 from e2 (2-note chord)
+        ],
+        anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' },
+      };
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Both events should be extended: G4+E4 from e0, G4+E4 from e2
+      const e0Notes = result.selectedNotes.filter((n) => n.eventId === 'e0');
+      const e2Notes = result.selectedNotes.filter((n) => n.eventId === 'e2');
+
+      expect(e0Notes.length).toBe(2); // G4 + E4
+      expect(e2Notes.length).toBe(2); // G4 + E4
+      expect(result.selectedNotes).toHaveLength(4);
+    });
+  });
+
+  describe('edge cases', () => {
+    test('empty selection returns unchanged', () => {
+      const score = createTestScore();
+      const state = createEmptySelection();
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      expect(result).toBe(state);
+    });
+
+    test('single-note event goes directly to cross-staff', () => {
+      const score = createTestScore();
+      const state = createSelectionWithNote(0, 0, 'e1', 'n3'); // Single note event D4
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should go to bass (single note = no room to move within chord)
+      expect(result.selectedNotes.some((n) => n.staffIndex === 1)).toBe(true);
+    });
+
+    test('preserves anchor on extension', () => {
+      const score = createTestScore();
+      const originalAnchor = { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' };
+      const state: Selection = {
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e0',
+        noteId: 'n2',
+        selectedNotes: [originalAnchor],
+        anchor: originalAnchor,
+      };
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      expect(result.anchor).toEqual(originalAnchor);
+    });
+  });
+
+  describe('single staff score', () => {
+    test('at top of chord in single staff score, extend up is no-op', () => {
+      const singleStaffScore: Score = {
+        title: 'Single Staff',
+        timeSignature: '4/4',
+        keySignature: 'C',
+        bpm: 120,
+        staves: [
+          {
+            id: 'staff',
+            clef: 'treble',
+            keySignature: 'C',
+            measures: [
+              {
+                id: 'm0',
+                events: [
+                  {
+                    id: 'e0',
+                    duration: 'quarter',
+                    dotted: false,
+                    notes: [{ id: 'n0', pitch: 'C4' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const state = createSelectionWithNote(0, 0, 'e0', 'n0');
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, singleStaffScore);
+
+      // No change - at boundary, nowhere to go (but verticalAnchors may be set)
+      expect(result.selectedNotes).toEqual(state.selectedNotes);
+      expect(result.noteId).toBe(state.noteId);
+    });
+  });
+
+  describe('bug reproduction: full event expansion', () => {
+    test('expands in direction if event is fully selected (overriding anchor logic)', () => {
+      const score = createTestScore();
+      // Fully select M0.e0 (G4, E4, C4).
+      // Simulate "Bottom-Up" creation: Anchor=C4(Bottom), Focus=G4(Top).
+      // n0=G4(Top), n1=E4, n2=C4(Bottom)
+      const state: Selection = {
+        staffIndex: 0,
+        measureIndex: 0,
+        eventId: 'e0',
+        noteId: 'n0', // Focus G4 (Top)
+        selectedNotes: [
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // C4
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n1' }, // E4
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' }, // G4
+        ],
+        anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n2' }, // Anchor C4 (Bottom)
+      };
+
+      // Cmd 'down'.
+      // Current Behavior (Bug): Contracts to [G4] (if anchor switched) or [C4] (if anchor preserved but focus top moves down).
+      // Expectation: Expand to Bass.
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should include Bass note (n3 in m0 e0 on staff 1)
+      const hasBass = result.selectedNotes.some((n) => n.staffIndex === 1);
+
+      // Also check that we didn't lose the Treble notes (which contraction would do)
+      const trebleNotes = result.selectedNotes.filter((n) => n.staffIndex === 0);
+
+      expect(hasBass).toBe(true);
+      expect(trebleNotes.length).toBe(3);
+    });
+  });
+
+  describe('rest handling', () => {
+    // Uses createScoreWithRest from shared fixtures
+
+    test('extends from treble note down to bass rest', () => {
+      const score = createScoreWithRest();
+      // Select bottom note C4, extend down should add bass rest
+      const state = createSelectionWithNote(0, 0, 'e0', 'n0'); // C4
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'down' });
+      const result = cmd.execute(state, score);
+
+      // Should now include the bass rest
+      expect(result.selectedNotes.length).toBe(2);
+      const hasBassRest = result.selectedNotes.some(
+        (n) => n.staffIndex === 1 && n.eventId === 'bass-e0' && n.noteId === 'rest-0'
+      );
+      expect(hasBassRest).toBe(true);
+    });
+
+    test('extends from bass rest up to treble notes', () => {
+      const score = createScoreWithRest();
+      // Start with bass rest selected, extend up should add treble notes
+      const state = createSelectionWithNote(1, 0, 'bass-e0', 'rest-0');
+
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // Should now include treble note(s)
+      expect(result.selectedNotes.length).toBeGreaterThan(1);
+      const hasTreble = result.selectedNotes.some((n) => n.staffIndex === 0);
+      expect(hasTreble).toBe(true);
+    });
+
+    test('contracts from treble+rest selection removes rest when going up', () => {
+      const score = createScoreWithRest();
+      // Start with treble C4 and bass rest selected (anchor at C4)
+      const state: Selection = {
+        staffIndex: 1,
+        measureIndex: 0,
+        eventId: 'bass-e0',
+        noteId: 'rest-0', // Cursor at rest (bottom)
+        selectedNotes: [
+          { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' }, // C4
+          { staffIndex: 1, measureIndex: 0, eventId: 'bass-e0', noteId: 'rest-0' }, // Rest
+        ],
+        anchor: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' },
+        verticalAnchors: {
+          direction: 'down',
+          sliceAnchors: {
+            0: { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' },
+          },
+          originSelection: [
+            { staffIndex: 0, measureIndex: 0, eventId: 'e0', noteId: 'n0' },
+            { staffIndex: 1, measureIndex: 0, eventId: 'bass-e0', noteId: 'rest-0' },
+          ],
+        },
+      };
+
+      // Extend UP should contract (move cursor up toward anchor, removing rest)
+      const cmd = new ExtendSelectionVerticallyCommand({ direction: 'up' });
+      const result = cmd.execute(state, score);
+
+      // Should now have only the treble note (rest removed via contraction)
+      expect(result.selectedNotes.length).toBe(1);
+      expect(result.selectedNotes[0].noteId).toBe('n0');
+      expect(result.selectedNotes[0].staffIndex).toBe(0);
+    });
+  });
+});

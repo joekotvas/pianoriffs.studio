@@ -10,7 +10,7 @@ import { usePlayback } from '@hooks/usePlayback';
 import { useMIDI } from '@hooks/useMIDI';
 import { useScoreInteraction } from '@hooks/useScoreInteraction';
 import { useSamplerStatus } from '@hooks/useSamplerStatus';
-import { useModifierKeys } from '@hooks/useModifierKeys';
+// import { useModifierKeys } from '@hooks/useModifierKeys';
 import { useTitleEditor } from '@hooks/useTitleEditor';
 
 // Components
@@ -55,30 +55,25 @@ const ScoreEditorContent = ({
   // --- Context & Theme ---
   const { theme } = useTheme();
   const scoreLogic = useScoreContext();
-  const {
-    score,
-    dispatch,
-    pendingClefChange,
-    setPendingClefChange,
-    selection,
-    setSelection,
-    setPreviewNote,
-    activeDuration,
-    isDotted,
-    activeAccidental,
-    scoreRef,
-    updateNotePitch,
-    handleNoteSelection,
-    addChordToMeasure,
-    focusScore,
-  } = scoreLogic;
+
+  // Grouped API destructuring
+  const { score, selection } = scoreLogic.state;
+  const { dispatch, scoreRef } = scoreLogic.engines;
+  const { activeDuration, isDotted, activeAccidental } = scoreLogic.tools;
+  const { select: handleNoteSelection, focus: focusScore } = scoreLogic.navigation;
+  const { addChord: addChordToMeasure, updatePitch: updateNotePitch } = scoreLogic.entry;
+  const { clearSelection, setPreviewNote } = scoreLogic;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { pendingClefChange, setPendingClefChange } = scoreLogic as any; // UI state from context
 
   // --- Local UI State ---
   const [bpm, setBpm] = useState(120);
   const [showHelp, setShowHelp] = useState(false);
   const [isHoveringScore, setIsHoveringScore] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<InstrumentType>('bright');
-  const [errorMsg, setErrorMsg] = useState(null);
+  // Error state temporarily disabled/unused
+  // const [errorMsg, setErrorMsg] = useState(null);
+  const errorMsg = null;
 
   // --- Refs ---
   const toolbarRef = useRef<ToolbarHandle>(null);
@@ -86,7 +81,7 @@ const ScoreEditorContent = ({
 
   // --- Extracted Hooks ---
   const samplerLoaded = useSamplerStatus();
-  const modifierHeld = useModifierKeys();
+  // const modifierHeld = useModifierKeys(); // Unused
   const titleEditor = useTitleEditor(score.title, dispatch);
 
   // --- Complex Hooks ---
@@ -157,14 +152,8 @@ const ScoreEditorContent = ({
   }, [pendingClefChange, dispatch, setPendingClefChange]);
 
   const handleBackgroundClick = useCallback(() => {
-    setSelection({
-      staffIndex: 0,
-      measureIndex: null,
-      eventId: null,
-      noteId: null,
-      selectedNotes: [],
-    });
-  }, [setSelection]);
+    clearSelection();
+  }, [clearSelection]);
 
   const handleHoverChange = useCallback(
     (isHovering: boolean) => {
@@ -288,6 +277,7 @@ const ScoreEditor = ({
 }: {
   scale?: number;
   label?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any;
 }) => {
   return (

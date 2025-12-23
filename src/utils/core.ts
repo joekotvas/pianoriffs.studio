@@ -1,4 +1,14 @@
 import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
+import { Measure, ScoreEvent, Note, Selection } from '@/types';
+
+/**
+ * Basic ID generator.
+ * Uses crypto.randomUUID() when available, falls back to timestamp + random string.
+ */
+export const generateId = (): string =>
+  typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 /**
  * Calculates the duration of a note in quants.
@@ -8,11 +18,17 @@ import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
  * @returns Duration in quants
  */
 export const getNoteDuration = (
-  type: string,
-  dotted: boolean,
-  tuplet?: { ratio: [number, number] }
-) => {
-  const base = NOTE_TYPES[type].duration;
+  duration: string,
+  dotted: boolean = false,
+  tuplet?: {
+    ratio: [number, number];
+    groupSize?: number;
+    position?: number;
+    baseDuration?: string;
+    id?: string;
+  }
+): number => {
+  const base = NOTE_TYPES[duration].duration;
   const dottedValue = dotted ? base * 1.5 : base;
 
   // Apply tuplet ratio if present
@@ -31,7 +47,7 @@ export const getNoteDuration = (
  * @param events - List of events
  * @returns Total quants
  */
-export const calculateTotalQuants = (events: any[]) => {
+export const calculateTotalQuants = (events: ScoreEvent[]) => {
   return events.reduce((acc, event) => {
     return acc + getNoteDuration(event.duration, event.dotted, event.tuplet);
   }, 0);
@@ -82,28 +98,28 @@ export const getBreakdownOfQuants = (quants: number) => {
  * @param newTimeSignature - New time signature string (e.g., '4/4')
  * @returns New list of measures
  */
-export const reflowScore = (measures: any[], newTimeSignature: string) => {
+export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
   const maxQuants = TIME_SIGNATURES[newTimeSignature as keyof typeof TIME_SIGNATURES] || 64;
 
   // 1. Identify if first measure is a pickup
   const isPickup = measures.length > 0 && measures[0].isPickup;
 
   // 2. Flatten all events
-  const allEvents: any[] = [];
-  measures.forEach((m: any) => {
-    m.events.forEach((e: any) => {
+  const allEvents: ScoreEvent[] = [];
+  measures.forEach((m: Measure) => {
+    m.events.forEach((e: ScoreEvent) => {
       // Clone event to avoid mutation issues
       // Reset ties as we will recalculate them
       const event = {
         ...e,
-        notes: e.notes.map((n: any) => ({ ...n, tied: false })),
+        notes: e.notes.map((n: Note) => ({ ...n, tied: false })),
       };
       allEvents.push(event);
     });
   });
 
-  const newMeasures: any[] = [];
-  let currentMeasureEvents: any[] = [];
+  const newMeasures: Measure[] = [];
+  let currentMeasureEvents: ScoreEvent[] = [];
   let currentMeasureQuants = 0;
 
   const commitMeasure = (isPickupMeasure = false) => {
@@ -127,56 +143,42 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
     // NO, a pickup measure is usually *shorter* than the time signature.
     // So we should probably just take the events that were *already* in the pickup measure?
     // But we flattened everything.
-
     // Let's assume we want to preserve the *duration* of the pickup if possible, or just fill it up to the max of the new time sig?
     // If we change 4/4 to 3/4, and pickup was 1 beat. It should stay 1 beat.
     // If we change 4/4 to 3/4, and pickup was 3 beats. It fits.
     // If we change 4/4 to 2/4, and pickup was 3 beats. It overflows.
-
     // BETTER STRATEGY:
     // We need to know which events belonged to the pickup.
     // But we flattened them.
-
     // Note: originalPickupEvents was removed as dead code (only used for unused pickupQuants)
-
     // We consume events from `allEvents` that match the original pickup's duration (or as much as fits in new time sig)
     // Actually, since we flattened `allEvents`, the first N events are from the pickup.
-
     // We iterate `allEvents`. We fill the first measure until we reach the duration of the original pickup,
     // BUT constrained by `maxQuants` of the new time signature.
-
     // TODO: pickupQuants and pickupFilled were removed as dead code.
     // The actual pickup handling uses targetPickupDuration calculated below.
-
     // Let's set a "target duration" for the first measure.
     // If isPickup, target = min(originalPickupDuration, maxQuants).
     // Else target = maxQuants.
-
     // Wait, if we just change time sig, we might want to keep the pickup as is.
     // So target = originalPickupDuration.
     // If originalPickupDuration > maxQuants (e.g. 3 beats pickup going to 2/4), then it MUST be split.
     // So target = min(originalPickupDuration, maxQuants).
-
     // However, `reflowScore` is also used when we add/remove notes?
     // If we add a note to a pickup, it grows.
     // If we add a note to a normal measure, it overflows.
-
     // If `reflowScore` is called, it means we want to re-distribute.
     // If we have a pickup, we generally want to preserve it as a distinct container that doesn't accept overflow from previous (none) or give overflow to next (unless it exceeds time sig).
-
     // Actually, if we are just reflowing, we should treat the pickup as a "short measure".
     // But how do we know how short it *should* be?
     // It is defined by its content.
-
     // If we are reflowing because of a Time Sig change:
     // We want to preserve the musical content of the pickup.
     // So we calculate the duration of the original pickup.
     // We fill the new first measure up to that duration.
     // Then we close it and mark it as pickup.
-
     // We need to pull events from `allEvents` until we hit `targetPickupDuration`.
     // Since `allEvents` is ordered, we just process them.
-
     // We need a flag in the loop to know we are filling the pickup.
   }
 
@@ -217,7 +219,7 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
             id: Date.now() + Math.random(),
             duration: part.duration,
             dotted: part.dotted,
-            notes: event.notes.map((n: any) => ({ ...n, tied: true })),
+            notes: event.notes.map((n: Note) => ({ ...n, tied: true })),
           };
           currentMeasureEvents.push(newEvent);
         });
@@ -241,7 +243,7 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
             id: Date.now() + Math.random(),
             duration: part.duration,
             dotted: part.dotted,
-            notes: event.notes.map((n: any) => ({ ...n, tied: event.notes[0].tied })),
+            notes: event.notes.map((n: Note) => ({ ...n, tied: event.notes[0].tied })),
           };
 
           // Check if fits in NEW measure (which is standard size)
@@ -282,14 +284,14 @@ export const reflowScore = (measures: any[], newTimeSignature: string) => {
 /**
  * Helper: Robust check for rest event
  */
-export const isRestEvent = (event: any): boolean => {
+export const isRestEvent = (event: ScoreEvent): boolean => {
   return !!event.isRest;
 };
 
 /**
  * Helper: Robust check for note event (has at least one pitch)
  */
-export const isNoteEvent = (event: any): boolean => {
+export const isNoteEvent = (event: ScoreEvent): boolean => {
   return !isRestEvent(event) && event.notes?.length > 0;
 };
 
@@ -297,8 +299,8 @@ export const isNoteEvent = (event: any): boolean => {
  * Helper to get noteId for an event.
  * Returns ID for first note (pitch or rest).
  */
-export const getFirstNoteId = (event: any): string | number | null => {
-  if (!event.notes?.length) return null;
+export const getFirstNoteId = (event: ScoreEvent | undefined | null): string | number | null => {
+  if (!event || !event.notes?.length) return null;
   return event.notes[0].id; // Rests now have notes, so this works for both
 };
 
@@ -306,18 +308,14 @@ export const getFirstNoteId = (event: any): string | number | null => {
  * Navigates the selection horizontally (left/right).
  * Vertical navigation (up/down) is handled by calculateVerticalNavigation in interaction.ts.
  */
-export const navigateSelection = (
-  measures: any[],
-  selection: any,
-  direction: string
-) => {
+export const navigateSelection = (measures: Measure[], selection: Selection, direction: string) => {
   const { measureIndex, eventId } = selection;
   if (measureIndex === null || !eventId) return selection;
 
   const measure = measures[measureIndex];
   if (!measure) return selection;
 
-  const eventIdx = measure.events.findIndex((e: any) => e.id === eventId);
+  const eventIdx = measure.events.findIndex((e: ScoreEvent) => e.id === eventId);
   if (eventIdx === -1) return selection;
 
   if (direction === 'left') {

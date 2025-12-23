@@ -21,7 +21,7 @@ const isSelectionValid = (score: Score, selection: Selection): boolean => {
 
   const staff = score.staves[selection.staffIndex || 0];
   const measure = staff?.measures[selection.measureIndex];
-  return measure?.events.some((e: any) => e.id === selection.eventId) ?? false;
+  return measure?.events.some((e) => e.id === selection.eventId) ?? false;
 };
 
 /**
