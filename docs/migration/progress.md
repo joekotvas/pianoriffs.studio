@@ -104,7 +104,7 @@ for (let i = 0; i < 16; i++) api.addNote(`C${i % 3 + 4}`, 'sixteenth');
 api.commitTransaction('Scale Run'); // Single undo step
 ```
 
-> **Room for growth**: `batch` events fire synchronously, but `score` and `selection` events still fire via React's `useEffect` (by design). Transaction nesting also isn't supported yet.
+> **Room for growth**: `batch` events fire synchronously, but `score` and `selection` events still fire via React's `useEffect`. Transaction nesting also isn't supported yet.
 
 ---
 
@@ -129,7 +129,7 @@ A multi-stage refactoring effort:
 
 Clean, single-responsibility modules. Each API domain in its own file. Navigation logic tested independently. The codebase was ready to scale.
 
-> **Room for growth**: The factory pattern adds indirection—tracing a bug now spans multiple files. Some test mocks also fell out of sync during refactoring and could use attention.
+> **Room for growth**: `interaction.ts` remains ~400 lines of navigation logic. Further decomposition could make individual behaviors easier to test and extend.
 
 ---
 
