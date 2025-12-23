@@ -53,11 +53,10 @@ export const createHistoryMethods = (
      * Commit the current transaction batch.
      * Bundles buffered commands into a single history entry.
      *
-     * @param _label - Reserved for future use. Currently ignored by the history implementation.
+     * @param label - Optional description for the batch transaction (e.g., "Add Chord")
      */
-    commitTransaction(_label?: string) {
-      // TODO: Pass label to history.commit() when label support is added
-      commit();
+    commitTransaction(label?: string) {
+      commit(label);
       return this;
     },
 

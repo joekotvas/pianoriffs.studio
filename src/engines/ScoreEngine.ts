@@ -80,6 +80,7 @@ export class ScoreEngine {
     if (batchCommand instanceof BatchCommand) {
       const payload: BatchEventPayload = {
         type: 'batch',
+        label: batchCommand.label,
         timestamp: Date.now(),
         commands: batchCommand.commands.map((cmd) => ({
           type: cmd.type,

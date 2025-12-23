@@ -133,7 +133,7 @@ export interface ScoreHistoryGroup {
   undo: () => void;
   redo: () => void;
   begin: () => void;
-  commit: () => void;
+  commit: (label?: string) => void;
   rollback: () => void;
 }
 

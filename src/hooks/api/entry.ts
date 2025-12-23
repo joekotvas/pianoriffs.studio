@@ -5,7 +5,7 @@ import { AddNoteToEventCommand } from '@/commands/AddNoteToEventCommand';
 import { ApplyTupletCommand } from '@/commands/TupletCommands';
 import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
 import { UpdateNoteCommand } from '@/commands/UpdateNoteCommand';
-import { canAddEventToMeasure, isValidPitch } from '@/utils/validation';
+import { canAddEventToMeasure, isValidPitch, parseDuration } from '@/utils/validation';
 import { generateId } from '@/utils/core';
 import { createNotePayload } from '@/utils/entry';
 import { logger, LogLevel } from '@/utils/debug';
@@ -49,6 +49,17 @@ export const createEntryMethods = (
         return this;
       }
 
+      // Validate duration format
+      const validDuration = parseDuration(duration);
+      if (!validDuration) {
+        logger.log(
+          `[RiffScore API] addNote failed: Invalid duration '${duration}'. Expected: 'whole', 'half', 'quarter', 'eighth', etc.`,
+          undefined,
+          LogLevel.WARN
+        );
+        return this;
+      }
+
       const sel = getSelection();
       let staffIndex = sel.staffIndex;
       let measureIndex = sel.measureIndex;
@@ -80,9 +91,9 @@ export const createEntryMethods = (
       }
 
       // Check if measure has capacity for this note
-      if (!canAddEventToMeasure(measure.events, duration, dotted)) {
+      if (!canAddEventToMeasure(measure.events, validDuration, dotted)) {
         logger.log(
-          `[RiffScore API] addNote failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${duration} note.`,
+          `[RiffScore API] addNote failed: Measure ${measureIndex + 1} is full. Cannot add ${dotted ? 'dotted ' : ''}${validDuration} note.`,
           undefined,
           LogLevel.WARN
         );
@@ -99,7 +110,7 @@ export const createEntryMethods = (
           measureIndex,
           false,
           note,
-          duration,
+          validDuration,
           dotted,
           undefined,
           eventId,
