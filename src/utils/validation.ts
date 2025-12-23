@@ -55,7 +55,7 @@ export const parseDuration = (duration: string): string | null => {
 
 /**
  * Clamps a BPM value to the allowed range (default 30-300).
- * parses string inputs.
+ * Parses string inputs.
  */
 export const clampBpm = (bpm: number | string, min = 30, max = 300): number => {
   const val = typeof bpm === 'string' ? parseFloat(bpm) : bpm;
