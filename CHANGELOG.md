@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Selection Handler Consolidation**: Unified selection dispatch paths, deprecated direct `setSelection` calls ([#136](https://github.com/joekotvas/RiffScore/pull/136), [#135](https://github.com/joekotvas/RiffScore/issues/135))
 
 ### Documentation
-- **7 New Documentation Pages**: SELECTION.md, API.md, COOKBOOK.md, LAYOUT_ENGINE.md, COMMANDS.md, DATA_MODEL.md, TESTING.md ([#110](https://github.com/joekotvas/RiffScore/pull/110), [#88](https://github.com/joekotvas/RiffScore/issues/88))
+- **7 New Documentation Pages**: [SELECTION.md](docs/SELECTION.md), [API.md](docs/API.md), [COOKBOOK.md](docs/COOKBOOK.md), [LAYOUT_ENGINE.md](docs/LAYOUT_ENGINE.md), [COMMANDS.md](docs/COMMANDS.md), [DATA_MODEL.md](docs/DATA_MODEL.md), [TESTING.md](docs/TESTING.md) ([#110](https://github.com/joekotvas/RiffScore/pull/110), [#88](https://github.com/joekotvas/RiffScore/issues/88))
 - **8 Architecture Decision Records**:
     - ADR-001: Slice-based vertical selection ([#111](https://github.com/joekotvas/RiffScore/pull/111))
     - ADR-002: Event subscriptions observer pattern
