@@ -114,7 +114,7 @@ describe('MusicXML Clef Export', () => {
                     duration: 'quarter',
                     dotted: false,
                     notes: [
-                      { id: 'note-1', pitch: null as unknown as string },
+                      { id: 'note-1', pitch: null },
                       { id: 'note-2', pitch: 'D4' },
                     ],
                   },
