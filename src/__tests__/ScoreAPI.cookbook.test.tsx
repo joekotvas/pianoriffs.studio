@@ -26,10 +26,7 @@ const getAPI = (id: string): MusicEditorAPI => {
 
 /** Count total events across all measures in a staff */
 const countEventsInStaff = (score: Score, staffIndex: number = 0): number => {
-  return score.staves[staffIndex].measures.reduce(
-    (sum, m) => sum + m.events.length,
-    0
-  );
+  return score.staves[staffIndex].measures.reduce((sum, m) => sum + m.events.length, 0);
 };
 
 /** Count events in a specific measure */
