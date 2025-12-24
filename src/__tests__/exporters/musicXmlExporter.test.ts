@@ -96,5 +96,41 @@ describe('MusicXML Clef Export', () => {
       expect(xml).toContain('<sign>G</sign>');
       expect(xml).toContain('<line>2</line>');
     });
+
+    it('skips notes with null pitch without errors', () => {
+      const score: Score = {
+        ...createScoreWithClef('treble'),
+        staves: [
+          {
+            id: 'staff-1',
+            clef: 'treble',
+            keySignature: 'C',
+            measures: [
+              {
+                id: 'measure-1',
+                events: [
+                  {
+                    id: 'event-1',
+                    duration: 'quarter',
+                    dotted: false,
+                    notes: [
+                      { id: 'note-1', pitch: null as unknown as string },
+                      { id: 'note-2', pitch: 'D4' },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      // Should not throw and should export the valid note
+      const xml = generateMusicXML(score);
+
+      expect(xml).toContain('<score-partwise');
+      expect(xml).toContain('<step>D</step>');
+      expect(xml).toContain('<octave>4</octave>');
+    });
   });
 });
