@@ -1,10 +1,10 @@
 import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
-import { ScoreContextType } from '@/context/ScoreContext';
+import { UseScoreLogicGroupedReturn } from '@/hooks/score/types';
 
 /**
  * Handles mutation keyboard shortcuts (Enter, Delete, Accidentals, Ties, Transposition, Undo/Redo).
  */
-export const handleMutation = (e: KeyboardEvent, logic: ScoreContextType) => {
+export const handleMutation = (e: KeyboardEvent, logic: UseScoreLogicGroupedReturn) => {
   // Access grouped API from logic
   const { selection, previewNote, editorState } = logic.state;
   const { undo, redo } = logic.historyAPI;

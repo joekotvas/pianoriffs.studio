@@ -4,26 +4,13 @@ import { handleNavigation } from './handlers/handleNavigation';
 import { handleMutation } from './handlers/handleMutation';
 import { getActiveStaff, ScoreEvent, Note, SelectedNote } from '@/types';
 import { UseScoreLogicGroupedReturn } from '@/hooks/score/types';
+import { UsePlaybackReturn } from './usePlayback';
 import {
   SelectAllInEventCommand,
   ClearSelectionCommand,
   SelectAllCommand,
   ExtendSelectionVerticallyCommand,
 } from '@/commands/selection';
-
-/**
- * Playback state returned by usePlayback hook
- */
-interface PlaybackState {
-  isPlaying: boolean;
-  playbackPosition: { measureIndex: number | null; quant: number | null; duration: number };
-  playScore: (startMeasureIndex?: number, startQuant?: number) => Promise<void>;
-  stopPlayback: () => void;
-  pausePlayback: () => void;
-  handlePlayToggle: () => void;
-  lastPlayStart: { measureIndex: number; quant: number };
-  instrumentState: string;
-}
 
 /**
  * Hook to handle global keyboard shortcuts.
@@ -44,7 +31,7 @@ interface UIState {
 
 export const useKeyboardShortcuts = (
   logic: UseScoreLogicGroupedReturn,
-  playback: PlaybackState,
+  playback: UsePlaybackReturn,
   meta: UIState,
   handlers: { handleTitleCommit: () => void }
 ) => {

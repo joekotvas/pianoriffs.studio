@@ -11,7 +11,7 @@ import { Score, Staff } from '@/types';
 interface UseGrandStaffLayoutProps {
   score: Score;
   playbackPosition: { measureIndex: number | null; quant: number | null; duration: number };
-  activeStaff: Staff; // Using activeStaff from ScoreCanvas for now
+  _activeStaff: Staff; // Prefixed with underscore as it's currently unused (reserved for future use)
   keySignature: string;
   clef: string;
 }
@@ -19,7 +19,7 @@ interface UseGrandStaffLayoutProps {
 export const useGrandStaffLayout = ({
   score,
   playbackPosition,
-  _activeStaff,
+  _activeStaff, // Currently unused, reserved for future cross-staff layout enhancements
   keySignature,
   clef: _clef, // Parameter kept for API compatibility; may be used in future implementations
 }: UseGrandStaffLayoutProps) => {

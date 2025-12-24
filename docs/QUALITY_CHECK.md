@@ -31,7 +31,7 @@ npm run lint:fix    # Auto-fix where possible
 
 ### TypeScript Errors
 ```bash
-npx tsc --noEmit
+npx tsc --noEmit 2>&1
 ```
 - [ ] Zero type errors in changed files
 

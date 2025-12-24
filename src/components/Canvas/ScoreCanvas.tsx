@@ -120,7 +120,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     useGrandStaffLayout({
       score,
       playbackPosition,
-      activeStaff,
+      _activeStaff: activeStaff,
       keySignature,
       clef,
     });
