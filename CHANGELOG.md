@@ -5,6 +5,12 @@ All notable changes to RiffScore will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.0-alpha.5] - 2025-12-23
+
+### Fixed
+- **MusicXML Export Null Safety**: Added null guard for `note.pitch` to handle unpitched notes without crashing ([#158](https://github.com/joekotvas/RiffScore/pull/158), [#157](https://github.com/joekotvas/RiffScore/issues/157))
+- **Cookbook Test Validation**: Comprehensive fixes to cookbook examples and test coverage ([#156](https://github.com/joekotvas/RiffScore/pull/156))
+
 ## [1.0.0-alpha.4] - 2025-12-23
 
 ### New Features & Enhancements

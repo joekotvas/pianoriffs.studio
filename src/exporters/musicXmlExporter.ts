@@ -115,6 +115,11 @@ export const generateMusicXML = (score: Score) => {
         } else {
           // NOTES / CHORDS
           event.notes.forEach((note: ScoreEvent['notes'][number], nIndex: number) => {
+            // Skip notes without a valid pitch (e.g., unpitched percussion)
+            if (!note.pitch) {
+              return;
+            }
+
             const isChord = nIndex > 0;
             const step = note.pitch.charAt(0);
             const octave = note.pitch.slice(-1);

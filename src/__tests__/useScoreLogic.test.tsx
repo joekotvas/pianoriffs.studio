@@ -3,6 +3,10 @@
  *
  * Tests for core score logic: add, delete, duration change, accidental toggle.
  *
+ * Note: The `state.score` pattern reflects the grouped API structure introduced
+ * in the Phase 7 refactor. State is accessed via `result.current.state.score`
+ * rather than `result.current.score` directly.
+ *
  * @see useScoreLogic
  */
 

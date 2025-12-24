@@ -1,9 +1,10 @@
 import { Command } from './types';
 import { Score } from '@/types';
+import { clampBpm } from '@/utils/validation';
 
 /**
  * Command to update the score's BPM (Beats Per Minute).
- * BPM is clamped to a valid range of 10-500.
+ * BPM is clamped to a valid range using the shared validation utility.
  */
 export class SetBpmCommand implements Command {
   public readonly type = 'SET_BPM';
@@ -14,10 +15,8 @@ export class SetBpmCommand implements Command {
   execute(score: Score): Score {
     this.previousBpm = score.bpm || 120;
 
-    // Clamp BPM to valid range (10-500)
-    const safeBpm = Math.max(10, Math.min(500, this.bpm));
-
-    score.bpm = safeBpm;
+    // Use shared validation utility for consistent BPM range
+    score.bpm = clampBpm(this.bpm);
     return score;
   }
 

@@ -39,6 +39,9 @@ jest.mock('../components/Canvas/Staff', () => {
 describe('ScoreCanvas', () => {
   const mockScore = createDefaultScore();
 
+  // TODO: Extract this large mock context to a shared test helper factory
+  // to improve maintainability and reduce duplication across test files.
+  // See: src/__tests__/fixtures/ for existing test fixture patterns.
   const mockContextValue: any = {
     // Grouped API
     state: {

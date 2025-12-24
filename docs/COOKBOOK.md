@@ -6,58 +6,82 @@
 
 > **See also**: [API Reference](./API.md) • [Configuration](./CONFIGURATION.md)
 
-> [!NOTE]
-> Recipes marked ✅ **work now**. Recipes marked ⏳ require **pending API methods**.
-
 ---
 
-## 1. Entry Recipes ✅
+## 1. Entry Recipes
 
-### Write a C Major Scale ✅
+### Write a C Major Scale
+
+In 4/4 time, one measure holds 4 quarter notes. Use `.select()` to advance to the next measure when needed.
 
 ```javascript
-const api = window.riffScore.active;
+const score = window.riffScore.active;
 
-api.select(1)  // Start at measure 1 (1-based)
+// Measure 1: C4-F4
+score.select(1)
    .addNote('C4', 'quarter')
    .addNote('D4', 'quarter')
    .addNote('E4', 'quarter')
-   .addNote('F4', 'quarter')
+   .addNote('F4', 'quarter');
+
+// Measure 2: G4-C5
+score.select(2)
    .addNote('G4', 'quarter')
    .addNote('A4', 'quarter')
    .addNote('B4', 'quarter')
    .addNote('C5', 'quarter');
 ```
 
-### Build a Chord Progression (I-IV-V-I) ✅
+### Write a Scale Using Eighth Notes (Single Measure)
 
 ```javascript
-const api = window.riffScore.active;
+const score = window.riffScore.active;
 
-// Measure 1: C major chord
-api.select(1)
+// All 8 notes fit in one 4/4 measure as eighths
+score.select(1)
+   .addNote('C4', 'eighth')
+   .addNote('D4', 'eighth')
+   .addNote('E4', 'eighth')
+   .addNote('F4', 'eighth')
+   .addNote('G4', 'eighth')
+   .addNote('A4', 'eighth')
+   .addNote('B4', 'eighth')
+   .addNote('C5', 'eighth');
+```
+
+### Build a Chord Progression (I-IV-V-I)
+
+```javascript
+const score = window.riffScore.active;
+
+// Measure 1: C major chord (half note)
+score.select(1)
    .addNote('C4', 'half')
    .addTone('E4')
    .addTone('G4');
 
-// Cursor auto-advances; add F major
-api.addNote('F4', 'half')
+// Same measure: F major (cursor auto-advances after addNote)
+score.addNote('F4', 'half')
    .addTone('A4')
    .addTone('C5');
 
 // Measure 2: G major then C major
-api.addNote('G4', 'half')
+score.select(2)
+   .addNote('G4', 'half')
    .addTone('B4')
-   .addTone('D5')
-   .addNote('C4', 'half')
+   .addTone('D5');
+
+score.addNote('C4', 'half')
    .addTone('E4')
    .addTone('G4');
 ```
 
-### Enter Rests ✅
+### Enter Rests
 
 ```javascript
-api.select(1)
+const score = window.riffScore.active;
+
+score.select(1)
    .addNote('C4', 'quarter')
    .addRest('quarter')
    .addNote('E4', 'quarter')
@@ -68,64 +92,75 @@ api.select(1)
 
 ## 2. Editing Recipes
 
-### Transpose Selection Up an Octave ✅
+### Transpose Selection Up an Octave
 
 ```javascript
-api.selectAll('measure')
+const score = window.riffScore.active;
+
+score.selectAll('measure')
    .transposeDiatonic(7);  // +7 steps = up one octave (diatonic)
 ```
 
-### Change Duration of Selected Notes ⏳
+### Change Duration of Selected Notes
 
 ```javascript
-// PENDING: setDuration() not yet implemented
-api.setDuration('eighth', true);  // true = dotted
+const score = window.riffScore.active;
+
+// First add a note, then modify its duration
+score.select(1).addNote('C4', 'quarter');
+
+// Select the event and change duration
+score.setDuration('eighth', true);  // true = dotted
 ```
 
-### Convert Notes to Rests ✅
+### Convert Notes to Rests
 
 ```javascript
-api.selectAll('measure')
+const score = window.riffScore.active;
+
+score.selectAll('measure')
    .setInputMode('rest');  // Switch to rest entry mode
 ```
 
 ---
 
-## 3. Observability & Batch Operations ⏳
+## 3. Observability & Batch Operations
 
-### Monitor System Health (Observability) ✅
+### Monitor System Health
 
 Listen to the `batch` event to track high-level modifying actions for analytics or debugging, decoupling logic from low-level state changes.
 
 ```javascript
-api.on('batch', (payload) => {
+const score = window.riffScore.active;
+
+score.on('batch', (payload) => {
   console.log(`[${payload.timestamp}] Action: ${payload.label}`);
 });
 ```
 
-### Batch with Transaction (Single Undo Step) ✅
+### Batch with Transaction (Single Undo Step)
 
 ```javascript
-api.beginTransaction();
+const score = window.riffScore.active;
+
+score.select(1);
+score.beginTransaction();
 
 for (let i = 0; i < 16; i++) {
-  api.addNote(`C${(i % 3) + 4}`, 'sixteenth');
+  score.addNote(`C${(i % 3) + 4}`, 'sixteenth');
 }
 
-api.commitTransaction('Add Scale Run');  // All 16 notes = 1 undo step
+score.commitTransaction('Add Scale Run');  // All 16 notes = 1 undo step
 ```
 
 > **Note**: Without transactions, each `addNote` is a separate undo step. Transactions ensure atomicity for complex scripts.
 
-### Fill Measure with Rest ✅
+### Fill Measure with Rest
 
 ```javascript
-api.select(3)  // Measure 3
-   .addRest('whole');
-```
+const score = window.riffScore.active;
 
-```javascript
-api.select(3)  // Measure 3
+score.select(3)  // Measure 3
    .addRest('whole');
 ```
 
@@ -133,13 +168,15 @@ api.select(3)  // Measure 3
 
 ## 4. Validation & Errors
 
-### Safe Input Handling ✅
+### Safe Input Handling
 
 The API validates inputs and logs warnings instead of throwing errors, allowing safe method chaining.
 
 ```javascript
+const score = window.riffScore.active;
+
 // This will log a warning (LogLevel.WARN) and continue
-api.addNote('InvalidPitch')
+score.addNote('InvalidPitch')
    .setBpm(1000) // Clamped to 300
    .setDuration('invalid'); // Ignored
 
@@ -156,10 +193,12 @@ api.addNote('InvalidPitch')
 > **Callback Timing:** Event callbacks fire after React processes state updates (via `useEffect`), not synchronously.
 > This ensures callbacks receive guaranteed-fresh data. See [API.md > Events](./API.md#12-events--subscriptions) for details.
 
-### Auto-Save to Backend ✅
+### Auto-Save to Backend
 
 ```javascript
-const unsub = api.on('score', (newScore) => {
+const score = window.riffScore.active;
+
+const unsub = score.on('score', (newScore) => {
   fetch('/api/scores', {
     method: 'POST',
     body: JSON.stringify(newScore)
@@ -167,60 +206,72 @@ const unsub = api.on('score', (newScore) => {
 });
 ```
 
-### Sync Selection with External UI ✅
+### Sync Selection with External UI
 
 ```javascript
-api.on('selection', (selection) => {
+const score = window.riffScore.active;
+
+score.on('selection', (selection) => {
   if (selection.eventId) {
     highlightInExternalPiano(selection.noteId);
   }
 });
 ```
 
-### React to Batch Operations (Transactions) ✅
+### React to Batch Operations (Transactions)
 
 ```javascript
-api.on('batch', (payload) => {
+const score = window.riffScore.active;
+
+score.on('batch', (payload) => {
   console.log(`Batch "${payload.label}" committed at ${payload.timestamp}`);
   console.log('Commands:', payload.commands.map(c => c.type).join(', '));
   // Use this to sync external state more efficiently than listening to every 'score' event
 });
 ```
 
-### React to Playback Position ✅
+### Control Playback
 
 ```javascript
-// Playback API is now fully integrated with Tone.js
-api.play();  // Start playback
-api.pause(); // Pause (retains position)
-api.stop();  // Stop and reset to beginning
-api.rewind(2); // Jump to measure 2
+const score = window.riffScore.active;
+
+// Playback API is fully integrated with Tone.js
+score.play();     // Start playback
+score.pause();    // Pause (retains position)
+score.stop();     // Stop and reset to beginning
+score.rewind(2);  // Jump to measure 2
 ```
 
 ---
 
-## 5. Export Recipes
+## 6. Export Recipes
 
-### Save as JSON ✅
+### Save as JSON
 
 ```javascript
-const json = api.export('json');
+const score = window.riffScore.active;
+
+const json = score.export('json');
 localStorage.setItem('savedScore', json);
 ```
 
-### Save as MusicXML ✅
+### Save as MusicXML
 
 ```javascript
-const xml = api.export('musicxml');
+const score = window.riffScore.active;
+
+const xml = score.export('musicxml');
 downloadFile('score.musicxml', xml, 'application/xml');
 ```
 
-### Load Saved Score ✅
+### Load Saved Score
 
 ```javascript
+const score = window.riffScore.active;
+
 const saved = localStorage.getItem('savedScore');
 if (saved) {
-  api.loadScore(JSON.parse(saved));
+  score.loadScore(JSON.parse(saved));
 }
 ```
 
@@ -228,53 +279,60 @@ if (saved) {
 
 ---
 
-## 6. Query Recipes ✅
+## 7. Query Recipes
 
-### Get Current Score State ✅
+### Get Current Score State
 
 ```javascript
-const score = api.getScore();
-console.log('Title:', score.title);
-console.log('Measures:', score.staves[0].measures.length);
+const score = window.riffScore.active;
+
+const data = score.getScore();
+console.log('Title:', data.title);
+console.log('Measures:', data.staves[0].measures.length);
 ```
 
-### Get Current Selection ✅
+### Get Current Selection
 
 ```javascript
-const sel = api.getSelection();
+const score = window.riffScore.active;
+
+const sel = score.getSelection();
 console.log('Staff:', sel.staffIndex);
 console.log('Event ID:', sel.eventId);
 console.log('Selected notes:', sel.selectedNotes.length);
 ```
 
-### Get Configuration ✅
+### Get Configuration
 
 ```javascript
-const config = api.getConfig();
+const score = window.riffScore.active;
+
+const config = score.getConfig();
 console.log('BPM:', config.score?.bpm);
 ```
 
 ---
 
-## 7. Multiple Instances ✅
+## 8. Multiple Instances
 
-### Target Specific Editor ✅
+### Target Specific Editor
 
 ```javascript
 // If you have <RiffScore id="left-hand" /> and <RiffScore id="right-hand" />
-const leftApi = window.riffScore.get('left-hand');
-const rightApi = window.riffScore.get('right-hand');
+const leftScore = window.riffScore.get('left-hand');
+const rightScore = window.riffScore.get('right-hand');
 
-leftApi?.addNote('C3', 'quarter');
-rightApi?.addNote('G4', 'quarter');
+leftScore?.addNote('C3', 'quarter');
+rightScore?.addNote('G4', 'quarter');
 ```
 
-### Get Currently Active Editor ✅
+### Get Currently Active Editor
 
 ```javascript
-const api = window.riffScore.active;  // Most recently focused/mounted
-if (api) {
-  api.addNote('C4', 'quarter');
+const score = window.riffScore.active;  // Most recently focused/mounted
+
+if (score) {
+  score.addNote('C4', 'quarter');
 }
 ```
 
