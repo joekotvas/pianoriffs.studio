@@ -5,6 +5,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { useTupletActions } from '@/hooks/useTupletActions';
+import type { Score, Selection } from '@/types';
 
 // Mock ApplyTupletCommand and RemoveTupletCommand
 jest.mock('../commands/TupletCommands', () => ({
@@ -29,33 +30,54 @@ jest.mock('../commands/RemoveTupletCommand', () => ({
 
 describe('useTupletActions', () => {
   // Helper to create a mock score
-  const createMockScore = (events: any[] = []) => ({
-    staves: [
-      {
-        clef: 'treble',
-        measures: [
-          {
-            id: 1,
-            events,
-          },
-        ],
-      },
-    ],
+  const createMockScore = (events: any[] = []): Score =>
+    ({
+      title: 'Test Score',
+      timeSignature: '4/4',
+      keySignature: 'C',
+      bpm: 120,
+      staves: [
+        {
+          id: 'staff-1',
+          clef: 'treble' as const,
+          keySignature: 'C',
+          measures: [
+            {
+              id: 1,
+              events,
+            },
+          ],
+        },
+      ],
+    }) as Score;
+
+  // Helper to create a mock selection
+  const createMockSelection = (
+    measureIndex: number | null,
+    eventId: string | null,
+    noteId: string | null = null
+  ): Selection => ({
+    staffIndex: 0,
+    measureIndex,
+    eventId,
+    noteId,
+    selectedNotes: [],
   });
 
   // Helper to create events
   const createEvent = (id: string, hasTuplet = false) => ({
     id,
     duration: 'quarter',
+    dotted: false,
     notes: [{ id: `${id}-note`, pitch: 'C4' }],
-    tuplet: hasTuplet ? { ratio: [3, 2], groupIndex: 0, groupSize: 3 } : undefined,
+    tuplet: hasTuplet ? { ratio: [3, 2] as [number, number], groupIndex: 0, groupSize: 3 } : undefined,
   });
 
   describe('applyTuplet', () => {
     it('should dispatch ApplyTupletCommand with correct params', () => {
       const events = [createEvent('e1'), createEvent('e2'), createEvent('e3')];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -77,8 +99,8 @@ describe('useTupletActions', () => {
     });
 
     it('should return false if score is not initialized', () => {
-      const scoreRef = { current: null };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: null, staffIndex: 0 };
+      const scoreRef = { current: null as unknown as Score };
+      const selection = createMockSelection(0, 'e1');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -94,7 +116,7 @@ describe('useTupletActions', () => {
     it('should return false if no event is selected', () => {
       const events = [createEvent('e1')];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 };
+      const selection = createMockSelection(null, null);
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -108,7 +130,7 @@ describe('useTupletActions', () => {
     it('should return false if not enough events for tuplet group', () => {
       const events = [createEvent('e1'), createEvent('e2')]; // Only 2 events
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -124,7 +146,7 @@ describe('useTupletActions', () => {
     it('should return false if selected event not found', () => {
       const events = [createEvent('e1')];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'nonexistent', noteId: null, staffIndex: 0 };
+      const selection = createMockSelection(0, 'nonexistent');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -140,7 +162,7 @@ describe('useTupletActions', () => {
         .fill(null)
         .map((_, i) => createEvent(`e${i}`));
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e0', noteId: 'e0-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e0', 'e0-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -162,7 +184,7 @@ describe('useTupletActions', () => {
     it('should dispatch RemoveTupletCommand for event with tuplet', () => {
       const events = [createEvent('e1', true)]; // Has tuplet
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -184,7 +206,7 @@ describe('useTupletActions', () => {
     it('should return false if event has no tuplet', () => {
       const events = [createEvent('e1', false)]; // No tuplet
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -198,8 +220,8 @@ describe('useTupletActions', () => {
     });
 
     it('should return false if score is not initialized', () => {
-      const scoreRef = { current: null };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: null, staffIndex: 0 };
+      const scoreRef = { current: null as unknown as Score };
+      const selection = createMockSelection(0, 'e1');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -215,7 +237,7 @@ describe('useTupletActions', () => {
     it('should return true when enough events are available', () => {
       const events = [createEvent('e1'), createEvent('e2'), createEvent('e3')];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -227,7 +249,7 @@ describe('useTupletActions', () => {
     it('should return false when not enough events', () => {
       const events = [createEvent('e1'), createEvent('e2')];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -239,7 +261,7 @@ describe('useTupletActions', () => {
     it('should return false if no selection', () => {
       const events = [createEvent('e1')];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 };
+      const selection = createMockSelection(null, null);
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -251,7 +273,7 @@ describe('useTupletActions', () => {
       const events = [createEvent('e1'), createEvent('e2'), createEvent('e3')];
       const scoreRef = { current: createMockScore(events) };
       // Select last event - only 1 event from here
-      const selection = { measureIndex: 0, eventId: 'e3', noteId: 'e3-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e3', 'e3-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -265,7 +287,7 @@ describe('useTupletActions', () => {
     it('should return tuplet ratio for event with tuplet', () => {
       const events = [createEvent('e1', true)];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -276,7 +298,7 @@ describe('useTupletActions', () => {
     it('should return null for event without tuplet', () => {
       const events = [createEvent('e1', false)];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: 'e1-note', staffIndex: 0 };
+      const selection = createMockSelection(0, 'e1', 'e1-note');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -287,7 +309,7 @@ describe('useTupletActions', () => {
     it('should return null if no selection', () => {
       const events = [createEvent('e1', true)];
       const scoreRef = { current: createMockScore(events) };
-      const selection = { measureIndex: null, eventId: null, noteId: null, staffIndex: 0 };
+      const selection = createMockSelection(null, null);
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));
@@ -296,8 +318,8 @@ describe('useTupletActions', () => {
     });
 
     it('should return null if score not initialized', () => {
-      const scoreRef = { current: null };
-      const selection = { measureIndex: 0, eventId: 'e1', noteId: null, staffIndex: 0 };
+      const scoreRef = { current: null as unknown as Score };
+      const selection = createMockSelection(0, 'e1');
       const dispatch = jest.fn();
 
       const { result } = renderHook(() => useTupletActions(scoreRef, selection, dispatch));

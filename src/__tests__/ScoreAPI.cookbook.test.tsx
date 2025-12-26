@@ -552,7 +552,7 @@ describe('Cookbook: Export Recipes', () => {
       staves: [
         {
           id: 'staff-1',
-          clef: 'treble',
+          clef: 'treble' as const,
           keySignature: 'G',
           measures: [{ id: 'm1', events: [] }],
         },

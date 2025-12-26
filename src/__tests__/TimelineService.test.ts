@@ -8,34 +8,43 @@
  */
 
 import { createTimeline } from '@/services/TimelineService';
+import type { Score } from '@/types';
 
 describe('TimelineService', () => {
-  const mockScore = {
+  const mockScore: Score = {
     title: 'Test Score',
     timeSignature: '4/4',
     keySignature: 'C',
+    bpm: 120,
     staves: [
       {
+        id: 'staff-1',
+        clef: 'treble' as const,
+        keySignature: 'C',
         measures: [
           {
             id: 1,
             events: [
               {
+                id: 'e1',
                 duration: 'quarter',
                 dotted: false,
                 notes: [{ id: 'n1', pitch: 'C4', tied: false }],
               },
               {
+                id: 'e2',
                 duration: 'quarter',
                 dotted: false,
                 notes: [{ id: 'n2', pitch: 'D4', tied: false }],
               },
               {
+                id: 'e3',
                 duration: 'quarter',
                 dotted: false,
                 notes: [{ id: 'n3', pitch: 'E4', tied: false }],
               },
               {
+                id: 'e4',
                 duration: 'quarter',
                 dotted: false,
                 notes: [{ id: 'n4', pitch: 'F4', tied: false }],
@@ -61,20 +70,25 @@ describe('TimelineService', () => {
   });
 
   test('handles tied notes across events', () => {
-    const tiedScore = {
+    const tiedScore: Score = {
       ...mockScore,
       staves: [
         {
+          id: 'staff-1',
+          clef: 'treble' as const,
+          keySignature: 'C',
           measures: [
             {
               id: 1,
               events: [
                 {
+                  id: 'e1',
                   duration: 'quarter',
                   dotted: false,
                   notes: [{ id: 'n1', pitch: 'C4', tied: true }],
                 },
                 {
+                  id: 'e2',
                   duration: 'quarter',
                   dotted: false,
                   notes: [{ id: 'n2', pitch: 'C4', tied: false }],
@@ -96,19 +110,22 @@ describe('TimelineService', () => {
   });
 
   test('handles pickup measures', () => {
-    const pickupScore = {
+    const pickupScore: Score = {
       ...mockScore,
       staves: [
         {
+          id: 'staff-1',
+          clef: 'treble' as const,
+          keySignature: 'C',
           measures: [
             {
               id: 1,
               isPickup: true,
-              events: [{ duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] }],
+              events: [{ id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] }],
             },
             {
               id: 2,
-              events: [{ duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }] }],
+              events: [{ id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }] }],
             },
           ],
         },
@@ -127,24 +144,30 @@ describe('TimelineService', () => {
   });
 
   test('handles Grand Staff synchronization', () => {
-    const grandScore = {
+    const grandScore: Score = {
       ...mockScore,
       staves: [
         {
+          id: 'staff-1',
+          clef: 'treble' as const,
+          keySignature: 'C',
           measures: [
             {
               id: 'm1',
-              events: [{ duration: 'half', notes: [{ id: 's1n1', pitch: 'C4' }] }],
+              events: [{ id: 'e1', duration: 'half', dotted: false, notes: [{ id: 's1n1', pitch: 'C4' }] }],
             },
           ],
         },
         {
+          id: 'staff-2',
+          clef: 'bass' as const,
+          keySignature: 'C',
           measures: [
             {
               id: 'm1_bass',
               events: [
-                { duration: 'quarter', notes: [{ id: 's2n1', pitch: 'C3' }] },
-                { duration: 'quarter', notes: [{ id: 's2n2', pitch: 'G3' }] },
+                { id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 's2n1', pitch: 'C3' }] },
+                { id: 'e3', duration: 'quarter', dotted: false, notes: [{ id: 's2n2', pitch: 'G3' }] },
               ],
             },
           ],
@@ -171,23 +194,28 @@ describe('TimelineService', () => {
   });
 
   test('handles cross-measure ties properly (adjacent)', () => {
-    const adjacentScore = {
+    const adjacentScore: Score = {
       ...mockScore,
       timeSignature: '2/4', // Measures are 2 beats long (32 quants)
       staves: [
         {
+          id: 'staff-1',
+          clef: 'treble' as const,
+          keySignature: 'C',
           measures: [
             {
               id: 1,
               events: [
                 // Event 1: Quarter Note (0-1s)
                 {
+                  id: 'e1',
                   duration: 'quarter',
                   dotted: false,
                   notes: [{ id: 'n_pad', pitch: 'G4', tied: false }],
                 },
                 // Event 2: Quarter Note (1-2s). Ends at 2.0s. Tied.
                 {
+                  id: 'e2',
                   duration: 'quarter',
                   dotted: false,
                   notes: [{ id: 'n1', pitch: 'C4', tied: true }],
@@ -199,6 +227,7 @@ describe('TimelineService', () => {
               events: [
                 // Event 3: Quarter Note (starts at 2.0s). Tied target.
                 {
+                  id: 'e3',
                   duration: 'quarter',
                   dotted: false,
                   notes: [{ id: 'n2', pitch: 'C4', tied: false }],
