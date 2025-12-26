@@ -33,9 +33,10 @@ describe('useTupletActions', () => {
   // Helper to create events (test-specific)
   const createEvent = (id: string, hasTuplet = false) =>
     createTestEvent(id, [{ id: `${id}-note`, pitch: 'C4' }], {
-      ...(hasTuplet && {
-        // Tuplet data must be added manually since createTestEvent doesn't support it
-      }),
+      ...(hasTuplet &&
+        {
+          // Tuplet data must be added manually since createTestEvent doesn't support it
+        }),
     });
 
   // Helper to add tuplet after creation

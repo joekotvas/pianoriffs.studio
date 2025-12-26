@@ -121,11 +121,25 @@ describe('TimelineService', () => {
             {
               id: 1,
               isPickup: true,
-              events: [{ id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] }],
+              events: [
+                {
+                  id: 'e1',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [{ id: 'n1', pitch: 'C4' }],
+                },
+              ],
             },
             {
               id: 2,
-              events: [{ id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }] }],
+              events: [
+                {
+                  id: 'e2',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [{ id: 'n2', pitch: 'D4' }],
+                },
+              ],
             },
           ],
         },
@@ -154,7 +168,9 @@ describe('TimelineService', () => {
           measures: [
             {
               id: 'm1',
-              events: [{ id: 'e1', duration: 'half', dotted: false, notes: [{ id: 's1n1', pitch: 'C4' }] }],
+              events: [
+                { id: 'e1', duration: 'half', dotted: false, notes: [{ id: 's1n1', pitch: 'C4' }] },
+              ],
             },
           ],
         },
@@ -166,8 +182,18 @@ describe('TimelineService', () => {
             {
               id: 'm1_bass',
               events: [
-                { id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 's2n1', pitch: 'C3' }] },
-                { id: 'e3', duration: 'quarter', dotted: false, notes: [{ id: 's2n2', pitch: 'G3' }] },
+                {
+                  id: 'e2',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [{ id: 's2n1', pitch: 'C3' }],
+                },
+                {
+                  id: 'e3',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [{ id: 's2n2', pitch: 'G3' }],
+                },
               ],
             },
           ],

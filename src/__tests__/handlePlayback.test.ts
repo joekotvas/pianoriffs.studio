@@ -70,22 +70,12 @@ describe('handlePlayback', () => {
     const mockEvent = createMockKeyboardEvent({ code: 'Space', key: ' ' });
 
     // Start playback
-    handlePlayback(
-      mockEvent as unknown as KeyboardEvent,
-      mockPlayback,
-      selection,
-      mockScore
-    );
+    handlePlayback(mockEvent as unknown as KeyboardEvent, mockPlayback, selection, mockScore);
     expect(mockPlayback.playScore).toHaveBeenCalled();
 
     // Stop playback
     mockPlayback.isPlaying = true;
-    handlePlayback(
-      mockEvent as unknown as KeyboardEvent,
-      mockPlayback,
-      selection,
-      mockScore
-    );
+    handlePlayback(mockEvent as unknown as KeyboardEvent, mockPlayback, selection, mockScore);
     expect(mockPlayback.pausePlayback).toHaveBeenCalled();
   });
 

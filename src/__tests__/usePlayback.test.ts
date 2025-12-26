@@ -46,11 +46,25 @@ describe('usePlayback', () => {
           measures: [
             {
               id: 'm1',
-              events: [{ id: 'e1', notes: [{ id: 'n1', pitch: 'C4' }], duration: 'quarter', dotted: false }],
+              events: [
+                {
+                  id: 'e1',
+                  notes: [{ id: 'n1', pitch: 'C4' }],
+                  duration: 'quarter',
+                  dotted: false,
+                },
+              ],
             },
             {
               id: 'm2',
-              events: [{ id: 'e2', notes: [{ id: 'n2', pitch: 'D4' }], duration: 'quarter', dotted: false }],
+              events: [
+                {
+                  id: 'e2',
+                  notes: [{ id: 'n2', pitch: 'D4' }],
+                  duration: 'quarter',
+                  dotted: false,
+                },
+              ],
             },
           ],
         },

@@ -41,15 +41,17 @@ export const DEFAULT_SCORE_PROPS = {
  * // Score with custom measures
  * const score = createTestScore({ measures: [{ id: 'm1', events: [] }] });
  */
-export function createTestScore(options: {
-  title?: string;
-  timeSignature?: string;
-  keySignature?: string;
-  bpm?: number;
-  events?: ScoreEvent[];
-  measures?: Measure[];
-  staves?: Staff[];
-} = {}): Score {
+export function createTestScore(
+  options: {
+    title?: string;
+    timeSignature?: string;
+    keySignature?: string;
+    bpm?: number;
+    events?: ScoreEvent[];
+    measures?: Measure[];
+    staves?: Staff[];
+  } = {}
+): Score {
   const {
     title = DEFAULT_SCORE_PROPS.title,
     timeSignature = DEFAULT_SCORE_PROPS.timeSignature,
@@ -124,10 +126,12 @@ export function createTestScore(options: {
 /**
  * Creates a grand staff score (treble + bass).
  */
-export function createGrandStaffScore(options: {
-  trebleEvents?: ScoreEvent[];
-  bassEvents?: ScoreEvent[];
-} = {}): Score {
+export function createGrandStaffScore(
+  options: {
+    trebleEvents?: ScoreEvent[];
+    bassEvents?: ScoreEvent[];
+  } = {}
+): Score {
   return {
     ...DEFAULT_SCORE_PROPS,
     staves: [
@@ -230,12 +234,8 @@ export function createTestSelection(
     measureIndex,
     eventId,
     noteId,
-    selectedNotes: hasSelection
-      ? [{ staffIndex, measureIndex, eventId, noteId }]
-      : [],
-    anchor: hasSelection
-      ? { staffIndex, measureIndex, eventId, noteId }
-      : null,
+    selectedNotes: hasSelection ? [{ staffIndex, measureIndex, eventId, noteId }] : [],
+    anchor: hasSelection ? { staffIndex, measureIndex, eventId, noteId } : null,
   };
 }
 
@@ -250,14 +250,16 @@ export function createTestSelection(
  * const event = createMockKeyboardEvent({ key: 'p' });
  * handlePlayback(event, ...);
  */
-export function createMockKeyboardEvent(overrides: {
-  key?: string;
-  code?: string;
-  shiftKey?: boolean;
-  ctrlKey?: boolean;
-  metaKey?: boolean;
-  altKey?: boolean;
-} = {}): { preventDefault: jest.Mock; stopPropagation: jest.Mock } & typeof overrides {
+export function createMockKeyboardEvent(
+  overrides: {
+    key?: string;
+    code?: string;
+    shiftKey?: boolean;
+    ctrlKey?: boolean;
+    metaKey?: boolean;
+    altKey?: boolean;
+  } = {}
+): { preventDefault: jest.Mock; stopPropagation: jest.Mock } & typeof overrides {
   return {
     key: '',
     code: '',
