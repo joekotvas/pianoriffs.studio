@@ -347,13 +347,13 @@ render(
 
 ## 9. Coverage Targets
 
-| Area | Target | Current |
-|------|--------|---------|
-| Services | 95%+ | 98% |
-| Utils | 85%+ | 87% |
-| Commands | 80%+ | 79% |
-| Hooks | 60%+ | 62% |
-| Components | 50%+ | ~45% |
+| Area | Target | Policy |
+|------|--------|--------|
+| **New/Modified Files** | **100%** | **Strictly Enforced** |
+| Legacy Services | 95%+ | Increase with edits |
+| Legacy Utils | 85%+ | Increase with edits |
+| Legacy Commands | 80%+ | Increase with edits |
+| Components | 100% | Via Unit or Integration |
 
 Focus testing effort on:
 1. **Commands**: Business logic

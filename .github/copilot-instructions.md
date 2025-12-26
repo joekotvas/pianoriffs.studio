@@ -12,6 +12,21 @@ RiffScore is a self-hostable, embeddable sheet music editor for React. It provid
 - Build: tsup
 - Testing: Jest with React Testing Library
 
+## Explicit Pattern Governance
+
+**CRITICAL**: The following patterns are strictly enforced. Deviations will be rejected.
+
+| Category | Pattern | Rule |
+| :--- | :--- | :--- |
+| **Identity** | Factory Functions | Use `src/utils/id.ts` (e.g., `noteId()`). NEVER use `uuid()` or `Date.now()`. |
+| **State** | Command Pattern | All mutations MUST use `ScoreEngine.dispatch(new Command)`. No direct state mutation. |
+| **Selection** | Dispatch Only | Selection changes MUST flow through `SelectionEngine.dispatch()`. |
+| **Testing** | Public API | **Integration Tests**: Test via public API (Cookbook Style). **Unit Tests**: Test helpers directly. |
+| **Testing** | Interaction | Use `userEvent` (e.g. `user.click`) instead of `fireEvent`. |
+| **Testing** | Coverage | **100% Coverage** required for all new or significantly modified files. |
+
+For detailed examples, see `docs/CODING_PATTERNS.md`.
+
 ## Project Structure
 
 ```
@@ -172,7 +187,7 @@ chore(eslint): add prettier integration
 
 ## Version Information
 
-- Current version: `1.0.0-alpha.3`
+- Current version: `1.0.0-alpha.5`
 - Follows semantic versioning
 - Published to npm as `riffscore`
 

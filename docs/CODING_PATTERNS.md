@@ -246,6 +246,29 @@ const score = createTestScore();
 
 See also: [docs/TESTING.md](./TESTING.md), [docs/TESTING_ANTIPATTERNS.md](./TESTING_ANTIPATTERNS.md)
 
+### Unit Testing & Coverage
+
+**Policy**: 100% Test Coverage is required for all new files and significant modifications.
+
+- Test all branches, error states, and edge cases.
+- Use `src/__tests__/fixtures` to avoid bootstrapping boilerplate.
+- Do not mock internal helpers if they can be tested directly in unit tests.
+
+```typescript
+// See src/__tests__/verticalStack.test.ts
+import { calculateVerticalMetric } from '@/utils/verticalStack';
+
+describe('calculateVerticalMetric', () => {
+  test('treble notes have higher metric than bass notes', () => {
+    // Test pure logic directly without heavy mocks
+    const trebleC4 = calculateVerticalMetric(0, 60);
+    const bassC3 = calculateVerticalMetric(1, 48);
+
+    expect(trebleC4).toBeGreaterThan(bassC3);
+  });
+});
+```
+
 ### "Cookbook" Integration Tests
 
 
@@ -321,5 +344,85 @@ See also: [docs/CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## 7. Other Utilities
 
-- **Validation:** `src/utils/validation.ts` for checking score integrity.
-- **Selection:** `src/utils/selection.ts` for selection helpers (though often better to use `SelectionEngine` or `SelectionService`).
+### Validation
+
+`src/utils/validation.ts` provides helpers for checking score integrity and input normalization.
+
+```typescript
+// See src/utils/validation.ts
+import { isValidPitch, parseDuration, clampBpm } from '@/utils/validation';
+
+// Validate pitch string (supports scientific notation)
+if (!isValidPitch(userInputPitch)) {
+  console.error('Invalid pitch');
+}
+
+// Normalize duration shorthands ('q' -> 'quarter')
+const dur = parseDuration('q');
+
+// Clamp numeric values
+const safeBpm = clampBpm(1000, 30, 300); // Returns 300
+```
+
+### Selection Helpers
+
+`src/utils/selection.ts` handles low-level selection state logic. For complex dispatching, prefer `SelectionEngine`, but use these helpers for query logic.
+
+```typescript
+// See src/utils/selection.ts
+import { isNoteSelected, toggleNoteInSelection } from '@/utils/selection';
+
+// Check if a specific note is selected (handles multi-select logic)
+const isSelected = isNoteSelected(currentSelection, {
+  staffIndex: 0,
+  measureIndex: 0,
+  eventId: 'e1',
+  noteId: 'n1'
+});
+
+// Calculate new selection state after a click
+const newSelection = toggleNoteInSelection(
+  currentSelection,
+  { staffIndex: 0, measureIndex: 0, eventId: 'e1', noteId: 'n1' },
+  isMultiSelectMode // e.g. shiftKey pressed
+);
+```
+
+---
+
+## 8. TypeScript Patterns
+
+### Strict Typing Rules
+
+- **No `any`**: Strictly forbidden. It defeats the purpose of TypeScript.
+- **Limit `unknown`**: Use `unknown` ONLY for boundary data (e.g., API responses) that behaves like "unsafe input" and requires immediate validation/narrowing via Type Guards.
+- **Explicit Return Types**: All exported functions must have explicit return types. This prevents accidental API surface changes and improves compiler performance.
+
+### Unions Over Enums
+
+Prefer String Unions for finite states. They are lighter, simpler to debug, and serialization-friendly.
+
+```typescript
+// ✅ Good: Simple string union
+type Direction = 'up' | 'down';
+
+// ❌ Avoid: TypeScript Enum
+enum Direction { Up, Down }
+```
+
+### Discriminated Unions
+
+Use Discriminated Unions for all state transitions, commands, and polymorphic data structures. This allows the compiler to exhaustively check cases.
+
+```typescript
+type Action = 
+  | { type: 'SELECT'; id: string }
+  | { type: 'MOVE'; delta: number };
+
+function reduce(action: Action) {
+  switch (action.type) {
+    case 'SELECT': return action.id; // Fully typed
+    case 'MOVE': return action.delta;
+  }
+}
+```
