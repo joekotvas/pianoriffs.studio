@@ -4,7 +4,7 @@
 
 Complete reference for configuring the `<RiffScore />` component.
 
-> **See also**: [API Reference](./API.md) • [Cookbook](./COOKBOOK.md) • [Architecture](./ARCHITECTURE.md)
+> **See also**: [API Reference](./API.md) • [Cookbook](./COOKBOOK.md) • [Architecture](./ARCHITECTURE.md) • [Interaction Design](./INTERACTION.md)
 
 ## Basic Usage
 

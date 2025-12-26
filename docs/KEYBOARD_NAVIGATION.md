@@ -4,7 +4,7 @@
 
 > Detailed technical documentation for the keyboard navigation system in RiffScore.
 
-> **See also**: [Interaction Design](./INTERACTION.md) • [Selection Model](./SELECTION.md) • [Commands](./COMMANDS.md)
+> **See also**: [Interaction Design](./INTERACTION.md) • [Selection Model](./SELECTION.md) • [Commands](./COMMANDS.md) • [Coding Patterns](./CODING_PATTERNS.md)
 
 ## 1. State Model
 

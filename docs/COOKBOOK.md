@@ -4,7 +4,7 @@
 
 > Task-oriented recipes for common use cases.
 
-> **See also**: [API Reference](./API.md) • [Configuration](./CONFIGURATION.md)
+> **See also**: [API Reference](./API.md) • [Configuration](./CONFIGURATION.md) • [Coding Patterns](./CODING_PATTERNS.md)
 
 ---
 

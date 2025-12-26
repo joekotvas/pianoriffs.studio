@@ -4,7 +4,7 @@
 
 > Patterns and practices for testing RiffScore components.
 
-> **See also**: [Contributing](./CONTRIBUTING.md) • [Commands](./COMMANDS.md) • [Data Model](./DATA_MODEL.md)
+> **See also**: [Contributing](./CONTRIBUTING.md) • [Coding Patterns](./CODING_PATTERNS.md) • [Commands](./COMMANDS.md) • [Data Model](./DATA_MODEL.md)
 
 ---
 

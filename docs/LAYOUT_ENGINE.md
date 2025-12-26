@@ -4,7 +4,7 @@
 
 > Deep dive into the engraving and positioning system.
 
-> **See also**: [Architecture](./ARCHITECTURE.md) • [Data Model](./DATA_MODEL.md)
+> **See also**: [Architecture](./ARCHITECTURE.md) • [Data Model](./DATA_MODEL.md) • [Coding Patterns](./CODING_PATTERNS.md)
 
 ---
 

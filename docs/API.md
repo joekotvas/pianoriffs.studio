@@ -4,7 +4,7 @@
 
 > Programmatic control of the score editor via JavaScript.
 
-> **See also**: [Cookbook](./COOKBOOK.md) • [Configuration](./CONFIGURATION.md) • [Architecture](./ARCHITECTURE.md)
+> **See also**: [Cookbook](./COOKBOOK.md) • [Configuration](./CONFIGURATION.md) • [Architecture](./ARCHITECTURE.md) • [Coding Patterns](./CODING_PATTERNS.md)
 
 **Version:** 1.0.0-alpha.4  
 **Access:**

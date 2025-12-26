@@ -4,7 +4,7 @@
 
 > Guide to the Command pattern used for all score and selection mutations.
 
-> **See also**: [Architecture](./ARCHITECTURE.md) • [Data Model](./DATA_MODEL.md) • [Testing](./TESTING.md)
+> **See also**: [Architecture](./ARCHITECTURE.md) • [Data Model](./DATA_MODEL.md) • [Testing](./TESTING.md) • [Coding Patterns](./CODING_PATTERNS.md)
 
 ---
 

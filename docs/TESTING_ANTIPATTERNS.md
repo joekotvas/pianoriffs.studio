@@ -143,6 +143,58 @@ test('example', () => {
 
 ---
 
+## 6. Manual Score Construction
+
+### ❌ Anti-Pattern
+
+Defining complex score JSON structures directly in test files. This makes tests brittle to schema changes.
+
+```typescript
+const score = {
+  staves: [{ measures: [{ events: [] }] }], // 20 lines of JSON...
+};
+```
+
+### ✅ Correct
+
+Use **Shared Fixtures** from `src/__tests__/fixtures/`.
+
+```typescript
+// See src/__tests__/fixtures/selectionTestScores.ts
+import { createTestScore } from './fixtures/selectionTestScores';
+
+const score = createTestScore();
+```
+
+> **See also**: [Coding Patterns: Shared Fixtures](./CODING_PATTERNS.md#shared-fixtures)
+
+---
+
+## 7. Testing Internal State
+
+### ❌ Anti-Pattern
+
+Testing private functioning or internal state that isn't part of the public API.
+
+```typescript
+// Testing an internal helper directly
+expect(normalizeDurationString('q')).toBe(24);
+```
+
+### ✅ Correct
+
+Use **Cookbook Integration Tests** that test the public API surface.
+
+```typescript
+// Testing the result of a public command
+score.addNote('C4', 'quarter');
+expect(score.getNotes()).toHaveLength(1);
+```
+
+> **See also**: [Coding Patterns: Cookbook Integration Tests](./CODING_PATTERNS.md#cookbook-integration-tests)
+
+---
+
 ## Anti-Pattern Tracking
 
 | Pattern | Files Affected | Status |
