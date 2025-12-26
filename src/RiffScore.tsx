@@ -12,6 +12,7 @@
 import React, { useMemo, useId } from 'react';
 import { DeepPartial, RiffScoreConfig } from './types';
 import { useRiffScore } from './hooks/useRiffScore';
+import { useFontLoaded } from './hooks/useFontLoaded';
 import { ScoreProvider } from './context/ScoreContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ScoreEditorContent } from './components/Layout/ScoreEditor';
@@ -45,6 +46,11 @@ const RiffScoreAPIBridge: React.FC<{
 const RiffScoreInner: React.FC<RiffScoreProps> = ({ id, config: userConfig }) => {
   const { config, initialScore } = useRiffScore(userConfig);
   const { theme: _theme } = useTheme();
+  const {
+    className: fontClassName,
+    style: fontStyle,
+    styleElement: fontStyleElement,
+  } = useFontLoaded();
 
   // Use React's useId() for SSR-compatible auto-generated IDs
   const reactId = useId();
@@ -60,7 +66,12 @@ const RiffScoreInner: React.FC<RiffScoreProps> = ({ id, config: userConfig }) =>
   );
 
   return (
-    <div className="RiffScore" style={containerStyle} data-riffscore-id={instanceId}>
+    <div
+      className={`RiffScore ${fontClassName}`}
+      style={{ ...containerStyle, ...fontStyle }}
+      data-riffscore-id={instanceId}
+    >
+      {fontStyleElement}
       <ScoreProvider initialScore={initialScore}>
         <RiffScoreAPIBridge instanceId={instanceId} config={config}>
           <ScoreEditorContent
