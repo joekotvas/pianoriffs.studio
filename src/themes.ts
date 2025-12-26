@@ -121,7 +121,7 @@ export const THEMES = {
   LIGHT,
 } as const;
 
-export const DEFAULT_THEME = 'DARK';
+export const DEFAULT_THEME = 'LIGHT';
 
 export type ThemeName = keyof typeof THEMES;
 

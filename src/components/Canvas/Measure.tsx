@@ -41,7 +41,7 @@ const MeasureBarLine = ({ x, baseY, isLast, theme }) => (
     y1={baseY}
     x2={x}
     y2={baseY + CONFIG.lineHeight * 4}
-    stroke={theme.score.line}
+    stroke={isLast ? theme.text : theme.score.line}
     strokeWidth={isLast ? 3 : 1}
   />
 );
