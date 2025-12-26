@@ -211,6 +211,7 @@ export function createEmptySelection(): Selection {
     noteId: null,
     selectedNotes: [],
     anchor: null,
+    verticalAnchors: null,
   };
 }
 
@@ -236,6 +237,7 @@ export function createTestSelection(
     noteId,
     selectedNotes: hasSelection ? [{ staffIndex, measureIndex, eventId, noteId }] : [],
     anchor: hasSelection ? { staffIndex, measureIndex, eventId, noteId } : null,
+    verticalAnchors: null,
   };
 }
 

@@ -31,18 +31,12 @@ jest.mock('../commands/RemoveTupletCommand', () => ({
 
 describe('useTupletActions', () => {
   // Helper to create events (test-specific)
-  const createEvent = (id: string, hasTuplet = false) =>
-    createTestEvent(id, [{ id: `${id}-note`, pitch: 'C4' }], {
-      ...(hasTuplet &&
-        {
-          // Tuplet data must be added manually since createTestEvent doesn't support it
-        }),
-    });
+  const createEvent = (id: string) => createTestEvent(id, [{ id: `${id}-note`, pitch: 'C4' }]);
 
   // Helper to add tuplet after creation
   const withTuplet = (event: ReturnType<typeof createEvent>) => ({
     ...event,
-    tuplet: { ratio: [3, 2] as [number, number], groupIndex: 0, groupSize: 3, position: 0 },
+    tuplet: { ratio: [3, 2] as [number, number], groupSize: 3, position: 0 },
   });
 
   describe('applyTuplet', () => {
