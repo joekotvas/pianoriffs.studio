@@ -7,19 +7,11 @@
  */
 
 import { handlePlayback } from '@/hooks/handlers/handlePlayback';
-import type { Score, Selection } from '@/types';
+import { createTestScore, createTestSelection, createMockKeyboardEvent } from './helpers/testMocks';
 import type { UsePlaybackReturn } from '@/hooks/usePlayback';
 
 describe('handlePlayback', () => {
   let mockPlayback: UsePlaybackReturn;
-  let mockScore: Score;
-
-  const createMockEvent = (overrides: { key?: string; code?: string } = {}) => ({
-    key: '',
-    code: '',
-    preventDefault: jest.fn(),
-    ...overrides,
-  });
 
   beforeEach(() => {
     mockPlayback = {
@@ -32,38 +24,22 @@ describe('handlePlayback', () => {
       handlePlayToggle: jest.fn(),
       instrumentState: 'ready',
     };
-    mockScore = {
-      title: 'Test Score',
-      timeSignature: '4/4',
-      keySignature: 'C',
-      bpm: 120,
-      staves: [
-        {
-          id: 'staff-1',
-          clef: 'treble' as const,
-          keySignature: 'C',
-          measures: [
-            {
-              id: 'm1',
-              events: [
-                { id: 'e1', duration: 'quarter', dotted: false, notes: [] },
-                { id: 'e2', duration: 'quarter', dotted: false, notes: [] },
-              ],
-            },
-          ],
-        },
-      ],
-    };
   });
 
   test('should play from selection when P is pressed', () => {
-    const selection: Partial<Selection> = { measureIndex: 0, eventId: 'e2' };
-    const mockEvent = createMockEvent({ key: 'p' });
+    const mockScore = createTestScore({
+      events: [
+        { id: 'e1', duration: 'quarter', dotted: false, notes: [] },
+        { id: 'e2', duration: 'quarter', dotted: false, notes: [] },
+      ],
+    });
+    const selection = createTestSelection(0, 'e2');
+    const mockEvent = createMockKeyboardEvent({ key: 'p' });
 
     const result = handlePlayback(
       mockEvent as unknown as KeyboardEvent,
       mockPlayback,
-      selection as Selection,
+      selection,
       mockScore
     );
 
@@ -73,13 +49,14 @@ describe('handlePlayback', () => {
   });
 
   test('should play from start when P is pressed with no selection', () => {
-    const selection: Partial<Selection> = { measureIndex: null, eventId: null };
-    const mockEvent = createMockEvent({ key: 'p' });
+    const mockScore = createTestScore();
+    const selection = createTestSelection(null, null);
+    const mockEvent = createMockKeyboardEvent({ key: 'p' });
 
     const result = handlePlayback(
       mockEvent as unknown as KeyboardEvent,
       mockPlayback,
-      selection as Selection,
+      selection,
       mockScore
     );
 
@@ -88,14 +65,15 @@ describe('handlePlayback', () => {
   });
 
   test('should toggle playback with Space', () => {
-    const selection: Partial<Selection> = { measureIndex: null, eventId: null };
-    const mockEvent = createMockEvent({ code: 'Space', key: ' ' });
+    const mockScore = createTestScore();
+    const selection = createTestSelection(null, null);
+    const mockEvent = createMockKeyboardEvent({ code: 'Space', key: ' ' });
 
     // Start playback
     handlePlayback(
       mockEvent as unknown as KeyboardEvent,
       mockPlayback,
-      selection as Selection,
+      selection,
       mockScore
     );
     expect(mockPlayback.playScore).toHaveBeenCalled();
@@ -105,18 +83,20 @@ describe('handlePlayback', () => {
     handlePlayback(
       mockEvent as unknown as KeyboardEvent,
       mockPlayback,
-      selection as Selection,
+      selection,
       mockScore
     );
     expect(mockPlayback.pausePlayback).toHaveBeenCalled();
   });
 
   test('should ignore other keys', () => {
-    const mockEvent = createMockEvent({ key: 'a' });
+    const mockScore = createTestScore();
+    const mockEvent = createMockKeyboardEvent({ key: 'a' });
+
     const result = handlePlayback(
       mockEvent as unknown as KeyboardEvent,
       mockPlayback,
-      {} as Selection,
+      createTestSelection(null, null),
       mockScore
     );
     expect(result).toBe(false);
