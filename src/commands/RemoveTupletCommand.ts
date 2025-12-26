@@ -9,7 +9,7 @@ import { updateMeasure } from '@/utils/commandHelpers';
 export class RemoveTupletCommand implements Command {
   public readonly type = 'REMOVE_TUPLET';
   private previousStates: Array<{
-    eventId: string | number;
+    eventId: string;
     tuplet?: { ratio: [number, number]; groupSize: number; position: number };
   }> = [];
 

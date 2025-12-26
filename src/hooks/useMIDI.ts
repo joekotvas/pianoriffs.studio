@@ -8,7 +8,7 @@ export type Accidental = 'sharp' | 'flat' | 'natural' | null;
 export const useMIDI = (
   addChordCallback: (
     measureIndex: number,
-    notes: { pitch: string; accidental: Accidental; id?: number }[],
+    notes: { pitch: string; accidental: Accidental }[],
     duration: string,
     isDotted: boolean
   ) => void,
@@ -80,7 +80,6 @@ export const useMIDI = (
             notes.map((n) => ({
               pitch: n.pitch,
               accidental: n.accidental || activeAccidentalRef.current,
-              id: Date.now() + Math.random(),
             })),
             activeDurationRef.current,
             isDottedRef.current

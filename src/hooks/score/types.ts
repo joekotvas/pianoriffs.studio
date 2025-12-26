@@ -43,8 +43,8 @@ export interface ScoreNavigationGroup {
   move: (direction: string, isShift: boolean) => void;
   select: (
     measureIndex: number,
-    eventId: string | number,
-    noteId: string | number | null,
+    eventId: string,
+    noteId: string | null,
     staffIndex?: number,
     isMulti?: boolean,
     selectAllInEvent?: boolean,
@@ -84,12 +84,7 @@ export interface ScoreEntryGroup {
     pitch: string,
     staffIndex?: number
   ) => void;
-  updatePitch: (
-    measureIndex: number,
-    eventId: string | number,
-    noteId: string | number,
-    newPitch: string
-  ) => void;
+  updatePitch: (measureIndex: number, eventId: string, noteId: string, newPitch: string) => void;
 }
 
 /**

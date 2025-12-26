@@ -5,8 +5,8 @@ import { TIME_SIGNATURES } from '@/constants';
 /** Creates an empty selection at the given position */
 const createSelection = (
   measureIndex: number | null,
-  eventId: string | number | null = null,
-  noteId: string | number | null = null
+  eventId: string | null = null,
+  noteId: string | null = null
 ): Selection => ({
   staffIndex: 0,
   measureIndex,

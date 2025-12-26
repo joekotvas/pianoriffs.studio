@@ -14,8 +14,8 @@ import type { SelectionCommand } from './types';
 export interface SetSelectionOptions {
   staffIndex?: number;
   measureIndex: number | null;
-  eventId: string | number | null;
-  noteId?: string | number | null;
+  eventId: string | null;
+  noteId?: string | null;
   selectedNotes?: SelectedNote[];
   anchor?: SelectedNote | null;
 }

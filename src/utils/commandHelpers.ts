@@ -54,7 +54,7 @@ export const updateEvent = (
   score: Score,
   staffIndex: number,
   measureIndex: number,
-  eventIdOrIndex: string | number,
+  eventIdOrIndex: string,
   updateFn: (event: ScoreEvent) => boolean | void
 ): Score => {
   return updateMeasure(score, staffIndex, measureIndex, (measure) => {
@@ -105,8 +105,8 @@ export const updateNote = (
   score: Score,
   staffIndex: number,
   measureIndex: number,
-  eventId: string | number,
-  noteId: string | number,
+  eventId: string,
+  noteId: string,
   updateFn: (note: Note) => boolean | void
 ): Score => {
   return updateEvent(score, staffIndex, measureIndex, eventId, (event) => {

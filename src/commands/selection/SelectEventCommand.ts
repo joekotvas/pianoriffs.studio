@@ -55,7 +55,7 @@ export class SelectEventCommand implements SelectionCommand {
     const eventId = event?.id ?? null;
 
     // Get note ID (first note if event exists, or specific note by index)
-    let noteId: string | number | null = null;
+    let noteId: string | null = null;
     if (event && event.notes && event.notes.length > 0) {
       const noteIdx = Math.min(noteIndex, event.notes.length - 1);
       noteId = event.notes[noteIdx].id;

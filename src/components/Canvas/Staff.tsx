@@ -27,7 +27,7 @@ interface TieNote {
   tied: boolean;
   x: number;
   y: number;
-  id: string | number;
+  id: string;
 }
 
 /**

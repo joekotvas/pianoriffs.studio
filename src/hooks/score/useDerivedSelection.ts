@@ -44,7 +44,7 @@ export const useDerivedSelection = (
 
     const durations = new Set<string>();
 
-    const addFromEvent = (measureIndex: number, eventId: string | number, staffIndex: number) => {
+    const addFromEvent = (measureIndex: number, eventId: string, staffIndex: number) => {
       const staff = score.staves[staffIndex] || getActiveStaff(score);
       const measure = staff.measures[measureIndex];
       const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
@@ -68,7 +68,7 @@ export const useDerivedSelection = (
 
     const dots = new Set<boolean>();
 
-    const addFromEvent = (measureIndex: number, eventId: string | number, staffIndex: number) => {
+    const addFromEvent = (measureIndex: number, eventId: string, staffIndex: number) => {
       const staff = score.staves[staffIndex] || getActiveStaff(score);
       const measure = staff.measures[measureIndex];
       const event = measure?.events.find((e: ScoreEvent) => e.id === eventId);
@@ -91,8 +91,8 @@ export const useDerivedSelection = (
 
     const addFromNote = (
       measureIndex: number,
-      eventId: string | number,
-      noteId: string | number | null,
+      eventId: string,
+      noteId: string | null,
       staffIndex: number
     ) => {
       const staff = score.staves[staffIndex] || getActiveStaff(score);
@@ -135,8 +135,8 @@ export const useDerivedSelection = (
 
     const addFromNote = (
       measureIndex: number,
-      eventId: string | number,
-      noteId: string | number | null,
+      eventId: string,
+      noteId: string | null,
       staffIndex: number
     ) => {
       const staff = score.staves[staffIndex] || getActiveStaff(score);

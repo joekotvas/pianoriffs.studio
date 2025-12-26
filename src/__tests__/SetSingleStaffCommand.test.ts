@@ -13,12 +13,12 @@ import { Score, Staff } from '@/types';
 describe('SetSingleStaffCommand', () => {
   const createGrandStaffScore = (): Score => {
     const trebleStaff: Staff = {
-      id: 100,
+      id: '100',
       clef: 'treble',
       keySignature: 'C',
       measures: [
         {
-          id: 1,
+          id: '1',
           events: [
             {
               id: 'treble-event-1',
@@ -34,12 +34,12 @@ describe('SetSingleStaffCommand', () => {
     };
 
     const bassStaff: Staff = {
-      id: 200,
+      id: '200',
       clef: 'bass',
       keySignature: 'C',
       measures: [
         {
-          id: 2,
+          id: '2',
           events: [
             {
               id: 'bass-event-1',
@@ -109,10 +109,10 @@ describe('SetSingleStaffCommand', () => {
       const singleStaffScore: Score = {
         staves: [
           {
-            id: 100,
+            id: '100',
             clef: 'treble',
             keySignature: 'C',
-            measures: [{ id: 1, events: [], isPickup: false }],
+            measures: [{ id: '1', events: [], isPickup: false }],
           },
         ],
         timeSignature: '4/4',

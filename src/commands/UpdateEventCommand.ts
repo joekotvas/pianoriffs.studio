@@ -7,7 +7,7 @@ export class UpdateEventCommand implements Command {
 
   constructor(
     private measureIndex: number,
-    private eventId: string | number,
+    private eventId: string,
     private updates: Partial<ScoreEvent>,
     private staffIndex: number = 0
   ) {}

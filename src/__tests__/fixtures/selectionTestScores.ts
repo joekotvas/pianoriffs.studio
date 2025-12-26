@@ -221,8 +221,8 @@ export const createEmptySelection = (): Selection => ({
 export const createSelectionWithNote = (
   staffIndex: number,
   measureIndex: number,
-  eventId: string | number,
-  noteId: string | number | null
+  eventId: string,
+  noteId: string | null
 ): Selection => ({
   staffIndex,
   measureIndex,
@@ -242,8 +242,8 @@ export const createMultiNoteSelection = (
   notes: Array<{
     staffIndex: number;
     measureIndex: number;
-    eventId: string | number;
-    noteId: string | number | null;
+    eventId: string;
+    noteId: string | null;
   }>,
   focusIndex = 0
 ): Selection => {

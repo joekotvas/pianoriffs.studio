@@ -22,8 +22,8 @@ export interface LayoutConfig {
  */
 export interface DragStartParams {
   measureIndex: number;
-  eventId: string | number;
-  noteId: string | number;
+  eventId: string;
+  noteId: string;
   startPitch: string;
   startY: number;
   isMulti?: boolean;
@@ -51,8 +51,8 @@ export interface InteractionState {
   ) => void;
   onSelectNote: (
     measureIndex: number | null,
-    eventId: number | string | null,
-    noteId: number | string | null,
+    eventId: string | null,
+    noteId: string | null,
     staffIndex?: number,
     isMulti?: boolean,
     selectAllInEvent?: boolean,

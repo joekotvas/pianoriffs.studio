@@ -73,12 +73,11 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   const { dragState, handleDragStart } = useScoreInteraction({
     scoreRef,
     selection,
-    onUpdatePitch: (m: number, e: string | number, n: string | number, p: string) =>
-      updateNotePitch(m, e, n, p),
+    onUpdatePitch: (m: number, e: string, n: string, p: string) => updateNotePitch(m, e, n, p),
     onSelectNote: (
       measureIndex: number | null,
-      eventId: string | number | null,
-      noteId: string | number | null,
+      eventId: string | null,
+      noteId: string | null,
       staffIndexParam?: number,
       isMulti?: boolean,
       selectAllInEvent?: boolean,
@@ -175,8 +174,8 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
       height: number;
       staffIndex: number;
       measureIndex: number;
-      eventId: string | number;
-      noteId: string | number | null; // null for rests
+      eventId: string;
+      noteId: string | null; // null for rests
     }> = [];
 
     const { startOfMeasures } = calculateHeaderLayout(keySignature);
@@ -289,8 +288,8 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   const memoizedOnSelectNote = useCallback(
     (
       measureIndex: number | null,
-      eventId: number | string | null,
-      noteId: number | string | null,
+      eventId: string | null,
+      noteId: string | null,
       staffIndexParam?: number,
       isMulti?: boolean
     ) => {
@@ -305,8 +304,8 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   const memoizedOnDragStart = useCallback(
     (args: {
       measureIndex: number;
-      eventId: string | number;
-      noteId: string | number;
+      eventId: string;
+      noteId: string;
       startPitch: string;
       startY: number;
       isMulti?: boolean;

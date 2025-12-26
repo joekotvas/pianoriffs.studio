@@ -3,22 +3,22 @@ import { Selection, createDefaultSelection, Score, Note } from '@/types';
 interface NoteContext {
   staffIndex: number;
   measureIndex: number;
-  eventId: string | number;
-  noteId: string | number | null;
+  eventId: string;
+  noteId: string | null;
 }
 
 /**
- * Robustly compares two IDs.
- * Handles loose equality for string/number mismatches, but strict on null/undefined.
+ * Compares two IDs for equality.
+ * Handles null/undefined values gracefully.
  */
 export const compareIds = (
-  id1: string | number | null | undefined,
-  id2: string | number | null | undefined
+  id1: string | null | undefined,
+  id2: string | null | undefined
 ): boolean => {
   // Treat null and undefined as equal to each other
   if (id1 == null && id2 == null) return true;
   if (id1 == null || id2 == null) return false;
-  return String(id1) === String(id2);
+  return id1 === id2;
 };
 
 /**
@@ -55,7 +55,7 @@ export const areAllNotesSelected = (
   selection: Selection,
   staffIndex: number,
   measureIndex: number,
-  eventId: string | number,
+  eventId: string,
   notes: Note[]
 ): boolean => {
   if (!notes || notes.length === 0) return false;
@@ -221,7 +221,7 @@ export const calculateNoteRange = (
  */
 export const isRestSelected = (
   selection: Selection,
-  event: { id: string | number; notes?: { id: string | number }[] },
+  event: { id: string; notes?: { id: string }[] },
   measureIndex: number,
   staffIndex: number
 ): boolean => {
@@ -252,12 +252,12 @@ export const isRestSelected = (
  */
 export const isBeamGroupSelected = (
   selection: Selection,
-  beam: { ids: (string | number)[] },
-  events: { id: string | number; notes?: { id: string | number }[] }[],
+  beam: { ids: string[] },
+  events: { id: string; notes?: { id: string }[] }[],
   measureIndex: number
 ): boolean => {
   // Collect all notes participating in this beam
-  const beamNoteIds: { eventId: string | number; noteId: string | number }[] = [];
+  const beamNoteIds: { eventId: string; noteId: string }[] = [];
 
   beam.ids.forEach((eventId) => {
     const ev = events.find((e) => compareIds(e.id, eventId));

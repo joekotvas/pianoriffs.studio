@@ -18,7 +18,7 @@ interface RestProps {
   /** Click handler for selection */
   onClick?: (e: React.MouseEvent) => void;
   /** Event ID for testing */
-  eventId?: string | number;
+  eventId?: string;
 }
 
 /**

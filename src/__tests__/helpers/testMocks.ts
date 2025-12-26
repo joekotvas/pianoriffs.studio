@@ -163,8 +163,8 @@ export function createGrandStaffScore(
  * createTestEvent('rest', [], { isRest: true });
  */
 export function createTestEvent(
-  id: string | number,
-  notes: Array<{ id: string | number; pitch: string | null }>,
+  id: string,
+  notes: Array<{ id: string; pitch: string | null }>,
   options: {
     duration?: string;
     dotted?: boolean;
@@ -184,7 +184,7 @@ export function createTestEvent(
  * Creates a test note.
  */
 export function createTestNote(
-  id: string | number,
+  id: string,
   pitch: string | null,
   options: { tied?: boolean; isRest?: boolean } = {}
 ): Note {
@@ -224,8 +224,8 @@ export function createEmptySelection(): Selection {
  */
 export function createTestSelection(
   measureIndex: number | null,
-  eventId: string | number | null,
-  noteId: string | number | null = null,
+  eventId: string | null,
+  noteId: string | null = null,
   staffIndex: number = 0
 ): Selection {
   const hasSelection = measureIndex !== null && eventId !== null;

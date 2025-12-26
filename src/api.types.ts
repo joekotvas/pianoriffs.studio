@@ -81,7 +81,7 @@ export interface MusicEditorAPI {
    * Select by internal event/note IDs.
    * @status implemented
    */
-  selectById(eventId: string | number, noteId?: string | number): this;
+  selectById(eventId: string, noteId?: string): this;
 
   // --- Selection (Multi-Select) ---
   /**

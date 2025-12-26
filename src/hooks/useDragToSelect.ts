@@ -10,8 +10,8 @@ interface DragSelectState {
 interface SelectedNote {
   staffIndex: number;
   measureIndex: number;
-  eventId: string | number;
-  noteId: string | number | null;
+  eventId: string;
+  noteId: string | null;
 }
 
 interface NotePosition {
@@ -21,8 +21,8 @@ interface NotePosition {
   height: number;
   staffIndex: number;
   measureIndex: number;
-  eventId: string | number;
-  noteId: string | number | null; // null for rests
+  eventId: string;
+  noteId: string | null; // null for rests
 }
 
 interface UseDragToSelectProps {

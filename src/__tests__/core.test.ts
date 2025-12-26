@@ -402,7 +402,7 @@ describe('core.ts utilities', () => {
     it('should preserve events in a single full measure', () => {
       const measures = [
         {
-          id: 1,
+          id: 'm1',
           events: [
             {
               id: 'e1',
@@ -446,7 +446,7 @@ describe('core.ts utilities', () => {
       // 6 quarters = 96 quants, needs 2 measures in 4/4 (64 quants each)
       const measures = [
         {
-          id: 1,
+          id: 'm1',
           events: Array(6)
             .fill(null)
             .map((_, i) => ({
@@ -467,7 +467,7 @@ describe('core.ts utilities', () => {
     it('should preserve pickup measure flag', () => {
       const measures = [
         {
-          id: 1,
+          id: 'm1',
           events: [
             {
               id: 'e1',
@@ -483,6 +483,74 @@ describe('core.ts utilities', () => {
 
       const result = reflowScore(measures, '4/4');
       expect(result[0].isPickup).toBe(true);
+    });
+
+    it('should split a whole note when changing to 2/4 time', () => {
+      // Whole note = 64 quants, but 2/4 only allows 32 quants per measure
+      // This tests lines 169-178 (event splitting with available > 0)
+      const measures = [
+        {
+          id: 'm1',
+          events: [
+            {
+              id: 'e1',
+              duration: 'whole',
+              dotted: false,
+              notes: [{ id: 'n1', pitch: 'C4' }],
+              isRest: false,
+            },
+          ],
+          isPickup: false,
+        },
+      ];
+
+      const result = reflowScore(measures, '2/4');
+      // A whole note (64 quants) split into 2/4 (32 quants each) = 2 measures
+      expect(result.length).toBeGreaterThanOrEqual(2);
+      // First measure should have tied notes
+      expect(result[0].events.length).toBeGreaterThan(0);
+    });
+
+    it('should handle pickup measure overflow to next measure', () => {
+      // Pickup with 2 quarters (32 quants) staying a pickup,
+      // plus more events that overflow to next measure
+      // This tests line 187 (isFillingPickup = false)
+      const measures = [
+        {
+          id: 'm1',
+          events: [
+            {
+              id: 'e1',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'n1', pitch: 'C4' }],
+              isRest: false,
+            },
+          ],
+          isPickup: true,
+        },
+        {
+          id: 'm2',
+          events: [
+            {
+              id: 'e2',
+              duration: 'whole',
+              dotted: false,
+              notes: [{ id: 'n2', pitch: 'D4' }],
+              isRest: false,
+            },
+          ],
+          isPickup: false,
+        },
+      ];
+
+      const result = reflowScore(measures, '4/4');
+      expect(result[0].isPickup).toBe(true);
+      expect(result.length).toBeGreaterThanOrEqual(2);
+      // Second measure should not be a pickup
+      if (result.length > 1) {
+        expect(result[1].isPickup).toBe(false);
+      }
     });
   });
 });

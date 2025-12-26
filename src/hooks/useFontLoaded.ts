@@ -129,7 +129,7 @@ export const useFontLoaded = (timeoutMs = 3000): FontLoadedResult => {
       cancelled = true;
       clearTimeout(timeout);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on mount
   }, [timeoutMs]);
 
   // Derived values

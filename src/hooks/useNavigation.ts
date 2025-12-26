@@ -32,8 +32,8 @@ interface UseNavigationProps {
   selection: Selection;
   select: (
     measureIndex: number | null,
-    eventId: string | number | null,
-    noteId: string | number | null,
+    eventId: string | null,
+    noteId: string | null,
     staffIndex?: number,
     options?: { isMulti?: boolean; selectAllInEvent?: boolean; isShift?: boolean }
   ) => void;
@@ -49,8 +49,8 @@ interface UseNavigationProps {
 interface UseNavigationReturn {
   handleNoteSelection: (
     measureIndex: number,
-    eventId: string | number,
-    noteId: string | number | null,
+    eventId: string,
+    noteId: string | null,
     staffIndex?: number,
     isMulti?: boolean,
     selectAllInEvent?: boolean,
@@ -87,8 +87,8 @@ export const useNavigation = ({
   const handleNoteSelection = useCallback(
     (
       measureIndex: number,
-      eventId: string | number,
-      noteId: string | number | null,
+      eventId: string,
+      noteId: string | null,
       staffIndex: number = 0,
       isMulti: boolean = false,
       selectAllInEvent: boolean = false,

@@ -1,3 +1,11 @@
+/**
+ * Entry API Methods
+ *
+ * Factory for creating programmatic API methods for note/rest creation,
+ * tuplets, and ties. Used by the MusicEditorAPI.
+ *
+ * @see MusicEditorAPI
+ */
 import { MusicEditorAPI } from '@/api.types';
 import { APIContext } from './types';
 import { AddEventCommand } from '@/commands/AddEventCommand';
@@ -6,7 +14,7 @@ import { ApplyTupletCommand } from '@/commands/TupletCommands';
 import { RemoveTupletCommand } from '@/commands/RemoveTupletCommand';
 import { UpdateNoteCommand } from '@/commands/UpdateNoteCommand';
 import { canAddEventToMeasure, isValidPitch } from '@/utils/validation';
-import { generateId } from '@/utils/core';
+import { noteId, eventId as createEventId } from '@/utils/id';
 import { createNotePayload } from '@/utils/entry';
 import { logger, LogLevel } from '@/utils/debug';
 
@@ -90,10 +98,10 @@ export const createEntryMethods = (
       }
 
       // Create note payload using shared utility
-      const note = createNotePayload({ pitch, id: generateId() });
+      const note = createNotePayload({ pitch, id: noteId() });
 
       // Dispatch AddEventCommand
-      const eventId = generateId();
+      const eventId = createEventId();
       dispatch(
         new AddEventCommand(
           measureIndex,
@@ -163,7 +171,7 @@ export const createEntryMethods = (
       }
 
       // Dispatch AddEventCommand with isRest=true
-      const eventId = generateId();
+      const eventId = createEventId();
       dispatch(
         new AddEventCommand(
           measureIndex,
@@ -211,7 +219,7 @@ export const createEntryMethods = (
       const eventId = sel.eventId;
 
       // Create note using shared utility
-      const note = createNotePayload({ pitch, id: generateId() });
+      const note = createNotePayload({ pitch, id: noteId() });
 
       // Dispatch AddNoteToEventCommand
       dispatch(new AddNoteToEventCommand(measureIndex, eventId, note, staffIndex));

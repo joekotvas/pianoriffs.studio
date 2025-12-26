@@ -17,7 +17,7 @@ export interface PreviewNoteOptions {
   /** Index for INSERT mode or event index for CHORD mode */
   index: number;
   /** Event ID for CHORD mode */
-  eventId?: string | number;
+  eventId?: string;
   /** Whether this is a rest preview */
   isRest?: boolean;
   /** Source of the preview: 'hover' or 'keyboard' */

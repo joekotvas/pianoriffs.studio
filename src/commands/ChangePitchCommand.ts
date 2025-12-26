@@ -8,8 +8,8 @@ export class ChangePitchCommand implements Command {
 
   constructor(
     private measureIndex: number,
-    private eventId: string | number,
-    private noteId: string | number,
+    private eventId: string,
+    private noteId: string,
     private newPitch: string,
     private staffIndex: number = 0
   ) {}

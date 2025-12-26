@@ -17,14 +17,14 @@ import { calculateNextSelection, calculateTranspositionWithPreview } from '@/uti
 describe('interactionUtils', () => {
   const mockMeasures = [
     {
-      id: 1,
+      id: 'm1',
       events: [
         { id: 'e1', duration: 'quarter', dotted: false, notes: [{ id: 'n1', pitch: 'C4' }] },
         { id: 'e2', duration: 'quarter', dotted: false, notes: [{ id: 'n2', pitch: 'D4' }] },
       ],
     },
     {
-      id: 2,
+      id: 'm2',
       events: [
         { id: 'e3', duration: 'quarter', dotted: false, notes: [{ id: 'n3', pitch: 'E4' }] },
       ],

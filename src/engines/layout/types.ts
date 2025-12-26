@@ -1,13 +1,13 @@
 export interface Note {
   pitch: string | null; // null for rest notes
   tied?: boolean;
-  id: string | number;
+  id: string;
   accidental?: string | null;
   isRest?: boolean; // True for rest notes
 }
 
 export interface ScoreEvent {
-  id: string | number;
+  id: string;
   duration: string;
   dotted: boolean;
   notes: Note[];
@@ -46,11 +46,11 @@ export interface HitZone {
   endX: number;
   index: number;
   type: 'APPEND' | 'INSERT' | 'EVENT';
-  eventId?: string | number;
+  eventId?: string;
 }
 
 export interface BeamGroup {
-  ids: (string | number)[];
+  ids: string[];
   startX: number;
   endX: number;
   startY: number;

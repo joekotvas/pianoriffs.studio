@@ -46,8 +46,7 @@ export class TransposeSelectionCommand implements Command {
     }
 
     // Helper for robust ID comparison
-    const idsMatch = (a: string | number | null, b: string | number | null) =>
-      String(a) === String(b);
+    const idsMatch = (a: string | null, b: string | null) => String(a) === String(b);
 
     const transposeFn = (pitch: string) => movePitchVisual(pitch, steps, keySig, PIANO_RANGE);
 

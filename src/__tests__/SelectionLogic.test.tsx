@@ -11,11 +11,10 @@ import { createDefaultSelection } from '@/types';
 
 describe('Selection Utils', () => {
   describe('compareIds', () => {
-    it('compares strings and numbers correctly', () => {
-      expect(compareIds(1, '1')).toBe(true);
-      expect(compareIds('2', 2)).toBe(true);
+    it('compares strings correctly', () => {
+      expect(compareIds('1', '1')).toBe(true);
       expect(compareIds('foo', 'foo')).toBe(true);
-      expect(compareIds(1, 2)).toBe(false);
+      expect(compareIds('1', '2')).toBe(false);
       expect(compareIds(null, undefined)).toBe(true);
     });
   });

@@ -12,8 +12,8 @@ import type { SelectionCommand } from './types';
 export interface ToggleNoteOptions {
   staffIndex: number;
   measureIndex: number;
-  eventId: string | number;
-  noteId: string | number | null;
+  eventId: string;
+  noteId: string | null;
 }
 
 /**

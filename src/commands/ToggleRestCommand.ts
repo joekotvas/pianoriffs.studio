@@ -1,7 +1,15 @@
+/**
+ * ToggleRestCommand
+ *
+ * Toggles selected events between notes and rests.
+ * If all selected are rests → convert to notes (centered pitch).
+ * Otherwise → convert all to rests.
+ */
 import { Command } from './types';
 import { Score, Note, Selection, getActiveStaff } from '@/types';
 import { updateEvent } from '@/utils/commandHelpers';
 import { getClefConfig } from '@/constants';
+import { noteId } from '@/utils/id';
 
 /**
  * Represents the previous state of an event for undo purposes.
@@ -9,7 +17,7 @@ import { getClefConfig } from '@/constants';
 interface EventPreviousState {
   staffIndex: number;
   measureIndex: number;
-  eventId: string | number;
+  eventId: string;
   isRest: boolean;
   notes: Note[];
 }
@@ -56,7 +64,7 @@ export class ToggleRestCommand implements Command {
     // Collect unique events from selection
     const eventMap = new Map<
       string,
-      { staffIndex: number; measureIndex: number; eventId: string | number }
+      { staffIndex: number; measureIndex: number; eventId: string }
     >();
 
     for (const item of this.selection.selectedNotes) {
@@ -120,7 +128,7 @@ export class ToggleRestCommand implements Command {
         // Convert to notes - keep existing ID for selection continuity
         const clef = staff.clef;
         const centeredPitch = getCenterPitch(clef);
-        const firstNoteId = event.notes[0]?.id || `note-${Date.now()}`;
+        const firstNoteId = event.notes[0]?.id || noteId();
 
         newScore = updateEvent(newScore, staffIndex, measureIndex, eventId, (e) => {
           e.isRest = false;

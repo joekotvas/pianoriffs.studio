@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RiffScore } from "@riffscore/RiffScore";
 import { ThemeProvider, useTheme } from "@riffscore/context/ThemeContext";
 import ConfigMenu from "demo/app/ConfigMenu";
+import type { Score } from "@riffscore/types";
 
 // Copy to clipboard button component
 function CopyButton({ text }: { text: string }) {
@@ -92,6 +93,75 @@ const examples = [
   }
 ];
 
+// Component to render a RiffScore with live JSON output
+function ScoreWithJSON({ 
+  id, 
+  config, 
+  themeName, 
+  zoom 
+}: { 
+  id: string; 
+  config?: (typeof examples)[number]['config'];
+  themeName: string;
+  zoom: number;
+}) {
+  const [scoreJson, setScoreJson] = useState<Score | null>(null);
+  const { theme } = useTheme();
+  
+  useEffect(() => {
+    // Type for riffScore registry
+    type RiffScoreInstance = { 
+      getScore: () => Score;
+      on: (event: string, cb: (s: Score) => void) => () => void;
+    };
+    type RiffScoreRegistry = { 
+      get: (id: string) => RiffScoreInstance | undefined 
+    };
+    const riffScore = (window as unknown as { riffScore?: RiffScoreRegistry }).riffScore;
+    
+    let unsubscribe: (() => void) | undefined;
+    
+    // Small delay to allow RiffScore to register
+    const timer = setTimeout(() => {
+      const instance = riffScore?.get(id);
+      if (instance) {
+        // Get initial score
+        setScoreJson(instance.getScore());
+        // Subscribe to score changes
+        unsubscribe = instance.on('score', (score: Score) => {
+          setScoreJson(score);
+        });
+      }
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      unsubscribe?.();
+    };
+  }, [id]);
+  
+  return (
+    <>
+      <RiffScore id={id} config={{
+        ...config,
+        ui: {
+          ...config?.ui,
+          scale: config?.ui?.scale ?? zoom,
+          theme: themeName as 'DARK' | 'COOL' | 'WARM' | 'LIGHT'
+        }
+      }} />
+      <pre 
+        className="text-xs p-3 rounded overflow-x-auto font-mono max-h-64" 
+        style={{ backgroundColor: theme.panelBackground, color: theme.secondaryText }}
+      >
+        <code>
+          {scoreJson ? JSON.stringify(scoreJson, null, 2) : '// Loading...'}
+        </code>
+      </pre>
+    </>
+  );
+}
+
 function ExamplesContent() {
   const { theme, themeName, zoom } = useTheme();
   
@@ -137,14 +207,12 @@ function ExamplesContent() {
                   </div>
                 </div>
               </div>
-              <RiffScore config={{
-                ...example.config,
-                ui: {
-                  ...example.config?.ui,
-                  scale: example.config?.ui?.scale ?? zoom,
-                  theme: themeName // Pass currently active theme
-                }
-              }} />
+              <ScoreWithJSON 
+                id={`score-${index}`}
+                config={example.config}
+                themeName={themeName}
+                zoom={zoom}
+              />
             </section>
           );
         })}

@@ -7,7 +7,7 @@ export class AddNoteToEventCommand implements Command {
 
   constructor(
     private measureIndex: number,
-    private eventId: string | number,
+    private eventId: string,
     private note: Note,
     private staffIndex: number = 0
   ) {}

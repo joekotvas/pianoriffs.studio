@@ -96,10 +96,9 @@ export class SelectFullEventsCommand implements SelectionCommand {
    */
   private getTouchedEvents(
     selectedNotes: SelectedNote[]
-  ): Array<{ staffIndex: number; measureIndex: number; eventId: string | number }> {
+  ): Array<{ staffIndex: number; measureIndex: number; eventId: string }> {
     const seen = new Set<string>();
-    const result: Array<{ staffIndex: number; measureIndex: number; eventId: string | number }> =
-      [];
+    const result: Array<{ staffIndex: number; measureIndex: number; eventId: string }> = [];
 
     for (const note of selectedNotes) {
       const key = `${note.staffIndex}-${note.measureIndex}-${note.eventId}`;

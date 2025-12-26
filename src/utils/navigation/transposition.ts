@@ -26,7 +26,7 @@ import {
  */
 export const notesToAudioNotes = (
   notes: Note[] | undefined
-): Array<{ pitch: string; id?: string | number }> => {
+): Array<{ pitch: string; id?: string }> => {
   if (!notes) return [];
   return notes
     .filter((n): n is Note & { pitch: string } => n.pitch !== null)

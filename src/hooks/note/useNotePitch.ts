@@ -20,8 +20,8 @@ export interface UseNotePitchReturn {
   /** Update the pitch of a specific note */
   updateNotePitch: (
     measureIndex: number,
-    eventId: string | number,
-    noteId: string | number,
+    eventId: string,
+    noteId: string,
     newPitch: string
   ) => void;
 }
@@ -44,7 +44,7 @@ export interface UseNotePitchReturn {
  */
 export function useNotePitch({ selection, dispatch }: UseNotePitchProps): UseNotePitchReturn {
   const updateNotePitch = useCallback(
-    (measureIndex: number, eventId: string | number, noteId: string | number, newPitch: string) => {
+    (measureIndex: number, eventId: string, noteId: string, newPitch: string) => {
       dispatch(
         new ChangePitchCommand(measureIndex, eventId, noteId, newPitch, selection.staffIndex)
       );

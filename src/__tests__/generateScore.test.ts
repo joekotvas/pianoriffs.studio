@@ -2,13 +2,9 @@
  * Tests for generateScore utility
  */
 
-import { generateStaves, createEmptyMeasure, resetIdCounter } from '@/utils/generateScore';
+import { generateStaves, createEmptyMeasure } from '@/utils/generateScore';
 
 describe('generateScore', () => {
-  beforeEach(() => {
-    resetIdCounter();
-  });
-
   describe('generateStaves', () => {
     it('generates a single treble staff with correct number of measures', () => {
       const staves = generateStaves('treble', 4, 'C');

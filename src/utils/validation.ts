@@ -105,7 +105,7 @@ export const canAddEventToMeasure = (
  */
 export const canModifyEventDuration = (
   events: ScoreEvent[],
-  eventId: string | number,
+  eventId: string,
   targetDuration: string,
   maxQuants: number = CONFIG.quantsPerMeasure
 ): boolean => {
@@ -135,7 +135,7 @@ export const canModifyEventDuration = (
  */
 export const canToggleEventDot = (
   events: ScoreEvent[],
-  eventId: string | number,
+  eventId: string,
   maxQuants: number = CONFIG.quantsPerMeasure
 ): boolean => {
   const eventIndex = events.findIndex((e: ScoreEvent) => e.id === eventId);

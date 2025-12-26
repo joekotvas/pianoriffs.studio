@@ -1,3 +1,11 @@
+/**
+ * useNoteEntry Hook
+ *
+ * Handles note and chord entry operations including adding notes/rests,
+ * auto-advancing to next positions, and playing sounds on entry.
+ *
+ * @tested src/__tests__/hooks/note/useNoteEntry.test.tsx
+ */
 import { useCallback, RefObject } from 'react';
 import { getAppendPreviewNote } from '@/utils/interaction';
 import { canAddEventToMeasure } from '@/utils/validation';
@@ -8,7 +16,7 @@ import { AddEventCommand } from '@/commands/AddEventCommand';
 import { AddNoteToEventCommand } from '@/commands/AddNoteToEventCommand';
 import { AddMeasureCommand } from '@/commands/MeasureCommands';
 import { createNotePayload, createPreviewNote, PreviewNote } from '@/utils/entry';
-import { generateId } from '@/utils/core';
+import { eventId as createEventId } from '@/utils/id';
 import { InputMode } from '../useEditorTools';
 
 /**
@@ -17,7 +25,7 @@ import { InputMode } from '../useEditorTools';
 export interface PlacementOverride {
   mode: 'APPEND' | 'INSERT' | 'CHORD';
   index: number;
-  eventId?: string | number;
+  eventId?: string;
 }
 
 /**
@@ -36,7 +44,7 @@ export interface NoteInput {
   mode?: 'APPEND' | 'INSERT' | 'CHORD';
   index?: number;
   staffIndex?: number;
-  eventId?: string | number;
+  eventId?: string;
 }
 
 /**
@@ -58,8 +66,8 @@ export interface UseNoteEntryProps {
   /** Selection update function */
   select: (
     measureIndex: number | null,
-    eventId: string | number | null,
-    noteId: string | number | null,
+    eventId: string | null,
+    noteId: string | null,
     staffIndex?: number,
     options?: SelectOptions
   ) => void;
@@ -237,7 +245,7 @@ export function useNoteEntry({
         setPreviewNote(null);
       } else {
         // NEW EVENT (note or rest) - unified path
-        const eventId = generateId();
+        const eventId = createEventId();
         const isRest = inputMode === 'REST';
 
         // Build note payload using utility (null for rests)
@@ -281,7 +289,7 @@ export function useNoteEntry({
           id: 'sim-event',
           duration: activeDuration,
           dotted: isDotted,
-          notes: [{ id: 9999, pitch: newNote.pitch, tied: false }],
+          notes: [{ id: 'sim-note', pitch: newNote.pitch, tied: false }],
         });
 
         const simulatedMeasure = { ...targetMeasure, events: simulatedEvents };
@@ -341,7 +349,7 @@ export function useNoteEntry({
     (measureIndex: number, notes: ChordNoteInput[], duration: string, dotted: boolean) => {
       if (!notes || notes.length === 0) return;
 
-      const eventId = generateId();
+      const eventId = createEventId();
       const firstNote = notes[0];
 
       const noteToAdd = createNotePayload({

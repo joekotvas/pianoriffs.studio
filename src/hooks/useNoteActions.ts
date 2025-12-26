@@ -15,8 +15,8 @@ export interface UseNoteActionsProps {
   selection: Selection;
   select: (
     measureIndex: number | null,
-    eventId: string | number | null,
-    noteId: string | number | null,
+    eventId: string | null,
+    noteId: string | null,
     staffIndex?: number,
     options?: SelectOptions
   ) => void;
@@ -59,8 +59,8 @@ export interface UseNoteActionsReturn {
   deleteSelected: () => void;
   updateNotePitch: (
     measureIndex: number,
-    eventId: string | number,
-    noteId: string | number,
+    eventId: string,
+    noteId: string,
     newPitch: string
   ) => void;
 }

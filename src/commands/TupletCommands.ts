@@ -1,5 +1,6 @@
 import { Command } from './types';
 import { Score } from '@/types';
+import { tupletId as createTupletId } from '@/utils/id';
 
 /**
  * Command to apply tuplet metadata to a group of consecutive events.
@@ -8,7 +9,7 @@ import { Score } from '@/types';
 export class ApplyTupletCommand implements Command {
   public readonly type = 'APPLY_TUPLET';
   private previousStates: Array<{
-    eventId: string | number;
+    eventId: string;
     tuplet?: { ratio: [number, number]; groupSize: number; position: number };
   }> = [];
 
@@ -41,7 +42,7 @@ export class ApplyTupletCommand implements Command {
     this.previousStates = [];
 
     // Generate a unique ID for this tuplet group
-    const tupletId = `tuplet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const tupletId = createTupletId();
 
     // Apply tuplet metadata to the group of events
     for (let i = 0; i < this.groupSize; i++) {

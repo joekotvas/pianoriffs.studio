@@ -36,8 +36,8 @@ const getRestMidi = (clef: string): number => {
 export interface VerticalPoint {
   measureIndex: number;
   staffIndex: number;
-  eventId: string | number;
-  noteId: string | number | null;
+  eventId: string;
+  noteId: string | null;
   /** MIDI pitch value (higher = higher pitch) */
   midi: number;
   /** Global quant time: measureIndex * 100000 + quant */

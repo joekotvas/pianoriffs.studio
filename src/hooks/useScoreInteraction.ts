@@ -9,7 +9,7 @@ interface DragState {
   active: boolean;
   measureIndex: number | null;
   eventId: string | null;
-  noteId: string | number | null;
+  noteId: string | null;
   startY: number;
   startPitch: string;
   currentPitch: string;
@@ -20,16 +20,11 @@ interface DragState {
 interface UseScoreInteractionProps {
   scoreRef: React.MutableRefObject<Score>;
   selection: Selection;
-  onUpdatePitch: (
-    measureIndex: number,
-    eventId: string | number,
-    noteId: string | number,
-    newPitch: string
-  ) => void;
+  onUpdatePitch: (measureIndex: number, eventId: string, noteId: string, newPitch: string) => void;
   onSelectNote: (
     measureIndex: number | null,
-    eventId: string | number | null,
-    noteId: string | number | null,
+    eventId: string | null,
+    noteId: string | null,
     staffIndex?: number,
     isMulti?: boolean,
     selectAllInEvent?: boolean,
@@ -61,8 +56,8 @@ export const useScoreInteraction = ({
   const handleDragStart = useCallback(
     (params: {
       measureIndex: number;
-      eventId: string | number;
-      noteId: string | number;
+      eventId: string;
+      noteId: string;
       startPitch: string;
       startY: number;
       isMulti?: boolean;
@@ -88,12 +83,7 @@ export const useScoreInteraction = ({
       const initialPitches = new Map<string, string>();
 
       // Helper to find pitch
-      const getPitch = (
-        sIndex: number,
-        mIndex: number,
-        eId: string,
-        nId: string | number | null
-      ) => {
+      const getPitch = (sIndex: number, mIndex: number, eId: string, nId: string | null) => {
         const m = scoreRef.current.staves[sIndex]?.measures[mIndex];
         const e = m?.events.find((ev: ScoreEvent) => String(ev.id) === String(eId));
         if (nId) {

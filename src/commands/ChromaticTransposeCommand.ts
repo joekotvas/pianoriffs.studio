@@ -54,8 +54,7 @@ export class ChromaticTransposeCommand implements Command {
     const staffIndex = this.selection.staffIndex ?? 0;
 
     // Helper for robust ID comparison
-    const idsMatch = (a: string | number | null, b: string | number | null) =>
-      String(a) === String(b);
+    const idsMatch = (a: string | null, b: string | null) => String(a) === String(b);
 
     // CASE 0: Multi-Note Selection (using selection.selectedNotes)
     if (this.selection.selectedNotes && this.selection.selectedNotes.length > 0) {

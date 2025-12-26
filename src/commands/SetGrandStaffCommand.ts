@@ -1,5 +1,6 @@
 import { Command } from './types';
 import { Score, Staff, Measure } from '@/types';
+import { measureId, staffId } from '@/utils/id';
 
 /**
  * Command to convert a single-staff score to a Grand Staff (Treble + Bass).
@@ -22,8 +23,8 @@ export class SetGrandStaffCommand implements Command {
     const isBassClef = existingStaff.clef === 'bass';
 
     // Create empty measures matching existing staff structure
-    const emptyMeasures: Measure[] = existingStaff.measures.map((m, index) => ({
-      id: Date.now() + index + 1000,
+    const emptyMeasures: Measure[] = existingStaff.measures.map((m) => ({
+      id: measureId(),
       events: [],
       isPickup: m.isPickup,
     }));
@@ -31,7 +32,7 @@ export class SetGrandStaffCommand implements Command {
     if (isBassClef) {
       // Source is bass clef: keep notes on bass (index 1), add empty treble (index 0)
       const trebleStaff: Staff = {
-        id: Date.now() + 2000,
+        id: staffId(),
         clef: 'treble',
         keySignature: existingStaff.keySignature,
         measures: emptyMeasures,
@@ -50,7 +51,7 @@ export class SetGrandStaffCommand implements Command {
     } else {
       // Source is treble clef: keep notes on treble (index 0), add empty bass (index 1)
       const bassStaff: Staff = {
-        id: Date.now() + 2000,
+        id: staffId(),
         clef: 'bass',
         keySignature: existingStaff.keySignature,
         measures: emptyMeasures,

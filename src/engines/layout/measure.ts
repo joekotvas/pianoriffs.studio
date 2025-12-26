@@ -76,7 +76,7 @@ const addHitZone = (zones: HitZone[], newZone: HitZone): void => {
 const createEventHitZones = (
   noteheadX: number,
   eventIndex: number,
-  eventId: string | number,
+  eventId: string,
   minOffset: number,
   maxOffset: number,
   totalWidth: number

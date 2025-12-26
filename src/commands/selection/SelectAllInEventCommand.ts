@@ -12,7 +12,7 @@ import type { SelectionCommand } from './types';
 export interface SelectAllInEventOptions {
   staffIndex: number;
   measureIndex: number;
-  eventId: string | number;
+  eventId: string;
   /** If true, add to existing selection instead of replacing */
   addToSelection?: boolean;
 }

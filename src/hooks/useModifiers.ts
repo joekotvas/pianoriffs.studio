@@ -39,8 +39,8 @@ const getNoteTargets = (
   selection: Selection
 ): Array<{
   measureIndex: number;
-  eventId: string | number;
-  noteId: string | number;
+  eventId: string;
+  noteId: string;
   staffIndex: number;
 }> => {
   if (selection.selectedNotes && selection.selectedNotes.length > 0) {
@@ -67,8 +67,8 @@ const getNoteTargets = (
 
 const getEventTargets = (
   selection: Selection
-): Array<{ measureIndex: number; eventId: string | number; staffIndex: number }> => {
-  const targets: Array<{ measureIndex: number; eventId: string | number; staffIndex: number }> = [];
+): Array<{ measureIndex: number; eventId: string; staffIndex: number }> => {
+  const targets: Array<{ measureIndex: number; eventId: string; staffIndex: number }> = [];
 
   if (selection.selectedNotes && selection.selectedNotes.length > 0) {
     selection.selectedNotes.forEach((n) => {

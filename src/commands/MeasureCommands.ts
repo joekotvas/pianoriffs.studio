@@ -1,5 +1,6 @@
 import { Command } from './types';
 import { Score, Measure } from '@/types';
+import { measureId } from '@/utils/id';
 
 export class AddMeasureCommand implements Command {
   public readonly type = 'ADD_MEASURE';
@@ -11,7 +12,7 @@ export class AddMeasureCommand implements Command {
   execute(score: Score): Score {
     const newStaves = score.staves.map((staff, index) => {
       const newMeasures = [...staff.measures];
-      const newId = Date.now().toString() + '-' + index;
+      const newId = measureId();
       this.addedMeasureIds[index] = newId;
 
       const newMeasure: Measure = {

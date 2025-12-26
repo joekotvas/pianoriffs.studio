@@ -1,14 +1,14 @@
+/**
+ * Core Score Utilities
+ *
+ * Fundamental score manipulation utilities including duration calculations,
+ * score reflow, and horizontal navigation.
+ *
+ * @tested src/__tests__/core.test.ts
+ */
 import { NOTE_TYPES, TIME_SIGNATURES } from '@/constants';
 import { Measure, ScoreEvent, Note, Selection } from '@/types';
-
-/**
- * Basic ID generator.
- * Uses crypto.randomUUID() when available, falls back to timestamp + random string.
- */
-export const generateId = (): string =>
-  typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+import { measureId, eventId } from '@/utils/id';
 
 /**
  * Calculates the duration of a note in quants.
@@ -41,7 +41,6 @@ export const getNoteDuration = (
   return dottedValue;
 };
 
-// New Helper: Calculate total measure duration in quants from Event List
 /**
  * Calculates the total duration of a list of events in quants.
  * @param events - List of events
@@ -53,7 +52,6 @@ export const calculateTotalQuants = (events: ScoreEvent[]) => {
   }, 0);
 };
 
-// Helper: Decompose quants into valid note durations
 /**
  * Decomposes a total number of quants into a list of valid note durations.
  * Used for reflowing measures when time signature changes.
@@ -124,7 +122,7 @@ export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
 
   const commitMeasure = (isPickupMeasure = false) => {
     newMeasures.push({
-      id: Date.now() + Math.random(), // New IDs
+      id: measureId(),
       events: currentMeasureEvents,
       isPickup: isPickupMeasure,
     });
@@ -132,55 +130,11 @@ export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
     currentMeasureQuants = 0;
   };
 
-  // 3. Handle Pickup Measure specifically
-  if (isPickup) {
-    // For pickup, we just take events until we fill it OR until we run out of events that "belong" to it?
-    // Actually, reflow usually implies we are changing time signature.
-    // If we have a pickup, we should try to keep the *same* events in it if possible,
-    // OR we just fill it up to its current capacity?
-    // A pickup measure by definition is incomplete.
-    // Strategy: The first measure IS the pickup. We fill it with events until it is "full" relative to the NEW time signature?
-    // NO, a pickup measure is usually *shorter* than the time signature.
-    // So we should probably just take the events that were *already* in the pickup measure?
-    // But we flattened everything.
-    // Let's assume we want to preserve the *duration* of the pickup if possible, or just fill it up to the max of the new time sig?
-    // If we change 4/4 to 3/4, and pickup was 1 beat. It should stay 1 beat.
-    // If we change 4/4 to 3/4, and pickup was 3 beats. It fits.
-    // If we change 4/4 to 2/4, and pickup was 3 beats. It overflows.
-    // BETTER STRATEGY:
-    // We need to know which events belonged to the pickup.
-    // But we flattened them.
-    // Note: originalPickupEvents was removed as dead code (only used for unused pickupQuants)
-    // We consume events from `allEvents` that match the original pickup's duration (or as much as fits in new time sig)
-    // Actually, since we flattened `allEvents`, the first N events are from the pickup.
-    // We iterate `allEvents`. We fill the first measure until we reach the duration of the original pickup,
-    // BUT constrained by `maxQuants` of the new time signature.
-    // TODO: pickupQuants and pickupFilled were removed as dead code.
-    // The actual pickup handling uses targetPickupDuration calculated below.
-    // Let's set a "target duration" for the first measure.
-    // If isPickup, target = min(originalPickupDuration, maxQuants).
-    // Else target = maxQuants.
-    // Wait, if we just change time sig, we might want to keep the pickup as is.
-    // So target = originalPickupDuration.
-    // If originalPickupDuration > maxQuants (e.g. 3 beats pickup going to 2/4), then it MUST be split.
-    // So target = min(originalPickupDuration, maxQuants).
-    // However, `reflowScore` is also used when we add/remove notes?
-    // If we add a note to a pickup, it grows.
-    // If we add a note to a normal measure, it overflows.
-    // If `reflowScore` is called, it means we want to re-distribute.
-    // If we have a pickup, we generally want to preserve it as a distinct container that doesn't accept overflow from previous (none) or give overflow to next (unless it exceeds time sig).
-    // Actually, if we are just reflowing, we should treat the pickup as a "short measure".
-    // But how do we know how short it *should* be?
-    // It is defined by its content.
-    // If we are reflowing because of a Time Sig change:
-    // We want to preserve the musical content of the pickup.
-    // So we calculate the duration of the original pickup.
-    // We fill the new first measure up to that duration.
-    // Then we close it and mark it as pickup.
-    // We need to pull events from `allEvents` until we hit `targetPickupDuration`.
-    // Since `allEvents` is ordered, we just process them.
-    // We need a flag in the loop to know we are filling the pickup.
-  }
+  // 3. Handle Pickup Measure
+  // Pickup measures are incomplete by definition. When reflowing:
+  // - Preserve the original pickup duration if it fits in the new time signature
+  // - If pickup overflows new time sig, split at maxQuants
+  // - Target duration = min(original pickup duration, maxQuants)
 
   // Calculate target pickup duration (0 if not a pickup)
   const targetPickupDuration = isPickup
@@ -191,7 +145,7 @@ export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
   let isFillingPickup = isPickup;
   const pickupTarget = targetPickupDuration;
 
-  // 2. Redistribute events
+  // 4. Redistribute events
   allEvents.forEach((event) => {
     const eventDuration = getNoteDuration(event.duration, event.dotted, event.tuplet);
 
@@ -216,7 +170,7 @@ export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
         firstParts.forEach((part) => {
           const newEvent = {
             ...event,
-            id: Date.now() + Math.random(),
+            id: eventId(),
             duration: part.duration,
             dotted: part.dotted,
             notes: event.notes.map((n: Note) => ({ ...n, tied: true })),
@@ -240,7 +194,7 @@ export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
         secondParts.forEach((part) => {
           const newEvent = {
             ...event,
-            id: Date.now() + Math.random(),
+            id: eventId(),
             duration: part.duration,
             dotted: part.dotted,
             notes: event.notes.map((n: Note) => ({ ...n, tied: event.notes[0].tied })),
@@ -268,19 +222,12 @@ export const reflowScore = (measures: Measure[], newTimeSignature: string) => {
 
   // Ensure at least one measure
   if (newMeasures.length === 0) {
-    newMeasures.push({ id: Date.now(), events: [], isPickup: isPickup });
+    newMeasures.push({ id: measureId(), events: [], isPickup: isPickup });
   }
 
   return newMeasures;
 };
 
-/**
- * Navigates the selection based on direction.
- * @param {Array} measures - List of measures
- * @param {Object} selection - Current selection { measureIndex, eventId, noteId }
- * @param {string} direction - 'left', 'right', 'up', 'down'
- * @returns {Object} New selection object
- */
 /**
  * Helper: Robust check for rest event
  */
@@ -299,7 +246,7 @@ export const isNoteEvent = (event: ScoreEvent): boolean => {
  * Helper to get noteId for an event.
  * Returns ID for first note (pitch or rest).
  */
-export const getFirstNoteId = (event: ScoreEvent | undefined | null): string | number | null => {
+export const getFirstNoteId = (event: ScoreEvent | undefined | null): string | null => {
   if (!event || !event.notes?.length) return null;
   return event.notes[0].id; // Rests now have notes, so this works for both
 };
@@ -308,7 +255,11 @@ export const getFirstNoteId = (event: ScoreEvent | undefined | null): string | n
  * Navigates the selection horizontally (left/right).
  * Vertical navigation (up/down) is handled by calculateVerticalNavigation in interaction.ts.
  */
-export const navigateSelection = (measures: Measure[], selection: Selection, direction: string) => {
+export const navigateSelection = (
+  measures: Measure[],
+  selection: Selection,
+  direction: 'left' | 'right'
+) => {
   const { measureIndex, eventId } = selection;
   if (measureIndex === null || !eventId) return selection;
 
@@ -355,13 +306,3 @@ export const navigateSelection = (measures: Measure[], selection: Selection, dir
 
   return selection;
 };
-
-/**
- * Calculates transposition for selected notes.
- * @param {Array} measures - List of measures
- * @param {Object} selection - Current selection
- * @param {string} direction - 'up' or 'down'
- * @param {boolean} isShift - Whether shift is pressed (octave)
- * @param {string} clef - Clef for pitch context
- * @returns {Object|null} Object containing new measures and the modified event, or null if no change
- */

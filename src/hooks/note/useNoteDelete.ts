@@ -13,8 +13,8 @@ export interface UseNoteDeleteProps {
   /** Function to update selection */
   select: (
     measureIndex: number | null,
-    eventId: string | number | null,
-    noteId: string | number | null,
+    eventId: string | null,
+    noteId: string | null,
     staffIndex?: number
   ) => void;
   /** Command dispatcher */

@@ -5,9 +5,7 @@
  */
 
 import { Staff, Measure, StaffTemplate } from '@/types';
-
-let idCounter = 0;
-const generateId = (prefix: string): string => `${prefix}-${++idCounter}`;
+import { measureId, staffId } from '@/utils/id';
 
 /**
  * Creates an empty measure (no events).
@@ -17,7 +15,7 @@ const generateId = (prefix: string): string => `${prefix}-${++idCounter}`;
  * handles rendering a centered whole rest placeholder that doesn't block input.
  */
 export const createEmptyMeasure = (): Measure => ({
-  id: generateId('m'),
+  id: measureId(),
   events: [],
 });
 
@@ -29,7 +27,7 @@ const createStaff = (
   measureCount: number,
   keySignature: string
 ): Staff => ({
-  id: generateId('staff'),
+  id: staffId(),
   clef,
   keySignature,
   measures: Array.from({ length: measureCount }, () => createEmptyMeasure()),
@@ -47,9 +45,6 @@ export const generateStaves = (
   measureCount: number,
   keySignature: string
 ): Staff[] => {
-  // Reset counter for deterministic IDs in tests
-  idCounter = 0;
-
   switch (template) {
     case 'grand':
       return [
@@ -64,11 +59,4 @@ export const generateStaves = (
       // Fallback to treble
       return [createStaff('treble', measureCount, keySignature)];
   }
-};
-
-/**
- * Resets the ID counter (useful for testing)
- */
-export const resetIdCounter = (): void => {
-  idCounter = 0;
 };

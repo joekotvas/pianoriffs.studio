@@ -52,10 +52,10 @@ describe('createNotePayload', () => {
       expect(note.id).toBe('custom-id-123');
     });
 
-    it('uses numeric ID when specified', () => {
-      const note = createNotePayload({ pitch: 'C4', id: 12345 });
+    it('uses string ID when specified', () => {
+      const note = createNotePayload({ pitch: 'C4', id: '12345' });
 
-      expect(note.id).toBe(12345);
+      expect(note.id).toBe('12345');
     });
   });
 

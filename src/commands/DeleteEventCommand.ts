@@ -8,7 +8,7 @@ export class DeleteEventCommand implements Command {
 
   constructor(
     private measureIndex: number,
-    private eventId: string | number,
+    private eventId: string,
     private staffIndex: number = 0
   ) {}
 

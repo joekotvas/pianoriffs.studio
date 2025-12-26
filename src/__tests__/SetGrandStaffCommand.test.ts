@@ -13,13 +13,13 @@ import { Score, Staff, Measure } from '@/types';
 describe('SetGrandStaffCommand', () => {
   const createMockScore = (clef: string = 'treble'): Score => {
     const measure: Measure = {
-      id: 1,
+      id: '1',
       events: [],
       isPickup: false,
     };
 
     const staff: Staff = {
-      id: 100,
+      id: '100',
       clef: clef as 'treble' | 'bass' | 'grand',
       keySignature: 'C',
       measures: [measure],
@@ -36,7 +36,7 @@ describe('SetGrandStaffCommand', () => {
 
   const createMockScoreWithNotes = (clef: string = 'treble'): Score => {
     const measure: Measure = {
-      id: 1,
+      id: '1',
       events: [
         {
           id: 'event-1',
@@ -50,7 +50,7 @@ describe('SetGrandStaffCommand', () => {
     };
 
     const staff: Staff = {
-      id: 100,
+      id: '100',
       clef: clef as 'treble' | 'bass' | 'grand',
       keySignature: 'C',
       measures: [measure],

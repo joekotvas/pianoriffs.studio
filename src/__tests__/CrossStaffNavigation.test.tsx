@@ -19,12 +19,12 @@ jest.mock('../engines/toneEngine', () => ({
 // Mock Score Factory (Same as before)
 const createMockScore = (): Score => {
   const createMeasure = (events: any[]): Measure => ({
-    id: Math.random(),
+    id: String(Math.random()),
     events,
     isPickup: false,
   });
 
-  const createNote = (pitch: string, id: number) => ({
+  const createNote = (pitch: string, id: string) => ({
     id,
     pitch,
   });
@@ -40,18 +40,18 @@ const createMockScore = (): Score => {
   // Staff 0: 4 Quarter Notes (0, 24, 48, 72)
   const staff0Measures = [
     createMeasure([
-      createEvent('e1-0', [createNote('C4', 101)], 'quarter', false), // 0-24
-      createEvent('e1-1', [createNote('D4', 102)], 'quarter', false), // 24-48
-      createEvent('e1-2', [createNote('E4', 103)], 'quarter', false), // 48-72
-      createEvent('e1-3', [createNote('F4', 104)], 'quarter', false), // 72-96
+      createEvent('e1-0', [createNote('C4', '101')], 'quarter', false), // 0-24
+      createEvent('e1-1', [createNote('D4', '102')], 'quarter', false), // 24-48
+      createEvent('e1-2', [createNote('E4', '103')], 'quarter', false), // 48-72
+      createEvent('e1-3', [createNote('F4', '104')], 'quarter', false), // 72-96
     ]),
   ];
 
   // Staff 1: 2 Half Notes (0-48, 48-96)
   const staff1Measures = [
     createMeasure([
-      createEvent('e2-0', [createNote('C3', 201)], 'half', false), // 0-48
-      createEvent('e2-1', [createNote('G2', 202)], 'half', false), // 48-96
+      createEvent('e2-0', [createNote('C3', '201')], 'half', false), // 0-48
+      createEvent('e2-1', [createNote('G2', '202')], 'half', false), // 48-96
     ]),
     createMeasure([]), // Measure 1 is empty on Staff 1
   ];
@@ -59,7 +59,7 @@ const createMockScore = (): Score => {
   // Staff 0 needs a Measure 1 too for the test
   staff0Measures.push(
     createMeasure([
-      createEvent('e1-4', [createNote('C4', 105)], 'whole', false), // Measure 1, Whole note
+      createEvent('e1-4', [createNote('C4', '105')], 'whole', false), // Measure 1, Whole note
     ])
   );
 
@@ -85,7 +85,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       staffIndex: 0,
       measureIndex: 0,
       eventId: 'e1-1',
-      noteId: 102,
+      noteId: '102',
       selectedNotes: [],
       anchor: null,
     };
@@ -141,7 +141,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       staffIndex: 1,
       measureIndex: 0,
       eventId: 'e2-1',
-      noteId: 202,
+      noteId: '202',
       selectedNotes: [],
       anchor: null,
     };
@@ -256,11 +256,11 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
 
     // Let's modify the mock score for this test specifically or add a Measure 2.
     score.staves[0].measures.push({
-      id: 999,
+      id: '999',
       events: [
         {
           id: 'late-event',
-          notes: [{ id: 998, pitch: 'C4' }],
+          notes: [{ id: '998', pitch: 'C4' }],
           duration: 'quarter',
           dotted: false,
           tuplet: undefined,
@@ -281,12 +281,12 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
     // Use a measure with multiple events on Staff 0, and Empty on Staff 1.
     // Let's overwrite Measure 1 on Staff 0 for this test instance.
     score.staves[0].measures[1] = {
-      id: 888,
+      id: '888',
       isPickup: false,
       events: [
         {
           id: 'm1-e1',
-          notes: [{ id: 1, pitch: 'C4' }],
+          notes: [{ id: 'm1n1', pitch: 'C4' }],
           duration: 'quarter',
           dotted: false,
           tuplet: undefined,
@@ -294,7 +294,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         }, // 0-24
         {
           id: 'm1-e2',
-          notes: [{ id: 2, pitch: 'C4' }],
+          notes: [{ id: 'm1n2', pitch: 'C4' }],
           duration: 'quarter',
           dotted: false,
           tuplet: undefined,
@@ -308,7 +308,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
       staffIndex: 0,
       measureIndex: 1,
       eventId: 'm1-e2',
-      noteId: 2,
+      noteId: '2',
       selectedNotes: [],
       anchor: null,
     };

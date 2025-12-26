@@ -1,6 +1,7 @@
 import { Command } from './types';
 import { Score, Note, ScoreEvent } from '@/types';
 import { updateMeasure } from '@/utils/commandHelpers';
+import { eventId as createEventId } from '@/utils/id';
 
 /**
  * Unified command to add a score event (note or rest) to a measure.
@@ -42,7 +43,7 @@ export class AddEventCommand implements Command {
   execute(score: Score): Score {
     return updateMeasure(score, this.staffIndex, this.measureIndex, (measure) => {
       const newEvents = [...measure.events];
-      const eventId = this.eventId || Date.now().toString();
+      const eventId = this.eventId || createEventId();
 
       let newEvent: ScoreEvent;
 

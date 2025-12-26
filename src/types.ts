@@ -10,7 +10,7 @@ import { ThemeName } from './themes';
 // ========== NOTE ==========
 
 export interface Note {
-  id: string | number;
+  id: string;
   pitch: string | null; // e.g., 'C4', 'D#5', 'Bb3', or null for rests
   accidental?: 'sharp' | 'flat' | 'natural' | null;
   tied?: boolean; // Tied to next note
@@ -20,7 +20,7 @@ export interface Note {
 // ========== EVENT ==========
 
 export interface ScoreEvent {
-  id: string | number;
+  id: string;
   duration: string; // 'whole', 'half', 'quarter', etc.
   dotted: boolean;
   notes: Note[]; // Multiple notes = chord
@@ -37,7 +37,7 @@ export interface ScoreEvent {
 // ========== MEASURE ==========
 
 export interface Measure {
-  id: string | number;
+  id: string;
   events: ScoreEvent[];
   isPickup?: boolean;
 }
@@ -47,7 +47,7 @@ export interface Measure {
 export type ClefType = 'treble' | 'bass' | 'alto' | 'tenor' | 'grand';
 
 export interface Staff {
-  id: string | number;
+  id: string;
   clef: ClefType;
   keySignature: string; // e.g., 'C', 'G', 'F', 'Bb'
   measures: Measure[];
@@ -182,8 +182,8 @@ export interface Melody {
 export interface SelectedNote {
   staffIndex: number;
   measureIndex: number;
-  eventId: string | number;
-  noteId: string | number | null;
+  eventId: string;
+  noteId: string | null;
 }
 
 /**
@@ -205,8 +205,8 @@ export interface VerticalAnchors {
 export interface Selection {
   staffIndex: number; // Index of the selected staff (0 for single staff, 0 or 1 for Grand Staff)
   measureIndex: number | null; // Index of the selected measure
-  eventId: string | number | null; // ID of the selected event
-  noteId: string | number | null; // ID of the selected note (for chords)
+  eventId: string | null; // ID of the selected event
+  noteId: string | null; // ID of the selected note (for chords)
   selectedNotes: SelectedNote[]; // List of all selected notes (including the primary one above)
   anchor?: SelectedNote | null; // The static "anchor" point for range selection
   verticalAnchors?: VerticalAnchors | null; // Per-slice anchors for vertical extension
@@ -251,7 +251,7 @@ export interface PreviewNote {
  * Audio feedback data for playing notes after navigation.
  */
 export interface AudioFeedback {
-  notes: Array<{ pitch: string; id?: string | number }>;
+  notes: Array<{ pitch: string; id?: string }>;
   duration: string;
   dotted: boolean;
 }
@@ -263,19 +263,19 @@ export interface AudioFeedback {
 export interface NavigationSelection {
   staffIndex: number;
   measureIndex: number | null;
-  eventId: string | number | null;
-  noteId: string | number | null;
+  eventId: string | null;
+  noteId: string | null;
   selectedNotes?: Array<{
     staffIndex: number;
     measureIndex: number;
-    eventId: string | number;
-    noteId: string | number | null;
+    eventId: string;
+    noteId: string | null;
   }>;
   anchor?: {
     staffIndex: number;
     measureIndex: number;
-    eventId: string | number;
-    noteId: string | number | null;
+    eventId: string;
+    noteId: string | null;
   } | null;
 }
 

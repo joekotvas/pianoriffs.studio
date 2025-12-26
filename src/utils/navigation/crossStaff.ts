@@ -48,7 +48,7 @@ export const findEventAtQuantPosition = (
 export const selectNoteInEventByDirection = (
   event: ScoreEvent | null | undefined,
   direction: 'up' | 'down'
-): string | number | null => {
+): string | null => {
   if (!event?.notes?.length || event.isRest) return null;
   const sorted = [...event.notes].sort(
     (a: Note, b: Note) => getMidi(a.pitch || 'C4') - getMidi(b.pitch || 'C4')

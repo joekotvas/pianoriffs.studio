@@ -23,7 +23,7 @@ describe('TimelineService', () => {
         keySignature: 'C',
         measures: [
           {
-            id: 1,
+            id: '1',
             events: [
               {
                 id: 'e1',
@@ -79,7 +79,7 @@ describe('TimelineService', () => {
           keySignature: 'C',
           measures: [
             {
-              id: 1,
+              id: '1',
               events: [
                 {
                   id: 'e1',
@@ -119,7 +119,7 @@ describe('TimelineService', () => {
           keySignature: 'C',
           measures: [
             {
-              id: 1,
+              id: '1',
               isPickup: true,
               events: [
                 {
@@ -131,7 +131,7 @@ describe('TimelineService', () => {
               ],
             },
             {
-              id: 2,
+              id: '2',
               events: [
                 {
                   id: 'e2',
@@ -230,7 +230,7 @@ describe('TimelineService', () => {
           keySignature: 'C',
           measures: [
             {
-              id: 1,
+              id: '1',
               events: [
                 // Event 1: Quarter Note (0-1s)
                 {
@@ -249,7 +249,7 @@ describe('TimelineService', () => {
               ],
             },
             {
-              id: 2,
+              id: '2',
               events: [
                 // Event 3: Quarter Note (starts at 2.0s). Tied target.
                 {

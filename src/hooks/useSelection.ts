@@ -91,8 +91,8 @@ export const useSelection = ({ score }: UseSelectionProps) => {
     (
       staffIndex: number,
       measureIndex: number,
-      eventId: string | number,
-      noteId: string | number | null
+      eventId: string,
+      noteId: string | null
     ): SelectionTarget => {
       const measure = getActiveStaff(score, staffIndex).measures[measureIndex];
 
@@ -117,8 +117,8 @@ export const useSelection = ({ score }: UseSelectionProps) => {
     (
       staffIndex: number,
       measureIndex: number,
-      eventId: string | number,
-      noteId: string | number | null,
+      eventId: string,
+      noteId: string | null,
       notes: Note[]
     ) => {
       setLastSelection({
@@ -191,8 +191,8 @@ export const useSelection = ({ score }: UseSelectionProps) => {
   const select = useCallback(
     (
       measureIndex: number | null,
-      eventId: string | number | null,
-      noteId: string | number | null,
+      eventId: string | null,
+      noteId: string | null,
       staffIndex: number = 0,
       options: {
         isMulti?: boolean;
