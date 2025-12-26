@@ -43,6 +43,17 @@ const FONT_LOADING_CSS = `
     top: 0;
     visibility: visible;
   }
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .RiffScore.font-loading .score-editor-content {
+      animation: none;
+      opacity: 0.5;
+    }
+    .RiffScore.font-loading .ScoreTitleField::after {
+      content: 'Loading...';
+      animation: none;
+    }
+  }
 `;
 
 export interface FontLoadedResult {
@@ -64,9 +75,9 @@ export interface FontLoadedResult {
  *
  * @example
  * ```tsx
- * const { className, style, styleElement } = useFontLoaded();
+ * const { className, styleElement } = useFontLoaded();
  * return (
- *   <div className={`RiffScore ${className}`} style={style}>
+ *   <div className={`RiffScore ${className}`}>
  *     {styleElement}
  *     ...content
  *   </div>
@@ -84,8 +95,8 @@ export const useFontLoaded = (timeoutMs = 3000): FontLoadedResult => {
 
     let cancelled = false;
 
-    // No fonts API (legacy browsers) - use timeout only
-    if (!document.fonts) {
+    // No fonts API (legacy browsers or SSR) - use timeout only
+    if (typeof document === 'undefined' || !document.fonts) {
       const timeout = setTimeout(() => {
         if (!cancelled) setIsLoaded(true);
       }, 100); // Short delay for legacy browsers
