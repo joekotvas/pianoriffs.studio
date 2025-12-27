@@ -79,12 +79,12 @@ See also: [docs/ARCHITECTURE.md](./ARCHITECTURE.md)
 When multiple focused hooks share many props and are typically used together, bundle them into a **Composition Hook**. This reduces prop drilling while preserving the single-responsibility of the underlying hooks.
 
 > [!TIP]
-> Composition Hooks are **not deprecated facades**-they are an intentional pattern for reducing complexity.
+> Composition Hooks are **not deprecated facades** — they are an intentional pattern for reducing complexity.
 
 **Example: `useNoteActions`**
 
 ```typescript
-// src/hooks/useNoteActions.ts - Composition Hook
+// src/hooks/note/useNoteActions.ts - Composition Hook
 export const useNoteActions = (props: UseNoteActionsProps) => {
   // Compose focused hooks
   const { handleMeasureHover } = useHoverPreview(props);

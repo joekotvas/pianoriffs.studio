@@ -16,7 +16,6 @@
  *
  * @see hooks/note/ - Individual focused hooks
  * @see CODING_PATTERNS.md - Composition Hook pattern documentation
- * @tested src/__tests__/hooks/useNoteActions.test.tsx (via integration tests)
  *
  * @module hooks/note/useNoteActions
  */
