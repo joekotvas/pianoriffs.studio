@@ -18,15 +18,18 @@
  * @see CODING_PATTERNS.md - Composition Hook pattern documentation
  * @tested src/__tests__/hooks/useNoteActions.test.tsx (via integration tests)
  *
- * @module hooks/useNoteActions
+ * @module hooks/note/useNoteActions
  */
 
 import { RefObject } from 'react';
 import { Score, Selection } from '@/types';
 import { Command } from '@/commands/types';
-import { InputMode } from './useEditorTools';
-import { useHoverPreview, useNoteEntry, useNoteDelete, useNotePitch, PreviewNote } from './note';
-import { NoteInput, PlacementOverride, ChordNoteInput, SelectOptions } from './note/useNoteEntry';
+import { InputMode } from '../useEditorTools';
+import { useHoverPreview } from './useHoverPreview';
+import { useNoteEntry, NoteInput, PlacementOverride, ChordNoteInput, SelectOptions } from './useNoteEntry';
+import { useNoteDelete } from './useNoteDelete';
+import { useNotePitch } from './useNotePitch';
+import { PreviewNote } from '@/utils/entry';
 import { HitZone } from '@/engines/layout/types';
 
 /**

@@ -24,7 +24,7 @@ import { useScoreEngine } from './useScoreEngine';
 import { useTransactionBatching } from './useTransactionBatching';
 import { useEditorTools } from './useEditorTools';
 import { useMeasureActions } from './useMeasureActions';
-import { useNoteActions } from './useNoteActions';
+import { useNoteActions } from './note';
 import { useModifiers } from './useModifiers';
 import { useNavigation } from './useNavigation';
 import { useTupletActions } from './useTupletActions';

@@ -7,7 +7,14 @@
  * @module hooks/note
  */
 
-// Exported hooks
+// Composition hook (bundles sub-hooks below)
+export {
+  useNoteActions,
+  type UseNoteActionsProps,
+  type UseNoteActionsReturn,
+} from './useNoteActions';
+
+// Individual sub-hooks (for surgical access)
 export {
   useHoverPreview,
   type UseHoverPreviewProps,
