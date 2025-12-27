@@ -352,7 +352,7 @@ describe('ExtendSelectionHorizontallyCommand', () => {
 
     it('selects co-vertical event on target staff at anchor position (Shift+Click)', () => {
       const score = createTwoStaffScore();
-      
+
       // Modify Staff 1, Event 1 (b-e1) to be a REST
       // Original: 2 quarter notes. b-e1 is at start.
       const bassRest = score.staves[1].measures[0].events[0];
@@ -381,7 +381,7 @@ describe('ExtendSelectionHorizontallyCommand', () => {
 
       // Verify Staff 1 selections
       const bassNotes = result.selectedNotes.filter((n) => n.staffIndex === 1);
-      
+
       // Should contain b-e1 (the rest) and b-e2 (target)
       const bassEventIds = bassNotes.map((n) => n.eventId);
       expect(bassEventIds).toContain('b-e2'); // Target
