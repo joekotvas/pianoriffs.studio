@@ -205,7 +205,7 @@ describe('useCursorLayout', () => {
                 beamGroups: [],
                 tupletGroups: [],
                 legacyLayout: {
-                  eventPositions: { 's0e1': 20, 's0e2': 80 },
+                  eventPositions: { s0e1: 20, s0e2: 80 },
                   processedEvents: [
                     { id: 's0e1', duration: 'half', quant: 0 },
                     { id: 's0e2', duration: 'half', quant: 48 },
@@ -226,10 +226,8 @@ describe('useCursorLayout', () => {
                 beamGroups: [],
                 tupletGroups: [],
                 legacyLayout: {
-                  eventPositions: { 's1e1': 50 },
-                  processedEvents: [
-                    { id: 's1e1', duration: 'quarter', quant: 24 },
-                  ],
+                  eventPositions: { s1e1: 50 },
+                  processedEvents: [{ id: 's1e1', duration: 'quarter', quant: 24 }],
                 },
               },
             ],
@@ -251,10 +249,10 @@ describe('useCursorLayout', () => {
       // Logic: If at Quant 0 (Start of Event 1), and playing...
       // Cursor should target End of Event 1 (Start of Event 2)
       // So CSS transition animates 0 -> End during the note duration.
-      
+
       const layout = createGrandStaffLayout();
       // Layout has event 1 at +20 (Quant 0), event 2 at +60 (Quant 24).
-      
+
       // Test Paused (Default) - Should target Current Event
       const { result: pausedResult } = renderHook(() =>
         useCursorLayout(layout, { measureIndex: 0, quant: 0, duration: 0.5 }, false)
