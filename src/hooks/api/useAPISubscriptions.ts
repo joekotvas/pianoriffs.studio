@@ -14,9 +14,9 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
-import type { Unsubscribe, BatchEventPayload } from '../api.types';
-import type { Score, Selection } from '../types';
-import type { ScoreEngine } from '../engines/ScoreEngine';
+import type { Unsubscribe, BatchEventPayload } from '@/api.types';
+import type { Score, Selection } from '@/types';
+import type { ScoreEngine } from '@/engines/ScoreEngine';
 
 type Listener<T> = (state: T) => void;
 

@@ -23,7 +23,7 @@
 import { RefObject } from 'react';
 import { Score, Selection } from '@/types';
 import { Command } from '@/commands/types';
-import { InputMode } from '../useEditorTools';
+import { InputMode } from '../editor';
 import { useHoverPreview } from './useHoverPreview';
 import {
   useNoteEntry,

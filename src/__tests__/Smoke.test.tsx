@@ -31,7 +31,7 @@ jest.mock('../components/Toolbar/Toolbar', () => {
 });
 
 // Mock hooks
-jest.mock('../hooks/usePlayback', () => ({
+jest.mock('../hooks/audio/usePlayback', () => ({
   usePlayback: () => ({
     isPlaying: false,
     playbackPosition: { measureIndex: null, eventIndex: null, duration: 0 },
@@ -42,7 +42,7 @@ jest.mock('../hooks/usePlayback', () => ({
   }),
 }));
 
-jest.mock('../hooks/useMIDI', () => ({
+jest.mock('../hooks/audio/useMIDI', () => ({
   useMIDI: () => ({
     midiStatus: 'disconnected',
   }),

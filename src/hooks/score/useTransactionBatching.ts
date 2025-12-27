@@ -10,9 +10,9 @@
  */
 
 import { useRef, useCallback, useState } from 'react';
-import type { ScoreEngine } from '../engines/ScoreEngine';
-import type { Command } from '../commands/types';
-import { BatchCommand } from '../commands/BatchCommand';
+import type { ScoreEngine } from '@/engines/ScoreEngine';
+import type { Command } from '@/commands/types';
+import { BatchCommand } from '@/commands/BatchCommand';
 
 export function useTransactionBatching(engine: ScoreEngine) {
   // Use ref for buffer to allow synchronous updates without re-renders

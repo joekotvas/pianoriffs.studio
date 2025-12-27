@@ -9,7 +9,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { useScoreAPI } from '../hooks/useScoreAPI';
+import { useScoreAPI } from '../hooks/api';
 import { ScoreProvider } from '../context/ScoreContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import { createDefaultScore } from '../types';

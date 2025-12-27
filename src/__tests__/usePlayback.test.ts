@@ -4,7 +4,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { usePlayback } from '@/hooks/usePlayback';
+import { usePlayback } from '@/hooks/audio';
 import type { Score } from '@/types';
 
 // Mock toneEngine

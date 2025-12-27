@@ -1,10 +1,10 @@
 import { useEffect, useCallback } from 'react';
-import { handlePlayback } from './handlers/handlePlayback';
-import { handleNavigation } from './handlers/handleNavigation';
-import { handleMutation } from './handlers/handleMutation';
+import { handlePlayback } from '../handlers/handlePlayback';
+import { handleNavigation } from '../handlers/handleNavigation';
+import { handleMutation } from '../handlers/handleMutation';
 import { getActiveStaff, ScoreEvent, Note, SelectedNote } from '@/types';
 import { UseScoreLogicGroupedReturn } from '@/hooks/score/types';
-import { UsePlaybackReturn } from './usePlayback';
+import { UsePlaybackReturn } from '../audio';
 import {
   SelectAllInEventCommand,
   ClearSelectionCommand,

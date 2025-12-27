@@ -1,5 +1,5 @@
 import { getActiveStaff, Score, Selection, ScoreEvent } from '@/types';
-import { UsePlaybackReturn } from '../usePlayback';
+import { UsePlaybackReturn } from '../audio';
 
 /**
  * Handles playback keyboard shortcuts (Space, P).

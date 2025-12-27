@@ -8,7 +8,7 @@ import { Melody, getActiveStaff } from '@/types';
 import { InstrumentType } from '@/engines/toneEngine';
 
 // Hooks & Commands
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useFocusTrap } from '@/hooks/layout';
 import { ToggleRestCommand } from '@/commands/ToggleRestCommand';
 import { LoadScoreCommand } from '@/commands/LoadScoreCommand';
 

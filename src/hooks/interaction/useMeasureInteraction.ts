@@ -3,7 +3,7 @@ import { getPitchForOffset } from '@/engines/layout';
 import { HitZone } from '@/engines/layout/types';
 import { CLAMP_LIMITS, MOUSE_OFFSET_SNAP } from '@/constants';
 import { PreviewNote, Selection } from '@/types';
-import { NoteInput } from './note/useNoteEntry';
+import { NoteInput } from '../note/useNoteEntry';
 
 interface UseMeasureInteractionParams {
   hitZones: HitZone[];

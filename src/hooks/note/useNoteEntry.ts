@@ -17,7 +17,7 @@ import { AddNoteToEventCommand } from '@/commands/AddNoteToEventCommand';
 import { AddMeasureCommand } from '@/commands/MeasureCommands';
 import { createNotePayload, createPreviewNote, PreviewNote } from '@/utils/entry';
 import { eventId as createEventId } from '@/utils/id';
-import { InputMode } from '../useEditorTools';
+import { InputMode } from '../editor';
 
 /**
  * Placement override for note insertion.

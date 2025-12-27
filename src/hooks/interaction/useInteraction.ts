@@ -19,7 +19,7 @@ import { RefObject } from 'react';
 import { Score, Selection, PreviewNote } from '@/types';
 import { Command } from '@/commands/types';
 import { SelectionEngine } from '@/engines/SelectionEngine';
-import { useNavigation } from '../useNavigation';
+import { useNavigation } from './useNavigation';
 import { useFocusScore } from '../score/useFocusScore';
 
 export interface UseInteractionProps {

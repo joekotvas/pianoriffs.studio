@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { Score } from '@/types';
-import { generateJSON } from '../exporters/jsonExporter';
-import { generateABC } from '../exporters/abcExporter';
-import { generateMusicXML } from '../exporters/musicXmlExporter';
+import { generateJSON } from '@/exporters/jsonExporter';
+import { generateABC } from '@/exporters/abcExporter';
+import { generateMusicXML } from '@/exporters/musicXmlExporter';
 
 export type ExportFormat = 'json' | 'abc' | 'musicxml';
 

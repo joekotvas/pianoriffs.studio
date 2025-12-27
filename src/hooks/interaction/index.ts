@@ -1,18 +1,14 @@
 /**
  * Interaction hooks for user input routing.
- *
- * These hooks handle navigation, focus management, and input event routing
- * for the score editor.
- *
  * @module hooks/interaction
  */
 
-// Composition hook (bundles sub-hooks below)
-export {
-  useInteraction,
-  type UseInteractionProps,
-  type UseInteractionReturn,
-} from './useInteraction';
+// Composition hook
+export { useInteraction, type UseInteractionProps, type UseInteractionReturn } from './useInteraction';
 
-// Re-export navigation for direct access if needed
-export { useNavigation } from '../useNavigation';
+// Sub-hooks
+export { useNavigation } from './useNavigation';
+export { useKeyboardShortcuts } from './useKeyboardShortcuts';
+export { useDragToSelect } from './useDragToSelect';
+export { useMeasureInteraction } from './useMeasureInteraction';
+export { useScoreInteraction } from './useScoreInteraction';

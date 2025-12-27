@@ -7,7 +7,7 @@
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useFontLoaded, FontLoadedResult } from '@/hooks/useFontLoaded';
+import { useFontLoaded, FontLoadedResult } from '@/hooks/layout';
 import { ReactElement } from 'react';
 
 // Helper to extract CSS content from styleElement
