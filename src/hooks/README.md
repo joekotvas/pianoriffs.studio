@@ -119,14 +119,14 @@ Bundles navigation, focus, and mouse interaction hooks. Use this folder for **UI
 
 Layout calculations, scrolling, and font loading. Anything that **moves pixels or controls viewport state** belongs here.
 
-| File                     | Purpose                                    |
-| ------------------------ | ------------------------------------------ |
-| `useMeasureLayout.ts`    | Computes measure width, beaming, hit zones |
-| `useGrandStaffLayout.ts` | Grand staff positioning (treble + bass)    |
-| `usePreviewRender.ts`    | Ghost note rendering during hover          |
-| `useAutoScroll.ts`       | Scroll canvas to keep selection visible    |
-| `useFontLoaded.ts`       | Font loading state for FOUC prevention     |
-| `useFocusTrap.ts`        | Traps focus within modals/dropdowns        |
+| File                  | Purpose                                            |
+| --------------------- | -------------------------------------------------- |
+| `useMeasureLayout.ts` | Computes measure width, beaming, hit zones         |
+| `useCursorLayout.ts`  | Playback cursor positioning (consumes ScoreLayout) |
+| `usePreviewRender.ts` | Ghost note rendering during hover                  |
+| `useAutoScroll.ts`    | Scroll canvas to keep selection visible            |
+| `useFontLoaded.ts`    | Font loading state for FOUC prevention             |
+| `useFocusTrap.ts`     | Traps focus within modals/dropdowns                |
 
 ---
 

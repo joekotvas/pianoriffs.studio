@@ -6,8 +6,8 @@ import { getActiveStaff, Staff as StaffType } from '@/types';
 import { HitZone } from '@/engines/layout/types';
 import { useScoreContext } from '@/context/ScoreContext';
 import { useScoreInteraction } from '@/hooks/interaction';
-import { useAutoScroll } from '@/hooks/layout';
-import { useGrandStaffLayout, useScoreLayout } from '@/hooks/layout';
+import { useAutoScroll, useCursorLayout } from '@/hooks/layout';
+import { useScoreLayout } from '@/hooks/layout';
 import { useDragToSelect } from '@/hooks/interaction';
 import GrandStaffBracket from '../Assets/GrandStaffBracket';
 import { CLAMP_LIMITS, STAFF_HEIGHT } from '@/constants';
@@ -100,7 +100,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   const activeStaff = getActiveStaff(score);
   const keySignature = score.keySignature || activeStaff.keySignature || 'C';
   const timeSignature = score.timeSignature || '4/4';
-  const clef = score.staves.length >= 2 ? 'grand' : activeStaff.clef || 'treble';
+  const _clef = score.staves.length >= 2 ? 'grand' : activeStaff.clef || 'treble';
 
   // --- AUTO-SCROLL LOGIC ---
   useAutoScroll({
@@ -152,16 +152,13 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
     );
   }, [score.staves.length]);
 
-  // Backwards compatibility for cursor logic (temporarily keep useGrandStaffLayout for cursor ONLY?)
-  // Or migrate cursor logic?
-  // For now, let's keep useGrandStaffLayout but ONLY for cursor, and rely on useScoreLayout for rendering.
-  const { unifiedCursorX, isGrandStaff, numStaves, synchronizedLayoutData } = useGrandStaffLayout({
-    score,
-    playbackPosition,
-    _activeStaff: activeStaff,
-    keySignature,
-    clef,
-  });
+  // Cursor layout (consumes centralized layout - no duplicate calculations)
+  const {
+    x: unifiedCursorX,
+    width: _unifiedCursorWidth,
+    isGrandStaff,
+    numStaves,
+  } = useCursorLayout(layout, playbackPosition);
 
   // Drag to select hook
   const {
@@ -344,7 +341,6 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                 keySignature={staff.keySignature || keySignature}
                 timeSignature={timeSignature}
                 measures={staff.measures}
-                measureLayouts={synchronizedLayoutData}
                 staffLayout={layout.staves[staffIndex]}
                 baseY={staffBaseY}
                 scale={scale}

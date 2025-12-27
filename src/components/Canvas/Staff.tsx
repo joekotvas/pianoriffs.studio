@@ -45,7 +45,6 @@ export interface StaffProps {
 
   // Layout
   baseY?: number; // Y offset for stacking staves (default: CONFIG.baseY)
-  measureLayouts?: { width: number; forcedPositions: Record<number, number> }[]; // Synchronized layouts
   staffLayout?: StaffLayout;
   scale: number;
 
@@ -78,7 +77,6 @@ const Staff: React.FC<StaffProps> = ({
   timeSignature,
   measures,
   baseY = CONFIG.baseY,
-  measureLayouts,
   staffLayout,
   scale,
   interaction,
@@ -102,12 +100,12 @@ const Staff: React.FC<StaffProps> = ({
   let currentX = startOfMeasures;
 
   const measureComponents = measures.map((measure, index: number) => {
-    // Use synchronized layout if available, otherwise calculate
-    const layoutData = measureLayouts?.[index];
-    const width = layoutData
-      ? layoutData.width
-      : calculateMeasureWidth(measure.events, measure.isPickup);
-    const forcedPositions = layoutData?.forcedPositions;
+    // Use centralized layout if available, otherwise calculate
+    const measureLayoutV2 = staffLayout?.measures[index];
+    const legacyLayout = measureLayoutV2?.legacyLayout;
+
+    const width = measureLayoutV2?.width ?? calculateMeasureWidth(measure.events, measure.isPickup);
+    const forcedPositions = legacyLayout?.eventPositions;
 
     // Only show preview note if it belongs to this staff
     // We create a DERIVED InteractionState for this scope
@@ -120,8 +118,6 @@ const Staff: React.FC<StaffProps> = ({
       ...interaction,
       previewNote: staffPreviewNote,
     };
-
-    const measureLayoutV2 = staffLayout?.measures[index];
 
     const component = (
       <Measure
