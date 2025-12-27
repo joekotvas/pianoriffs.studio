@@ -65,7 +65,7 @@ describe('Cursor Playback Timing Integration', () => {
     const playButton = screen.getByRole('button', { name: /play/i });
 
     // 3. User Clicks Play
-    // 3. User Clicks Play
+
     fireEvent.click(playButton);
 
     // 4. Verify Cursor State

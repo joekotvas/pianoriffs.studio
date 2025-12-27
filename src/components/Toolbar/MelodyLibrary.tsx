@@ -44,7 +44,7 @@ const MelodyLibrary: React.FC<MelodyLibraryProps> = ({
 
       <div className="overflow-y-auto p-2 dropdown-scroll" style={{ maxHeight: '320px' }}>
         {melodies.map((melody) => (
-          <DropdownItem key={melody.title} onClick={() => onSelectMelody(melody)}>
+          <DropdownItem key={melody.id} onClick={() => onSelectMelody(melody)}>
             {melody.title}
           </DropdownItem>
         ))}

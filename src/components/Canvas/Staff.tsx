@@ -272,9 +272,7 @@ const Staff: React.FC<StaffProps> = ({
       {/* Ties */}
       {renderTies()}
 
-      {/* Playback Cursor */}
-      {/* Ties */}
-      {renderTies()}
+
     </g>
   );
 };

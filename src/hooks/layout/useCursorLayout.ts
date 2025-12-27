@@ -134,7 +134,7 @@ const getQuantPositionFromMap = (
   if (quant in quantToX) {
     const idx = sortedQuants.indexOf(quant);
 
-    // Start at 0 for the vary first event to cover header space
+    // Start at 0 for the very first event to cover header space
     const startX = idx === 0 ? 0 : quantToX[quant];
 
     let nextX: number;
