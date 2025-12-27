@@ -2,7 +2,7 @@ import { useCallback, RefObject } from 'react';
 import { Score, getActiveStaff } from '@/types';
 import { canAddEventToMeasure } from '@/utils/validation';
 import { resolvePitch, createPreviewNote, arePreviewsEqual, PreviewNote } from '@/utils/entry';
-import { InputMode } from '../useEditorTools';
+import { InputMode } from '../editor';
 import { HitZone } from '@/engines/layout/types';
 
 /**

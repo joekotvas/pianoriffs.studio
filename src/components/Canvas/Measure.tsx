@@ -4,10 +4,10 @@ import { CONFIG } from '@/config';
 import { useTheme } from '@/context/ThemeContext';
 import { getFirstNoteId } from '@/utils/core';
 import { isRestSelected, isBeamGroupSelected } from '@/utils/selection';
-import { useAccidentalContext } from '@/hooks/useAccidentalContext';
-import { useMeasureLayout } from '@/hooks/useMeasureLayout';
-import { useMeasureInteraction } from '@/hooks/useMeasureInteraction';
-import { usePreviewRender } from '@/hooks/usePreviewRender';
+import { useAccidentalContext } from '@/hooks/editor';
+import { useMeasureLayout } from '@/hooks/layout';
+import { useMeasureInteraction } from '@/hooks/interaction';
+import { usePreviewRender } from '@/hooks/layout';
 import { MeasureProps } from '../../componentTypes';
 
 // Components

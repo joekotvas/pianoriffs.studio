@@ -7,7 +7,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { useSelection } from '@/hooks/useSelection';
+import { useSelection } from '@/hooks/score';
 import { createDefaultScore } from '@/types';
 
 // Mock toneEngine

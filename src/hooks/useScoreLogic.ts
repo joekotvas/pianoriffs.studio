@@ -20,16 +20,13 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { TIME_SIGNATURES } from '@/constants';
 import { CONFIG } from '@/config';
-import { useScoreEngine } from './useScoreEngine';
-import { useTransactionBatching } from './useTransactionBatching';
-import { useEditorTools } from './useEditorTools';
+import { useScoreEngine, useTransactionBatching, useSelection } from './score';
+import { useEditorTools } from './editor';
 import { useMeasureActions } from './useMeasureActions';
 import { useNoteActions } from './note';
-import { useModifiers } from './useModifiers';
+import { useModifiers, useEditorMode } from './editor';
 import { useInteraction } from './interaction';
 import { useTupletActions } from './useTupletActions';
-import { useSelection } from './useSelection';
-import { useEditorMode } from './useEditorMode';
 
 import { createDefaultScore, migrateScore, PreviewNote, Score } from '@/types';
 

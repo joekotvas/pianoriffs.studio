@@ -7,7 +7,7 @@
  */
 
 import { renderHook } from '@testing-library/react';
-import { useEditorMode } from '@/hooks/useEditorMode';
+import { useEditorMode } from '@/hooks/editor';
 import { createDefaultSelection } from '@/types';
 import type { Selection, PreviewNote } from '@/types';
 

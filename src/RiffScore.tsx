@@ -12,11 +12,11 @@
 import React, { useMemo, useId } from 'react';
 import { DeepPartial, RiffScoreConfig } from './types';
 import { useRiffScore } from './hooks/useRiffScore';
-import { useFontLoaded } from './hooks/useFontLoaded';
+import { useFontLoaded } from './hooks/layout';
 import { ScoreProvider } from './context/ScoreContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ScoreEditorContent } from './components/Layout/ScoreEditor';
-import { useScoreAPI } from './hooks/useScoreAPI';
+import { useScoreAPI } from './hooks/api';
 
 interface RiffScoreProps {
   /** Unique identifier for this RiffScore instance (auto-generated if not provided) */

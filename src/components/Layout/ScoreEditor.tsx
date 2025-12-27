@@ -5,11 +5,8 @@ import { ScoreProvider, useScoreContext } from '@context/ScoreContext';
 import { useTheme } from '@context/ThemeContext';
 
 // Hooks
-import { useKeyboardShortcuts } from '@hooks/useKeyboardShortcuts';
-import { usePlayback } from '@hooks/usePlayback';
-import { useMIDI } from '@hooks/useMIDI';
-import { useScoreInteraction } from '@hooks/useScoreInteraction';
-import { useSamplerStatus } from '@hooks/useSamplerStatus';
+import { useKeyboardShortcuts, useScoreInteraction } from '@hooks/interaction';
+import { usePlayback, useMIDI, useSamplerStatus } from '@hooks/audio';
 // import { useModifierKeys } from '@hooks/useModifierKeys';
 import { useTitleEditor } from '@hooks/useTitleEditor';
 

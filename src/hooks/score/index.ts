@@ -1,14 +1,18 @@
 /**
- * Score Hooks Module
- *
- * Re-exports from the score hooks submodule.
- * Maintains backward compatibility with existing imports.
- *
- * @see useScoreLogic - Main orchestrator hook
+ * Score state and engine hooks.
+ * @module hooks/score
  */
 
-export { useScoreLogic } from '../useScoreLogic';
+// Core engine
+export { useScoreEngine } from './useScoreEngine';
+export { useTransactionBatching } from './useTransactionBatching';
+export { useHistory } from './useHistory';
+export { useSelection } from './useSelection';
+
+// Derived state
 export { useDerivedSelection } from './useDerivedSelection';
 export { useToolsSync } from './useToolsSync';
 export { useFocusScore } from './useFocusScore';
+
+// Types
 export * from './types';

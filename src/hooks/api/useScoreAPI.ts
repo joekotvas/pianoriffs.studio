@@ -14,12 +14,12 @@
  */
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
-import { useScoreContext } from '../context/ScoreContext';
-import { useTheme } from '../context/ThemeContext';
+import { useScoreContext } from '@/context/ScoreContext';
+import { useTheme } from '@/context/ThemeContext';
 import { useAPISubscriptions } from './useAPISubscriptions';
-import type { MusicEditorAPI, RiffScoreRegistry } from '../api.types';
-import type { RiffScoreConfig } from '../types';
-import { SetSelectionCommand } from '../commands/selection';
+import type { MusicEditorAPI, RiffScoreRegistry } from '@/api.types';
+import type { RiffScoreConfig } from '@/types';
+import { SetSelectionCommand } from '@/commands/selection';
 import {
   createNavigationMethods,
   createSelectionMethods,
@@ -29,7 +29,7 @@ import {
   createPlaybackMethods,
   createIOMethods,
   APIContext,
-} from './api';
+} from '.';
 
 // Extend Window interface for TypeScript
 declare global {

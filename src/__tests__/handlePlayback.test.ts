@@ -8,7 +8,7 @@
 
 import { handlePlayback } from '@/hooks/handlers/handlePlayback';
 import { createTestScore, createTestSelection, createMockKeyboardEvent } from './helpers/testMocks';
-import type { UsePlaybackReturn } from '@/hooks/usePlayback';
+import type { UsePlaybackReturn } from '@/hooks/audio';
 
 describe('handlePlayback', () => {
   let mockPlayback: UsePlaybackReturn;

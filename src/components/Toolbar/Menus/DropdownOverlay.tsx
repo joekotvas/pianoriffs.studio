@@ -1,7 +1,7 @@
 import React, { useRef, forwardRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useFocusTrap } from '@/hooks/layout';
 import Portal from '../../Layout/Portal';
 
 // ========== DROPDOWN TRIGGER BUTTON ==========
