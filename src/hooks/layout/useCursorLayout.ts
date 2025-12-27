@@ -39,8 +39,8 @@ export const useCursorLayout = (
   const isGrandStaff = numStaves > 1;
 
   const cursor = useMemo(() => {
-    // No layout or single staff - no unified cursor needed
-    if (!isGrandStaff || layout.staves.length === 0) {
+    // No layout - no cursor
+    if (layout.staves.length === 0) {
       return { x: null, width: 0 };
     }
 
@@ -95,7 +95,7 @@ export const useCursorLayout = (
       x: baseMeasureX + quantPosition.x,
       width: quantPosition.width,
     };
-  }, [isGrandStaff, layout.staves, playbackPosition, isPlaying]);
+  }, [layout.staves, playbackPosition, isPlaying]);
 
   return {
     x: cursor.x,

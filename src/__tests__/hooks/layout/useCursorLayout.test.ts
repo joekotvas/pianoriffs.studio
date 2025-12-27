@@ -116,14 +116,15 @@ describe('useCursorLayout', () => {
       expect(result.current.numStaves).toBe(0);
     });
 
-    it('should return null cursor for single staff layout', () => {
-      const layout = createSingleStaffLayout();
+    it('should return valid cursor even for single staff layout (unified logic)', () => {
+      const singleLayout = createSingleStaffLayout();
+
       const { result } = renderHook(() =>
-        useCursorLayout(layout, { measureIndex: 0, quant: 0, duration: 0.1 })
+        useCursorLayout(singleLayout, { measureIndex: 0, quant: 0, duration: 0.1 })
       );
 
-      // Single staff doesn't need unified cursor
-      expect(result.current.x).toBeNull();
+      // Single staff SHOULD use unified cursor now
+      expect(result.current.x).toBe(100);
       expect(result.current.isGrandStaff).toBe(false);
       expect(result.current.numStaves).toBe(1);
     });

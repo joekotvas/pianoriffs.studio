@@ -158,12 +158,17 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   // Calculate cursor layout
   // We pass isPlaying=true to animate cursor to the NEXT event (smooth sweep)
   // When paused, it snaps to the current event start
+  // We default to 0/0 position if null so cursor is visible at start when stopped (allowing transition to work)
+  const effectivePlaybackPos = {
+    measureIndex: playbackPosition.measureIndex ?? 0,
+    quant: playbackPosition.quant ?? 0,
+    duration: playbackPosition.duration
+  };
+
   const {
     x: unifiedCursorX,
-    width: _unifiedCursorWidth,
-    isGrandStaff,
     numStaves,
-  } = useCursorLayout(layout, playbackPosition, isPlaying);
+  } = useCursorLayout(layout, effectivePlaybackPos, isPlaying);
 
   // Drag to select hook
   const {
@@ -354,13 +359,13 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                 onClefClick={onClefClick}
                 onKeySigClick={onKeySigClick}
                 onTimeSigClick={onTimeSigClick}
-                hidePlaybackCursor={isGrandStaff}
+                hidePlaybackCursor={true}
                 mouseLimits={mouseLimits}
               />
             );
           })}
 
-          {isGrandStaff && unifiedCursorX !== null && (
+          {unifiedCursorX !== null && (
             <g
               ref={cursorRef}
               style={{
