@@ -1,8 +1,15 @@
 /**
  * useCursorLayout.ts
  *
- * Focused hook for calculating playback cursor position.
- * Consumes the centralized ScoreLayout to avoid duplicate calculations.
+ * Focused hook for calculating playback cursor position by consuming the centralized ScoreLayout.
+ * It maps playback "quants" (time units) to X-pixels on the staff, handling both exact matches
+ * and interpolated positions.
+ *
+ * @param layout - The centralized ScoreLayout (SSOT)
+ * @param playbackPosition - Current playback state (measure, quant, duration)
+ * @param isPlaying - Whether playback is active (affects lookahead logic)
+ *
+ * @returns CursorLayout (x, width, grandStaff metadata)
  *
  * @see Issue #109
  */
@@ -66,7 +73,7 @@ export const useCursorLayout = (
     // Build unified quant -> x map
     // We want relative X within the measure
     const quantToX: Record<number, number> = {};
-    
+
     relevantMeasures.forEach((measure) => {
       // Use legacyLayout.processedEvents to get quants
       // And use legacyLayout.eventPositions to get relative X
@@ -126,7 +133,7 @@ const getQuantPositionFromMap = (
   // 1. Exact Match
   if (quant in quantToX) {
     const idx = sortedQuants.indexOf(quant);
-    
+
     // Start at 0 for the vary first event to cover header space
     const startX = idx === 0 ? 0 : quantToX[quant];
 
@@ -139,7 +146,7 @@ const getQuantPositionFromMap = (
 
     const width = Math.max(nextX - startX, 20);
 
-    return { 
+    return {
       x: isPlaying ? nextX : startX,
       width,
     };
@@ -152,15 +159,12 @@ const getQuantPositionFromMap = (
 
     if (eventQuant <= quant && quant < nextQuant) {
       const startX = i === 0 ? 0 : quantToX[eventQuant];
-      
-      const nextX =
-        i < sortedQuants.length - 1
-          ? quantToX[sortedQuants[i + 1]]
-          : measureWidth;
-      
+
+      const nextX = i < sortedQuants.length - 1 ? quantToX[sortedQuants[i + 1]] : measureWidth;
+
       const width = Math.max(nextX - startX, 20);
-      
-      return { 
+
+      return {
         x: isPlaying ? nextX : startX,
         width,
       };

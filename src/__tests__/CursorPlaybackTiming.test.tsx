@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ScoreEditor from '../components/Layout/ScoreEditor';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { createDefaultScore } from '@/types';
@@ -45,49 +45,40 @@ describe('Cursor Playback Timing Integration', () => {
     // Default BPM is 120. Quarter note = 0.5s (500ms).
     // Ensure first event at 0:0 is a quarter note.
     const noteEvent = {
-        id: 'e1',
-        measureIndex: 0,
-        quant: 0,
-        duration: 'quarter', // 0.5s at 120BPM
-        isRest: false,
-        dotted: false,
-        notes: [{ id: 'n1', pitch: 'C4' }]
+      id: 'e1',
+      measureIndex: 0,
+      quant: 0,
+      duration: 'quarter', // 0.5s at 120BPM
+      isRest: false,
+      dotted: false,
+      notes: [{ id: 'n1', pitch: 'C4' }],
     };
     score.staves[0].measures[0].events = [noteEvent];
 
     render(
       <ThemeProvider>
-        <ScoreEditor 
-          label="Cursor Test" 
-          initialData={score} 
-        />
+        <ScoreEditor label="Cursor Test" initialData={score} />
       </ThemeProvider>
     );
 
     // 2. Playback Button
     const playButton = screen.getByRole('button', { name: /play/i });
-    
+
     // 3. User Clicks Play
-    await act(async () => {
-      fireEvent.click(playButton);
-    });
+    // 3. User Clicks Play
+    fireEvent.click(playButton);
 
     // 4. Verify Cursor State
     // The cursor is rendered inside ScoreCanvas (SVG).
-    
+
     // Wait for async playback start (20ms yield)
     await waitFor(() => {
-        // Use generic selector to find element with transition style
-        const cursorGroup = document.querySelector('g[style*="transition"]');
-        if (!cursorGroup) {
-            throw new Error("Cursor element not found");
-        }
-        
-        const style = (cursorGroup as HTMLElement).style;
-        
-        // CRITICAL ASSERTION: 
-        // We expect 0.5s.
-        expect(style.transition).toMatch(/0\.5s/);
+      const cursorGroup = screen.getByTestId('playback-cursor');
+      const style = cursorGroup.style;
+
+      // CRITICAL ASSERTION:
+      // We expect 0.5s.
+      expect(style.transition).toMatch(/0\.5s/);
     });
   });
 });

@@ -164,13 +164,10 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   const effectivePlaybackPos = {
     measureIndex: playbackPosition.measureIndex ?? 0,
     quant: playbackPosition.quant ?? 0,
-    duration: playbackPosition.duration
+    duration: playbackPosition.duration,
   };
 
-  const {
-    x: unifiedCursorX,
-    numStaves,
-  } = useCursorLayout(layout, effectivePlaybackPos, isPlaying);
+  const { x: unifiedCursorX, numStaves } = useCursorLayout(layout, effectivePlaybackPos, isPlaying);
 
   // Drag to select hook
   const {
@@ -357,11 +354,9 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
                 baseY={staffBaseY}
                 scale={scale}
                 interaction={interaction}
-                playbackPosition={playbackPosition}
                 onClefClick={onClefClick}
                 onKeySigClick={onKeySigClick}
                 onTimeSigClick={onTimeSigClick}
-                hidePlaybackCursor={true}
                 mouseLimits={mouseLimits}
               />
             );
@@ -370,6 +365,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
           {unifiedCursorX !== null && (
             <g
               ref={cursorRef}
+              data-testid="playback-cursor"
               style={{
                 transform: `translateX(${unifiedCursorX}px)`,
                 transition: `transform ${playbackPosition.duration || 0.1}s linear`,
