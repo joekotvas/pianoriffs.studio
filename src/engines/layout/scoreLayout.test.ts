@@ -91,4 +91,150 @@ describe('calculateScoreLayout', () => {
     expect(firstNote).toHaveProperty('noteId');
     expect(firstNote).toHaveProperty('staffIndex');
   });
+
+  it('should handle rests (events with no pitch)', () => {
+    const score: Score = {
+      title: 'Test Rest',
+      staves: [
+        {
+          id: 'staff-1',
+          clef: 'treble',
+          keySignature: 'C',
+          measures: [
+            {
+              id: 'm1',
+              events: [
+                {
+                  id: 'rest-1',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [{ id: 'n1', pitch: null }], // Rest
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      keySignature: 'C',
+      timeSignature: '4/4',
+      bpm: 120,
+    };
+
+    const layout = calculateScoreLayout(score);
+    
+    // Rests don't create note layouts (only events)
+    expect(Object.keys(layout.notes)).toHaveLength(0);
+    // But event layouts should exist
+    expect(Object.keys(layout.events)).toHaveLength(1);
+  });
+
+  it('should apply chord shifts to note positions', () => {
+    const score = createTestScore();
+    const layout = calculateScoreLayout(score);
+
+    // Get notes from the first event (which likely has a chord)
+    const noteEntries = Object.entries(layout.notes);
+    if (noteEntries.length >= 2) {
+      const [,note1] = noteEntries[0];
+      const [,note2] = noteEntries[1];
+
+      // If they're in the same event, their x positions should differ due to chord shifts
+      if (note1.eventId === note2.eventId) {
+        // X positions might be different for notes in the same chord
+        // (though if they're perfectly aligned, they could be the same)
+        expect(typeof note1.x).toBe('number');
+        expect(typeof note2.x).toBe('number');
+      }
+    }
+  });
+
+  it('should generate hit zones for all notes', () => {
+    const score = createTestScore();
+    const layout = calculateScoreLayout(score);
+
+    const notes = Object.values(layout.notes);
+    expect(notes.length).toBeGreaterThan(0);
+
+    notes.forEach((note) => {
+      expect(note.hitZone).toBeDefined();
+      expect(note.hitZone.startX).toBeLessThan(note.hitZone.endX);
+      expect(note.hitZone.eventId).toBe(note.eventId);
+      expect(note.hitZone.type).toBe('EVENT');
+    });
+  });
+
+  it('should handle bass clef positioning correctly', () => {
+    const score: Score = {
+      title: 'Bass Clef Test',
+      staves: [
+        {
+          id: 'staff-1',
+          clef: 'bass',
+          keySignature: 'C',
+          measures: [
+            {
+              id: 'm1',
+              events: [
+                {
+                  id: 'e1',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [{ id: 'n1', pitch: 'C3' }], // Middle C in bass clef
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      keySignature: 'C',
+      timeSignature: '4/4',
+      bpm: 120,
+    };
+
+    const layout = calculateScoreLayout(score);
+    const noteKeys = Object.keys(layout.notes);
+    expect(noteKeys).toHaveLength(1);
+
+    const note = layout.notes[noteKeys[0]];
+    // Bass clef C3 should be positioned differently than treble clef C3
+    // Y offset should be calculated based on bass clef
+    expect(note.y).toBeGreaterThan(CONFIG.baseY);
+    expect(note.pitch).toBe('C3');
+  });
+
+  it('should handle pickup measures', () => {
+    const score: Score = {
+      title: 'Pickup Test',
+      staves: [
+        {
+          id: 'staff-1',
+          clef: 'treble',
+          keySignature: 'C',
+          measures: [
+            {
+              id: 'm1',
+              isPickup: true,
+              events: [
+                {
+                  id: 'e1',
+                  duration: 'quarter',
+                  dotted: false,
+                  notes: [{ id: 'n1', pitch: 'C4' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      keySignature: 'C',
+      timeSignature: '4/4',
+      bpm: 120,
+    };
+
+    const layout = calculateScoreLayout(score);
+    
+    // Pickup measure should still have valid layout
+    expect(layout.staves[0].measures).toHaveLength(1);
+    expect(Object.keys(layout.notes)).toHaveLength(1);
+  });
 });

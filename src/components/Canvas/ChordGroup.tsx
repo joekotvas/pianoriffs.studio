@@ -230,7 +230,6 @@ const ChordGroup = ({
         // 1. ChordGroup is already positioned at the correct staff Y
         // 2. Note component calculates its offset relative to baseY based on its clef
         // 3. The layout engine's Y coordinates are for hit detection, not rendering
-        const noteLayout = eventLayout?.notes?.[note.id];
 
         return (
           <Note
