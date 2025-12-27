@@ -74,6 +74,39 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
 
 See also: [docs/ARCHITECTURE.md](./ARCHITECTURE.md)
 
+### Composition Hooks
+
+When multiple focused hooks share many props and are typically used together, bundle them into a **Composition Hook**. This reduces prop drilling while preserving the single-responsibility of the underlying hooks.
+
+> [!TIP]
+> Composition Hooks are **not deprecated facades** — they are an intentional pattern for reducing complexity.
+
+**Example: `useNoteActions`**
+
+```typescript
+// src/hooks/note/useNoteActions.ts - Composition Hook
+export const useNoteActions = (props: UseNoteActionsProps) => {
+  // Compose focused hooks
+  const { handleMeasureHover } = useHoverPreview(props);
+  const { addNoteToMeasure } = useNoteEntry(props);
+  const { deleteSelected } = useNoteDelete(props);
+  const { updateNotePitch } = useNotePitch(props);
+  
+  // Return unified API
+  return { handleMeasureHover, addNoteToMeasure, deleteSelected, updateNotePitch };
+};
+```
+
+**When to use Composition Hooks:**
+- Multiple hooks share 5+ props
+- Hooks are semantically related (all note operations, all navigation, etc.)
+- Consumers typically need all the operations together
+
+**When to use individual hooks directly:**
+- You need only one operation (surgical access)
+- Testing a specific behavior in isolation
+- The consumer has custom prop requirements
+
 ### Service Layer
 
 
