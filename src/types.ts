@@ -25,6 +25,7 @@ export interface ScoreEvent {
   dotted: boolean;
   notes: Note[]; // Multiple notes = chord
   isRest?: boolean;
+  chord?: string | null; // Chord symbol (e.g., "G", "C", "D7")
   tuplet?: {
     ratio: [number, number]; // e.g., [3, 2] for triplet (3 notes in space of 2)
     groupSize: number; // Total notes in tuplet group (e.g., 3 for triplet)

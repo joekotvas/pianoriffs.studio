@@ -1,0 +1,376 @@
+{
+  "id": "sakura",
+  "title": "Sakura",
+  "score": {
+    "title": "Sakura",
+    "timeSignature": "4/4",
+    "keySignature": "C",
+    "bpm": 60,
+    "staves": [
+      {
+        "id": "1",
+        "clef": "treble",
+        "keySignature": "C",
+        "measures": [
+          {
+            "id": "1",
+            "events": [
+              {
+                "id": "101",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "2",
+                    "pitch": "A4"
+                  }
+                ]
+              },
+              {
+                "id": "102",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "4",
+                    "pitch": "A4"
+                  }
+                ]
+              },
+              {
+                "id": "103",
+                "duration": "half",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "7",
+                    "pitch": "B4"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "events": [
+              {
+                "id": "201",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "9",
+                    "pitch": "A4"
+                  }
+                ]
+              },
+              {
+                "id": "202",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "11",
+                    "pitch": "A4"
+                  }
+                ]
+              },
+              {
+                "id": "203",
+                "duration": "half",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "14",
+                    "pitch": "B4"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "events": [
+              {
+                "id": "301",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "16",
+                    "pitch": "A4"
+                  }
+                ]
+              },
+              {
+                "id": "302",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "19",
+                    "pitch": "B4"
+                  }
+                ]
+              },
+              {
+                "id": "303",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "21",
+                    "pitch": "A4"
+                  },
+                  {
+                    "id": "22",
+                    "pitch": "C5"
+                  }
+                ]
+              },
+              {
+                "id": "304",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "25",
+                    "pitch": "B4"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "events": [
+              {
+                "id": "401",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "27",
+                    "pitch": "A4"
+                  }
+                ]
+              },
+              {
+                "id": "402",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "30",
+                    "pitch": "B4"
+                  }
+                ]
+              },
+              {
+                "id": "403",
+                "duration": "half",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "32",
+                    "pitch": "A4"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "clef": "bass",
+        "keySignature": "C",
+        "measures": [
+          {
+            "id": "1",
+            "events": [
+              {
+                "id": "101",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "1",
+                    "pitch": "E3"
+                  }
+                ]
+              },
+              {
+                "id": "102",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "3",
+                    "pitch": "E3"
+                  }
+                ]
+              },
+              {
+                "id": "103",
+                "duration": "half",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "5",
+                    "pitch": "E3"
+                  },
+                  {
+                    "id": "6",
+                    "pitch": "G#3"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "events": [
+              {
+                "id": "201",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "8",
+                    "pitch": "E3"
+                  }
+                ]
+              },
+              {
+                "id": "202",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "10",
+                    "pitch": "E3"
+                  }
+                ]
+              },
+              {
+                "id": "203",
+                "duration": "half",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "12",
+                    "pitch": "E3"
+                  },
+                  {
+                    "id": "13",
+                    "pitch": "G#3"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "events": [
+              {
+                "id": "301",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "15",
+                    "pitch": "E3"
+                  }
+                ]
+              },
+              {
+                "id": "302",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "17",
+                    "pitch": "E3"
+                  },
+                  {
+                    "id": "18",
+                    "pitch": "G#3"
+                  }
+                ]
+              },
+              {
+                "id": "303",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "20",
+                    "pitch": "E3"
+                  }
+                ]
+              },
+              {
+                "id": "304",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "23",
+                    "pitch": "E3"
+                  },
+                  {
+                    "id": "24",
+                    "pitch": "G#3"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "events": [
+              {
+                "id": "401",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "26",
+                    "pitch": "E3"
+                  }
+                ]
+              },
+              {
+                "id": "402",
+                "duration": "quarter",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "28",
+                    "pitch": "E3"
+                  },
+                  {
+                    "id": "29",
+                    "pitch": "G#3"
+                  }
+                ]
+              },
+              {
+                "id": "403",
+                "duration": "half",
+                "dotted": false,
+                "notes": [
+                  {
+                    "id": "31",
+                    "pitch": "E3"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
