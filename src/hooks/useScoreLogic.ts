@@ -26,7 +26,7 @@ import { useEditorTools } from './useEditorTools';
 import { useMeasureActions } from './useMeasureActions';
 import { useNoteActions } from './note';
 import { useModifiers } from './useModifiers';
-import { useNavigation } from './useNavigation';
+import { useInteraction } from './interaction';
 import { useTupletActions } from './useTupletActions';
 import { useSelection } from './useSelection';
 import { useEditorMode } from './useEditorMode';
@@ -36,7 +36,6 @@ import { createDefaultScore, migrateScore, PreviewNote, Score } from '@/types';
 // Extracted score modules
 import { useDerivedSelection } from './score/useDerivedSelection';
 import { useToolsSync } from './score/useToolsSync';
-import { useFocusScore } from './score/useFocusScore';
 import type {
   ScoreStateGroup,
   ScoreToolsGroup,
@@ -210,20 +209,6 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
     dispatch,
   });
 
-  // Navigation: selection, movement, transposition
-  const navigation = useNavigation({
-    scoreRef,
-    selection,
-    select,
-    previewNote,
-    setPreviewNote,
-    activeDuration,
-    isDotted,
-    currentQuantsPerMeasure,
-    dispatch: engine.dispatch.bind(engine),
-    inputMode,
-  });
-
   // Tuplet Actions: apply/remove tuplets
   const tupletActions = useTupletActions(scoreRef, selection, dispatch);
 
@@ -235,22 +220,25 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
   const { selectedDurations, selectedDots, selectedTies, selectedAccidentals } =
     useDerivedSelection(score, selection, editorState);
 
-  // --- FOCUS HANDLERS ---
-  // Uses extracted hook for focus restoration and duration wrapper
-  const { focusScore, handleDurationChangeWrapper } = useFocusScore({
+  // --- INTERACTION: Navigation + Focus (Composition Hook) ---
+  // Bundles useNavigation + useFocusScore to reduce prop drilling
+  const interaction = useInteraction({
     score,
     scoreRef,
     selection,
     lastSelection,
     selectionEngine,
+    select,
+    previewNote,
     setPreviewNote,
     activeDuration,
     isDotted,
     inputMode,
-    editorState,
-    previewNote,
-    modifiers,
+    currentQuantsPerMeasure,
     setActiveDuration,
+    editorState,
+    modifiers,
+    dispatch: engine.dispatch.bind(engine),
   });
 
   // --- EXPORTS ---
@@ -277,11 +265,11 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
   };
 
   const navigationGroup: ScoreNavigationGroup = {
-    move: navigation.moveSelection,
-    select: navigation.handleNoteSelection,
-    transpose: navigation.transposeSelection,
-    switchStaff: navigation.switchStaff,
-    focus: focusScore,
+    move: interaction.moveSelection,
+    select: interaction.handleNoteSelection,
+    transpose: interaction.transposeSelection,
+    switchStaff: interaction.switchStaff,
+    focus: interaction.focusScore,
   };
 
   const entryGroup: ScoreEntryGroup = {
@@ -293,7 +281,7 @@ export const useScoreLogic = (initialScore?: Partial<Score>) => {
   };
 
   const modifiersGroup: ScoreModifiersGroup = {
-    duration: handleDurationChangeWrapper,
+    duration: interaction.handleDurationInput,
     dot: modifiers.handleDotToggle,
     accidental: modifiers.handleAccidentalToggle,
     tie: modifiers.handleTieToggle,
