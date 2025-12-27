@@ -1046,7 +1046,7 @@ export const MELODIES: Melody[] = [
             {
               id: '1',
               isPickup: true,
-              events: [{ id: '101', duration: 'quarter', dotted: false, isRest: true, notes: [] }],
+              events: [{ id: '101', duration: 'quarter', dotted: false, isRest: true, notes: [{ id: '101-rest', pitch: null, isRest: true }] }],
             },
             {
               id: '2',
@@ -1761,7 +1761,7 @@ export const MELODIES: Melody[] = [
                   dotted: false,
                   notes: [{ id: '46', pitch: 'D3' }],
                 },
-                { id: '503', duration: 'quarter', dotted: false, isRest: true, notes: [] }, // rest
+                { id: '503', duration: 'quarter', dotted: false, isRest: true, notes: [{ id: '503-rest', pitch: null, isRest: true }] }, // rest
                 {
                   id: '504',
                   duration: 'eighth',
