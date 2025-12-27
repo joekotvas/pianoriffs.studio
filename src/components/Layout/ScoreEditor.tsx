@@ -165,6 +165,13 @@ const ScoreEditorContent = ({
     [setPreviewNote]
   );
 
+  // Exit playback mode (hide cursor) whenever selection changes
+  // This covers: clicking notes, keyboard navigation, background clicks
+  const { exitPlaybackMode } = playback;
+  React.useEffect(() => {
+    exitPlaybackMode();
+  }, [selection, exitPlaybackMode]);
+
   // --- Render ---
   return (
     <div
@@ -240,6 +247,7 @@ const ScoreEditorContent = ({
           onTimeSigClick={() => toolbarRef.current?.openTimeSigMenu()}
           onClefClick={() => toolbarRef.current?.openClefMenu()}
           isPlaying={playback.isPlaying}
+          isPlaybackVisible={playback.isActive}
         />
       </div>
 

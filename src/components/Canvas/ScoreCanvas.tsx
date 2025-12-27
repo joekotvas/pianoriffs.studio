@@ -23,6 +23,7 @@ interface ScoreCanvasProps {
   onHoverChange: (isHovering: boolean) => void;
   onBackgroundClick?: () => void;
   isPlaying?: boolean;
+  isPlaybackVisible?: boolean;
 }
 
 /**
@@ -39,6 +40,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
   onHoverChange,
   onBackgroundClick,
   isPlaying = false,
+  isPlaybackVisible = true,
 }) => {
   const { theme } = useTheme();
 
@@ -365,7 +367,7 @@ const ScoreCanvas: React.FC<ScoreCanvasProps> = ({
             );
           })}
 
-          {unifiedCursorX !== null && (
+          {isPlaybackVisible && unifiedCursorX !== null && (
             <g
               ref={cursorRef}
               style={{

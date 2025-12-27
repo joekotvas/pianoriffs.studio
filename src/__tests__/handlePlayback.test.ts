@@ -23,6 +23,8 @@ describe('handlePlayback', () => {
       playbackPosition: { measureIndex: null, quant: null, duration: 0 },
       handlePlayToggle: jest.fn(),
       instrumentState: 'ready',
+      isActive: false,
+      exitPlaybackMode: jest.fn(),
     };
   });
 

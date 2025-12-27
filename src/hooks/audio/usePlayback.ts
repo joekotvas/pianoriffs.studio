@@ -10,6 +10,7 @@ import { createTimeline } from '@/services/TimelineService';
 
 export interface UsePlaybackReturn {
   isPlaying: boolean;
+  isActive: boolean; // "Playback Mode" - visible cursor
   playbackPosition: {
     measureIndex: number | null;
     quant: number | null;
@@ -19,12 +20,14 @@ export interface UsePlaybackReturn {
   stopPlayback: () => void;
   pausePlayback: () => void;
   handlePlayToggle: () => void;
+  exitPlaybackMode: () => void;
   lastPlayStart: { measureIndex: number; quant: number };
   instrumentState: InstrumentState;
 }
 
 export const usePlayback = (score: Score, bpm: number): UsePlaybackReturn => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isActive, setIsActive] = useState(false);
   const [playbackPosition, setPlaybackPosition] = useState<{
     measureIndex: number | null;
     quant: number | null;
@@ -46,12 +49,18 @@ export const usePlayback = (score: Score, bpm: number): UsePlaybackReturn => {
     isInitialized.current = true;
   }, []);
 
+  const exitPlaybackMode = useCallback(() => {
+    setIsActive(false);
+  }, []);
+
   /*
    * Stop playback and reset position (Stop Button behavior)
    */
   const stopPlayback = useCallback(() => {
     stopTonePlayback();
     setIsPlaying(false);
+    // Keep active (cursor visible at 0)
+    setIsActive(true);
     setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
   }, []);
 
@@ -61,6 +70,7 @@ export const usePlayback = (score: Score, bpm: number): UsePlaybackReturn => {
   const pausePlayback = useCallback(() => {
     stopTonePlayback();
     setIsPlaying(false);
+    setIsActive(true);
     // Do NOT reset playbackPosition, so cursor stays visible and we can resume
   }, []);
 
@@ -74,6 +84,7 @@ export const usePlayback = (score: Score, bpm: number): UsePlaybackReturn => {
 
       setLastPlayStart({ measureIndex: startMeasureIndex, quant: startQuant });
       setIsPlaying(true);
+      setIsActive(true);
 
       // Generate timeline
       const timeline = createTimeline(score, bpm);
@@ -100,11 +111,15 @@ export const usePlayback = (score: Score, bpm: number): UsePlaybackReturn => {
         () => {
           setIsPlaying(false);
           setPlaybackPosition({ measureIndex: null, quant: null, duration: 0 });
+          // Note: Auto-finish typically keeps playback mode active (cursor at start)?
+          // Or should it exit? User said "Playing, stopped, or paused".
+          // If song finishes, it is "Stopped". So Active=True.
         }
       );
     },
     [score, bpm, ensureInit]
   );
+
 
   const handlePlayToggle = useCallback(() => {
     if (isPlaying) {
@@ -119,11 +134,13 @@ export const usePlayback = (score: Score, bpm: number): UsePlaybackReturn => {
 
   return {
     isPlaying,
+    isActive,
     playbackPosition,
     playScore,
     stopPlayback,
     pausePlayback,
     handlePlayToggle,
+    exitPlaybackMode,
     lastPlayStart,
     instrumentState, // Expose for UI (e.g., "Loading piano samples...")
   };
