@@ -114,7 +114,34 @@ flowchart TD
 
 ---
 
-## 3. Vertical Navigation Flow
+## 3. Horizontal Selection Extension (`Shift + ←/→`)
+
+Similar to vertical selection, extending selection horizontally operates on a **per-staff basis** to preserve musical context across the Grand Staff.
+
+### The Unified Extension Model
+
+Horizontal extension uses an **Anchor-Cursor model**:
+1.  **Anchor**: The fixed point of origin (usually the first selected note).
+2.  **Cursor**: The moving edge that expands or contracts the selection.
+
+### Per-Staff Independence
+
+When a selection spans multiple staves (e.g., specific measures on both treble and bass staves), extending horizontally:
+1.  **Identifies Affected Staves**: Only staves that *already* have selected notes are affected. Unselected staves remain untouched.
+2.  **Extends Independently**: The cursor on *each* affected staff moves independently to the next/previous event on that specific staff.
+3.  **Implicit Anchors**: If a staff has a selection but no explicit anchor, one is synthesized from the current focus to ensure consistent expansion.
+
+> **Why this matters**: This prevents "dropping" notes on one staff while extending another, a common issue when staves have different rhythmic densities.
+
+### Contraction vs. Expansion
+
+-   **Expansion**: Moving the cursor *away* from the anchor adds events to the selection.
+-   **Contraction**: Moving the cursor *towards* the anchor removes events.
+-   **Crossing**: Moving past the anchor flips the orientation (Cursor becomes Anchor, Anchor becomes Cursor).
+
+---
+
+## 4. Vertical Navigation Flow
 
 ```mermaid
 flowchart TD
@@ -232,7 +259,7 @@ See [verticalStack.ts](../src/utils/verticalStack.ts) for the `calculateVertical
 
 ---
 
-## 4. Duration Auto-Adjustment
+## 5. Duration Auto-Adjustment
 
 Whenever a ghost cursor is created, `getAdjustedDuration()` ensures it fits:
 
@@ -259,7 +286,7 @@ flowchart LR
 
 ---
 
-## 5. Staff Context Resolution
+## 6. Staff Context Resolution
 
 When navigating from a ghost cursor, the system must determine which staff's data to use:
 
@@ -280,7 +307,7 @@ This is critical after vertical navigation places a ghost on a different staff.
 
 ---
 
-## 6. Key Implementation Files
+## 7. Key Implementation Files
 
 | File | Function | Responsibility |
 |------|----------|----------------|
@@ -293,7 +320,7 @@ This is critical after vertical navigation places a ghost on a different staff.
 
 ---
 
-## 7. Helper Functions
+## 8. Helper Functions
 
 ### `getDefaultPitchForClef(clef)`
 
@@ -317,7 +344,7 @@ Sums the quant values of all events in a measure to determine used space.
 
 ---
 
-## 8. Edge Cases
+## 9. Edge Cases
 
 ### Single-Staff Scores
 

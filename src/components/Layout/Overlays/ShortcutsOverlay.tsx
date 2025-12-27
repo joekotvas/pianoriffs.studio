@@ -67,6 +67,7 @@ const ShortcutsOverlay: React.FC<ShortcutsOverlayProps> = ({ onClose }) => {
     selection: [
       { label: 'Move Selection', keys: ['←', '→'] },
       { label: 'Extend Selection', keys: ['Shift', '←/→'] },
+      { label: 'Range Select', keys: ['Shift', 'Click'] },
       { label: 'Chord Navigation', keys: ['Cmd/Ctrl', '↑/↓'] },
       { label: 'Switch Staff (Grand)', keys: ['Alt', '↑/↓'] },
       { label: 'Select Note', keys: ['Cmd/Ctrl', 'Click'] },

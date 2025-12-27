@@ -93,7 +93,7 @@ The editor transitions between the following states:
     -   **Selects** the event.
     -   **Audio**: Plays the note(s).
     -   **Modifier**: `Cmd/Ctrl+Click` toggles multi-selection.
-    -   **Modifier**: `Shift+Click` selects a range.
+    -   **Modifier**: `Shift+Click` selects a range (extends independently per affected staff).
 
 ### B. Drag-to-Select (Lasso)
 *Designed for efficient multi-selection.*
@@ -165,7 +165,7 @@ The editor transitions between the following states:
 | :--- | :--- | :--- |
 | `Enter` | **Insert (Commit)** | Adds Note/Rest at cursor & auto-advances |
 | `←` / `→` | Previous/Next | Navigates through timeline |
-| `Shift + ←` / `→` | Extend Selection | Multi-select range |
+| `Shift + ←` / `→` | Extend Selection | Multi-select range (per staff) |
 | `Cmd + Shift + ↑` / `↓` | **Extend Vertical** | Expand/contract selection through chords and staves. First press sets anchor; subsequent presses move cursor. See [deep dive](./KEYBOARD_NAVIGATION.md#vertical-selection-cmd--shift--updown). |
 | `Cmd + ↑` / `↓` | Intra-chord | Navigates notes within a single chord |
 | `Alt + ↑` / `↓` | **Switch Staff** | Grand Staff only: move between staves |
