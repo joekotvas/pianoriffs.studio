@@ -26,6 +26,8 @@ import { playNote } from '@/engines/toneEngine';
 import { Command } from '@/commands/types';
 import { AddMeasureCommand } from '@/commands/MeasureCommands';
 import { TransposeSelectionCommand } from '@/commands/TransposeSelectionCommand';
+import { ExtendSelectionHorizontallyCommand } from '@/commands/selection';
+import { SelectionEngine } from '@/engines/SelectionEngine';
 
 interface UseNavigationProps {
   scoreRef: RefObject<Score>;
@@ -44,6 +46,7 @@ interface UseNavigationProps {
   currentQuantsPerMeasure: number;
   dispatch: (command: Command) => void;
   inputMode: 'NOTE' | 'REST';
+  selectionEngine: SelectionEngine;
 }
 
 interface UseNavigationReturn {
@@ -72,6 +75,7 @@ export const useNavigation = ({
   currentQuantsPerMeasure,
   dispatch,
   inputMode,
+  selectionEngine,
 }: UseNavigationProps): UseNavigationReturn => {
   // --- Internal Helpers ---
 
@@ -164,7 +168,29 @@ export const useNavigation = ({
         return;
       }
 
-      // --- 3. Horizontal Navigation (Left/Right) ---
+      // --- 3. Horizontal Selection Extension (Shift+Left/Right) ---
+      if (isShift && !isAtGhostPosition) {
+        selectionEngine.dispatch(
+          new ExtendSelectionHorizontallyCommand({
+            direction: direction as 'left' | 'right',
+          })
+        );
+
+        // Audio feedback: play the newly extended slice
+        const newState = selectionEngine.getState();
+        const edgeNotes = newState.selectedNotes?.slice(-1) ?? [];
+        for (const sn of edgeNotes) {
+          const staff = getActiveStaff(scoreRef.current, sn.staffIndex);
+          const event = staff.measures[sn.measureIndex]?.events.find((e) => e.id === sn.eventId);
+          if (event && !event.isRest) {
+            const note = event.notes?.find((n) => n.id === sn.noteId);
+            if (note) playAudioFeedback([note]);
+          }
+        }
+        return;
+      }
+
+      // --- 4. Standard Horizontal Navigation (Left/Right) ---
       const navResult = calculateNextSelection(
         activeStaff.measures,
         activeSel,
@@ -265,6 +291,7 @@ export const useNavigation = ({
       setPreviewNote,
       playAudioFeedback,
       inputMode,
+      selectionEngine,
     ]
   );
 

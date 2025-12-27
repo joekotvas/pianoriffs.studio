@@ -257,3 +257,119 @@ export const createMultiNoteSelection = (
     anchor: notes[0], // Anchor is first note
   };
 };
+
+// =============================================================================
+// HORIZONTAL EXTENSION FIXTURES
+// =============================================================================
+
+/**
+ * Create a two-staff score with 4 quarter notes per staff in M0.
+ * Used for testing horizontal extension.
+ *
+ * Treble M0: t-e1, t-e2, t-e3, t-e4 (all quarter notes)
+ * Bass M0: b-e1, b-e2, b-e3, b-e4 (all quarter notes)
+ */
+export const createTwoStaffScore = (): Score => ({
+  title: 'Two Staff Score',
+  timeSignature: '4/4',
+  keySignature: 'C',
+  bpm: 120,
+  staves: [
+    {
+      id: 'treble-staff',
+      clef: 'treble',
+      keySignature: 'C',
+      measures: [
+        {
+          id: 't-m0',
+          events: [
+            {
+              id: 't-e1',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 't-n1', pitch: 'C4' }],
+            },
+            {
+              id: 't-e2',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 't-n2', pitch: 'D4' }],
+            },
+            {
+              id: 't-e3',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 't-n3', pitch: 'E4' }],
+            },
+            {
+              id: 't-e4',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 't-n4', pitch: 'F4' }],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'bass-staff',
+      clef: 'bass',
+      keySignature: 'C',
+      measures: [
+        {
+          id: 'b-m0',
+          events: [
+            {
+              id: 'b-e1',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'b-n1', pitch: 'C3' }],
+            },
+            {
+              id: 'b-e2',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'b-n2', pitch: 'D3' }],
+            },
+            {
+              id: 'b-e3',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'b-n3', pitch: 'E3' }],
+            },
+            {
+              id: 'b-e4',
+              duration: 'quarter',
+              dotted: false,
+              notes: [{ id: 'b-n4', pitch: 'F3' }],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+});
+
+/**
+ * Create a multi-staff selection spanning treble and bass.
+ * Used for testing the bug fix where horizontal extension drops staves.
+ *
+ * Returns score and initial selection with one note on each staff at same quant (beat 1).
+ */
+export const createMultiStaffSelection = (): { score: Score; selection: Selection } => {
+  const score = createTwoStaffScore();
+
+  const selection: Selection = {
+    staffIndex: 0,
+    measureIndex: 0,
+    eventId: 't-e1',
+    noteId: 't-n1',
+    selectedNotes: [
+      { staffIndex: 0, measureIndex: 0, eventId: 't-e1', noteId: 't-n1' },
+      { staffIndex: 1, measureIndex: 0, eventId: 'b-e1', noteId: 'b-n1' },
+    ],
+    anchor: { staffIndex: 0, measureIndex: 0, eventId: 't-e1', noteId: 't-n1' },
+  };
+
+  return { score, selection };
+};

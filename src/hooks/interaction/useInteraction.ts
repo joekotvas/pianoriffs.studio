@@ -94,6 +94,7 @@ export const useInteraction = ({
     currentQuantsPerMeasure,
     dispatch,
     inputMode,
+    selectionEngine,
   });
 
   // Focus: restoration and duration routing

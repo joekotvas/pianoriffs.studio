@@ -16,6 +16,13 @@ jest.mock('../engines/toneEngine', () => ({
   playNote: jest.fn(),
 }));
 
+// Mock SelectionEngine
+const createMockSelectionEngine = () => ({
+  dispatch: jest.fn(),
+  getState: jest.fn(() => ({ selectedNotes: [] })),
+  subscribe: jest.fn(),
+});
+
 // Mock Score Factory (Same as before)
 const createMockScore = (): Score => {
   const createMeasure = (events: any[]): Measure => ({
@@ -115,6 +122,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine() as any,
       })
     );
 
@@ -171,6 +179,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine() as any,
       })
     );
 
@@ -223,6 +232,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine() as any,
       })
     );
 
@@ -342,6 +352,7 @@ describe('Cross-Staff Navigation (Alt+Arrows)', () => {
         currentQuantsPerMeasure: 96,
         dispatch,
         inputMode: 'NOTE',
+        selectionEngine: createMockSelectionEngine() as any,
       })
     );
 

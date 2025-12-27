@@ -23,7 +23,6 @@ import {
   getActiveStaff,
   Note,
   ScoreEvent,
-  SelectedNote,
   Measure,
 } from '@/types';
 import { playNote } from '@/engines/toneEngine';
@@ -32,7 +31,7 @@ import {
   ClearSelectionCommand,
   SelectAllInEventCommand,
   ToggleNoteCommand,
-  RangeSelectCommand,
+  ExtendSelectionHorizontallyCommand,
   SelectEventCommand,
   SelectAllInMeasureCommand,
 } from '@/commands/selection';
@@ -216,6 +215,7 @@ export const useSelection = ({ score }: UseSelectionProps) => {
       if (!target.event) return;
 
       // ── Mode 1: Range Selection (Shift+Click) ──
+      // Uses ExtendSelectionHorizontallyCommand for unified horizontal extension
       if (isShift && !onlyHistory) {
         const currentState = engine.getState();
         const anchor = currentState.anchor;
@@ -226,10 +226,18 @@ export const useSelection = ({ score }: UseSelectionProps) => {
           const targetNoteId = noteId || target.event.notes[0]?.id;
 
           if (targetNoteId) {
+            // Determine direction from anchor to target
+            const direction =
+              measureIndex > (anchor.measureIndex ?? 0)
+                ? 'right'
+                : measureIndex < (anchor.measureIndex ?? 0)
+                  ? 'left'
+                  : 'right'; // Same measure - default right
+
             engine.dispatch(
-              new RangeSelectCommand({
-                anchor: anchor as SelectedNote,
-                focus: {
+              new ExtendSelectionHorizontallyCommand({
+                direction,
+                target: {
                   staffIndex: effectiveStaffIndex,
                   measureIndex,
                   eventId,

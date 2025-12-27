@@ -4,7 +4,11 @@
  */
 
 // Composition hook
-export { useInteraction, type UseInteractionProps, type UseInteractionReturn } from './useInteraction';
+export {
+  useInteraction,
+  type UseInteractionProps,
+  type UseInteractionReturn,
+} from './useInteraction';
 
 // Sub-hooks
 export { useNavigation } from './useNavigation';

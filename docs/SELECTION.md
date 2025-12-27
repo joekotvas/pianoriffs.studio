@@ -128,6 +128,7 @@ This ensures all treble notes are "above" all bass notes, and within each staff,
 | `ToggleNoteCommand` | Cmd+Click | Add/remove from multi-selection |
 | `SelectAllInEventCommand` | Click chord body | Select all notes in chord |
 | `ExtendSelectionVerticallyCommand` | Cmd+Shift+↑/↓ | Vertical expand/contract |
+| `ExtendSelectionHorizontallyCommand` | Shift+←/→ | Horizontal expand/contract |
 | `SelectAllCommand` | Cmd+A | Progressive scope expansion |
 | `SelectMeasureCommand` | Double-click measure | Select all in measure |
 | `LassoSelectCommand` | Drag | Select by rectangle |

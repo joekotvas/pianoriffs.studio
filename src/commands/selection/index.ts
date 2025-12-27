@@ -15,4 +15,5 @@ export * from './SelectAllCommand';
 export * from './SelectMeasureCommand';
 export * from './SelectFullEventsCommand';
 export * from './ExtendSelectionVerticallyCommand';
+export * from './ExtendSelectionHorizontallyCommand';
 export * from './SelectAllInMeasureCommand';
