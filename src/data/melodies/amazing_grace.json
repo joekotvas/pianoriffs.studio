@@ -1,0 +1,1617 @@
+{
+  "title": "Amazing Grace",
+  "timeSignature": "3/4",
+  "keySignature": "G",
+  "bpm": 100,
+  "staves": [
+    {
+      "id": "1",
+      "clef": "treble",
+      "keySignature": "G",
+      "measures": [
+        {
+          "id": "m1",
+          "events": [
+            {
+              "id": "e-1",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-1",
+                  "pitch": "D4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-2",
+                  "pitch": "B3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": true
+        },
+        {
+          "id": "m2",
+          "events": [
+            {
+              "id": "e-3",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-4",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-5",
+                  "pitch": "D4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "G"
+            },
+            {
+              "id": "e-4",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-6",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-7",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-5",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-8",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-9",
+                  "pitch": "D4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m3",
+          "events": [
+            {
+              "id": "e-9",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-16",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-17",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-10",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-18",
+                  "pitch": "A4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-19",
+                  "pitch": "F#4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "D7"
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m4",
+          "events": [
+            {
+              "id": "e-13",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-24",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-25",
+                  "pitch": "E4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "Em"
+            },
+            {
+              "id": "e-14",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-26",
+                  "pitch": "E4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-27",
+                  "pitch": "C4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "C"
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m5",
+          "events": [
+            {
+              "id": "e-17",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-32",
+                  "pitch": "D4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-33",
+                  "pitch": "B3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "G"
+            },
+            {
+              "id": "e-18",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-34",
+                  "pitch": "D4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-35",
+                  "pitch": "B3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m6",
+          "events": [
+            {
+              "id": "e-21",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-40",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-41",
+                  "pitch": "D4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "G"
+            },
+            {
+              "id": "e-22",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-42",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-43",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-23",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-44",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-45",
+                  "pitch": "D4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m7",
+          "events": [
+            {
+              "id": "e-27",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-52",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-53",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-28",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-54",
+                  "pitch": "A4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-55",
+                  "pitch": "F#4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "D7"
+            },
+            {
+              "id": "e-29",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-56",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-57",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m8",
+          "events": [
+            {
+              "id": "e-32",
+              "duration": "half",
+              "dotted": true,
+              "notes": [
+                {
+                  "id": "n-62",
+                  "pitch": "D5",
+                  "isRest": false,
+                  "tied": true
+                },
+                {
+                  "id": "n-63",
+                  "pitch": "F#4",
+                  "isRest": false,
+                  "tied": true
+                }
+              ],
+              "isRest": false,
+              "chord": "D"
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m9",
+          "events": [
+            {
+              "id": "e-34",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-66",
+                  "pitch": "D5",
+                  "isRest": false
+                },
+                {
+                  "id": "n-67",
+                  "pitch": "F#4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-35",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-68",
+                  "pitch": null,
+                  "isRest": true
+                }
+              ],
+              "isRest": true,
+              "chord": null
+            },
+            {
+              "id": "e-36",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-69",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-70",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m10",
+          "events": [
+            {
+              "id": "e-40",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-76",
+                  "pitch": "D5",
+                  "isRest": false
+                },
+                {
+                  "id": "n-77",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "G"
+            },
+            {
+              "id": "e-41",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-78",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-79",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-42",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-80",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-81",
+                  "pitch": "D4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m11",
+          "events": [
+            {
+              "id": "e-46",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-88",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-89",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-47",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-90",
+                  "pitch": "A4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-91",
+                  "pitch": "F#4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "D7"
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m12",
+          "events": [
+            {
+              "id": "e-50",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-96",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-97",
+                  "pitch": "E4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "C"
+            },
+            {
+              "id": "e-51",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-98",
+                  "pitch": "E4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-99",
+                  "pitch": "C4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m13",
+          "events": [
+            {
+              "id": "e-54",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-104",
+                  "pitch": "D4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-105",
+                  "pitch": "B3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "G"
+            },
+            {
+              "id": "e-55",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-106",
+                  "pitch": "D4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-107",
+                  "pitch": "B3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m14",
+          "events": [
+            {
+              "id": "e-58",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-112",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-113",
+                  "pitch": "E4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "Em"
+            },
+            {
+              "id": "e-59",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-114",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-115",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null,
+              "tuplet": {
+                "ratio": [3, 2],
+                "groupSize": 3,
+                "position": 0,
+                "baseDuration": "eighth",
+                "id": "t1"
+              }
+            },
+            {
+              "id": "e-60",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-116",
+                  "pitch": "A4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-117",
+                  "pitch": "F#4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null,
+              "tuplet": {
+                "ratio": [3, 2],
+                "groupSize": 3,
+                "position": 1,
+                "baseDuration": "eighth",
+                "id": "t1"
+              }
+            },
+            {
+              "id": "e-61",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-118",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-119",
+                  "pitch": "E4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null,
+              "tuplet": {
+                "ratio": [3, 2],
+                "groupSize": 3,
+                "position": 2,
+                "baseDuration": "eighth",
+                "id": "t1"
+              }
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m15",
+          "events": [
+            {
+              "id": "e-64",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-124",
+                  "pitch": "B4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-125",
+                  "pitch": "G4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": "G"
+            },
+            {
+              "id": "e-67",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-130",
+                  "pitch": "A4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-131",
+                  "pitch": "C4",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m16",
+          "events": [
+            {
+              "id": "e-70",
+              "duration": "half",
+              "dotted": true,
+              "notes": [
+                {
+                  "id": "n-136",
+                  "pitch": "G4",
+                  "isRest": false,
+                  "tied": true
+                },
+                {
+                  "id": "n-137",
+                  "pitch": "B3",
+                  "isRest": false,
+                  "tied": true
+                }
+              ],
+              "isRest": false,
+              "chord": "G"
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m17",
+          "events": [
+            {
+              "id": "e-72",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-140",
+                  "pitch": "G4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-141",
+                  "pitch": "B3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-73",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-142",
+                  "pitch": null,
+                  "isRest": true
+                }
+              ],
+              "isRest": true,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "clef": "bass",
+      "keySignature": "G",
+      "measures": [
+        {
+          "id": "m1-b",
+          "events": [
+            {
+              "id": "e-2",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-3",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": true
+        },
+        {
+          "id": "m2-b",
+          "events": [
+            {
+              "id": "e-6",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-10",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-11",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-7",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-12",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-13",
+                  "pitch": "B2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-8",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-14",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-15",
+                  "pitch": "G2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m3-b",
+          "events": [
+            {
+              "id": "e-11",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-20",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-21",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-12",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-22",
+                  "pitch": "C3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-23",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m4-b",
+          "events": [
+            {
+              "id": "e-15",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-28",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-29",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-16",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-30",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-31",
+                  "pitch": "C3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m5-b",
+          "events": [
+            {
+              "id": "e-19",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-36",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-37",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-20",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-38",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-39",
+                  "pitch": "G2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m6-b",
+          "events": [
+            {
+              "id": "e-24",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-46",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-47",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-25",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-48",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-49",
+                  "pitch": "B2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-26",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-50",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-51",
+                  "pitch": "G2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m7-b",
+          "events": [
+            {
+              "id": "e-30",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-58",
+                  "pitch": "D4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-59",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-31",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-60",
+                  "pitch": "D3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-61",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m8-b",
+          "events": [
+            {
+              "id": "e-33",
+              "duration": "half",
+              "dotted": true,
+              "notes": [
+                {
+                  "id": "n-64",
+                  "pitch": "A3",
+                  "isRest": false,
+                  "tied": true
+                },
+                {
+                  "id": "n-65",
+                  "pitch": "D3",
+                  "isRest": false,
+                  "tied": true
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m9-b",
+          "events": [
+            {
+              "id": "e-37",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-71",
+                  "pitch": "A3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-72",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-38",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-73",
+                  "pitch": null,
+                  "isRest": true
+                }
+              ],
+              "isRest": true,
+              "chord": null
+            },
+            {
+              "id": "e-39",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-74",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-75",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m10-b",
+          "events": [
+            {
+              "id": "e-43",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-82",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-83",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-44",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-84",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-85",
+                  "pitch": "B2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-45",
+              "duration": "eighth",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-86",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-87",
+                  "pitch": "G2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m11-b",
+          "events": [
+            {
+              "id": "e-48",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-92",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-93",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-49",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-94",
+                  "pitch": "D3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-95",
+                  "pitch": "D2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m12-b",
+          "events": [
+            {
+              "id": "e-52",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-100",
+                  "pitch": "C4",
+                  "isRest": false
+                },
+                {
+                  "id": "n-101",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-53",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-102",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-103",
+                  "pitch": "C3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m13-b",
+          "events": [
+            {
+              "id": "e-56",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-108",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-109",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-57",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-110",
+                  "pitch": "B2",
+                  "isRest": false
+                },
+                {
+                  "id": "n-111",
+                  "pitch": "G2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m14-b",
+          "events": [
+            {
+              "id": "e-62",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-120",
+                  "pitch": "B3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-121",
+                  "pitch": "G3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-63",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-122",
+                  "pitch": "E3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-123",
+                  "pitch": "B2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m15-b",
+          "events": [
+            {
+              "id": "e-68",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-132",
+                  "pitch": "F#3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-133",
+                  "pitch": "D3",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-69",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-134",
+                  "pitch": "D3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-135",
+                  "pitch": "D2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m16-b",
+          "events": [
+            {
+              "id": "e-71",
+              "duration": "half",
+              "dotted": true,
+              "notes": [
+                {
+                  "id": "n-138",
+                  "pitch": "G3",
+                  "isRest": false,
+                  "tied": true
+                },
+                {
+                  "id": "n-139",
+                  "pitch": "G2",
+                  "isRest": false,
+                  "tied": true
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        },
+        {
+          "id": "m17-b",
+          "events": [
+            {
+              "id": "e-74",
+              "duration": "half",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-143",
+                  "pitch": "G3",
+                  "isRest": false
+                },
+                {
+                  "id": "n-144",
+                  "pitch": "G2",
+                  "isRest": false
+                }
+              ],
+              "isRest": false,
+              "chord": null
+            },
+            {
+              "id": "e-75",
+              "duration": "quarter",
+              "dotted": false,
+              "notes": [
+                {
+                  "id": "n-145",
+                  "pitch": null,
+                  "isRest": true
+                }
+              ],
+              "isRest": true,
+              "chord": null
+            }
+          ],
+          "isPickup": false
+        }
+      ]
+    }
+  ]
+}
